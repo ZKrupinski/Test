@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111924">
+<title>열혈강호 弓 · 자유 조준 + 살아 움직이는 적</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;color:#f9e5c0;background:radial-gradient(circle,#352d2a,#121721 70%);font:16px/1.5 system-ui,"Malgun Gothic",sans-serif}
+.wrap{text-align:center;max-width:440px;margin:24px;padding:28px;background:#151a25;border:1px solid #8c7044;border-radius:18px;box-shadow:0 18px 58px #0009}
+h1{font-size:30px;margin:0 0 8px;color:#f6d89e}p{color:#e0c9a2}small{display:block;opacity:.75;margin-top:16px}
+progress{width:100%;height:15px;accent-color:#c78c4b}#err{display:none;color:#ffb4a3;white-space:pre-line}button{background:#c08a4e;color:#15110c;border:0;padding:12px 20px;border-radius:10px;font-weight:bold}
+</style></head>
+<body><div class="wrap"><h1>熱血江湖 · 弓</h1><p>자유 조준 · 살아 움직이는 적</p>
+<p id="status">원본 게임과 신규 전투 패치를 불러오는 중…</p>
+<progress id="prog" max="16" value="0"></progress><p id="err"></p>
+<small>독립 v2.3 플레이테스트의 기능 통합본. 정식 서비스 사이트와는 별개입니다.</small></div>
+<script>
+(async()=>{
+const status=document.getElementById('status'),prog=document.getElementById('prog'),err=document.getElementById('err');
+const roots=Array.from({length:15},(_,i)=>'chunks/source_'+String(i).padStart(3,'0')+'.txt');
+const resources=[...roots,'src/crimson_bow_motion_aim_patch_v2.js'];
+let loaded=0;
+async function read(url){
+ const response=await fetch(url,{cache:'no-store'});
+ if(!response.ok)throw Error(url+' : HTTP '+response.status);
+ const text=await response.text();
+ loaded++;prog.value=loaded;status.textContent='게임 리소스 로딩 '+loaded+' / '+resources.length;
+ return text;
+}
+try{
+ const parts=await Promise.all(resources.map(read));
+ const base=parts.slice(0,-1).join(''),patch=parts[parts.length-1];
+ if(base.length!==6952384 || !base.startsWith('<!doctype html>') || !base.includes('function arrowShot(') || !base.includes('</body>'))throw Error('원본 게임의 파일 크기 또는 구성 요소 검증 실패');
+ if(!patch.includes('CrimsonBowMotionV2'))throw Error('자유 조준·적 움직임 패치 누락');
+ const pos=base.toLowerCase().lastIndexOf('</body>');
+ if(pos<0)throw Error('원본 게임의 HTML 구조 오류');
+ const merged=base.slice(0,pos)+'<script>\n'+patch+'\n<\/script>\n'+base.slice(pos);
+ status.textContent='전장 준비 완료';
+ document.open();document.write(merged);document.close();
+}catch(e){console.error('Crimson Bow loading failed',e);status.textContent='게임을 시작할 수 없습니다';err.textContent=String(e.message||e);err.style.display='block';}
+})();
+</script></body></html>
