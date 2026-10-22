@@ -135,6 +135,77 @@
     @media(max-width:760px){.cbm2-controls{right:7px;bottom:6px;gap:6px}.cbm2-aim{font-size:9px;padding:5px 6px}.cbm2-fire{min-width:54px;min-height:54px;padding:6px;font-size:12px}}
   `;
   document.head.appendChild(style);
+
+  // CrimsonBowMobileReadabilityV1 — responsive typography only; game logic untouched.
+  // Added after the original and motion-control CSS so smaller legacy media rules lose.
+  const readabilityStyle = document.createElement('style');
+  readabilityStyle.id = 'crimson-bow-mobile-readability-v1';
+  readabilityStyle.textContent = `
+    button.action, .modal button, .cbm2-fire {
+      font-family: system-ui, "Noto Sans KR", "Malgun Gothic", sans-serif;
+      font-weight: 900;
+      line-height: 1.3;
+      letter-spacing: 0;
+      overflow-wrap: break-word;
+    }
+    button.action {
+      font-size: 16px;
+      min-height: 48px;
+      padding: 11px 15px;
+    }
+    .panel h3 { font-size: 16px; font-weight: 850; }
+    .sliders { font-size: 14px; line-height: 1.55; }
+    .hint, #status { font-size: 13px; line-height: 1.6; }
+    .modal p { font-size: 15px; line-height: 1.65; }
+    .modal .fine { font-size: 12px; line-height: 1.55; }
+    .modal button { font-size: 17px; min-height: 48px; }
+    header .name small { font-weight: 800; }
+    @media (max-width: 760px) {
+      header .name { font-size: 18px; }
+      header .name small { font-size: 10px; }
+      header .sub { font-size: 11px; }
+      .below { gap: 10px; padding: 10px; }
+      .panel { padding: 13px; }
+      .panel h3 { font-size: 16px; margin-bottom: 10px; }
+      .button-row { gap: 8px; }
+      .button-row button.action {
+        flex: 1 1 calc(50% - 4px);
+        min-width: 0;
+        font-size: 16px;
+        font-weight: 900;
+        min-height: 50px;
+        padding: 11px 10px;
+        white-space: normal;
+        text-align: center;
+      }
+      .sliders { font-size: 14px; gap: 10px 14px; }
+      .sliders label { min-height: 36px; }
+      .sliders input { width: clamp(80px, 22vw, 130px); }
+      .hint { font-size: 13px; padding: 4px 13px 20px; }
+      #status { font-size: 13px; }
+      .chip { min-width: 0; max-width: 37%; padding: 4px 6px; }
+      .chip strong { font-size: 12px; }
+      .chip small { font-size: 11px; }
+      .center-tag { font-size: 11px; max-width: 30%; padding: 4px; }
+      .modal { padding: 16px 15px; }
+      .modal p { font-size: 14px; line-height: 1.6; }
+      .modal .fine { font-size: 12px; }
+      .modal button { font-size: 17px; min-height: 48px; padding: 12px 18px; white-space: normal; }
+      .cbm2-fire { min-width: 60px; min-height: 60px; padding: 7px; font-size: 16px; }
+      .cbm2-aim { font-size: 12px; line-height: 1.35; padding: 5px 7px; }
+    }
+    @media (max-width: 380px) {
+      .cbm2-controls { right: 4px; bottom: 4px; gap: 4px; }
+      .cbm2-fire { min-width: 54px; min-height: 54px; font-size: 15px; padding: 5px; }
+      .cbm2-aim { font-size: 11px; padding: 4px 5px; }
+      .hud { padding: 3px; gap: 2px; }
+      .chip strong { font-size: 11px; }
+      .chip small { font-size: 10px; }
+      .center-tag { font-size: 10px; }
+    }
+  `;
+  document.head.appendChild(readabilityStyle);
+
   const controls = document.createElement('div'); controls.className = 'cbm2-controls';
   const badge = document.createElement('div'); badge.className = 'cbm2-aim';
   const fire = document.createElement('button');fire.className='cbm2-fire';fire.type='button';
