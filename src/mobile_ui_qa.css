@@ -1,0 +1,45 @@
+/* crimson-bow-mobile-ui-qa-v1 | independent GitHub playtest only */
+:root { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+html,body { max-width:100%; overflow-x:clip; }
+body { padding-bottom:env(safe-area-inset-bottom,0px); }
+header,.shell,.below,.hint { max-width:100%; }
+button { font-family:system-ui,'Malgun Gothic','Apple SD Gothic Neo',sans-serif; letter-spacing:-.018em; line-height:1.2; }
+button.action { font-size:14px; font-weight:850; padding:9px 10px; min-width:0; min-height:39px; max-width:100%; white-space:normal; overflow-wrap:anywhere; }
+#btnHell,#btnRain { font-size:16px; font-weight:900; text-shadow:0 1px 3px #000b; }
+.modal button { font-weight:850; line-height:1.25; }
+button:focus-visible,input:focus-visible { outline:3px solid #ffe09a; outline-offset:2px; }
+.sliders label { max-width:100%; min-width:0; }
+.sliders input { max-width:min(90px,27vw); }
+@media(max-width:760px) {
+ header { min-width:0; }
+ header .name,header .sub { min-width:0; }
+ .hud { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,.85fr) minmax(0,1fr); align-items:start; padding:5px; gap:4px; }
+ .hud .chip { min-width:0; width:100%; overflow-wrap:anywhere; }
+ .hud .chip .track { max-width:100%; }
+ .hud .center-tag { min-width:0; max-width:100%; line-height:1.25; padding:4px 3px; }
+ .below { grid-template-columns:minmax(0,1fr); }
+ .button-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+ .button-row button.action { width:100%; font-size:14px; padding:8px 7px; }
+ .button-row #btnHell,.button-row #btnRain { font-size:clamp(14px,3.6vw,16px); }
+ .panel { min-width:0; }
+ .feedback { min-width:0; width:94%; max-width:94%; }
+}
+@media(max-width:420px) {
+ header .sub { font-size:9px; }
+ .hud { padding:4px; gap:3px; }
+ .hud .chip { padding:4px 5px; }
+ .hud .chip strong { font-size:clamp(9px,2.65vw,11px); line-height:1.12; }
+ .hud .chip small { font-size:9px; line-height:1.15; }
+ .hud .center-tag { font-size:9px; line-height:1.15; }
+ .feedback { bottom:4px; font-size:11px; }
+ .modal { max-height:93svh; overflow-y:auto; overscroll-behavior:contain; }
+ .modal h1 { font-size:clamp(27px,8vw,42px); }
+ .hint { overflow-wrap:anywhere; }
+}
+@media(max-height:500px) and (orientation:landscape) {
+ .cover { padding:4px; }
+ .modal { max-height:96dvh; overflow-y:auto; padding:9px 14px; }
+ .modal h1 { font-size:25px; margin:3px 0; }
+ .modal p { margin:4px 0; line-height:1.4; }
+ .modal .fine { margin:7px 0 0; }
+}
