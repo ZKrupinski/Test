@@ -24,7 +24,7 @@
      }
    };
    image.decoding='async';
-   image.src='./assets/octopus/'+f.filename;
+   image.src='./assets/octopus/'+f.filename+'?asset=20261104-1614';
  });
  function draw(ctx,now,hero){
    friends.forEach(function(f,i){
