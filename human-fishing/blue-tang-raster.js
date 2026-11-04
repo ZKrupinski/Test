@@ -334,4 +334,9 @@ window.BlueTangSprites={
  getPreviewAction:function(){return previewAction},
  version:'aquarium-official-2.10'
 };
+// Other species can register their own sprite players here when their
+// action sheets exist. The aquarium then picks the proper player by species.
+window.FishSpritePlayers=window.FishSpritePlayers||[];
+if(window.FishSpritePlayers.indexOf(window.BlueTangSprites)<0)
+ window.FishSpritePlayers.push(window.BlueTangSprites);
 })();
