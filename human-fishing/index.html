@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#092a39">
-<title>인간낚시 · HUMAN FISHING α 0.4</title>
+<title>인간낚시 · HUMAN FISHING α 0.5</title>
 <style>
 :root{color-scheme:dark;--gold:#f5cb81;--aqua:#8ee4e2;--ink:#092b39;--panel:#072633ee}
 *{box-sizing:border-box}body{margin:0;background:#061923;color:#effffb;font:15px/1.45 system-ui,"Pretendard","Malgun Gothic",sans-serif;overflow-x:hidden}
@@ -60,10 +60,17 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 .shop-hint{font-size:12px;color:#aacbd2}
 @media(max-width:760px){.shop-tabs button{padding:6px 9px;font-size:11px}.shop-sort select{padding:5px}.shop-badge{font-size:10px}.shop-buttons button{min-width:76px}.shop-controls{gap:4px}}
 
+
+/* Floating analogue joystick, rendered as a textured CSS control. */
+#virtualJoystick{position:absolute;z-index:5;left:50%;top:50%;width:10.8%;aspect-ratio:1;max-width:170px;min-width:72px;transform:translate(-50%,-50%);display:none;pointer-events:none;opacity:.94;border-radius:50%;border:2px solid #afecf0b8;background:radial-gradient(circle at 34% 28%,#b1e9e533 0%,#133c59bd 33%,#041a2cd9 72%,#071626eb 100%);box-shadow:inset 0 0 0 9px #b0f5fa10,inset 0 0 12px #75cddd70,0 6px 28px #000a}
+#virtualJoystick:after{content:"";position:absolute;inset:23%;border:1px dashed #d5faf85e;border-radius:50%}
+#virtualKnob{position:absolute;z-index:1;left:50%;top:50%;transform:translate(-50%,-50%);width:44%;aspect-ratio:1;border-radius:50%;border:2px solid #d8fff0b8;background:radial-gradient(circle at 28% 24%,#e7ffec,#6ebec2 38%,#285d77 81%);box-shadow:0 5px 13px #001522b8,inset 0 2px 8px #fff7}
+#virtualJoystick.visible{display:block}
+@media(max-width:760px){#virtualJoystick{min-width:56px;border-width:1px}#virtualKnob{border-width:1px}}
 </style></head><body><div class="wrap">
-<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 0.4</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
+<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 0.5</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navShop">🛒 상점</button></nav></header>
-<div class="stage" id="stage"><canvas id="game" width="1280" height="720" aria-label="물고기 낚시 게임 화면. 찌를 드래그하고 손을 떼면 물고기를 낚습니다."></canvas>
+<div class="stage" id="stage"><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 어디든 터치해 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
 <div class="hud top"><div class="tag"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins">◈ 0　🐟 0/240</div></div>
 <div class="hud bottom"><div class="guide"><b id="hintTitle">찌를 물고기 가까이 드래그!</b><small id="hint">손을 떼면 주변 물고기가 낚여 올라옵니다.</small></div><button class="action" id="action">낚싯줄<br>당기기</button></div>
 <div class="center-banner" id="banner"><div class="emoji" id="bannerIcon">🐟</div><strong id="bannerTitle">첫 포획!</strong><p id="bannerSub">새로운 물고기 발견</p></div>
@@ -118,6 +125,8 @@ canvas.addEventListener('pointerdown',onBaitPointerDown);
 canvas.addEventListener('pointermove',onBaitPointerMove);
 canvas.addEventListener('pointerup',onBaitPointerUp);
 canvas.addEventListener('pointercancel',onBaitPointerCancel);
+canvas.addEventListener('lostpointercapture',function(e){if(joystick.active&&joystick.id===e.pointerId)hideVirtualJoystick()});
+window.addEventListener('blur',function(){if(joystick.active)hideVirtualJoystick()});
 $('action').onclick=function(){if(view!=='fish'&&view!=='human')return;if(hook)return;release()};
 function openPanel(title,desc,inner){$('panelTitle').textContent=title;$('panelDesc').textContent=desc;$('panelBody').innerHTML=inner;$('panel').classList.add('open')}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
@@ -773,10 +782,10 @@ function success(){
  $('hint').textContent='미끼가 잠겨 멈추면, 미끼를 직접 잡아 드래그하세요.';
 }
 function startCast(){
- cast.active=true;cast.elapsed=0;cast.landing=false;drag=false;dragPointer=null;dragQualified=false;
+ hideVirtualJoystick();cast.active=true;cast.elapsed=0;cast.landing=false;drag=false;dragPointer=null;dragQualified=false;
  bob.x=rodTip(time).x-10;bob.y=rodTip(time).y+18;
  $('hintTitle').textContent='낚싯대를 휘둘러 찌를 던지는 중…';
- $('hint').textContent='수면에 닿은 미끼가 천천히 가라앉습니다. 잠길 때까지 기다려주세요.';
+ $('hint').textContent='수면에 닿은 미끼가 천천히 가라앉습니다. 물속으로 들어온 순간 화면 어디든 터치하면 조이스틱으로 움직일 수 있어요.';
 }
 function castEasing(p){p=clamp(p,0,1);return p*p*(3-2*p)}
 function castMotion(dt){
@@ -800,38 +809,73 @@ function castMotion(dt){
  }
  if(u>=cast.duration){
   cast.active=false;bob.x=640;bob.y=436;
-  $('hintTitle').textContent='미끼를 손가락으로 직접 잡아 움직이세요';
-  $('hint').textContent='미끼를 잡고 드래그한 다음 생물 가까이 손을 떼면 포획!';
+  $('hintTitle').textContent='화면 아무 데나 터치하면 가상 조이스틱이 나타나요';
+  $('hint').textContent='스틱을 밀어 이동하고 손을 떼면 가까운 생물 포획!';
  }
 }
+var joystick={active:false,id:null,x:0,y:0,dx:0,dy:0,engaged:false,traveled:0};
+function hideVirtualJoystick(){
+ joystick.active=false;joystick.id=null;joystick.dx=0;joystick.dy=0;joystick.engaged=false;
+ $('virtualJoystick').classList.remove('visible');
+ $('virtualKnob').style.left='50%';$('virtualKnob').style.top='50%';
+ canvas.classList.remove('dragging');
+ drag=false;
+}
+function moveVirtualJoystick(p){
+ var dx=p.x-joystick.x,dy=p.y-joystick.y,d=Math.hypot(dx,dy);
+ var radius=76;
+ if(d>radius){dx=dx/d*radius;dy=dy/d*radius;}
+ joystick.dx=dx/radius;joystick.dy=dy/radius;
+ joystick.traveled=Math.max(joystick.traveled,d);
+ if(d>10)joystick.engaged=true;
+ $('virtualKnob').style.left=(50+joystick.dx*30)+'%';
+ $('virtualKnob').style.top=(50+joystick.dy*30)+'%';
+ canvas.classList.toggle('dragging',joystick.engaged);
+}
 function onBaitPointerDown(e){
- if(view!=='fish'||cast.active||hook||dragPointer!==null)return;
- var p=resizePointer(e),radius=e.pointerType==='touch'?69:48;
- if(Math.hypot(p.x-bob.x,p.y-bob.y)>radius)return; // no teleport, no tap-to-move
- dragPointer=e.pointerId;drag=false;dragQualified=false;
- dragStart={x:p.x,y:p.y};dragOffset={x:bob.x-p.x,y:bob.y-p.y};
+ // Keep the natural air-cast. Once the bait has touched water (u >= 1.4),
+ // any canvas touch is the origin of a virtual joystick, NOT a teleport.
+ if(view!=='fish'||hook||joystick.active||cast.active&&!cast.landing)return;
+ var p=resizePointer(e);
+ if(cast.active&&cast.landing){
+   cast.active=false; // interrupt sinking at its CURRENT depth without snapping to y=436
+   $('hintTitle').textContent='가상 조이스틱으로 미끼 조작 중';
+   $('hint').textContent='어느 위치에서든 밀어서 이동 · 놓으면 포획 판정';
+ }
+ joystick.active=true;joystick.id=e.pointerId;joystick.x=p.x;joystick.y=p.y;
+ joystick.dx=0;joystick.dy=0;joystick.engaged=false;joystick.traveled=0;
+ var centerX=clamp(p.x,76,W-76),centerY=clamp(p.y,76,H-76);
+ var stick=$('virtualJoystick'),knob=$('virtualKnob');
+ stick.style.left=(centerX/W*100)+'%';stick.style.top=(centerY/H*100)+'%';
+ knob.style.left='50%';knob.style.top='50%';
+ stick.classList.add('visible');
  try{canvas.setPointerCapture(e.pointerId)}catch(err){}
  e.preventDefault();
 }
 function onBaitPointerMove(e){
- if(dragPointer!==e.pointerId||!dragStart)return;
- var p=resizePointer(e);
- if(!dragQualified&&Math.hypot(p.x-dragStart.x,p.y-dragStart.y)<11)return;
- dragQualified=true;drag=true;canvas.classList.add('dragging');
- var x=clamp(p.x+dragOffset.x,240,1215),y=clamp(p.y+dragOffset.y,285,615);
- bob.x=mix(bob.x,x,.74);bob.y=mix(bob.y,y,.74);
+ if(!joystick.active||joystick.id!==e.pointerId)return;
+ moveVirtualJoystick(resizePointer(e));
  e.preventDefault();
 }
 function onBaitPointerUp(e){
- if(dragPointer!==e.pointerId)return;
- var moved=dragQualified;
- drag=false;dragQualified=false;dragPointer=null;dragStart=null;dragOffset=null;
- canvas.classList.remove('dragging');e.preventDefault();
- if(moved&&view==='fish'&&!cast.active&&!hook)release(); // tapping alone never catches
+ if(!joystick.active||joystick.id!==e.pointerId)return;
+ // Do not catch on a tap. Only a deliberately tilted joystick can release the lure.
+ var moved=joystick.engaged;
+ hideVirtualJoystick();
+ e.preventDefault();
+ if(moved&&view==='fish'&&!cast.active&&!hook)release();
 }
 function onBaitPointerCancel(e){
- if(dragPointer!==e.pointerId)return;
- drag=false;dragQualified=false;dragPointer=null;dragStart=null;dragOffset=null;canvas.classList.remove('dragging');
+ if(!joystick.active||joystick.id!==e.pointerId)return;
+ hideVirtualJoystick();
+}
+function updateJoystick(dt){
+ if(!joystick.active||view!=='fish'||hook)return;
+ var nx=joystick.dx,ny=joystick.dy,mag=Math.hypot(nx,ny);
+ if(mag<.12)return;
+ var speed=390,curve=Math.min(1,(mag-.12)/.88);
+ bob.x=clamp(bob.x+nx/mag*speed*curve*dt,240,1215);
+ bob.y=clamp(bob.y+ny/mag*speed*curve*dt,274,615);
 }
 function rodTip(now){
  var rod=selectedGear('rod'),p=cast.active?cast.elapsed:10,casting=cast.active&&p<1.0;
@@ -923,7 +967,7 @@ function tick(stamp){
     humanIcon(a,time);
    });
   }
-  if(view==='fish')castMotion(dt);
+  if(view==='fish'){castMotion(dt);updateJoystick(dt);}
   drawOcto(time);drawRod(time);drawHelpers(time);
   if(view==='fish'){
    if(hook){
@@ -956,10 +1000,10 @@ function tick(stamp){
  requestAnimationFrame(tick);
 }
 var previousModeAlpha04=setMode;
-setMode=function(m){previousModeAlpha04(m);if(m==='fish')startCast()};
+setMode=function(m){previousModeAlpha04(m);if(m==='fish')startCast();else hideVirtualJoystick()};
 $('action').onclick=function(){
  // Button supports the same release only when the player has actively dragged the lure.
- if(view==='fish'&&!cast.active)announce('🎣','미끼를 직접 드래그!','미끼를 잡아 생물 근처에서 손을 떼면 낚입니다.');
+ if(view==='fish'&&!cast.active)announce('🎣','가상 조이스틱으로 이동!','화면 아무 곳에서나 터치 후 스틱을 밀고 손을 놓으세요.');
 };
 
 buildFish();buildHum();updateStats();setMode('fish');requestAnimationFrame(tick);
