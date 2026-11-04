@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#092a39">
-<title>인간낚시 · HUMAN FISHING α 0.7</title>
+<title>인간낚시 · HUMAN FISHING α 0.8</title>
 <style>
 :root{color-scheme:dark;--gold:#f5cb81;--aqua:#8ee4e2;--ink:#092b39;--panel:#072633ee}
 *{box-sizing:border-box}body{margin:0;background:#061923;color:#effffb;font:15px/1.45 system-ui,"Pretendard","Malgun Gothic",sans-serif;overflow-x:hidden}
@@ -68,11 +68,11 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 #virtualJoystick.visible{display:block}
 @media(max-width:760px){#virtualJoystick{min-width:56px;border-width:1px}#virtualKnob{border-width:1px}}
 .fever-hud{position:absolute;z-index:3;left:17px;bottom:111px;width:min(270px,35%);padding:10px 12px;border-radius:12px;border:1px solid #a6d6d075;background:linear-gradient(125deg,#0b3444ec,#112a3be6);box-shadow:0 4px 20px #0007;pointer-events:none;color:#c4eeec}.fever-hud .fever-top{display:flex;justify-content:space-between;gap:7px;font-size:13px;font-weight:950}.fever-hud .fever-top span:last-child{color:#ffe8a5}.fever-meter{height:8px;background:#061821;border:1px solid #4d7f87;border-radius:50px;margin-top:6px;overflow:hidden}.fever-meter i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#43bac4,#94eadb,#ffcc82);border-radius:50px;transition:width .25s ease}.fever-detail{font-size:10px;color:#b7d6db;margin-top:4px}.fever-hud.ready{border-color:#ffd28f;box-shadow:0 0 24px #ffc36b50,0 6px 17px #0007;background:linear-gradient(120deg,#563343eb,#0a5762ee)}.fever-hud.ready .fever-top span:first-child{color:#ffe4ab}.shop-octo-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:7px 0}.shop-octo-stats span{font-size:11px;color:#d8f7ea;background:#0d3846;border-radius:5px;padding:3px 5px}@media(max-width:760px){.fever-hud{left:6px;bottom:56px;width:min(166px,38%);padding:5px 7px;border-radius:7px}.fever-hud .fever-top{font-size:9px}.fever-meter{height:5px;margin-top:3px}.fever-detail{font-size:8px}.shop-octo-stats span{font-size:9px;padding:2px 3px}}</style></head><body><div class="wrap">
-<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 0.7</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
+<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 0.8</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navShop">🛒 상점</button></nav></header>
 <div class="stage" id="stage"><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 어디든 터치해 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
 <div class="hud top"><div class="tag"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins">◈ 0　🐟 0/240</div></div>
-<div id="feverHud" class="fever-hud"><div class="fever-top"><span>🐙 OCTO FEVER</span><span id="feverNum">0 / 6</span></div><div class="fever-meter"><i id="feverFill"></i></div><div id="feverDetail" class="fever-detail">물고기 포획으로 충전</div></div><div class="hud bottom"><div class="guide"><b id="hintTitle">찌를 물고기 가까이 드래그!</b><small id="hint">손을 떼면 주변 물고기가 낚여 올라옵니다.</small></div><button class="action" id="action">낚싯줄<br>당기기</button></div>
+<div id="feverHud" class="fever-hud"><div class="fever-top"><span>🐙 OCTO FEVER</span><span id="feverNum">0 / 6</span></div><div class="fever-meter"><i id="feverFill"></i></div><div id="feverDetail" class="fever-detail">물고기 포획으로 충전</div></div>
 <div class="center-banner" id="banner"><div class="emoji" id="bannerIcon">🐟</div><strong id="bannerTitle">첫 포획!</strong><p id="bannerSub">새로운 물고기 발견</p></div>
 <div class="sideinfo" id="sideinfo"></div>
 <section class="panel" id="panel"><div class="panelhead"><div><h2 id="panelTitle">도감</h2><div class="minor" id="panelDesc">240종 수집 도전</div></div><button class="smallbtn" id="closePanel">✕ 닫기</button></div><div id="panelBody"></div></section>
@@ -102,7 +102,8 @@ var humans=['졸린 어부','수다쟁이 관광객','과자 부자','꼬마 해
 var key='humanFishingAlpha01',save={coins:80,owned:{},placed:[],human:{},humanPlaced:[],up:[0,0,0],catches:0,zone:0,decor:0};
 try{var old=JSON.parse(localStorage.getItem(key)||'null');if(old){save=Object.assign(save,old)}}catch(e){}
 function persist(){try{localStorage.setItem(key,JSON.stringify(save))}catch(e){}}
-function $(id){return document.getElementById(id)}
+var removedBottomUi={textContent:'',innerHTML:'',style:{},classList:{add:function(){},remove:function(){},toggle:function(){}},onclick:null};
+function $(id){return document.getElementById(id)||((id==='hintTitle'||id==='hint'||id==='action')?removedBottomUi:null)}
 var canvas=$('game'),ctx=canvas.getContext('2d'),W=1280,H=720,view='fish',zone=save.zone||0,fish=[],hum=[],bubbles=[],particles=[],ripples=[];
 var bob={x:680,y:390},drag=false,hook=null,time=0,last=performance.now(),bannerTimer=0,random=Math.random,decor=save.decor||0;
 var colors=['#ffbd75','#fa8196','#69e7df','#e8d574','#90b6ef','#b191eb','#67c68e','#f89767','#f7d88a','#ff9eba','#ace38d','#96dbed'];
@@ -785,8 +786,8 @@ function success(){
  if(!human&&save.placed.length===0)save.placed.push(id);
  persist();updateStats();beep('catch');spawnParticles(645,290,extra?50:32,'gold');
  playCatchFx(o,human,name,reward,extra,fresh);
- hook=null;buildFish();buildHum();startCast();
- $('hintTitle').textContent='다음 생물을 낚기 위해 다시 찌를 던집니다';
+ hook=null;buildFish();buildHum();
+ $('hintTitle').textContent='잡은 생물이 문어 입속으로 들어가는 중';
  $('hint').textContent='미끼가 잠겨 멈추면, 미끼를 직접 잡아 드래그하세요.';
 }
 function startCast(){
@@ -843,7 +844,7 @@ function moveVirtualJoystick(p){
 function onBaitPointerDown(e){
  // Keep the natural air-cast. Once the bait has touched water (u >= 1.4),
  // any canvas touch is the origin of a virtual joystick, NOT a teleport.
- if(view!=='fish'||hook||feverFx||joystick.active||cast.active&&!cast.landing)return;
+ if(view!=='fish'||hook||feverFx||catchFx||joystick.active||cast.active&&!cast.landing)return;
  var p=resizePointer(e);
  if(cast.active&&cast.landing){
    cast.active=false; // interrupt sinking at its CURRENT depth without snapping to y=436
@@ -891,8 +892,9 @@ function rodTip(now){
  return{x:725+rod.tier*7+Math.sin(now*1.1)*3-36*swing,y:92-rod.tier*3+Math.sin(now*1.5)*2+35*swing};
 }
 function drawOcto(now){
- // Reposition baby octopus near the center-aligned cast while keeping the art bitmap cached.
+ // Base octopus is a bitmap, with 12 cached bitmap mouth-opening phases.
  ctx.save();ctx.translate(295,15+Math.sin(now*1.2)*3);ctx.drawImage(octo,0,0,280,253);ctx.restore();
+ drawOctopusMouth(now);
 }
 function drawRod(now){
  var tip=rodTip(now),base={x:536,y:191},gear=selectedGear('rod'),lv=gearLevel('rod',gear.id);
@@ -968,11 +970,11 @@ function tick(stamp){
   if(view==='fish'||view==='book'||view==='grow'||view==='shop'){
    fish.forEach(function(a){if(!hook||a!==hook.obj){
     a.x+=a.vx*dt*60;a.phase+=dt*.4;if(a.x<320||a.x>1195)a.vx*=-1}
-    drawFish(a,time);drawFishRankTag(a);
+    if(!a.feverCaptured){drawFish(a,time);drawFishRankTag(a)}
    });
    hum.forEach(function(a){if(!hook||a!==hook.obj){
     a.x+=a.vx*dt*55;a.phase+=dt*.23;if(a.x<350||a.x>1200)a.vx*=-1}
-    humanIcon(a,time);
+    if(!a.feverCaptured)humanIcon(a,time);
    });
   }
   if(view==='fish'){castMotion(dt);updateJoystick(dt);}
