@@ -843,7 +843,7 @@ function moveVirtualJoystick(p){
 function onBaitPointerDown(e){
  // Keep the natural air-cast. Once the bait has touched water (u >= 1.4),
  // any canvas touch is the origin of a virtual joystick, NOT a teleport.
- if(view!=='fish'||hook||joystick.active||cast.active&&!cast.landing)return;
+ if(view!=='fish'||hook||feverFx||joystick.active||cast.active&&!cast.landing)return;
  var p=resizePointer(e);
  if(cast.active&&cast.landing){
    cast.active=false; // interrupt sinking at its CURRENT depth without snapping to y=436
@@ -983,7 +983,7 @@ function tick(stamp){
     var baseDuration=hook.kind==='human'?(hook.obj.id>=20?2.5:1.85):(1.10-save.up[0]*.08);
     var duration=Math.max(.56,baseDuration*(1-gearPower('rod')*.035-gearPower('helper')*.012));
     var p=ease(hook.elapsed/duration),o=hook.obj;
-    o.x=mix(hook.startX,510,p)+(hook.kind==='human'?Math.sin(time*18)*(1-p)*14:0);
+    o.x=mix(hook.startX,510,p)+(hook.kind==='human'?Math.sin(time*18)*(1-p)*14:0)+(hook.willEscape?Math.sin(time*35)*(1-p)*19:0);
     o.y=mix(hook.startY,271-55*Math.sin(p*Math.PI),p);
     bob.x=o.x;bob.y=o.y;
     if(hook.willEscape&&hook.elapsed>=duration*hook.escapeAt)escapeHook();
@@ -1245,6 +1245,7 @@ function octoSprite(tier,frame){
 }
 var priorBobForFever=drawBob;
 drawBob=function(){
+ if(feverFx)return;
  if(!save.fever.ready){priorBobForFever();return}
  var g=selectedGear('octopus'),v=octoStats(g.tier,gearLevel('octopus',g.id)),size=v.size;
  ctx.save();
