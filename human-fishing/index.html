@@ -1392,90 +1392,97 @@ function ecoCrowd(f,dt){
 function updateEcosystem(dt){
  if(view!=='fish')return;
  eco.t+=dt;eco.fishTimer+=dt;eco.humanTimer+=dt;
- // Continuous immigration. Fish born offscreen swim into frame naturally.
- var interval=fish.length<11?1.25:fish.length<19?2.45:3.75;
- if(eco.fishTimer>interval){
-  eco.fishTimer=0;spawnWildFish(false);
- }
- if(eco.humanTimer>11){
-  eco.humanTimer=0;spawnWildHuman();
- }
+ var interval=fish.length<5?1.55:fish.length<11?3.3:fish.length<16?5.8:8.5;
+ if(eco.fishTimer>interval){eco.fishTimer=0;spawnWildFish(false)}
+ if(eco.humanTimer>11){eco.humanTimer=0;spawnWildHuman()}
  var fLocked=hook&&hook.obj;
  for(var i=fish.length-1;i>=0;i--){
   var f=fish[i];
   if(f.feverCaptured){fish.splice(i,1);continue}
-  // Keep compatibility with older fish objects and test fixtures.
   if(!Number.isFinite(f.speed)){
    f.ecoId=++eco.next;f.dir=f.vx<0?-1:1;
-   f.speed=clamp(Math.abs(f.vx||.4)*65,30,90);f.vx=f.dir*f.speed;f.vy=0;
+   f.speed=clamp(Math.abs(f.vx||.4)*36,11,36);f.vx=f.dir*f.speed;f.vy=0;
    f.homeY=f.y;f.nextTurn=eco.t+10;f.hunter=false;f.small=false;
    f.schoolId=0;f.panicUntil=0;f.fightUntil=0;
   }
   if(f===fLocked)continue;
-  var n=ecoCrowd(f,dt),wantX=f.dir*f.speed,wantY=Math.sin(eco.t*.85+f.phase)*9;
-  var state=f.schoolId?'school':'cruise',boost=1;
-  if(n.count){
-   var px=n.cx/n.count-f.x,py=n.cy/n.count-f.y;
-   wantX+=clamp(px*.6,-40,40)+clamp(n.ax/n.count-f.vx,-16,16)*.38+n.sepX*1.3;
-   wantY+=clamp(py*.7,-31,31)+n.sepY*1.5;
+  f.y=ecoSafeDepth(f,f.y);
+  if(!f.swimMode)f.swimMode='cruise';
+  if(!Number.isFinite(f.swimFreq))f.swimFreq=.3+((f.ecoId||0)%4)*.08;
+  if(!Number.isFinite(f.swimAmp))f.swimAmp=5;
+  var crowd=ecoCrowd(f,dt);
+  var style=f.swimMode,pace=
+   style==='hover'?.26+.10*Math.sin(eco.t*.7+f.phase):
+   style==='wander'?.63+.22*Math.sin(eco.t*f.swimFreq+f.phase):
+   style==='dart'?.54+.60*Math.pow(Math.max(0,Math.sin(eco.t*f.swimFreq*2+f.phase)),3):
+   .80+.13*Math.sin(eco.t*.28+f.phase);
+  var wantX=f.dir*f.speed*pace;
+  var wantY=Math.sin(eco.t*f.swimFreq+f.phase)*f.swimAmp;
+  var state=f.schoolId?'school':style==='hover'?'hover':'cruise';
+  if(crowd.count){
+   // Loose schools drift together but never lock into identical rows and speeds.
+   var px=crowd.cx/crowd.count-f.x,py=crowd.cy/crowd.count-f.y;
+   wantX+=clamp(px*.11,-8,8)+clamp(crowd.ax/crowd.count-f.vx,-6,6)*.12+crowd.sepX*.60;
+   wantY+=clamp(py*.14,-7,7)+crowd.sepY*.65;
   }
-  if(n.predator){
-   f.panicUntil=Math.max(f.panicUntil,eco.t+.95);
-   f.fearX=n.predator.x;f.fearY=n.predator.y;
+  if(crowd.predator){
+   f.panicUntil=Math.max(f.panicUntil,eco.t+.60);
+   f.fearX=crowd.predator.x;f.fearY=crowd.predator.y;
   }
+  // A nearby lure only spooks individual fish occasionally, not the whole herd.
   var bobNearby=!cast.active&&!hook&&!feverFx&&!escapeFx&&
-   Math.hypot(f.x-bob.x,f.y-bob.y)<68;
-  if(bobNearby){
-   f.panicUntil=Math.max(f.panicUntil,eco.t+.47);
+   Math.hypot(f.x-bob.x,f.y-bob.y)<44;
+  if(bobNearby&&Math.random()<dt*.75){
+   f.panicUntil=Math.max(f.panicUntil,eco.t+.45);
    f.fearX=bob.x;f.fearY=bob.y;
   }
-  // Two rivals may challenge each other even with prey nearby.
-  if(f.hunter&&n.rival&&f.fightUntil<=eco.t&&n.rival.fightUntil<=eco.t&&
-     Math.random()<dt*.27){
-   f.fightUntil=eco.t+1.05;n.rival.fightUntil=eco.t+1.05;
-   f.fightTarget=n.rival.ecoId;n.rival.fightTarget=f.ecoId;
-   eco.contests++;
-  }
   if(f.panicUntil>eco.t){
-   var dx=f.x-f.fearX,dy=f.y-f.fearY,d=Math.hypot(dx,dy)||1;
-   wantX=dx/d*165+(dx>=0?32:-32);
-   wantY=dy/d*65;state='flee';boost=1.8;
+   var dx=f.x-f.fearX,dy=f.y-f.fearY,dist=Math.hypot(dx,dy)||1;
+   wantX=dx/dist*61+(dx>=0?14:-14);
+   wantY=dy/dist*37;state='flee';
   }else if(f.fightUntil>eco.t){
    var rival=fish.find(function(g){return g.ecoId===f.fightTarget});
    if(rival&&!rival.feverCaptured){
     var toward=rival.x-f.x,dist=Math.abs(toward);
-    wantX=(toward>=0?1:-1)*(dist>55?118:-125);
-    wantY=clamp((rival.y-f.y)*1.6,-54,54);state='fight';boost=1.55;
-    if(dist<78&&Math.random()<dt*1.9)spawnParticles((f.x+rival.x)*.5,(f.y+rival.y)*.5,3,'water');
+    wantX=(toward>=0?1:-1)*(dist>55?52:-57);
+    wantY=clamp((rival.y-f.y)*.58,-26,26);
+    state='fight';
+    if(dist<78&&Math.random()<dt*.9)
+     spawnParticles((f.x+rival.x)*.5,(f.y+rival.y)*.5,2,'water');
    }else f.fightUntil=0;
-  }else if(f.hunter&&n.prey){
-   var dx=n.prey.x-f.x,dy=n.prey.y-f.y,d=Math.hypot(dx,dy)||1;
-   wantX=dx/d*100+(dx>0?19:-19);
-   wantY=dy/d*65;state='hunt';boost=1.45;
-   n.prey.panicUntil=Math.max(n.prey.panicUntil,eco.t+1.05);
-   n.prey.fearX=f.x;n.prey.fearY=f.y;
-  }else if(f.hunter&&n.rival&&f.fightUntil<=eco.t&&
-   n.rival.fightUntil<=eco.t&&Math.random()<dt*.16){
-   f.fightUntil=eco.t+1.1;n.rival.fightUntil=eco.t+1.1;
-   f.fightTarget=n.rival.ecoId;n.rival.fightTarget=f.ecoId;
+  }else if(f.hunter&&crowd.prey){
+   var dx=crowd.prey.x-f.x,dy=crowd.prey.y-f.y,d=Math.hypot(dx,dy)||1;
+   wantX=dx/d*48+(dx>0?11:-11);
+   wantY=dy/d*31;state='hunt';
+   crowd.prey.panicUntil=Math.max(crowd.prey.panicUntil,eco.t+.65);
+   crowd.prey.fearX=f.x;crowd.prey.fearY=f.y;
+  }else if(f.hunter&&crowd.rival&&f.fightUntil<=eco.t&&
+    crowd.rival.fightUntil<=eco.t&&Math.random()<dt*.09){
+   f.fightUntil=eco.t+.95;crowd.rival.fightUntil=eco.t+.95;
+   f.fightTarget=crowd.rival.ecoId;crowd.rival.fightTarget=f.ecoId;
    state='fight';eco.contests++;
   }
-  if(f.y<338)wantY+=36;
-  if(f.y>612)wantY-=36;
+  var top=ecoDepthMin(f),bottom=ecoDepthMax(f);
+  if(f.y<top+16)wantY+=Math.max(12,(top+16-f.y)*1.8);
+  if(f.y>bottom-16)wantY-=Math.max(12,(f.y-(bottom-16))*1.8);
   if(f.nextTurn<eco.t){
-   f.nextTurn=eco.t+rnd(6,15);
-   if(!f.schoolId&&!f.hunter&&Math.random()<.17)f.dir*=-1;
-   f.homeY=clamp(f.homeY+rnd(-40,40),350,600);
+   f.nextTurn=eco.t+rnd(7,19);
+   if(!f.schoolId&&Math.random()<(style==='wander'?.33:style==='hover'?.29:.16))
+    f.dir*=-1;
+   f.homeY=ecoSafeDepth(f,f.homeY+rnd(-58,58));
   }
-  wantY+=clamp((f.homeY-f.y)*.25,-13,13);
-  // Smooth steering; never teleport or snap to a new spawn location.
-  var steer=Math.min(1,dt*(state==='flee'?6.2:state==='fight'?5.5:2.5));
-  f.vx=mix(f.vx,clamp(wantX,-205,205),steer);
-  f.vy=mix(f.vy,clamp(wantY,-90,90),Math.min(1,steer*.8));
+  f.homeY=ecoSafeDepth(f,f.homeY);
+  wantY+=clamp((f.homeY-f.y)*.22,-11,11);
+  // All velocities are pixels per second. Swimmers are calm unless threatened.
+  var steer=Math.min(1,dt*(state==='flee'?3.8:state==='fight'?3.1:1.65));
+  f.vx=mix(f.vx,clamp(wantX,-85,85),steer);
+  f.vy=mix(f.vy,clamp(wantY,-40,40),Math.min(1,steer*.85));
   f.x+=f.vx*dt;f.y+=f.vy*dt;
-  f.phase+=dt*(state==='flee'?3.8:state==='hunt'||state==='fight'?2.5:1);
+  if(f.y<top){f.y=top;f.vy=Math.max(0,f.vy*.28)}
+  if(f.y>bottom){f.y=bottom;f.vy=Math.min(0,f.vy*.28)}
+  f.phase+=dt*(state==='flee'?2.2:state==='hunt'||state==='fight'?1.6:.65);
   f.behavior=state;
-  if(f.x< -185||f.x>W+185||f.y<245||f.y>705)fish.splice(i,1);
+  if(f.x< -185||f.x>W+185)fish.splice(i,1);
  }
  for(var h=hum.length-1;h>=0;h--){
   var person=hum[h];
