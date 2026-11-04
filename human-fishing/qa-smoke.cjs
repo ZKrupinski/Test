@@ -94,6 +94,7 @@ window.__hfTest={
  getGroggy:function(){return octoGroggy},
  getPendingEscape:function(){return pendingEscapeRestart},
  escapePose:escapePose,
+ fishHeading:escapeFishHeading,
  selectGear:selectedGear,
  octoStats:octoStats,
  renderShop:renderShop,
@@ -225,6 +226,20 @@ assert.ok(game.getCast().active,'Next cast should start automatically after full
 mock.Math=Math;
 const currentCatchCount=state.catches,currentCoins=state.coins;
 const ordinary=game.species[0];
+// The source fish artwork faces LEFT. Normal fish and escaping fish must face the
+// direction their sprites actually move, not swim backward.
+assert.match(script,/if\(a\.vx>0\)ctx\.scale\(-1,1\)/,
+ 'Rightward fish must flip the left-facing sprite; leftward fish must not');
+for(const dir of [-1,1]){
+ const diver={x:483,y:191,dir:dir,human:false,size:1};
+ const p1=game.escapePose(diver,.79),p2=game.escapePose(diver,.81);
+ assert.ok((p2.x-p1.x)*dir>0,'Diving fish must travel in its signed horizontal escape direction');
+ assert.ok(p2.y>p1.y,'Diving fish must pitch downward into the water');
+ const diveAngle=game.fishHeading(diver,.80);
+ assert.ok(diveAngle*dir>.12,'Fish head must pitch down with its diagonal diving direction');
+ const fleeing=game.fishHeading(diver,1.40);
+ assert.ok(Math.abs(fleeing)<.18,'Fish must level its body for high-speed horizontal swimming');
+}
 // Failed fish must almost reach the mouth, then thrash, slip back, dive and flee.
 game.switchView('fish');game.getCast().active=false;
 game.setHook({obj:{sp:ordinary,x:480,y:187,vx:.2,size:1,phase:0},kind:'fish',elapsed:.6,startX:660,startY:470,willEscape:true,escapeAt:.88});
@@ -287,4 +302,4 @@ assert.ok(game.getCatchFx()?.swallowed,'Reward state must mark creature as alrea
 step(35);
 assert.equal(game.getCatchFx(),null,'Brief glint must finish without a replayed swallow');
 assert.ok(game.getCast().active,'Next cast must resume after swallowing');
-console.log('PASS: accelerated octopus reel, strong left curling sweep, synchronized fish/human throwing path and bitmap streak, escape counterattack and groggy, no false rewards, joystick, shop');
+console.log('PASS: fleeing fish face right/left travel, pitch down on dive and level while swimming; faster octopus reel, left toss, escape counterattack, groggy, rewards and joystick');
