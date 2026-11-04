@@ -1459,13 +1459,13 @@ function ecoCrowd(f,dt){
    cx+=g.x;cy+=g.y;ax+=g.vx;ay+=g.vy;count++;
    if(dist<39){sepX-=dx/dist*(39-dist);sepY-=dy/dist*(39-dist)}
   }
-  if(f.hunter&&g.hunter&&dist<128&&dist<rivalDist&&g.size>.85){
+  if(f.hunter&&g.hunter&&dist<106&&dist<rivalDist&&g.size>.85){
    rival=g;rivalDist=dist;
   }
-  if(f.hunter&&!g.hunter&&dist<240&&dist<preyDist&&g.size<f.size*.92){
+  if(f.hunter&&!g.hunter&&dist<180&&dist<preyDist&&g.size<f.size*.92){
    prey=g;preyDist=dist;
   }
-  if(!f.hunter&&g.hunter&&dist<175&&dist<predDist&&g.size>f.size*.96){
+  if(!f.hunter&&g.hunter&&dist<112&&dist<predDist&&g.size>f.size*.96){
    predator=g;predDist=dist;
   }
  }
