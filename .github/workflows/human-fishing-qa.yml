@@ -1,0 +1,37 @@
+name: Human Fishing Alpha QA
+on:
+  push:
+    paths:
+      - "human-fishing/**"
+      - ".github/workflows/human-fishing-qa.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate standalone game JS and 240-species catalog
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs'), vm=require('node:vm'), assert=require('node:assert/strict');
+          const html=fs.readFileSync('human-fishing/index.html','utf8');
+          const script=html.match(/<script>([\s\S]*?)<\/script>/i);
+          assert.ok(script,'Inline game script missing');
+          new vm.Script(script[1],{filename:'human-fishing.js'});
+          assert.match(html,/pointerdown/);
+          assert.match(html,/pointerup/);
+          assert.match(html,/localStorage/);
+          assert.match(html,/function drawLine/);
+          const raw = script[1].match(/var raw=\[([\s\S]*?)\];/);
+          assert.ok(raw,'Species list missing');
+          const lines = raw[1].split('\n').map(x=>x.trim()).filter(x=>x.startsWith("'"));
+          assert.equal(lines.length,12,'Expected 12 habitats');
+          for(const line of lines) {
+            const v=line.slice(1).split('|');
+            assert.equal(v.length,2);
+            assert.equal(v[1].split(',').length,20,'Expected 20 species per habitat');
+          }
+          console.log('PASS: JavaScript parses, all 240 fish are present, gameplay handlers exist.');
+          NODE
