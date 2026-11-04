@@ -30,81 +30,98 @@ function makeCanvas(w,h){
  var c=document.createElement('canvas');c.width=w;c.height=h;return c;
 }
 function clamp(x,min,max){return Math.max(min,Math.min(max,x))}
-function midpointBox(box){
- return {x:(box.x0+box.x1)*.5,y:(box.y0+box.y1)*.5,
-   w:box.x1-box.x0,h:box.y1-box.y0};
-}
 function clampBox(b){
  return {x0:clamp(b.x0,0,CW),y0:clamp(b.y0,0,CH),
-         x1:clamp(b.x1,0,CW),y1:clamp(b.y1,0,CH)};
+ x1:clamp(b.x1,0,CW),y1:clamp(b.y1,0,CH)};
 }
 function alphaBounds(data,i){
- var gx=(i%2)*CW,gy=Math.floor(i/2)*CH;
- var x0=CW,y0=CH,x1=0,y1=0;
- // Sampling every second pixel avoids expensive full-image scans.
- for(var y=0;y<CH;y+=2){
-  for(var x=0;x<CW;x+=2){
-   if(data[(((gy+y)*SIZE+gx+x)*4)+3]>42){
-    if(x<x0)x0=x;if(x>x1)x1=x;
-    if(y<y0)y0=y;if(y>y1)y1=y;
-   }
+ var x0=CW,y0=CH,x1=0,y1=0,gx=(i%2)*CW,gy=(i>>1)*CH;
+ for(var y=0;y<CH;y+=2)for(var x=0;x<CW;x+=2){
+  if(data[((gy+y)*SIZE+gx+x)*4+3]>42){
+   if(x<x0)x0=x;if(y<y0)y0=y;if(x>x1)x1=x;if(y>y1)y1=y;
   }
  }
- if(x1<=x0||y1<=y0)return null;
- return clampBox({x0:x0-2,y0:y0-2,x1:x1+4,y1:y1+4});
+ return x1<=x0||y1<=y0?null:
+  clampBox({x0:x0-2,y0:y0-2,x1:x1+4,y1:y1+4});
+}
+// Keep the cobalt-blue torso still while fins and the yellow tail change.
+function torsoAnchor(data,f,b){
+ var sx=0,sy=0,n=0,gx=f%2*CW,gy=(f>>1)*CH;
+ for(var y=Math.ceil(b.y0/2)*2;y<b.y1;y+=2)
+  for(var x=Math.ceil(b.x0/2)*2;x<b.x1;x+=2){
+   var p=((gy+y)*SIZE+gx+x)*4,a=data[p+3],r=data[p],g=data[p+1],blue=data[p+2];
+   if(a<55||blue<68||blue<r*1.2||blue<g*1.05)continue;
+   var w=a*(.7+Math.min(2,(blue-r)/110));
+   sx+=x*w;sy+=y*w;n+=w;
+  }
+ return n>1500?{x:sx/n,y:sy/n}:
+  {x:b.x0+.6*(b.x1-b.x0),y:(b.y0+b.y1)*.5};
 }
 function makeNormalized(raw,kind){
- var g=raw.getContext('2d',{willReadFrequently:true}),data;
- try{data=g.getImageData(0,0,SIZE,SIZE).data}
- catch(e){return raw} // Cross-origin fallback: preserve sprites rather than fail.
- var boxes=[];
- for(var i=0;i<8;i++)boxes.push(alphaBounds(data,i));
- var safe=[];
- boxes.forEach(function(b,i){
+ var data;
+ try{data=raw.getContext('2d',{willReadFrequently:true}).getImageData(0,0,SIZE,SIZE).data}
+ catch(e){return raw}
+ var bounds=[],safe=[];
+ for(var i=0;i<8;i++){
+  var b=alphaBounds(data,i);bounds[i]=b;
   if(b&&b.x0>9&&b.y0>9&&b.x1<CW-9&&b.y1<CH-9)safe.push(i);
- });
- if(!safe.length)safe=[0];
- var widths=safe.map(function(i){return boxes[i]?boxes[i].x1-boxes[i].x0:0}).sort(function(a,b){return a-b});
- var refW=widths[Math.floor(widths.length/2)]||280;
- var dst=makeCanvas(SIZE,SIZE),d=dst.getContext('2d');
- d.imageSmoothingEnabled=true;d.imageSmoothingQuality='high';
- for(var f=0;f<8;f++){
-  var chosen=f,b=boxes[f];
-  if(!b||b.x0<=3||b.y0<=3||b.x1>=CW-3||b.y1>=CH-3){
-   chosen=safe.reduce(function(best,v){return Math.abs(v-f)<Math.abs(best-f)?v:best},safe[0]);
-   b=boxes[chosen];
-  }
-  if(!b)continue;
-  var bb=midpointBox(b),scale=kind==='uturn'?1:clamp(refW/bb.w,.87,1.13);
-  var drawW=bb.w*scale,drawH=bb.h*scale;
-  var fit=Math.min(1,(CW-84)/drawW,(CH-54)/drawH);
-  drawW*=fit;drawH*=fit;
-  // All frames land at the same torso pivot; source cell x-offset is removed.
-  var dx=(f%2)*CW+(CW-drawW)*.5,dy=Math.floor(f/2)*CH+(CH-drawH)*.5;
-  d.drawImage(raw,(chosen%2)*CW+b.x0,Math.floor(chosen/2)*CH+b.y0,
-    bb.w,bb.h,dx,dy,drawW,drawH);
  }
- return dst;
+ if(!safe.length)return raw;
+ var widths=safe.map(function(i){return bounds[i].x1-bounds[i].x0})
+  .sort(function(a,b){return a-b});
+ var fixedScale=clamp(318/(widths[Math.floor(widths.length/2)]||305),.72,1.28);
+ var poses=[],left=0,right=0,top=0,bottom=0;
+ for(var f=0;f<8;f++){
+  var selected=f,b=bounds[f];
+  if(!b||b.x0<=9||b.y0<=9||b.x1>=CW-9||b.y1>=CH-9){
+   selected=safe.reduce(function(best,v){
+    return Math.abs(v-f)<Math.abs(best-f)?v:best;
+   },safe[0]);b=bounds[selected];
+  }
+  var torso=torsoAnchor(data,selected,b);
+  poses.push({f:selected,b:b,torso:torso});
+  left=Math.max(left,torso.x-b.x0);right=Math.max(right,b.x1-torso.x);
+  top=Math.max(top,torso.y-b.y0);bottom=Math.max(bottom,b.y1-torso.y);
+ }
+ // The same exact scale applies to all eight frames; no zoom pumping.
+ var pivotX=CW*.51,pivotY=CH*.52;
+ fixedScale=Math.min(fixedScale,(pivotX-27)/Math.max(1,left),
+  (CW-pivotX-27)/Math.max(1,right),(pivotY-23)/Math.max(1,top),
+  (CH-pivotY-23)/Math.max(1,bottom));
+ var result=makeCanvas(SIZE,SIZE),g=result.getContext('2d');
+ g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+ for(var j=0;j<8;j++){
+  var q=poses[j],b=q.b,p=q.torso;
+  g.drawImage(raw,(q.f%2)*CW+b.x0,(q.f>>1)*CH+b.y0,
+   b.x1-b.x0,b.y1-b.y0,
+   (j%2)*CW+pivotX+(b.x0-p.x)*fixedScale,
+   (j>>1)*CH+pivotY+(b.y0-p.y)*fixedScale,
+   (b.x1-b.x0)*fixedScale,(b.y1-b.y0)*fixedScale);
+ }
+ return result;
 }
 /* Build 8 smoothly continuous raster swim poses from ONE locked body frame.
    Vertical pixel-strip deformation is strong at the tail, vanishes at the
    head. The body never slides horizontally or snaps to a new pose. */
 function tailCycle(sheet,sourceFrame,amplitude){
- var cycle=makeCanvas(SIZE,SIZE),out=cycle.getContext('2d');
- var srcX=(sourceFrame%2)*CW,srcY=Math.floor(sourceFrame/2)*CH;
- out.imageSmoothingEnabled=true;out.imageSmoothingQuality='high';
+ var result=makeCanvas(SIZE,SIZE),g=result.getContext('2d');
+ var sx=(sourceFrame%2)*CW,sy=(sourceFrame>>1)*CH,bounds=null;
+ try{bounds=alphaBounds(sheet.getContext('2d',{willReadFrequently:true})
+  .getImageData(0,0,SIZE,SIZE).data,sourceFrame)}catch(e){}
+ var tailX=bounds?bounds.x0:76;
+ var stopX=bounds?bounds.x0+(bounds.x1-bounds.x0)*.56:278;
+ g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
  for(var i=0;i<8;i++){
-  var phase=i*Math.PI/4,cellX=(i%2)*CW,cellY=Math.floor(i/2)*CH;
-  // Copy in narrow slightly overlapping bitmap strips, with no white seams.
+  var phase=i*Math.PI/4,dx=(i%2)*CW,dy=(i>>1)*CH;
   for(var x=0;x<CW;x+=4){
-   var spine=clamp((397-x)/305,0,1);
-   var influence=Math.pow(spine,1.95);
-   var offset=amplitude*influence*Math.sin(phase+2.0*(1-spine));
-   var dw=Math.min(5,CW-x),sw=Math.min(5,CW-x);
-   out.drawImage(sheet,srcX+x,srcY,sw,CH,cellX+x,cellY+offset,dw,CH);
+   var rear=clamp((stopX-x)/Math.max(1,stopX-tailX),0,1);
+   // The blue torso is never translated. Only the rear body swishes.
+   var shift=amplitude*rear*rear*Math.sin(phase+2*(1-rear));
+   var width=Math.min(5,CW-x);
+   g.drawImage(sheet,sx+x,sy,width,CH,dx+x,dy+shift,width,CH);
   }
  }
- return cycle;
+ return result;
 }
 function loadNext(){
  if(loading||!queue.length)return;
@@ -119,14 +136,14 @@ function loadNext(){
    // Keep readable artwork for single actions, synthesize stable loop cycles.
    atlas[kind]=aligned;
    if(kind==='idle'){
-    atlas.idle=tailCycle(aligned,0,4.5);
-    atlas.swim=tailCycle(aligned,0,12);
+    atlas.idle=tailCycle(aligned,0,2.4);
+    atlas.swim=tailCycle(aligned,0,8.5);
    }else if(kind==='burst'){
-    atlas.burst=tailCycle(aligned,0,20);
-    atlas.flee=tailCycle(aligned,0,26);
+    atlas.burst=tailCycle(aligned,0,14);
+    atlas.flee=tailCycle(aligned,0,18);
    }else if(kind==='hooked'){
     // One consistent safe key pose, no alternating cropped/misaligned bodies.
-    atlas.hooked=tailCycle(aligned,1,17);
+    atlas.hooked=tailCycle(aligned,1,11);
    }
    status[kind]='ready';
   }catch(e){status[kind]='error';status[kind+'_reason']=String(e)}
@@ -209,11 +226,12 @@ function draw(ctx,a,now,alpha,near){
  var sz=.5*(a.size||1),drawW=240*sz,drawH=120*sz;
  ctx.save();
  if(alpha!==undefined)ctx.globalAlpha*=clamp(alpha,0,1);
- var floatY=Math.sin(now*1.5+(a.phase||0))*Math.min(1.1,.65+sz*.25);
+ var hover=action==='idle'?.30:action==='swim'?.12:0;
+ var floatY=Math.sin(now*1.15+(a.phase||0))*hover;
  ctx.translate(a.x,a.y+floatY);
  if(a.shakeUntil>now){
   var fade=clamp((a.shakeUntil-now)/.14,0,1);
-  var power=(a.shakePower||1.4)*fade*.30;
+  var power=(a.shakePower||1.4)*fade*.12;
   ctx.translate(Math.sin(now*54+(a.phase||0))*power,Math.cos(now*68+(a.phase||0))*power*.45);
  }
  var facing=a._btFacing;
@@ -232,6 +250,6 @@ window.BlueTangSprites={
  loadedSources:function(){return Object.keys(atlas)},
  setPreviewAction:function(action){previewAction=sourceOf[action]?action:null;return previewAction},
  getPreviewAction:function(){return previewAction},
- version:'stable-pivot-2.5'
+ version:'body-anchor-2.6'
 };
 })();
