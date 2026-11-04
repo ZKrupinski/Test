@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#092a39">
-<title>인간낚시 · HUMAN FISHING α</title>
+<title>인간낚시 · HUMAN FISHING α 0.3</title>
 <style>
 :root{color-scheme:dark;--gold:#f5cb81;--aqua:#8ee4e2;--ink:#092b39;--panel:#072633ee}
 *{box-sizing:border-box}body{margin:0;background:#061923;color:#effffb;font:15px/1.45 system-ui,"Pretendard","Malgun Gothic",sans-serif;overflow-x:hidden}
@@ -44,9 +44,11 @@ canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}canvas
 footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:#799da4;font-size:11px;margin-top:10px}
 @media(max-width:760px){.wrap{padding:7px 6px 20px}header{min-height:90px;align-items:flex-start;flex-wrap:wrap;gap:6px;padding:3px 3px 6px}.seal{height:35px;width:35px;font-size:21px;border-radius:10px}h1{font-size:19px}.sub{font-size:8px}nav{width:100%;justify-content:space-between;gap:3px}nav button{padding:6px 8px;font-size:11px;flex:1}.stage{border-radius:10px}.top{top:5px;left:6px;right:6px}.tag,.coins{font-size:10px;padding:5px 8px;border-radius:7px}.tag small{font-size:8px}.bottom{bottom:5px;left:6px;right:6px}.guide{padding:5px 8px;border-radius:8px}.guide b{font-size:10px}.guide small{font-size:9px}.action{width:70px;height:46px;font-size:11px;border-radius:12px;box-shadow:0 3px 0 #a56042,0 5px 12px #0006}.panel{padding:11px}.panel h2{font-size:19px}.minor{font-size:10px}.cards{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.card{min-height:90px;padding:6px 3px;border-radius:8px}.card .face{font-size:26px}.card .name{font-size:10px}.card .meta{font-size:8px}.card .num{font-size:9px}.sideinfo{top:46px;right:5px;max-height:calc(100% - 52px);width:170px;padding:8px}.sideinfo h3{font-size:12px}.slot{min-height:30px}.slot span{font-size:10px}.slot button{font-size:10px}.stats{grid-template-columns:1fr;gap:8px}.stat{padding:10px}.stat h3{font-size:15px}.stat p{margin:3px 0}}
 @media(max-height:480px) and (orientation:landscape){header{min-height:35px;flex-wrap:nowrap;padding-bottom:4px}.brand{gap:6px}.seal{width:29px;height:29px;font-size:18px}h1{font-size:16px}.sub{display:none}nav{width:auto;flex:0 0 auto}nav button{padding:5px 9px}.wrap{max-width:calc(100vh * 1.78 + 14px)}.stage{max-height:calc(100dvh - 58px);margin:auto}footer{display:none}}
+
+.shop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:11px}.shop-card{background:linear-gradient(135deg,#16485b,#0b2938);border:1px solid #578d9f;border-radius:16px;padding:15px;display:flex;gap:12px;align-items:flex-start}.shop-icon{background:#1a6273;border:1px solid #7ac7d1;border-radius:12px;min-width:64px;height:64px;display:grid;place-items:center;font-size:35px}.shop-detail{min-width:0;flex:1}.shop-detail h3{margin:0 0 3px;color:#ffe0a1;font-size:17px}.shop-detail p{color:#b9dae1;font-size:12px;line-height:1.4;margin:5px 0}.shop-detail .level{font-size:12px;color:#a6f0ee;font-weight:850}.shop-detail button{background:#efc67e;border:0;color:#233840;border-radius:9px;padding:10px 12px;font-weight:900;margin-top:6px;width:100%;font-size:13px}.shop-detail button:disabled{background:#596b70;color:#b8c5c5}.shop-progress{background:#09222c;border-radius:8px;height:7px;margin-top:10px;overflow:hidden}.shop-progress i{display:block;background:linear-gradient(90deg,#59d4cc,#ffe0a7);height:100%;border-radius:8px}@media(max-width:760px){.shop-grid{grid-template-columns:1fr;gap:6px}.shop-card{padding:8px;gap:8px}.shop-icon{min-width:41px;height:41px;font-size:23px}.shop-detail h3{font-size:14px}.shop-detail p{font-size:11px}.shop-detail button{padding:6px;margin-top:4px}}
 </style></head><body><div class="wrap">
-<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 0.1</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
-<nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button></nav></header>
+<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 0.3</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
+<nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navShop">🛒 상점</button></nav></header>
 <div class="stage" id="stage"><canvas id="game" width="1280" height="720" aria-label="물고기 낚시 게임 화면. 찌를 드래그하고 손을 떼면 물고기를 낚습니다."></canvas>
 <div class="hud top"><div class="tag"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins">◈ 0　🐟 0/240</div></div>
 <div class="hud bottom"><div class="guide"><b id="hintTitle">찌를 물고기 가까이 드래그!</b><small id="hint">손을 떼면 주변 물고기가 낚여 올라옵니다.</small></div><button class="action" id="action">낚싯줄<br>당기기</button></div>
@@ -393,6 +395,214 @@ $('navTank').onclick=function(){setMode('tank')};
 $('navBook').onclick=function(){setMode('book')};
 $('navGrow').onclick=function(){setMode('grow')};
 $('action').onclick=function(){if(view==='fish'&&!hook)release()};
+
+
+// Alpha 0.3: real fishing-rod pose, reel and tackle shop. Old local saves are retained.
+if(!save.shop || typeof save.shop!=='object')save.shop={rod:0,bait:0,net:0,helper:0};
+['rod','bait','net','helper'].forEach(function(k){save.shop[k]=Math.max(0,Math.min(10,Number(save.shop[k])||0))});
+var shopItems=[
+ {id:'rod',name:'낚싯대',icon:'🎣',base:80,desc:'더 먼 생물도 포획하고, 릴을 더 빠르게 감습니다.',benefit:function(l){return '포획 반경 +'+(l*16)+'px · 릴 속도 +'+(l*5)+'%'}},
+ {id:'bait',name:'미끼',icon:'🪱',base:120,desc:'엘리트·보스 인간과 희귀 어종의 출현 및 입질 가능성을 높입니다.',benefit:function(l){return '희귀 출현 보정 +'+(l*3)+'%p · 입질 거리 +'+(l*9)+'px'}},
+ {id:'net',name:'어망',icon:'🕸️',base:150,desc:'포획 시 일정 확률로 추가 개체를 확보하고, 진주 보상이 늘어납니다.',benefit:function(l){return '추가 수집 확률 '+(l*8)+'% · 보상 +'+(l*4)+'%'}},
+ {id:'helper',name:'조력자',icon:'🦑',base:190,desc:'꼬마 심해 생물이 릴을 돕고, 낚시 중 주기적으로 진주를 가져옵니다.',benefit:function(l){return '릴 속도 +'+(l*2)+'% · 35초마다 진주 +'+(l*5)}}
+];
+function shopPrice(item,lv){return Math.round(item.base*(lv+1)*(1+lv*.28)/5)*5}
+function renderShop(){
+ var html='<div style="color:#c4e9e8;font-size:13px">현재 진주 <b style="color:#ffe2a4">◈ '+save.coins.toLocaleString()+'</b>　·　장비 강화는 저장되며 낚시와 포획 보상에 즉시 반영됩니다.</div>'+
+ '<div class="shop-grid">'+shopItems.map(function(item){
+ var lv=save.shop[item.id],price=shopPrice(item,lv),max=lv>=10;
+ return '<article class="shop-card"><div class="shop-icon">'+item.icon+'</div><div class="shop-detail"><h3>'+item.name+'</h3>'+
+ '<div class="level">LEVEL '+lv+' / 10</div><p>'+item.desc+'</p><p style="color:#8de4e0">'+item.benefit(lv)+'</p>'+
+ '<div class="shop-progress"><i style="width:'+(lv*10)+'%"></i></div>'+
+ '<button data-shop="'+item.id+'" '+(max||save.coins<price?'disabled':'')+'>'+(max?'최대 강화 완료':save.coins<price?'◈ '+price+' · 진주 부족':'◈ '+price+' · 강화하기')+'</button></div></article>'
+ }).join('')+'</div>';
+ openPanel('장비 상점 · TACKLE SHOP','낚싯대 / 미끼 / 어망 / 조력자 — 각각 최대 10단계',html);
+ document.querySelectorAll('[data-shop]').forEach(function(button){
+  button.onclick=function(){
+   var item=shopItems.find(function(q){return q.id===button.dataset.shop}),lv=save.shop[item.id],price=shopPrice(item,lv);
+   if(lv>=10||save.coins<price)return;
+   save.coins-=price;save.shop[item.id]=lv+1;persist();updateStats();
+   beep('catch');spawnParticles(740,260,16,'gold');
+   if(item.id==='bait'){buildFish();buildHum()}
+   renderShop();
+  };
+ });
+}
+var priorSetMode=setMode;
+setMode=function(mode){
+ priorSetMode(mode==='shop'?'grow':mode);
+ if(mode==='shop'){
+  view='shop';
+  $('navGrow').classList.remove('active');
+  $('navShop').classList.add('active');
+  $('stageNo').textContent='TACKLE SHOP';
+  $('stageName').textContent='낚싯대 · 미끼 · 어망 · 조력자';
+  $('hintTitle').textContent='획득한 진주로 장비를 업그레이드';
+  $('hint').textContent='포획 거리, 희귀 출현, 중복 포획, 보조 효과 강화';
+  renderShop();
+ }else $('navShop').classList.remove('active');
+};
+$('navShop').onclick=function(){setMode('shop')};
+function buildFish(){
+ fish=[];
+ for(var i=0;i<16;i++){
+  var r=Math.random(),l=save.shop.bait,idx;
+  if(i<5)idx=Math.floor(rnd(0,9));
+  else if(r<.045+l*.008)idx=18+Math.floor(rnd(0,2));
+  else if(r<.20+l*.028)idx=14+Math.floor(rnd(0,4));
+  else idx=Math.floor(rnd(0,14));
+  var sp=species[zone*20+idx];
+  fish.push({sp:sp,x:rnd(330,1180),y:rnd(325,603),vx:rnd(.26,.67)*(random()<.5?-1:1),phase:rnd(0,6.28),size:sp.index>=18?1.55:sp.index>=14?1.2:rnd(.82,1.17)});
+ }
+}
+function buildHum(){
+ hum=[];
+ for(var i=0;i<3;i++){
+  var bossChance=Math.min(.66,.12+save.shop.bait*.04),id;
+  if(i===2&&Math.random()<bossChance)id=20+Math.floor(rnd(0,4));
+  else id=Math.floor(rnd(0,20));
+  hum.push({id:id,x:450+i*320+rnd(-65,45),y:350+i*71+rnd(-18,23),phase:rnd(0,6.28),vx:rnd(.18,.43)*(Math.random()<.5?-1:1),size:id>=20?1.25:1});
+ }
+}
+function nearest(){
+ var best=null,score=1,kind='',rod=save.shop.rod,bait=save.shop.bait;
+ fish.forEach(function(f){
+  var d=Math.hypot(f.x-bob.x,f.y-bob.y)/(135+save.up[1]*20+rod*16+bait*6);
+  if(d<score){score=d;best=f;kind='fish'}
+ });
+ hum.forEach(function(h){
+  var d=Math.hypot(h.x-bob.x,h.y+22-bob.y)/(117+save.up[1]*14+(h.id>=20?40:0)+rod*16+bait*9);
+  if(d<score){score=d;best=h;kind='human'}
+ });
+ return best?{obj:best,kind:kind}:null;
+}
+function success(){
+ var o=hook.obj,human=hook.kind==='human',id=human?String(o.id):o.sp.id;
+ var name=human?humans[o.id]:o.sp.name,owned=human?save.human:save.owned,fresh=!owned[id];
+ var extra=save.shop.net>0&&Math.random()<save.shop.net*.08,qty=extra?2:1;
+ owned[id]=(owned[id]||0)+qty;
+ var base=(human?70:15)+(human?(o.id>=20?180:o.id*5):o.sp.index>=18?85:o.sp.index>=14?35:0)+save.up[2]*4;
+ var reward=Math.floor(base*(1+save.shop.net*.04));
+ save.coins+=reward;save.catches++;
+ if(human&&save.humanPlaced.length===0)save.humanPlaced.push(id);
+ if(!human&&save.placed.length===0)save.placed.push(id);
+ persist();updateStats();
+ announce(human?'🧑':'🐟',(fresh?'NEW! ':'')+name+(human?' · '+humanTier(o.id):'')+(extra?' ×2':'')+' 포획!',(fresh?'통합 도감에 등록 · ':'')+'진주 +'+reward);
+ beep('catch');spawnParticles(390,240,extra?50:32,'gold');
+ hook=null;buildFish();buildHum();
+ $('hintTitle').textContent='다음 물고기나 엘리트 인간을 낚아보세요!';
+ $('hint').textContent='장비를 강화하면 희귀한 인간도 더 쉽게 잡을 수 있어요.';
+}
+function rodTip(now){
+ return {x:490+save.shop.rod*6,y:92-save.shop.rod*1.6+Math.sin(now*1.5)*2.5};
+}
+function drawRod(now){
+ // Rendered as a single image-like painted assembly with reel, guides and a gripped handle.
+ var tip=rodTip(now);
+ ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+ ctx.shadowColor='#021923ad';ctx.shadowBlur=9;ctx.shadowOffsetY=3;
+ ctx.beginPath();ctx.moveTo(259,200);ctx.bezierCurveTo(332,175,414,125,tip.x,tip.y);
+ ctx.strokeStyle='#282e35';ctx.lineWidth=11;ctx.stroke();ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+ var g=ctx.createLinearGradient(260,198,tip.x,tip.y);
+ g.addColorStop(0,save.shop.rod>=5?'#ead8b1':'#9a6c45');
+ g.addColorStop(.50,save.shop.rod>=5?'#87c8bc':'#bc9b6d');
+ g.addColorStop(1,save.shop.rod>=5?'#d8f0e8':'#d7ba85');
+ ctx.strokeStyle=g;ctx.lineWidth=6.5;ctx.stroke();
+ ctx.strokeStyle='#e4d5ab';ctx.lineWidth=1.5;ctx.stroke();
+ // Rod rings along the curve
+ for(var i=0;i<3;i++){
+  var p=(i+1)/4,x=259+(tip.x-259)*p,y=200+(tip.y-200)*p;
+  ctx.strokeStyle='#e1d5ac';ctx.lineWidth=2.4;ctx.beginPath();ctx.ellipse(x,y,6-p*3,10-p*4,.65,0,Math.PI*2);ctx.stroke();
+ }
+ // Cork handle, crank and round reel
+ ctx.strokeStyle='#48302a';ctx.lineWidth=14;ctx.beginPath();ctx.moveTo(242,207);ctx.lineTo(291,185);ctx.stroke();
+ ctx.strokeStyle=save.shop.rod>=5?'#cca66d':'#c99661';ctx.lineWidth=9;ctx.stroke();
+ ctx.fillStyle='#1e4953';ctx.beginPath();ctx.arc(312,199,15,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle=save.shop.rod>=5?'#ffd991':'#9cb7b7';ctx.lineWidth=4;ctx.stroke();
+ ctx.fillStyle='#f5d8aa';ctx.beginPath();ctx.arc(312,199,5,0,Math.PI*2);ctx.fill();
+ ctx.lineWidth=3;ctx.strokeStyle='#d8a96d';ctx.beginPath();ctx.moveTo(321,202);ctx.lineTo(334,219);ctx.stroke();
+ ctx.fillStyle='#daba86';ctx.beginPath();ctx.arc(334,219,5,0,Math.PI*2);ctx.fill();
+ // Tentacle crosses the handle, clearly gripping the fishing rod
+ ctx.lineCap='round';ctx.strokeStyle='#833b49';ctx.lineWidth=21;
+ ctx.beginPath();ctx.moveTo(248,220);ctx.quadraticCurveTo(286,215,278,188);ctx.stroke();
+ ctx.strokeStyle='#f3a18c';ctx.lineWidth=15;ctx.stroke();
+ ctx.fillStyle='#ffcfaa';ctx.beginPath();ctx.ellipse(275,194,8,6,.5,0,Math.PI*2);ctx.fill();
+ ctx.restore();
+}
+function drawLine(){
+ var from=rodTip(time),end=hook?{x:hook.obj.x,y:hook.obj.y+20}:bob;
+ var slack=hook?1:drag?17:53,curveX=(from.x+end.x)*.5;
+ ctx.save();ctx.lineJoin='round';ctx.lineCap='round';
+ ctx.beginPath();ctx.moveTo(from.x,from.y);
+ ctx.bezierCurveTo(from.x+40,from.y+70+slack,curveX,end.y+slack,end.x,end.y);
+ ctx.strokeStyle='#042632a8';ctx.lineWidth=3.1;ctx.stroke();
+ ctx.strokeStyle=hook?'#fff7d9':'#bde7e5e0';ctx.lineWidth=1.3;ctx.stroke();
+ ctx.beginPath();ctx.moveTo(end.x-5,end.y-5);ctx.lineTo(end.x+4,end.y+5);
+ ctx.strokeStyle='#e8f7f4';ctx.lineWidth=1.1;ctx.stroke();
+ ctx.restore();
+}
+function drawHelpers(now){
+ var lv=save.shop.helper;if(!lv)return;
+ var n=Math.min(3,Math.ceil(lv/3));
+ for(var i=0;i<n;i++){
+  var x=380+i*64+Math.sin(now*1.3+i*2)*12,y=235+i%2*23+Math.sin(now*2+i)*7;
+  ctx.fillStyle='#071f2c77';ctx.beginPath();ctx.ellipse(x,y+17,26,9,0,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#507d9e';ctx.lineWidth=5;ctx.lineCap='round';
+  for(var k=-1;k<=1;k++){ctx.beginPath();ctx.moveTo(x+k*6,y+12);ctx.lineTo(x+k*12,y+25);ctx.stroke();}
+  ctx.fillStyle=ctx.createRadialGradient(x-7,y-9,3,x,y,25);ctx.fillStyle='#85e2d2';
+  ctx.beginPath();ctx.ellipse(x,y,21,19,0,0,Math.PI*2);ctx.fill();
+  circle(x-7,y-3,4,'#f5fff2');circle(x+8,y-3,4,'#f5fff2');
+  circle(x-6,y-3,2,'#1b4658');circle(x+8,y-3,2,'#1b4658');
+ }
+}
+var helperIncomeTimer=0;
+function tick(stamp){
+ var dt=Math.min((stamp-last)/1000,.045);last=stamp;time+=dt;
+ ctx.clearRect(0,0,W,H);
+ if(view==='tank')drawingTank(time);
+ else{
+  sea(false);coral(time);
+  if(view==='fish'||view==='book'||view==='grow'||view==='shop'){
+   fish.forEach(function(a){
+    if(!hook||a!==hook.obj){a.x+=a.vx*dt*60;a.phase+=dt*.4;if(a.x<320||a.x>1195)a.vx*=-1}
+    drawFish(a,time);
+   });
+   hum.forEach(function(a){
+    if(!hook||a!==hook.obj){a.x+=a.vx*dt*55;a.phase+=dt*.23;if(a.x<350||a.x>1200)a.vx*=-1}
+    humanIcon(a,time);
+   });
+  }
+  drawOcto(time);drawRod(time);drawHelpers(time);
+  if(view==='fish'){
+   if(hook){
+    hook.elapsed+=dt;
+    var rawDuration=hook.kind==='human'?(hook.obj.id>=20?2.5:1.85):(1.10-save.up[0]*.08);
+    var duration=Math.max(.58,rawDuration*(1-save.shop.rod*.05-save.shop.helper*.02));
+    var p=ease(hook.elapsed/duration),o=hook.obj;
+    o.x=mix(hook.startX,390,p)+(hook.kind==='human'?Math.sin(time*21)*(1-p)*15:0);
+    o.y=mix(hook.startY,262-55*Math.sin(p*Math.PI),p);
+    bob.x=o.x;bob.y=o.y;
+    if(hook.elapsed>=duration)success();
+   }
+   drawLine();if(!hook)drawBob();
+  }
+ }
+ if(view==='fish'&&save.shop.helper>0){
+  helperIncomeTimer+=dt;
+  if(helperIncomeTimer>=35){
+   helperIncomeTimer-=35;var pay=save.shop.helper*5;
+   save.coins+=pay;persist();updateStats();announce('🦑','조력자 보너스','진주 +'+pay);
+  }
+ }
+ bubbles.forEach(function(b){
+  b.y-=b.speed*dt*50;b.x+=Math.sin(time+b.phase)*dt*4;
+  if(b.y<0){b.y=730;b.x=rnd(10,1250)}
+  ctx.strokeStyle='#b4f8f052';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.stroke();
+ });
+ particleFrame(dt);
+ if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}
+ requestAnimationFrame(tick);
+}
 
 buildFish();buildHum();updateStats();setMode('fish');requestAnimationFrame(tick);
 })();
