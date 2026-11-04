@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#092a39">
-<title>인간낚시 · HUMAN FISHING α 0.9</title>
+<title>인간낚시 · HUMAN FISHING α 1.0</title>
 <style>
 :root{color-scheme:dark;--gold:#f5cb81;--aqua:#8ee4e2;--ink:#092b39;--panel:#072633ee}
 *{box-sizing:border-box}body{margin:0;background:#061923;color:#effffb;font:15px/1.45 system-ui,"Pretendard","Malgun Gothic",sans-serif;overflow-x:hidden}
@@ -68,7 +68,7 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 #virtualJoystick.visible{display:block}
 @media(max-width:760px){#virtualJoystick{min-width:56px;border-width:1px}#virtualKnob{border-width:1px}}
 .fever-hud{position:absolute;z-index:3;left:14px;top:14px;bottom:auto;width:min(205px,31%);padding:7px 9px;border-radius:12px;border:1px solid #a6d6d075;background:linear-gradient(125deg,#0b3444ec,#112a3be6);box-shadow:0 4px 20px #0007;pointer-events:none;color:#c4eeec}.fever-hud .fever-top{display:flex;justify-content:space-between;gap:5px;font-size:11px;font-weight:950}.fever-hud .fever-top span:last-child{color:#ffe8a5}.fever-meter{height:8px;background:#061821;border:1px solid #4d7f87;border-radius:50px;margin-top:5px;overflow:hidden}.fever-meter i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#43bac4,#94eadb,#ffcc82);border-radius:50px;transition:width .25s ease}.fever-detail{font-size:9px;color:#b7d6db;margin-top:3px}.fever-hud.ready{border-color:#ffd28f;box-shadow:0 0 24px #ffc36b50,0 6px 17px #0007;background:linear-gradient(120deg,#563343eb,#0a5762ee)}.fever-hud.ready .fever-top span:first-child{color:#ffe4ab}.shop-octo-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:7px 0}.shop-octo-stats span{font-size:11px;color:#d8f7ea;background:#0d3846;border-radius:5px;padding:3px 5px}@media(max-width:760px){.fever-hud{left:6px;top:6px;bottom:auto;width:min(137px,37%);padding:4px 6px;border-radius:6px}.fever-hud .fever-top{font-size:9px}.fever-meter{height:5px;margin-top:3px}.fever-detail{font-size:8px}.shop-octo-stats span{font-size:9px;padding:2px 3px}}</style></head><body><div class="wrap">
-<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 0.9</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
+<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 1.0</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navShop">🛒 상점</button></nav></header>
 <div class="stage" id="stage"><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 어디든 터치해 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
 <div class="hud top"><div class="tag" style="display:none" aria-hidden="true"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins" style="margin-left:auto">◈ 0　🐟 0/240</div></div>
@@ -970,11 +970,11 @@ function tick(stamp){
   if(view==='fish'||view==='book'||view==='grow'||view==='shop'){
    fish.forEach(function(a){if(!hook||a!==hook.obj){
     a.x+=a.vx*dt*60;a.phase+=dt*.4;if(a.x<320||a.x>1195)a.vx*=-1}
-    if(!a.feverCaptured){drawFish(a,time);drawFishRankTag(a)}
+    if(!a.feverCaptured&&(!hook||hook.obj!==a||hook.willEscape)){drawFish(a,time);drawFishRankTag(a)}
    });
    hum.forEach(function(a){if(!hook||a!==hook.obj){
     a.x+=a.vx*dt*55;a.phase+=dt*.23;if(a.x<350||a.x>1200)a.vx*=-1}
-    if(!a.feverCaptured)humanIcon(a,time);
+    if(!a.feverCaptured&&(!hook||hook.obj!==a||hook.willEscape))humanIcon(a,time);
    });
   }
   if(view==='fish'){castMotion(dt);updateJoystick(dt);}
@@ -984,10 +984,18 @@ function tick(stamp){
     hook.elapsed+=dt;
     var baseDuration=hook.kind==='human'?(hook.obj.id>=20?2.5:1.85):(1.10-save.up[0]*.08);
     var duration=Math.max(.56,baseDuration*(1-gearPower('rod')*.035-gearPower('helper')*.012));
-    var p=ease(hook.elapsed/duration),o=hook.obj;
-    o.x=mix(hook.startX,510,p)+(hook.kind==='human'?Math.sin(time*18)*(1-p)*14:0)+(hook.willEscape?Math.sin(time*35)*(1-p)*19:0);
-    o.y=mix(hook.startY,271-55*Math.sin(p*Math.PI),p);
+    var o=hook.obj,p=clamp(hook.elapsed/duration,0,1);
+    hook.travelDuration=duration;
+    if(hook.willEscape){
+     var resist=ease(p);
+     o.x=mix(hook.startX,510,resist)+Math.sin(time*35)*(1-resist)*19;
+     o.y=mix(hook.startY,271-55*Math.sin(resist*Math.PI),resist);
+    }else{
+     var pos=swallowPoint(hook.startX,hook.startY,mouthPos(time),p);
+     o.x=pos.x;o.y=pos.y;
+    }
     bob.x=o.x;bob.y=o.y;
+    if(!hook.willEscape)drawHookSwallow(time);
     if(hook.willEscape&&hook.elapsed>=duration*hook.escapeAt)escapeHook();
     else if(hook.elapsed>=duration)success();
    }
@@ -1020,8 +1028,12 @@ function mouthPos(now){return{x:452,y:191+Math.sin(now*1.2)*3}}
 function mouthGape(){
  if(view!=='fish')return 0;
  if(catchFx){
-  var q=catchFx.elapsed,d=catchFx.duration;
-  return clamp(Math.min(q/.19,(d-q)/.30,1),0,1);
+  var t=catchFx.elapsed,d=catchFx.duration;
+  return catchFx.swallowed?clamp(1-t/d,0,1):clamp(Math.min(t/.19,(d-t)/.30,1),0,1);
+ }
+ if(hook&&!hook.willEscape&&hook.travelDuration){
+  var p=clamp(hook.elapsed/hook.travelDuration,0,1);
+  return clamp(Math.min((p-.32)/.20,(1.12-p)/.14,1),0,1);
  }
  if(feverFx&&feverFx.caught.length){
   var e=feverFx.elapsed,d=feverFx.duration;
@@ -1071,46 +1083,57 @@ function drawOctopusMouth(now){
  var m=mouthPos(now);
  ctx.save();ctx.drawImage(sprite,m.x-128,m.y-128,256,256);ctx.restore();
 }
+// Shared quadratic arc: slightly rises above the mouth and feeds straight in.
+// The path does not stop or ease to zero at the waterline.
+function swallowPoint(sx,sy,mouth,p){
+ var q=clamp(p,0,1),inv=1-q;
+ var cx=(sx+mouth.x)*.5+(sx>mouth.x?38:-28);
+ var cy=Math.min(sy,mouth.y)-Math.min(79,34+Math.abs(sy-mouth.y)*.11);
+ return{x:inv*inv*sx+2*inv*q*cx+q*q*mouth.x,
+        y:inv*inv*sy+2*inv*q*cy+q*q*mouth.y};
+}
 function drawSwallowCreature(entity,elapsed,delay,travel,mouth){
  var p=clamp((elapsed-delay)/travel,0,1);
- if(p>=1)return false;
- var q=p*p*(3-2*p),sx=entity.x,sy=entity.y;
- // A broad, curved suction path, with the very end guided straight into the mouth.
- var midX=(sx+mouth.x)*.5+((sx>mouth.x)?45:-35);
- var midY=Math.min(sy,mouth.y)+Math.max(20,Math.abs(sy-mouth.y)*.08);
- var inv=1-q;
- var x=inv*inv*sx+2*inv*q*midX+q*q*mouth.x;
- var y=inv*inv*sy+2*inv*q*midY+q*q*mouth.y;
- var scale=p<.78?1:Math.max(.02,1-(p-.78)/.22);
- ctx.save();
- ctx.translate(x,y);
- ctx.scale(scale,scale); // The ENTIRE creature shrinks only as it enters the cavity.
+ if(p>=1||elapsed<delay)return false;
+ var point=swallowPoint(entity.x,entity.y,mouth,p),x=point.x,y=point.y;
+ var scale=p<.79?1:Math.max(.02,1-(p-.79)/.21);
+ ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);
  if(entity.human){
-  ctx.rotate(Math.sin(p*10+entity.id)*.17);
+  ctx.rotate(Math.sin(p*10+(entity.id||0))*.14);
   humanIcon({id:entity.id,x:0,y:0,phase:entity.phase||0,size:1},time);
  }else if(entity.sp){
-  ctx.rotate((mouth.x<sx?-.36:.2)*Math.sin(Math.PI*q));
+  ctx.rotate((mouth.x<entity.x?-.32:.24)*Math.sin(Math.PI*p));
   drawFish({sp:entity.sp,x:0,y:0,vx:entity.vx||1,size:entity.size||1.35,phase:entity.phase||0},time);
  }
  ctx.restore();
- if(p>.12&&p<.92&&Math.random()<.32){
-  particles.push({x:x+rnd(-14,14),y:y+rnd(-10,10),vx:(mouth.x-x)*.014,vy:(mouth.y-y)*.014,life:.26,size:rnd(2,5),kind:'water'});
+ if(p>.16&&p<.89&&Math.random()<.24){
+  particles.push({x:x+rnd(-12,12),y:y+rnd(-10,10),
+   vx:(mouth.x-x)*.014,vy:(mouth.y-y)*.014,life:.22,size:rnd(2,4),kind:'water'});
  }
  return true;
 }
+function drawHookSwallow(now){
+ if(!hook||hook.willEscape||!hook.travelDuration)return;
+ var o=hook.obj;
+ var entity={x:hook.startX,y:hook.startY,human:hook.kind==='human',
+  id:hook.kind==='human'?o.id:0,sp:hook.kind==='fish'?o.sp:null,
+  size:o.size||1.35,vx:o.vx||1,phase:o.phase||0};
+ drawSwallowCreature(entity,hook.elapsed,0,hook.travelDuration,mouthPos(now));
+}
 function playCatchFx(caught,isHuman,name,reward,isDouble,isNew){
- var x=clamp(Number(caught.x)||510,260,1050),y=clamp(Number(caught.y)||310,205,615);
+ // The whole creature has already entered the mouth via the live hook path.
+ var mouth=mouthPos(time),x=mouth.x,y=mouth.y;
  catchFx={x:x,y:y,human:!!isHuman,id:isHuman?Number(caught.id):0,
   sp:isHuman?null:caught.sp,dir:caught.vx||1,size:caught.size||1.4,
   phase:caught.phase||0,name:name,reward:reward,double:!!isDouble,
-  fresh:!!isNew,elapsed:0,duration:1.75};
- spawnParticles(x,y,16+(isHuman?12:0),'gold');ripple(x,y);
+  fresh:!!isNew,elapsed:0,duration:.42,swallowed:true};
+ spawnParticles(x,y,13+(isHuman?7:0),'gold');
 }
 function drawCatchFx(dt){
  if(!catchFx)return;
  var fx=catchFx;fx.elapsed+=dt;var p=clamp(fx.elapsed/fx.duration,0,1),mouth=mouthPos(time);
  var entity={human:fx.human,id:fx.id,sp:fx.sp,vx:fx.dir,size:fx.size,phase:fx.phase,x:fx.x,y:fx.y};
- drawSwallowCreature(entity,fx.elapsed,.12,1.20,mouth);
+ if(!fx.swallowed)drawSwallowCreature(entity,fx.elapsed,0,1.20,mouth);
  ctx.save();
  ctx.globalAlpha=Math.max(0,Math.min(1,fx.elapsed*5,(fx.duration-fx.elapsed)*2.5));
  ctx.textAlign='left';ctx.shadowColor='#031d25';ctx.shadowBlur=7;
