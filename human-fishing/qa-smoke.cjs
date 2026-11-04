@@ -619,8 +619,8 @@ assert.ok(highTrial.reversed<0,
 assert.ok(Math.abs(highTrial.stopped)<Math.abs(lowTrial.stopped),
  'Premium rod should settle faster after releasing the joystick');
 state.gearEquipped.rod=equippedRod;
-assert.match(script,/rodHandlingHtml\(item,lv\)/,
- 'The rod shop must show the actual handling parameters for purchases and upgrades');
+assert.match(script,/equipmentMetricsHtml\\(cat,item,lv/,
+  'Equipment cards must show live handling and stat parameters');
 // Alpha 2.2: separate screen, animal and lure vibration layers, short contact pulses.
 const impacts=game.getVibration();
 for(const name of ['screen','octo','lure'])impacts[name].length=0;
