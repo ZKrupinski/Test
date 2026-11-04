@@ -154,8 +154,8 @@ function requireFish(name,expectedClass,shape,motif){
  assert.equal(game.fishAppearance(fish).motif,motif,'Wrong signature markings for '+name);
 }
 requireFish('네온테트라','SMALL','needle','neon');
-requireFish('구피','SMALL','fan','guppy');
-requireFish('비단잉어','SPECIAL','fan','koi');
+requireFish('구피','SMALL','guppy','guppy');
+requireFish('비단잉어','SPECIAL','koi','koi');
 requireFish('흰동가리','MEDIUM','standard','clown');
 requireFish('가시해마','SPECIAL','horse','seahorse');
 requireFish('만타가오리','SPECIAL','ray','manta');
@@ -164,6 +164,12 @@ requireFish('귀상어','LARGE','hammer','solid');
 requireFish('쏠배감펭','SPECIAL','lion','lion');
 requireFish('산갈치','SPECIAL','eel','oarfish');
 requireFish('레드벨리피라냐','MEDIUM','standard','redbelly');
+requireFish('스칼라엔젤피시','MEDIUM','angel','angelfish');
+requireFish('디스커스','MEDIUM','discus','discus');
+requireFish('블루탱','MEDIUM','tang','bluetang');
+requireFish('베타','SPECIAL','betta','betta');
+requireFish('금붕어','SPECIAL','goldfish','goldfish');
+requireFish('소드테일','SPECIAL','swordtail','swordtail');
 
 for(const label of ['COMMON','UNCOMMON','RARE','EPIC','LEGEND','MYTHIC'])assert.ok(game.species.some(f=>f.rarity===label),'Missing rarity '+label);
 assert.ok(game.species.every(f=>f.level>=1),'Each fish must have a level');
