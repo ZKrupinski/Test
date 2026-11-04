@@ -780,6 +780,7 @@ function success(){
  var base=(human?70:15)+(human?(o.id>=20?180:o.id*5):o.sp.index>=18?85:o.sp.index>=14?35:0)+save.up[2]*4;
  var reward=Math.floor(base*(1+power*.025));
  save.coins+=reward;save.catches++;
+ if(!human)recordFeverCapture(qty);
  if(human&&save.humanPlaced.length===0)save.humanPlaced.push(id);
  if(!human&&save.placed.length===0)save.placed.push(id);
  persist();updateStats();beep('catch');spawnParticles(645,290,extra?50:32,'gold');
@@ -967,7 +968,7 @@ function tick(stamp){
   if(view==='fish'||view==='book'||view==='grow'||view==='shop'){
    fish.forEach(function(a){if(!hook||a!==hook.obj){
     a.x+=a.vx*dt*60;a.phase+=dt*.4;if(a.x<320||a.x>1195)a.vx*=-1}
-    drawFish(a,time);
+    drawFish(a,time);drawFishRankTag(a);
    });
    hum.forEach(function(a){if(!hook||a!==hook.obj){
     a.x+=a.vx*dt*55;a.phase+=dt*.23;if(a.x<350||a.x>1200)a.vx*=-1}
@@ -985,7 +986,8 @@ function tick(stamp){
     o.x=mix(hook.startX,510,p)+(hook.kind==='human'?Math.sin(time*18)*(1-p)*14:0);
     o.y=mix(hook.startY,271-55*Math.sin(p*Math.PI),p);
     bob.x=o.x;bob.y=o.y;
-    if(hook.elapsed>=duration)success();
+    if(hook.willEscape&&hook.elapsed>=duration*hook.escapeAt)escapeHook();
+    else if(hook.elapsed>=duration)success();
    }
    drawLine();if(!hook)drawBob();
   }
@@ -1003,7 +1005,7 @@ function tick(stamp){
   ctx.strokeStyle='#b4f8f052';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.stroke();
  });
  particleFrame(dt);
- drawCatchFx(dt);
+ drawCatchFx(dt);drawFeverFx(dt);drawEscapeFx(dt);
  if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}
  requestAnimationFrame(tick);
 }
@@ -1068,6 +1070,242 @@ $('action').onclick=function(){
  // Button supports the same release only when the player has actively dragged the lure.
  if(view==='fish'&&!cast.active)announce('🎣','가상 조이스틱으로 이동!','화면 아무 곳에서나 터치 후 스틱을 밀고 손을 놓으세요.');
 };
+
+
+// ALPHA 0.7: tiered catches, hook resistance, rare human elites, octopus fever gear and AOE.
+var tierLabels={COMMON:'일반',UNCOMMON:'고급',RARE:'희귀',EPIC:'영웅',LEGEND:'전설',MYTHIC:'신화'};
+var tierColors={COMMON:'#c3dbdb',UNCOMMON:'#79d6b9',RARE:'#6bbdfa',EPIC:'#c298ff',LEGEND:'#ffd58a',MYTHIC:'#ff8aa6'};
+species.forEach(function(sp){
+ var k=sp.index;
+ sp.rarity=k===19?'MYTHIC':k===18?'LEGEND':k===17?'EPIC':k>=15?'RARE':k>=11?'UNCOMMON':'COMMON';
+ sp.level=Math.min(75,1+sp.habitat*3+Math.floor(k/3)*3+(k>=15?(k-13)*2:0));
+});
+if(!save.fever||typeof save.fever!=='object')save.fever={count:0,ready:false,total:0,activations:0};
+save.fever.count=clamp(Number(save.fever.count)||0,0,16);
+save.fever.ready=!!save.fever.ready;
+save.fever.total=Math.max(0,Number(save.fever.total)||0);
+save.fever.activations=Math.max(0,Number(save.fever.activations)||0);
+function octoStats(tier,lv){
+ return {
+  size:52+tier*12+lv*3,
+  radius:145+tier*34+lv*12,
+  chance:Math.min(.74,.10+tier*.052+lv*.020),
+  bonus:Math.min(.27,.038+tier*.035+lv*.012)
+ };
+}
+function octoStatHtml(tier,lv){
+ var q=octoStats(tier,lv);
+ return '<div class="shop-octo-stats"><span>크기 '+q.size+'px</span><span>광역 반경 '+q.radius+'px</span>'+
+  '<span>충전 후 발동 '+Math.round(q.chance*100)+'%</span><span>광역 포획 보정 +'+Math.round(q.bonus*100)+'%p</span></div>';
+}
+function updateFeverHud(){
+ var h=$('feverHud'),q=save.fever,g=selectedGear('octopus'),lv=gearLevel('octopus',g.id),v=octoStats(g.tier,lv);
+ var ready=q.ready;
+ h.classList.toggle('ready',ready);
+ h.style.display=view==='fish'?'':'none';
+ $('feverNum').textContent=ready?'READY':q.count+' / 6';
+ $('feverFill').style.width=ready?'100%':Math.min(100,q.count/6*100)+'%';
+ $('feverDetail').textContent=ready?'문어 미끼 변신! 손을 떼면 반경 '+v.radius+'px 광역 포획':
+ (q.count<6?'물고기 포획 '+Math.max(0,6-q.count)+'회 후 발동 판정':'발동 확률 '+Math.round(v.chance*100)+'% · 최대 16회 충전');
+}
+function recordFeverCapture(qty){
+ if(save.fever.ready)return;
+ save.fever.count=Math.min(16,save.fever.count+Math.max(1,qty||1));
+ save.fever.total+=Math.max(1,qty||1);
+ var gear=selectedGear('octopus'),lv=gearLevel('octopus',gear.id),q=octoStats(gear.tier,lv);
+ if(save.fever.count>=6&&(Math.random()<q.chance||save.fever.count>=16)){
+  save.fever.ready=true;
+  $('hintTitle').textContent='🐙 OCTO FEVER 준비 완료!';
+  $('hint').textContent='다음 투척에서 미끼가 문어로 변신합니다. 반경 안 물고기를 한 번에 낚아요.';
+  spawnParticles(bob.x,bob.y,24,'gold');
+ }
+ updateFeverHud();
+}
+function catchProbability(target,isHuman,fever){
+ var rod=gearPower('rod'),bait=gearPower('bait'),net=gearPower('net'),oct=gearPower('octopus'),helper=gearPower('helper');
+ var boost=rod*.007+bait*.004+net*.0018+oct*.003+helper*.0008;
+ var chance,cap,lev;
+ if(isHuman){
+  var boss=target.id>=20;
+  lev=boss?65+(target.id-20)*2:22+Math.floor(target.id*1.4);
+  chance=boss?.0012:.043;
+  cap=boss?.025:.19;
+  boost*=boss?.075:.24;
+ }else{
+  lev=target.level;
+  var bases={COMMON:.93,UNCOMMON:.68,RARE:.29,EPIC:.105,LEGEND:.026,MYTHIC:.006};
+  var caps={COMMON:.995,UNCOMMON:.96,RARE:.77,EPIC:.51,LEGEND:.28,MYTHIC:.11};
+  chance=bases[target.rarity]??.55;cap=caps[target.rarity]??.75;
+ }
+ chance=chance-Math.max(0,lev-1)*(isHuman?.00045:.0019)+boost;
+ if(fever&&!isHuman){
+  var g=selectedGear('octopus'),v=octoStats(g.tier,gearLevel('octopus',g.id));
+  chance+=v.bonus;
+  cap=Math.min(.995,cap+(target.rarity==='MYTHIC'?.035:target.rarity==='LEGEND'?.055:.07));
+ }
+ // Best catches remain exceptionally rare until advanced gear is equipped.
+ if(!isHuman&&target.rarity==='MYTHIC'&&rod+bait<22)cap=.004;
+ if(!isHuman&&target.rarity==='LEGEND'&&rod+bait<10)cap=.018;
+ if(isHuman&&target.id>=20&&rod+bait<35)cap=.0008;
+ return clamp(chance,.001,cap);
+}
+function drawFishRankTag(f){
+ var sp=f.sp;if(!sp||sp.rarity==='COMMON'||sp.rarity==='UNCOMMON')return;
+ ctx.save();ctx.font='bold 12px system-ui';ctx.textAlign='center';
+ ctx.shadowColor='#061923';ctx.shadowBlur=6;ctx.fillStyle=tierColors[sp.rarity];
+ ctx.fillText(tierLabels[sp.rarity]+' Lv.'+sp.level,f.x,f.y-32-(f.size||1)*9);
+ ctx.restore();
+}
+function buildFish(){
+ fish=[];var p=gearPower('bait');
+ var mythic=.00006+p*.00004,legend=.00065+p*.00032,epic=.0026+p*.00075,rare=.0175+p*.0021,uncommon=.11+p*.0038;
+ for(var i=0;i<16;i++){
+  var r=Math.random(),idx;
+  if(r<mythic)idx=19;
+  else if(r<mythic+legend)idx=18;
+  else if(r<mythic+legend+epic)idx=17;
+  else if(r<mythic+legend+epic+rare)idx=15+Math.floor(rnd(0,2));
+  else if(r<mythic+legend+epic+rare+uncommon)idx=11+Math.floor(rnd(0,4));
+  else idx=Math.floor(rnd(0,11));
+  var sp=species[zone*20+idx];
+  fish.push({sp:sp,x:rnd(335,1180),y:rnd(340,612),vx:rnd(.25,.65)*(Math.random()<.5?-1:1),phase:rnd(0,6.28),size:idx>=18?1.58:idx>=15?1.21:rnd(.8,1.13)});
+ }
+}
+function buildHum(){
+ hum=[];var p=gearPower('bait'),bossChance=.00002+p*.000004,eliteChance=.006+p*.0005;
+ var roll=Math.random();
+ if(roll<bossChance||roll<bossChance+eliteChance){
+  var boss=roll<bossChance,id=boss?20+Math.floor(rnd(0,4)):Math.floor(rnd(0,20));
+  hum.push({id:id,x:rnd(415,1120),y:rnd(360,555),phase:rnd(0,6.28),vx:rnd(.16,.34)*(Math.random()<.5?-1:1),size:boss?1.31:1.02});
+ }
+}
+var escapeFx=null,feverFx=null,feverSprites={};
+function escapeHook(){
+ if(!hook)return;
+ var o=hook.obj,human=hook.kind==='human';
+ var label=human?'인간 엘리트':o.sp.name;
+ escapeFx={x:o.x,y:o.y,name:label,elapsed:0};
+ spawnParticles(o.x,o.y,19,'water');ripple(o.x,o.y);
+ beep('hit');hook=null;buildFish();buildHum();startCast();
+ $('hintTitle').textContent=label+' · 줄을 뿌리치고 탈출!';
+ $('hint').textContent='등급·레벨이 높을수록 저항합니다. 상점에서 좋은 장비를 장착하세요.';
+}
+function drawEscapeFx(dt){
+ if(!escapeFx)return;var fx=escapeFx;fx.elapsed+=dt;var p=clamp(fx.elapsed/1.0,0,1);
+ ctx.save();ctx.globalAlpha=1-p;ctx.textAlign='center';
+ ctx.fillStyle='#ffc4b5';ctx.shadowColor='#041826';ctx.shadowBlur=7;
+ ctx.font='900 20px system-ui';ctx.fillText('MISS · 탈출!',fx.x,fx.y-52-42*p);
+ ctx.font='bold 13px system-ui';ctx.fillText(fx.name+' 저항 성공',fx.x,fx.y-28-42*p);
+ ctx.restore();if(p>=1)escapeFx=null;
+}
+var oldReleaseForDifficulty=release;
+release=function(){
+ if(view!=='fish'||hook||cast.active||feverFx)return;
+ if(save.fever.ready){activateOctoFever();return}
+ oldReleaseForDifficulty();
+ if(hook){
+  var h=hook.kind==='human',target=h?{id:hook.obj.id}:hook.obj.sp;
+  var chance=catchProbability(target,h,false);
+  hook.captureChance=chance;
+  hook.willEscape=Math.random()>chance;
+  hook.escapeAt=.67+rnd(0,.21);
+  if(hook.willEscape){
+   $('hintTitle').textContent='격렬한 저항! 줄이 끊어질 듯 흔들려요';
+   $('hint').textContent=(h?'ELITE / BOSS':tierLabels[target.rarity]+' Lv.'+target.level)+' · 포획률 '+(chance*100).toFixed(1)+'%';
+  }
+ }
+};
+function octoSprite(tier,frame){
+ var key=tier+'-'+frame;
+ if(feverSprites[key])return feverSprites[key];
+ var cvs=document.createElement('canvas');cvs.width=520;cvs.height=520;
+ var g=cvs.getContext('2d'),x=260,y=260,col=gearCatalog.octopus[tier][4];
+ var e=frame/11,arm=22+192*e;
+ g.lineCap='round';g.lineJoin='round';
+ for(var i=0;i<8;i++){
+  var a=i*Math.PI/4-Math.PI/2,p1x=x+Math.cos(a)*arm*.54,p1y=y+Math.sin(a)*arm*.54;
+  var x2=x+Math.cos(a)*arm,y2=y+Math.sin(a)*arm,wave=Math.sin(i*2.2+e*4)*25*e;
+  g.beginPath();g.moveTo(x,y);
+  g.bezierCurveTo(x+Math.cos(a)*arm*.34-Math.sin(a)*wave,y+Math.sin(a)*arm*.34+Math.cos(a)*wave,p1x+Math.sin(a)*wave,p1y-Math.cos(a)*wave,x2,y2);
+  g.strokeStyle='#34243fa6';g.lineWidth=22+(tier*.7);g.stroke();
+  g.strokeStyle=col;g.lineWidth=16+tier*.8;g.stroke();
+  for(var n=1;n<=3;n++){
+   var p=n/4,px=mix(x,x2,p)+Math.sin(a)*Math.sin(Math.PI*p)*wave*.32,py=mix(y,y2,p)-Math.cos(a)*Math.sin(Math.PI*p)*wave*.32;
+   g.beginPath();g.ellipse(px,py,3.5+tier*.35,4.5,0,0,Math.PI*2);g.fillStyle='#fff0daae';g.fill();
+  }
+ }
+ var head=g.createRadialGradient(x-15,y-18,4,x,y,42+tier*2);head.addColorStop(0,'#fff0d9');head.addColorStop(.4,col);head.addColorStop(1,'#593f5b');
+ g.fillStyle=head;g.beginPath();g.ellipse(x,y-12,33+tier*2,39+tier*2,0,0,Math.PI*2);g.fill();
+ g.fillStyle='#fff3df';
+ for(var k of [-1,1]){g.beginPath();g.ellipse(x+k*15,y-12,9,11,0,0,Math.PI*2);g.fill();g.fillStyle='#26303b';g.beginPath();g.arc(x+k*15+2,y-12,4,0,Math.PI*2);g.fill();g.fillStyle='#fff3df'}
+ g.fillStyle='#6a3244';g.beginPath();g.ellipse(x,y+7,8,5,0,0,Math.PI*2);g.fill();
+ if(tier===2||tier===4){g.fillStyle='#fff9de96';for(var j=0;j<8;j++){var a2=j*2.4;g.beginPath();g.arc(x+Math.cos(a2)*25,y+Math.sin(a2)*22-12,3,0,Math.PI*2);g.fill()}}
+ if(tier===5){g.fillStyle='#ffeeb0';g.beginPath();g.moveTo(x-24,y-45);g.lineTo(x-21,y-69);g.lineTo(x-8,y-54);g.lineTo(x,y-73);g.lineTo(x+12,y-53);g.lineTo(x+24,y-68);g.lineTo(x+27,y-45);g.fill()}
+ feverSprites[key]=cvs;return cvs;
+}
+var priorBobForFever=drawBob;
+drawBob=function(){
+ if(!save.fever.ready){priorBobForFever();return}
+ var g=selectedGear('octopus'),v=octoStats(g.tier,gearLevel('octopus',g.id)),size=v.size;
+ ctx.save();
+ ctx.shadowColor=g.color;ctx.shadowBlur=15;
+ ctx.drawImage(octoSprite(g.tier,0),bob.x-size/2,bob.y-size/2,size,size);
+ ctx.restore();
+};
+function activateOctoFever(){
+ if(!save.fever.ready||feverFx||view!=='fish')return;
+ hideVirtualJoystick();var g=selectedGear('octopus'),v=octoStats(g.tier,gearLevel('octopus',g.id));
+ var targets=[],resisted=0,coins=0,net=gearPower('net');
+ var within=fish.filter(function(f){return Math.hypot(f.x-bob.x,f.y-bob.y)<=v.radius});
+ within.forEach(function(f){
+  var chance=catchProbability(f.sp,false,true);
+  if(Math.random()<chance){
+   var n=1+(net>0&&Math.random()<Math.min(.7,net*.035)?1:0);
+   save.owned[f.sp.id]=(save.owned[f.sp.id]||0)+n;
+   var reward=Math.floor((14+f.sp.index*5+save.up[2]*4)*(1+net*.025));
+   save.coins+=reward;save.catches+=n;coins+=reward;
+   if(save.placed.length===0)save.placed.push(f.sp.id);
+   targets.push({x:f.x,y:f.y,sp:f.sp,size:f.size,vx:f.vx,phase:f.phase,quantity:n});
+  }else resisted++;
+ });
+ save.fever.ready=false;save.fever.count=0;save.fever.activations++;
+ persist();updateStats();updateFeverHud();beep('catch');
+ spawnParticles(bob.x,bob.y,52,'gold');ripple(bob.x,bob.y);
+ var savedX=bob.x,savedY=bob.y;
+ feverFx={x:savedX,y:savedY,radius:v.radius,tier:g.tier,color:g.color,caught:targets,resisted:resisted,coins:coins,elapsed:0,duration:1.48};
+ $('hintTitle').textContent='🐙 피버 광역기! '+targets.length+'마리 포획 · '+resisted+'마리 저항';
+ $('hint').textContent='문어가 촉수 8개를 펼쳐 반경 '+v.radius+'px 물고기를 노립니다.';
+}
+function drawFeverFx(dt){
+ if(!feverFx)return;
+ var fx=feverFx;fx.elapsed+=dt;var p=clamp(fx.elapsed/fx.duration,0,1);
+ var stage=clamp(p/.56,0,1),frame=Math.max(0,Math.min(11,Math.floor(stage*11)));
+ var r=fx.radius,diam=r*2+92;
+ ctx.save();
+ ctx.globalAlpha=p>.7?Math.max(0,(1-p)/.3):1;
+ ctx.shadowColor=fx.color;ctx.shadowBlur=17+12*Math.sin(Math.PI*p);
+ ctx.drawImage(octoSprite(fx.tier,frame),fx.x-diam/2,fx.y-diam/2,diam,diam);
+ ctx.shadowBlur=0;
+ ctx.globalAlpha=Math.max(0,1-p);
+ ctx.strokeStyle=fx.color;ctx.lineWidth=5*(1-p)+1;
+ ctx.beginPath();ctx.arc(fx.x,fx.y,fx.radius*stage,0,Math.PI*2);ctx.stroke();
+ ctx.globalAlpha=1;ctx.textAlign='center';ctx.shadowColor='#021820';ctx.shadowBlur=8;
+ ctx.font='900 29px system-ui';ctx.fillStyle='#ffe8a1';
+ ctx.fillText('OCTO FEVER',fx.x,fx.y-72-60*p);
+ ctx.font='900 19px system-ui';ctx.fillStyle='#f5ffea';
+ ctx.fillText(fx.caught.length+' CATCH · '+fx.resisted+' RESIST · ◈ '+fx.coins,fx.x,fx.y-40-60*p);
+ fx.caught.forEach(function(f,i){
+  var delay=i*.025,up=clamp((p-delay)/.72,0,1);
+  if(up>=1)return;
+  ctx.globalAlpha=1-up;
+  drawFish({sp:f.sp,x:f.x+Math.sin(i+time*8)*14*up,y:f.y-150*(up*up),vx:f.vx,size:f.size,phase:f.phase},time);
+ });
+ ctx.restore();
+ if(p>=1){feverFx=null;buildFish();buildHum();startCast()}
+}
+var previousModeForFever=setMode;
+setMode=function(m){previousModeForFever(m);updateFeverHud()};
+updateFeverHud();
 
 buildFish();buildHum();updateStats();setMode('fish');requestAnimationFrame(tick);
 })();
