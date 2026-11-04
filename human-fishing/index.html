@@ -310,6 +310,44 @@ function fishSprite(sp){
   ellipse(-5,0,43,41,shade,.16);
   shape([[5,-26],[27,-19],[33,-5],[24,7],[5,11]],accent,false);
   markings(-27,0,46,46);eye(-34,-15,1);
+ }else if(type==='frog'){
+  // Stonefish/frogfish are squat ambush hunters with broad limb-like fins.
+  shape([[34,0],[57,-12],[61,20],[32,17]],finShade);
+  shape([[-20,15],[-43,42],[-6,29]],finShade);
+  shape([[4,17],[39,43],[37,15]],accent);
+  shape([[-64,-14],[-42,-40],[-3,-44],[42,-28],[49,9],[20,33],[-32,33]],shade);
+  for(var p=0;p<6;p++){
+   shape([[-44+p*15,-27],[-42+p*15,-41-p%2*4],[-35+p*15,-27]],finShade);
+  }
+  markings(-38,0,61,36);eye(-44,-13,1.09);
+ }else if(type==='elephant'){
+  // Elephantnose fish: a slender curved trunk below the tiny mouth.
+  forkTail(56,19);
+  shape([[-60,-12],[-28,-23],[25,-16],[50,0],[11,18],[-37,15]],shade);
+  shape([[-2,-18],[13,-41],[24,-15]],finShade);
+  g.beginPath();g.moveTo(-58,-1);g.bezierCurveTo(-78,5,-76,20,-66,33);
+  g.strokeStyle=ink;g.lineWidth=9;g.stroke();
+  g.strokeStyle=body;g.lineWidth=5.5;g.stroke();
+  markings(-24,0,51,29);eye(-42,-12,.78);
+ }else if(type==='knife'){
+  // Knifefish: no tail fin, but a long rippling ventral ribbon.
+  shape([[-80,-4],[-55,-16],[-1,-20],[48,-8],[86,4],
+   [49,14],[21,18],[-37,16],[-72,7]],shade);
+  var points=[[-55,13]];
+  for(var k=0;k<=9;k++)points.push([-49+k*12,24+(k%2?8:-3)]);
+  points.push([58,10]);
+  shape(points,finShade);
+  markings(-34,-1,75,24);eye(-63,-8,.77);
+ }else if(type==='sturgeon'){
+  // Very long plated sturgeon with a spade-like underside and bony ridges.
+  forkTail(64,26);
+  shape([[-77,-7],[-52,-19],[-10,-16],[43,-12],[66,0],
+   [14,15],[-43,16],[-80,3]],shade);
+  shape([[11,-15],[20,-40],[35,-13]],finShade);
+  for(var p=0;p<7;p++)shape([[-45+p*16,-16],[-40+p*16,-24],[-30+p*16,-16]],accent);
+  stroke([[-78,6],[-92,15]],'#dacb9f',2.1);
+  stroke([[-73,8],[-82,20]],'#dacb9f',2.1);
+  eye(-57,-8,.69);
  }else if(type==='angler'){
   // Bulky deep-sea fish with exposed teeth and a glowing angler stalk.
   forkTail(35,19);
