@@ -59,7 +59,7 @@ const mock={document,window:{addEventListener(){}},navigator:{vibrate(){}},conso
  localStorage:{getItem(k){return memory.get(k)||null},setItem(k,v){memory.set(k,v)}},
  requestAnimationFrame(cb){frame=cb}
 };
-const instrumented=script.replace(/\}\)\(\);\s*$/,String.raw\`
+const instrumented=script.replace(/\}\)\(\);\s*$/,String.raw`
 window.__hfTest={
  species:species,
  getFish:function(){return fish},
@@ -80,7 +80,7 @@ window.__hfTest={
  switchCategory:function(k){shopCategory=k;renderShop()},
  shopModels:gearCatalog
 };
-})();\`);
+})();`);
 vm.runInNewContext(instrumented,mock,{filename:'human-fishing.js',timeout:4000});
 const game=mock.window.__hfTest;
 assert.ok(game,'Test bridge missing');
