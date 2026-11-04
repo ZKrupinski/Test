@@ -227,12 +227,13 @@ function draw(ctx,a,now,alpha,near){
   if(a._btPreviewRevision!==previewRevision){
    a._btPreviewRevision=previewRevision;
    a._btPreviewStart=now;
+   a._btPreviewInitialFacing=a._btFacing||direction||1;
    a._btAction=null;
   }
   var elapsed=Math.max(0,now-a._btPreviewStart);
   var pass=Math.floor(elapsed/PREVIEW_PERIOD);
   var phase=elapsed%PREVIEW_PERIOD;
-  turnFrom=pass%2===0?1:-1;
+  turnFrom=pass%2===0?a._btPreviewInitialFacing:-a._btPreviewInitialFacing;
   turning=phase<TURN_DURATION;
   turnProgress=clamp(phase/TURN_DURATION,0,1);
   a._btFacing=turning?turnFrom:-turnFrom;
