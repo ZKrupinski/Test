@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#092a39">
-<title>인간낚시 · HUMAN FISHING α 1.7</title>
+<title>인간낚시 · HUMAN FISHING α 1.8</title>
 <style>
 :root{color-scheme:dark;--gold:#f5cb81;--aqua:#8ee4e2;--ink:#092b39;--panel:#072633ee}
 *{box-sizing:border-box}body{margin:0;background:#061923;color:#effffb;font:15px/1.45 system-ui,"Pretendard","Malgun Gothic",sans-serif;overflow-x:hidden}
@@ -68,7 +68,7 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 #virtualJoystick.visible{display:block}
 @media(max-width:760px){#virtualJoystick{min-width:56px;border-width:1px}#virtualKnob{border-width:1px}}
 .fever-hud{position:absolute;z-index:3;left:14px;top:14px;bottom:auto;width:min(205px,31%);padding:7px 9px;border-radius:12px;border:1px solid #a6d6d075;background:linear-gradient(125deg,#0b3444ec,#112a3be6);box-shadow:0 4px 20px #0007;pointer-events:none;color:#c4eeec}.fever-hud .fever-top{display:flex;justify-content:space-between;gap:5px;font-size:11px;font-weight:950}.fever-hud .fever-top span:last-child{color:#ffe8a5}.fever-meter{height:8px;background:#061821;border:1px solid #4d7f87;border-radius:50px;margin-top:5px;overflow:hidden}.fever-meter i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#43bac4,#94eadb,#ffcc82);border-radius:50px;transition:width .25s ease}.fever-detail{font-size:9px;color:#b7d6db;margin-top:3px}.fever-hud.ready{border-color:#ffd28f;box-shadow:0 0 24px #ffc36b50,0 6px 17px #0007;background:linear-gradient(120deg,#563343eb,#0a5762ee)}.fever-hud.ready .fever-top span:first-child{color:#ffe4ab}.shop-octo-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:7px 0}.shop-octo-stats span{font-size:11px;color:#d8f7ea;background:#0d3846;border-radius:5px;padding:3px 5px}@media(max-width:760px){.fever-hud{left:6px;top:6px;bottom:auto;width:min(137px,37%);padding:4px 6px;border-radius:6px}.fever-hud .fever-top{font-size:9px}.fever-meter{height:5px;margin-top:3px}.fever-detail{font-size:8px}.shop-octo-stats span{font-size:9px;padding:2px 3px}}</style></head><body><div class="wrap">
-<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 1.7</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
+<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 1.8</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navShop">🛒 상점</button></nav></header>
 <div class="stage" id="stage"><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 어디든 터치해 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
 <div class="hud top"><div class="tag" style="display:none" aria-hidden="true"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins" style="margin-left:auto">◈ 0　🐟 0/240</div></div>
@@ -1855,53 +1855,79 @@ function activateOctoFever(){
   duration:1.95+Math.max(0,targets.length-1)*swallowSpacing,
   swallowSpacing:swallowSpacing,reelProgress:0,reelFrame:0,reeling:false
  };
+ feverFx.surfaceAt=feverSurfaceTime(feverFx,time);
  $('hintTitle').textContent='🐙 피버! '+targets.length+'마리 입속으로 꿀꺽';
  $('hint').textContent='모든 포획 생물이 문어 입 안으로 들어간 뒤 다음 낚시로 이어집니다.';
 }
 // Rod retrieval and folding are one continuous movement. This also supplies
 // the bait position used by drawLine(), keeping the fishing line attached.
+// Alpha 1.8: grouped catches stay held in half-curled bait tentacles underwater.
+function feverSurfaceTime(fx,now){
+ var start=.42,end=Math.min(fx.duration-.16,start+1.02);
+ if(fx.y<=271)return start;
+ var tip=rodTip(now),lo=0,hi=1;
+ for(var i=0;i<15;i++){
+  var mid=(lo+hi)*.5,s=mid*mid*(3-2*mid);
+  var y=mix(fx.y,tip.y+12,s)-26*Math.sin(Math.PI*s);
+  if(y>271)lo=mid;else hi=mid;
+ }
+ return start+(end-start)*hi;
+}
 function feverReelState(fx,now){
- // Start retrieval 0.16 seconds earlier; finish in one brisk second instead
- // of the old 1.5+ second ascent, while preserving staggered fish swallowing.
- var liftStart=.42,liftEnd=Math.min(fx.duration-.16,liftStart+1.02);
- var raw=clamp((fx.elapsed-liftStart)/(liftEnd-liftStart),0,1);
- var smooth=raw*raw*(3-2*raw);
- var tip=rodTip(now),folding=fx.elapsed>=liftStart;
- var expanded=clamp(fx.elapsed/liftStart,0,1);
- var arm=folding?(1-smooth):expanded;
+ var start=.42,end=Math.min(fx.duration-.16,start+1.02);
+ var raw=clamp((fx.elapsed-start)/(end-start),0,1);
+ var smooth=raw*raw*(3-2*raw),tip=rodTip(now);
  var leftSweep=116*Math.sin(Math.PI*smooth);
+ var y=mix(fx.y,tip.y+12,smooth)-26*Math.sin(Math.PI*smooth);
+ var surfaceAt=Number.isFinite(fx.surfaceAt)?fx.surfaceAt:feverSurfaceTime(fx,now);
+ var folding=fx.elapsed>=.19,frame;
+ if(fx.elapsed<.19)frame=Math.round(11*clamp(fx.elapsed/.19,0,1));
+ else if(fx.elapsed<start)frame=Math.round(mix(11,6,clamp((fx.elapsed-.19)/(start-.19),0,1)));
+ else if(fx.elapsed<surfaceAt)frame=6;
+ else{
+  var finish=clamp((fx.elapsed-surfaceAt)/Math.max(.32,Math.min(.66,
+   .39+Math.max(0,fx.caught.length-2)*fx.swallowSpacing*.22)),0,1);
+  frame=Math.round(6*(1-finish*finish*(3-2*finish)));
+ }
  return{
-  progress:raw,folding:folding,frame:Math.max(0,Math.min(11,Math.round(arm*11))),
+  progress:raw,folding:folding,frame:Math.max(0,Math.min(11,frame)),
+  surfaceAt:surfaceAt,underwater:y>271,holding:fx.elapsed>=start&&fx.elapsed<surfaceAt,
   leftSweep:leftSweep,tilt:-.21*Math.sin(Math.PI*smooth)-.055*smooth,
-  // Move left toward the main octopus first, then finish under the rod tip.
-  x:mix(fx.x,tip.x-48,smooth)-leftSweep,
-  y:mix(fx.y,tip.y+12,smooth)-26*Math.sin(Math.PI*smooth)
+  x:mix(fx.x,tip.x-48,smooth)-leftSweep,y:y
  };
 }
-// During the fast curl, creatures are gathered by the closing arms then
-// flicked left in a continuous, upward parabolic flight into the main octopus.
+function feverGripSlot(fx,index){
+ var count=fx.caught.length,ring=Math.floor(index/5),n=Math.min(5,count-ring*5);
+ var angle=Math.PI*(.13+.74*((index%5)+.5)/n);
+ var radius=clamp((fx.radius*2+92)*.22,66,100)+ring*29;
+ return{x:Math.cos(angle)*radius,y:Math.sin(angle)*radius+ring*10,
+  scale:count>7?.68:count>4?.78:count>2?.86:.93};
+}
 function feverTossPoint(entity,fx,index,now){
- var delay=.44+index*fx.swallowSpacing,travel=.93;
- var mouth=mouthPos(now),take=clamp((fx.elapsed-delay)/travel,0,1);
- var gather={x:fx.x-30,y:fx.y-30};
- if(fx.elapsed<delay){
-  var hold=clamp(fx.elapsed/Math.max(.01,delay),0,1)*.15;
-  return{x:mix(entity.x,gather.x,hold),y:mix(entity.y,gather.y,hold),
-   rotation:Math.sin(time*10+index)*.08,scale:1,done:false,phase:'hold'};
- }
- if(take<.30){
-  var q=take/.30,soft=q*q*(3-2*q);
-  return{x:mix(entity.x,gather.x,soft),y:mix(entity.y,gather.y,soft)-18*Math.sin(Math.PI*soft),
-   rotation:-.24*soft,scale:1,done:false,phase:'gather'};
- }
- var p=Math.pow((take-.30)/.70,.88),inv=1-p;
- var cx=mouth.x-30,cy=Math.min(gather.y,mouth.y)-74;
+ var reel=feverReelState(fx,now),slot=feverGripSlot(fx,index);
+ var gather=clamp(fx.elapsed/.42,0,1),q=gather*gather*(3-2*gather);
+ var hold={x:reel.x+slot.x,y:reel.y+slot.y};
+ if(fx.elapsed<.42)return{
+  x:mix(entity.x,hold.x,q),y:mix(entity.y,hold.y,q),
+  rotation:Math.sin(time*8+index)*.06,scale:mix(1,slot.scale,q),
+  done:false,phase:'gather',attached:true
+ };
+ var releaseAt=reel.surfaceAt+index*fx.swallowSpacing;
+ if(fx.elapsed<releaseAt)return{
+  x:hold.x+Math.sin(time*8+index)*2,y:hold.y+Math.sin(time*6+index)*2,
+  rotation:Math.sin(time*4+index)*.07,scale:slot.scale,
+  done:false,phase:'held',attached:true
+ };
+ var launch=feverReelState(Object.assign({},fx,{elapsed:releaseAt}),now);
+ var sx=launch.x+slot.x,sy=launch.y+slot.y;
+ var duration=.73,t=clamp((fx.elapsed-releaseAt)/duration,0,1),inv=1-t;
+ var mouth=mouthPos(now),cx=(sx+mouth.x)*.5-22,cy=Math.min(sy,mouth.y)-57;
  return{
-  x:inv*inv*gather.x+2*inv*p*cx+p*p*mouth.x,
-  y:inv*inv*gather.y+2*inv*p*cy+p*p*mouth.y,
-  rotation:-.32-.50*Math.sin(Math.PI*p),
-  scale:p<.80?1:Math.max(.02,1-(p-.80)/.20),
-  done:take>=1,phase:'throw'
+  x:inv*inv*sx+2*inv*t*cx+t*t*mouth.x,
+  y:inv*inv*sy+2*inv*t*cy+t*t*mouth.y,
+  rotation:-.23-.43*Math.sin(Math.PI*t),
+  scale:slot.scale*(t<.77?1:Math.max(.02,1-(t-.77)/.23)),
+  done:t>=1,phase:'throw',attached:false
  };
 }
 function drawFeverTossCreature(entity,fx,index,now){
