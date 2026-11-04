@@ -53,8 +53,90 @@
       "tileHeight": 256,
       "bytes": 198688,
       "transparent": true
+    },
+    "swim": {
+      "width": 1024,
+      "height": 1024,
+      "tileWidth": 512,
+      "tileHeight": 256,
+      "bytes": 109048,
+      "transparent": true,
+      "derivedFrom": "idle",
+      "method": "bitmap pose retargeting; 8 individual frames"
+    },
+    "notice": {
+      "width": 1024,
+      "height": 1024,
+      "tileWidth": 512,
+      "tileHeight": 256,
+      "bytes": 100746,
+      "transparent": true,
+      "derivedFrom": "idle",
+      "method": "bitmap pose retargeting; 8 individual frames"
+    },
+    "graze": {
+      "width": 1024,
+      "height": 1024,
+      "tileWidth": 512,
+      "tileHeight": 256,
+      "bytes": 72778,
+      "transparent": true,
+      "derivedFrom": "burst",
+      "method": "bitmap pose retargeting; 8 individual frames"
+    },
+    "lift": {
+      "width": 1024,
+      "height": 1024,
+      "tileWidth": 512,
+      "tileHeight": 256,
+      "bytes": 68182,
+      "transparent": true,
+      "derivedFrom": "hooked",
+      "method": "bitmap pose retargeting; 8 individual frames"
+    },
+    "last_resist": {
+      "width": 1024,
+      "height": 1024,
+      "tileWidth": 512,
+      "tileHeight": 256,
+      "bytes": 74454,
+      "transparent": true,
+      "derivedFrom": "hooked",
+      "method": "bitmap pose retargeting; 8 individual frames"
+    },
+    "slip": {
+      "width": 1024,
+      "height": 1024,
+      "tileWidth": 512,
+      "tileHeight": 256,
+      "bytes": 61778,
+      "transparent": true,
+      "derivedFrom": "burst",
+      "method": "bitmap pose retargeting; 8 individual frames"
+    },
+    "reentry": {
+      "width": 1024,
+      "height": 1024,
+      "tileWidth": 512,
+      "tileHeight": 256,
+      "bytes": 51054,
+      "transparent": true,
+      "derivedFrom": "burst",
+      "method": "bitmap pose retargeting; 8 individual frames"
+    },
+    "flee": {
+      "width": 1024,
+      "height": 1024,
+      "tileWidth": 512,
+      "tileHeight": 256,
+      "bytes": 89592,
+      "transparent": true,
+      "derivedFrom": "burst",
+      "method": "bitmap pose retargeting; 8 individual frames"
     }
   },
   "asset_type": "raster bitmap",
-  "frame_count_each": 8
+  "frame_count_each": 8,
+  "actions_total": 14,
+  "frames_total": 112
 }
