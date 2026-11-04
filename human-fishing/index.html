@@ -796,7 +796,7 @@ function castMotion(dt){
   bob.x=640+Math.sin((u-1.4)*2.5)*4*(1-p);
   bob.y=272+(436-272)*p+Math.sin((u-1.4)*14)*4*(1-p);
   if(Math.floor(u*9)%3===0&&Math.random()<dt*25)
-   particles.push({x:bob.x+rand(-7,7),y:bob.y+rand(-3,7),vx:rand(-.3,.3),vy:rand(-.7,-.2),life:.55,size:rand(2,5),kind:'water'});
+   particles.push({x:bob.x+rnd(-7,7),y:bob.y+rnd(-3,7),vx:rnd(-.3,.3),vy:rnd(-.7,-.2),life:.55,size:rnd(2,5),kind:'water'});
  }
  if(u>=cast.duration){
   cast.active=false;bob.x=640;bob.y=436;
