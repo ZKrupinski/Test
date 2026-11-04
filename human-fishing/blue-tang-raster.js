@@ -200,6 +200,17 @@ function transform(action,index){
   default:return {r:0,x:0,y:0,sx:1,sy:1};
  }
 }
+// Both natural AI reversals and the debug 'uturn' preview use a true
+// left-to-right 180-degree yaw. Merely showing eight sprites facing the
+// same way was why the previous turn could not be seen.
+var TURN_DURATION=.78,PREVIEW_PERIOD=2.15,previewRevision=0;
+function turnYaw(progress){
+ progress=clamp(progress,0,1);
+ var smooth=progress*progress*(3-2*progress);
+ var cosine=Math.cos(Math.PI*smooth);
+ // Do not make the bitmap disappear at the precise side-to-side midpoint.
+ return Math.abs(cosine)<.045?(cosine<0?-.045:.045):cosine;
+}
 function draw(ctx,a,now,alpha,near){
  if(!a||!a.sp||a.sp.name!=='블루탱')return false;
  if(!atlas.idle)return false;
@@ -207,18 +218,54 @@ function draw(ctx,a,now,alpha,near){
  var speed=a.vx||0;
  var direction=Math.abs(speed)<7?(a._btFacing||1):(speed<0?-1:1);
  if(a._btFacing===undefined)a._btFacing=direction;
- if(direction!==a._btFacing&&!a.spriteAction){
-  // Prevent sub-pixel velocity reversals from restarting U-turn every frame.
-  if(a._btPendingDir!==direction){a._btPendingDir=direction;a._btPendingAt=now}
-  if(now-(a._btPendingAt||now)>.12&&now-(a._btLastTurn||-10)>.85){
-   a._btTurnFrom=a._btFacing;a._btFacing=direction;
-   a._btTurnStart=now;a._btLastTurn=now;
-   a._btPendingDir=0;
+ var forced=!!a.spriteAction;
+ var showcase=!!a._btDemo&&previewAction==='uturn';
+ var turning=false,turnProgress=1,turnFrom=1;
+ if(showcase){
+  // A repeatable full turn is always visible from the QA dropdown,
+  // even if this particular fish's AI never reverses direction.
+  if(a._btPreviewRevision!==previewRevision){
+   a._btPreviewRevision=previewRevision;
+   a._btPreviewStart=now;
+   a._btAction=null;
+  }
+  var elapsed=Math.max(0,now-a._btPreviewStart);
+  var pass=Math.floor(elapsed/PREVIEW_PERIOD);
+  var phase=elapsed%PREVIEW_PERIOD;
+  turnFrom=pass%2===0?1:-1;
+  turning=phase<TURN_DURATION;
+  turnProgress=clamp(phase/TURN_DURATION,0,1);
+  a._btFacing=turning?turnFrom:-turnFrom;
+  action=turning?'uturn':'swim';
+ }else if(!forced){
+  var activeTurn=Number.isFinite(a._btTurnStart)&&now-a._btTurnStart<TURN_DURATION;
+  if(!activeTurn&&direction!==a._btFacing){
+   // Demand a sustained directional reversal to avoid jitter at low speed.
+   if(a._btPendingDir!==direction){
+    a._btPendingDir=direction;a._btPendingAt=now;
+   }
+   if(now-a._btPendingAt>=.13&&now-(a._btLastTurn||-10)>.96){
+    a._btTurnFrom=a._btFacing;
+    a._btFacing=direction;
+    a._btTurnStart=now;
+    a._btLastTurn=now;
+    a._btPendingDir=0;
+    activeTurn=true;
+   }
+  }else if(!activeTurn)a._btPendingDir=0;
+  if(activeTurn){
+   turning=true;
+   turnFrom=a._btTurnFrom||1;
+   turnProgress=clamp((now-a._btTurnStart)/TURN_DURATION,0,1);
+   action='uturn';
   }
  }else a._btPendingDir=0;
- if(!a.spriteAction&&Number.isFinite(a._btTurnStart)&&now-a._btTurnStart<.64)
-  action='uturn';
  var sheet=atlas[sourceOf[action]];
+ if(turning){
+  // The locked-torso swimming bitmap supplies stable geometry through the
+  // yaw; original U-turn image poses were not reliably facing backwards.
+  sheet=atlas.swim||atlas.idle||sheet;
+ }
  if(!sheet){action='swim';sheet=atlas.swim||atlas.idle}
  if(!sheet)return false;
  var p=poseProgress(a,now,action),i=p.index,pose=transform(action,i);
@@ -232,24 +279,37 @@ function draw(ctx,a,now,alpha,near){
  if(a.shakeUntil>now){
   var fade=clamp((a.shakeUntil-now)/.14,0,1);
   var power=(a.shakePower||1.4)*fade*.12;
-  ctx.translate(Math.sin(now*54+(a.phase||0))*power,Math.cos(now*68+(a.phase||0))*power*.45);
+  ctx.translate(Math.sin(now*54+(a.phase||0))*power,
+    Math.cos(now*68+(a.phase||0))*power*.45);
  }
- var facing=a._btFacing;
- if(action==='uturn')facing=a._btTurnFrom===-1?-1:1;
- ctx.scale(facing,1);
- ctx.translate(pose.x,pose.y);ctx.rotate(pose.r);ctx.scale(pose.sx,pose.sy);
+ if(turning){
+  // Actual visual inversion: full width -> slim frontal pose ->
+  // mirrored full width. Rotate around the stable torso pivot.
+  ctx.scale(turnFrom*turnYaw(turnProgress),1);
+  ctx.rotate(Math.sin(Math.PI*turnProgress)*.018*turnFrom);
+ }else{
+  ctx.scale(a._btFacing,1);
+  ctx.translate(pose.x,pose.y);
+  ctx.rotate(pose.r);
+  ctx.scale(pose.sx,pose.sy);
+ }
  ctx.drawImage(sheet,sx,sy,CW,CH,-drawW*.5,-drawH*.5,drawW,drawH);
  ctx.restore();
  return true;
 }
+
 window.BlueTangSprites={
  draw:draw,
  ready:function(){return !!atlas.idle},
  status:function(){return Object.assign({},status)},
  actions:actions.slice(),
  loadedSources:function(){return Object.keys(atlas)},
- setPreviewAction:function(action){previewAction=sourceOf[action]?action:null;return previewAction},
+ setPreviewAction:function(action){
+  previewAction=sourceOf[action]?action:null;
+  previewRevision++;
+  return previewAction;
+ },
  getPreviewAction:function(){return previewAction},
- version:'body-anchor-2.6'
+ version:'visible-uturn-2.7'
 };
 })();
