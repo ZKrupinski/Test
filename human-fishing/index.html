@@ -87,7 +87,26 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 #virtualKnob{position:absolute;z-index:1;left:50%;top:50%;transform:translate(-50%,-50%);width:44%;aspect-ratio:1;border-radius:50%;border:2px solid #d8fff0b8;background:radial-gradient(circle at 28% 24%,#e7ffec,#6ebec2 38%,#285d77 81%);box-shadow:0 5px 13px #001522b8,inset 0 2px 8px #fff7}
 #virtualJoystick.visible{display:block}
 @media(max-width:760px){#virtualJoystick{min-width:56px;border-width:1px}#virtualKnob{border-width:1px}}
-.fever-hud{position:absolute;z-index:3;left:14px;top:14px;bottom:auto;width:min(205px,31%);padding:7px 9px;border-radius:12px;border:1px solid #a6d6d075;background:linear-gradient(125deg,#0b3444ec,#112a3be6);box-shadow:0 4px 20px #0007;pointer-events:none;color:#c4eeec}.fever-hud .fever-top{display:flex;justify-content:space-between;gap:5px;font-size:11px;font-weight:950}.fever-hud .fever-top span:last-child{color:#ffe8a5}.fever-meter{height:8px;background:#061821;border:1px solid #4d7f87;border-radius:50px;margin-top:5px;overflow:hidden}.fever-meter i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#43bac4,#94eadb,#ffcc82);border-radius:50px;transition:width .25s ease}.fever-detail{font-size:9px;color:#b7d6db;margin-top:3px}.fever-hud.ready{border-color:#ffd28f;box-shadow:0 0 24px #ffc36b50,0 6px 17px #0007;background:linear-gradient(120deg,#563343eb,#0a5762ee)}.fever-hud.ready .fever-top span:first-child{color:#ffe4ab}.shop-octo-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:7px 0}.shop-octo-stats span{font-size:11px;color:#d8f7ea;background:#0d3846;border-radius:5px;padding:3px 5px}@media(max-width:760px){.fever-hud{left:6px;top:6px;bottom:auto;width:min(137px,37%);padding:4px 6px;border-radius:6px}.fever-hud .fever-top{font-size:9px}.fever-meter{height:5px;margin-top:3px}.fever-detail{font-size:8px}.shop-octo-stats span{font-size:9px;padding:2px 3px}}</style></head><body><div class="wrap">
+.fever-hud{position:absolute;z-index:3;left:14px;top:14px;bottom:auto;width:min(205px,31%);padding:7px 9px;border-radius:12px;border:1px solid #a6d6d075;background:linear-gradient(125deg,#0b3444ec,#112a3be6);box-shadow:0 4px 20px #0007;pointer-events:none;color:#c4eeec}.fever-hud .fever-top{display:flex;justify-content:space-between;gap:5px;font-size:11px;font-weight:950}.fever-hud .fever-top span:last-child{color:#ffe8a5}.fever-meter{height:8px;background:#061821;border:1px solid #4d7f87;border-radius:50px;margin-top:5px;overflow:hidden}.fever-meter i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#43bac4,#94eadb,#ffcc82);border-radius:50px;transition:width .25s ease}.fever-detail{font-size:9px;color:#b7d6db;margin-top:3px}.fever-hud.ready{border-color:#ffd28f;box-shadow:0 0 24px #ffc36b50,0 6px 17px #0007;background:linear-gradient(120deg,#563343eb,#0a5762ee)}.fever-hud.ready .fever-top span:first-child{color:#ffe4ab}.shop-octo-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:7px 0}.shop-octo-stats span{font-size:11px;color:#d8f7ea;background:#0d3846;border-radius:5px;padding:3px 5px}@media(max-width:760px){.fever-hud{left:6px;top:6px;bottom:auto;width:min(137px,37%);padding:4px 6px;border-radius:6px}.fever-hud .fever-top{font-size:9px}.fever-meter{height:5px;margin-top:3px}.fever-detail{font-size:8px}.shop-octo-stats span{font-size:9px;padding:2px 3px}}
+/* Compact receipt shown only on entering the aquarium; not a shop screen. */
+.aqua-sale-overlay{position:absolute;inset:0;z-index:12;display:none;place-items:center;padding:clamp(8px,2vw,20px);background:#031922a8;backdrop-filter:blur(3px)}
+.aqua-sale-overlay.visible{display:grid}
+.aqua-sale-card{width:min(520px,95%);max-height:96%;display:flex;flex-direction:column;border:1px solid #9ac9c9;border-radius:17px;background:linear-gradient(155deg,#153e4d,#092632);box-shadow:0 18px 48px #000b;overflow:hidden;color:#f1ffff}
+.aqua-sale-head{padding:17px 19px 8px}
+.aqua-sale-head h2{font-size:clamp(18px,2.4vw,23px);margin:0;color:#ffdaa0}
+.aqua-sale-head p{margin:4px 0 0;color:#9fcbd2;font-size:12px}
+.aqua-sale-list{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:6px 18px 12px}
+.aqua-sale-row{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #ffffff19;font-size:14px;font-weight:750}
+.aqua-sale-row .name{min-width:0;flex:1}
+.aqua-sale-row small{display:block;color:#9ac6c8;font-size:11px;font-weight:500;margin-top:2px}
+.aqua-sale-row .amount{text-align:right;color:#ffe0a0;white-space:nowrap;font-variant-numeric:tabular-nums}
+.aqua-sale-empty{padding:15px 0;color:#aecbd1;text-align:center;font-size:14px}
+.aqua-sale-bottom{padding:12px 18px 15px;background:#061f2a;border-top:1px solid #ffffff2c}
+.aqua-sale-total{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:15px;font-weight:850}
+.aqua-sale-total strong{font-size:24px;color:#ffcf82;font-variant-numeric:tabular-nums}
+.aqua-sale-close{display:block;margin-top:12px;width:100%;min-height:43px;border:0;border-radius:9px;color:#14333b;background:#f2cd8f;font-size:16px;font-weight:900}
+@media(max-width:760px){.aqua-sale-head{padding:11px 14px 5px}.aqua-sale-list{padding:2px 14px 8px}.aqua-sale-row{padding:7px 0;font-size:12px}.aqua-sale-bottom{padding:9px 14px 11px}.aqua-sale-total strong{font-size:20px}.aqua-sale-close{min-height:40px;margin-top:8px}}
+</style></head><body><div class="wrap">
 <header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 2.3</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navGear">🎒 장비</button><button id="navShop">🛒 상점</button></nav></header>
 <div class="stage" id="stage"><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 어디든 터치해 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
@@ -95,6 +114,16 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 <div id="feverHud" class="fever-hud"><div class="fever-top"><span>🐙 OCTO FEVER</span><span id="feverNum">0 / 6</span></div><div class="fever-meter"><i id="feverFill"></i></div><div id="feverDetail" class="fever-detail">물고기 포획으로 충전</div></div>
 <div class="center-banner" id="banner"><div class="emoji" id="bannerIcon">🐟</div><strong id="bannerTitle">첫 포획!</strong><p id="bannerSub">새로운 물고기 발견</p></div>
 <div class="sideinfo" id="sideinfo"></div>
+<div class="aqua-sale-overlay" id="aquaSaleReceipt" role="dialog" aria-modal="true" aria-labelledby="aquaSaleTitle" aria-hidden="true">
+ <div class="aqua-sale-card">
+  <div class="aqua-sale-head"><h2 id="aquaSaleTitle">🐠 중복 물고기 자동 판매</h2><p id="aquaSaleCount"></p></div>
+  <div class="aqua-sale-list" id="aquaSaleItems"></div>
+  <div class="aqua-sale-bottom">
+   <div class="aqua-sale-total"><span>총 입금액</span><strong id="aquaSaleTotal">◈ 0</strong></div>
+   <button type="button" class="aqua-sale-close" id="aquaSaleClose">확인</button>
+  </div>
+ </div>
+</div>
 <section class="panel" id="panel"><div class="panelhead"><div><h2 id="panelTitle">도감</h2><div class="minor" id="panelDesc">240종 수집 도전</div></div><button class="smallbtn" id="closePanel">✕ 닫기</button></div><div id="panelBody"></div></section>
 </div>
 
@@ -2813,6 +2842,87 @@ function drawFeverFx(dt){
 var previousModeForFever=setMode;
 setMode=function(m){previousModeForFever(m);updateFeverHud()};
 updateFeverHud();
+
+
+// ALPHA 2.8 — Sell duplicate owned fish whenever entering the aquarium.
+// Keep one specimen of every species (including the showcased specimen).
+// Humans, permanent discoveries, catches and equipment remain unchanged.
+function aquariumUnitSalePrice(sp){
+ var base={COMMON:12,UNCOMMON:22,RARE:42,EPIC:78,LEGEND:145,MYTHIC:260};
+ return (base[sp.rarity]||12)+Math.floor(Math.max(0,Number(sp.level)||1)*.65);
+}
+function aquariumSellDuplicates(){
+ var known=Object.create(null);
+ species.forEach(function(sp){known[sp.id]=sp});
+ var details=[],total=0,quantity=0,changed=false;
+ Object.keys(save.owned).forEach(function(id){
+  var sp=known[id],held=Number(save.owned[id]);
+  if(!sp||!Number.isFinite(held)||held<=1)return;
+  var count=Math.max(0,Math.floor(held)-1);
+  if(!count)return;
+  var unit=aquariumUnitSalePrice(sp),amount=count*unit;
+  details.push({id:id,name:sp.name,quantity:count,unitPrice:unit,amount:amount});
+  total+=amount;quantity+=count;
+  save.owned[id]=1;
+  changed=true;
+ });
+ // Even older saves may have put multiple copies of a species in the tank.
+ // Unplace only the redundant exhibits; the first displayed fish stays.
+ var seen=Object.create(null);
+ var keep=save.placed.filter(function(id){
+  if(known[id]){
+   if(seen[id]){changed=true;return false}
+   seen[id]=true;
+  }
+  return true;
+ });
+ if(keep.length!==save.placed.length)save.placed=keep;
+ if(total){
+  save.coins=(Number(save.coins)||0)+total;
+  changed=true;
+ }
+ if(changed)persist();
+ details.sort(function(a,b){return b.amount-a.amount||a.name.localeCompare(b.name,'ko')});
+ return {items:details,quantity:quantity,total:total};
+}
+function aquariumCloseSaleReceipt(){
+ var overlay=$('aquaSaleReceipt');
+ overlay.classList.remove('visible');
+ overlay.setAttribute('aria-hidden','true');
+}
+function aquariumShowSaleReceipt(receipt){
+ $('aquaSaleCount').textContent=receipt.quantity>0?
+   receipt.items.length+'종 · '+receipt.quantity+'마리 판매 완료':'판매할 중복 물고기 없음';
+ $('aquaSaleItems').innerHTML=receipt.items.length?
+   receipt.items.map(function(item){
+    return '<div class="aqua-sale-row"><span class="name">🐟 '+escapeHtml(item.name)+
+      '<small>'+item.quantity.toLocaleString()+'마리 × ◈ '+item.unitPrice.toLocaleString()+
+      '</small></span><span class="amount">◈ '+item.amount.toLocaleString()+'</span></div>';
+   }).join(''):'<div class="aqua-sale-empty">이번 입장에서는 판매된 물고기가 없습니다.</div>';
+ $('aquaSaleTotal').textContent='◈ '+receipt.total.toLocaleString();
+ var overlay=$('aquaSaleReceipt');
+ overlay.classList.add('visible');
+ overlay.setAttribute('aria-hidden','false');
+}
+$('aquaSaleClose').onclick=aquariumCloseSaleReceipt;
+$('aquaSaleReceipt').onclick=function(event){
+ if(event.target===this)aquariumCloseSaleReceipt();
+};
+window.addEventListener('keydown',function(event){
+ if(event.key==='Escape'&&$('aquaSaleReceipt').classList.contains('visible')){
+  aquariumCloseSaleReceipt();
+ }
+});
+// Wrap only the final mode handler. Previous game-mode, casting and fever
+// wrappers are preserved. Sales never trigger from tank redraws.
+var previousModeForAquariumSales=setMode;
+setMode=function(mode){
+ var entering=mode==='tank'&&view!=='tank';
+ var receipt=entering?aquariumSellDuplicates():null;
+ if(mode!=='tank')aquariumCloseSaleReceipt();
+ previousModeForAquariumSales(mode);
+ if(entering)aquariumShowSaleReceipt(receipt);
+};
 
 // Optional non-destructive showcase: ?bluetang=1 starts in the tropical reef
 // and guarantees a medium blue tang for testing every fishing stage.
