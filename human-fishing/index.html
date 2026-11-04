@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#092a39">
-<title>인간낚시 · HUMAN FISHING α 1.9</title>
+<title>인간낚시 · HUMAN FISHING α 2.0</title>
 <style>
 :root{color-scheme:dark;--gold:#f5cb81;--aqua:#8ee4e2;--ink:#092b39;--panel:#072633ee}
 *{box-sizing:border-box}body{margin:0;background:#061923;color:#effffb;font:15px/1.45 system-ui,"Pretendard","Malgun Gothic",sans-serif;overflow-x:hidden}
@@ -68,7 +68,7 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 #virtualJoystick.visible{display:block}
 @media(max-width:760px){#virtualJoystick{min-width:56px;border-width:1px}#virtualKnob{border-width:1px}}
 .fever-hud{position:absolute;z-index:3;left:14px;top:14px;bottom:auto;width:min(205px,31%);padding:7px 9px;border-radius:12px;border:1px solid #a6d6d075;background:linear-gradient(125deg,#0b3444ec,#112a3be6);box-shadow:0 4px 20px #0007;pointer-events:none;color:#c4eeec}.fever-hud .fever-top{display:flex;justify-content:space-between;gap:5px;font-size:11px;font-weight:950}.fever-hud .fever-top span:last-child{color:#ffe8a5}.fever-meter{height:8px;background:#061821;border:1px solid #4d7f87;border-radius:50px;margin-top:5px;overflow:hidden}.fever-meter i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#43bac4,#94eadb,#ffcc82);border-radius:50px;transition:width .25s ease}.fever-detail{font-size:9px;color:#b7d6db;margin-top:3px}.fever-hud.ready{border-color:#ffd28f;box-shadow:0 0 24px #ffc36b50,0 6px 17px #0007;background:linear-gradient(120deg,#563343eb,#0a5762ee)}.fever-hud.ready .fever-top span:first-child{color:#ffe4ab}.shop-octo-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:7px 0}.shop-octo-stats span{font-size:11px;color:#d8f7ea;background:#0d3846;border-radius:5px;padding:3px 5px}@media(max-width:760px){.fever-hud{left:6px;top:6px;bottom:auto;width:min(137px,37%);padding:4px 6px;border-radius:6px}.fever-hud .fever-top{font-size:9px}.fever-meter{height:5px;margin-top:3px}.fever-detail{font-size:8px}.shop-octo-stats span{font-size:9px;padding:2px 3px}}</style></head><body><div class="wrap">
-<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 1.9</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
+<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 2.0</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navShop">🛒 상점</button></nav></header>
 <div class="stage" id="stage"><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 어디든 터치해 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
 <div class="hud top"><div class="tag" style="display:none" aria-hidden="true"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins" style="margin-left:auto">◈ 0　🐟 0/240</div></div>
@@ -212,6 +212,23 @@ function fishVisualProfile(sp){
 // markings and head proportions are fixed per species (never random per frame).
 // Species palette is named-species first, habitat fallback second. This is the
 // art-direction source of truth for future hand-painted bitmap sprite sheets.
+function fishHslHex(h,s,l){
+ h=((h%360)+360)%360;s=Math.max(0,Math.min(100,s))/100;
+ l=Math.max(0,Math.min(100,l))/100;
+ var c=(1-Math.abs(2*l-1))*s,hh=h/60,x=c*(1-Math.abs(hh%2-1)),m=l-c*.5;
+ var rgb=hh<1?[c,x,0]:hh<2?[x,c,0]:hh<3?[0,c,x]:
+  hh<4?[0,x,c]:hh<5?[x,0,c]:[c,0,x];
+ return '#'+rgb.map(function(n){return Math.round((n+m)*255).toString(16).padStart(2,'0')}).join('');
+}
+function fishMixHex(a,b,t){
+ t=Math.max(0,Math.min(1,t));
+ var rgb=[1,3,5].map(function(i){
+  return Math.round(parseInt(a.slice(i,i+2),16)*(1-t)+parseInt(b.slice(i,i+2),16)*t);
+ });
+ return '#'+rgb.map(function(n){return n.toString(16).padStart(2,'0')}).join('');
+}
+// Palette and patterns are pure, deterministic data shared by ocean, aquarium,
+// fish-catch animation and codex; never change with animation frame or reload.
 function fishSpeciesAppearance(sp){
  var n=sp.name,h=sp.habitat;
  var palette=null,motif='organic',iconic='';
@@ -266,8 +283,34 @@ function fishSpeciesAppearance(sp){
  else if(h===9){set('#6b99af','#c8d5c9','#31577a','#e7eae1');motif='organic'}
  else if(h===10){set('#607585','#bac1b2','#313e57','#bfcdd0');motif='organic'}
  else{set('#96aa9d','#d2b287','#4d7579','#f0ebd8');motif='organic'}
- return{body:palette.body,accent:palette.accent,shadow:palette.shadow,
-  highlight:palette.highlight,motif:motif,designNote:iconic||'서식지 톤과 원래 실루엣 중심'};
+ // Name-bound 240-species color identity: a different ID always produces
+ // a different stable palette. Famous species preserve their iconic natural colors.
+ var k=sp.index,globalId=sp.habitat*20+k;
+ var identityHue=((k*137.508+sp.habitat*47.73+13)%360+360)%360;
+ var speciesBody=fishHslHex(identityHue,74+(globalId%4)*4,43+(globalId%5)*4);
+ var speciesFin=fishHslHex((identityHue+126+(globalId%3)*12)%360,87,64);
+ var speciesTail=fishHslHex((identityHue+202+(globalId%4)*7)%360,85,60);
+ var iconicName=/^(?:흰동가리|퍼큘라클라운피시|블루탱|옐로탱|파우더블루탱|네온테트라|카디널테트라|러미노즈테트라|구피|엔들러구피|베타|금붕어|비단잉어|디스커스|스칼라엔젤피시|고래상어|귀상어|만타가오리|푸른점가오리|쏠배감펭|산갈치|아귀|가시해마|피그미해마)$/.test(n);
+ var pigment=iconicName?.05:.80;
+ var colorBody=fishMixHex(palette.body,speciesBody,pigment);
+ var colorFin=fishMixHex(palette.accent,speciesFin,iconicName?.06:.89);
+ var colorTail=fishMixHex(palette.accent,speciesTail,iconicName?.06:.94);
+ var colorShade=fishMixHex(palette.shadow,fishHslHex(identityHue,48,24),iconicName?.05:.40);
+ var colorHighlight=fishMixHex(palette.highlight,fishHslHex(identityHue,82,82),iconicName?.05:.40);
+ // Break up repeated habitat "organic" colors with species-specific markings.
+ var namedMotif=motif;
+ if(motif==='organic')namedMotif=['identity-band','identity-dots','identity-half','identity-chevron','identity-diagonal','identity-fin'][globalId%6];
+ if(n==='카디널테트라'){
+  colorBody='#2865c8';colorFin='#fa4553';colorTail='#eb4958';
+ }else if(n==='블랙네온테트라'){
+  colorBody='#6a8793';colorFin='#272d3d';colorTail='#c5ddd3';
+ }
+ return{body:colorBody,accent:colorFin,tail:colorTail,
+  shadow:colorShade,highlight:colorHighlight,
+  mark:speciesFin,identityColor:speciesBody,identityHue:identityHue,
+  identityPattern:globalId%6,motif:namedMotif,
+  designNote:iconic||'종별 고유 배색·서식지 기반 형태·고대비 지느러미 및 꼬리 강조'};
+
 }
 function fishSprite(sp){
  var key=sp.id;if(sprites[key])return sprites[key];
@@ -282,7 +325,8 @@ function fishSprite(sp){
  shade.addColorStop(0,appearance.highlight);shade.addColorStop(.27,body);
  shade.addColorStop(.70,body);shade.addColorStop(1,appearance.shadow);
  var finShade=g.createLinearGradient(-50,-40,75,47);
- finShade.addColorStop(0,accent);finShade.addColorStop(1,body);
+ finShade.addColorStop(0,accent);finShade.addColorStop(.55,accent);
+ finShade.addColorStop(1,appearance.tail||body);
  function shape(points,fill,stroke){
   g.beginPath();g.moveTo(points[0][0],points[0][1]);
   for(var k=1;k<points.length;k++)g.lineTo(points[k][0],points[k][1]);
