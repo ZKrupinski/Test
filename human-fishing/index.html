@@ -1930,9 +1930,9 @@ function feverTossPoint(entity,fx,index,now){
   done:t>=1,phase:'throw',attached:false
  };
 }
-function drawFeverTossCreature(entity,fx,index,now){
+function drawFeverTossCreature(entity,fx,index,now,layer){
  var pose=feverTossPoint(entity,fx,index,now);
- if(pose.done)return;
+ if(pose.done||((layer==='attached')!==!!pose.attached))return;
  ctx.save();
  ctx.translate(pose.x,pose.y);ctx.rotate(pose.rotation);
  ctx.scale(pose.scale,pose.scale);
@@ -1975,6 +1975,10 @@ function drawFeverFx(dt){
  fx.reeling=reel.folding;
  bob.x=reel.x;bob.y=reel.y;
  var diam=fx.radius*2+92;
+ // Draw held fish behind the eight arms so the tentacles visibly clasp them.
+ fx.caught.forEach(function(entity,i){
+  drawFeverTossCreature(entity,fx,i,time,'attached');
+ });
  ctx.save();
  // The lure remains visible on its line as eight arms close, instead of fading out.
  ctx.shadowColor=fx.color;
@@ -2002,7 +2006,7 @@ function drawFeverFx(dt){
  ctx.restore();
  var mouth=mouthPos(time);
  fx.caught.forEach(function(entity,i){
-  drawFeverTossCreature(entity,fx,i,time);
+  drawFeverTossCreature(entity,fx,i,time,'released');
  });
  if(fx.elapsed>=fx.duration){
   feverFx=null;buildFish();buildHum();
