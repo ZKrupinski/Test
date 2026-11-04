@@ -176,7 +176,16 @@ function fishVisualProfile(sp){
   /상어|샤크/.test(n)?'shark':
   /플레코|코리도라스|철갑상어|비키르/.test(n)?'armored':
   /메기|캣피시|시노돈티스/.test(n)?'catfish':
-  /구피|엔들러|베타|금붕어|비단잉어|소드테일/.test(n)?'fan':
+    /구피|엔들러/.test(n)?'guppy':
+  /베타/.test(n)?'betta':
+  /금붕어/.test(n)?'goldfish':
+  /비단잉어/.test(n)?'koi':
+  /소드테일/.test(n)?'swordtail':
+  /디스커스/.test(n)?'discus':
+  /스칼라엔젤|엔젤피시/.test(n)?'angel':
+  /버터플라이피시/.test(n)?'butterfly':
+  /블루탱|옐로탱|파우더블루탱/.test(n)?'tang':
+/구피|엔들러|베타|금붕어|비단잉어|소드테일/.test(n)?'fan':
   /엔젤|버터플라이|디스커스|스칼라|시클리드|달러|탱|돔|그라마/.test(n)?'disc':
   /정어리|멸치|청어|와후|다랑어|참치|연어|송어|꽁치|고등어|전갱이/.test(n)?'torpedo':
   /테트라|라스보라|다니오|송사리|피라미|빙어|크로미스|갈겨니|쉬리|카디널피시/.test(n)?'needle':
@@ -484,6 +493,76 @@ function fishSprite(sp){
    stroke([[-52,8],[-75,2]],'#d9dbb2',2.5);
   }else for(var p=0;p<4;p++)ellipse(-23+p*17,0,7,4,'#edebb989');
   eye(-37,-9,.80);
+ }else if(type==='guppy'||type==='betta'||type==='swordtail'){
+  // Slender tiny fish; guppy has a huge fan tail and betta flowing veils.
+  var guppy=type==='guppy',betta=type==='betta';
+  if(guppy){
+   shape([[37,0],[97,-42],[92,0],[101,43]],finShade);
+   for(var p=0;p<5;p++)stroke([[44,0],[91,-31+p*15]],p%2?accent:body,2.5);
+  }else if(betta){
+   shape([[33,-9],[96,-59],[86,3],[101,50],[35,11]],finShade);
+   shape([[-15,-13],[18,-55],[33,-13]],finShade);
+   shape([[-11,13],[36,58],[39,9]],accent);
+  }else{
+   forkTail(48,19);
+   shape([[62,0],[98,57],[80,8]],finShade);
+  }
+  g.beginPath();g.moveTo(-63,-3);
+  g.bezierCurveTo(-60,-20,15,-19,46,-4);
+  g.quadraticCurveTo(55,4,42,8);
+  g.bezierCurveTo(17,19,-62,17,-63,-3);
+  g.closePath();g.fillStyle=shade;g.fill();g.strokeStyle=ink;g.lineWidth=2.4;g.stroke();
+  if(betta)stroke([[0,-16],[7,-40]],accent,2.7);
+  markings(-43,-3,66,20);eye(-47,-7,.69);
+ }else if(type==='goldfish'){
+  // A deliberately round goldfish with a split ornamental double tail.
+  shape([[31,-4],[93,-37],[65,-5],[91,30],[30,17]],finShade);
+  shape([[-10,-23],[14,-51],[29,-21]],finShade);
+  ellipse(-16,0,39,29,shade);
+  shape([[-6,21],[20,41],[23,17]],finShade);
+  eye(-41,-11,1.0);
+ }else if(type==='koi'){
+  // Thick elongated carp, wide tail base and short paired mouth barbels.
+  forkTail(56,26);
+  shape([[9,-23],[29,-46],[39,-20]],finShade);
+  g.beginPath();g.moveTo(-73,-5);g.bezierCurveTo(-70,-31,14,-29,57,-8);
+  g.quadraticCurveTo(70,-3,55,10);g.bezierCurveTo(2,33,-72,23,-73,-5);
+  g.closePath();g.fillStyle=shade;g.fill();g.strokeStyle=ink;g.lineWidth=3;g.stroke();
+  stroke([[-69,4],[-84,18]],'#8a7864',2);
+  stroke([[-66,6],[-75,24]],'#8a7864',2);
+  eye(-53,-11,.83);
+ }else if(type==='angel'){
+  // Very tall angelfish body, triangular dorsal + anal fins and two long threads.
+  shape([[43,-5],[86,-22],[78,12],[46,11]],finShade);
+  shape([[-23,-20],[4,-66],[27,-24]],finShade);
+  shape([[-20,24],[9,64],[26,20]],finShade);
+  shape([[-54,-7],[-9,-34],[30,-22],[49,3],[19,31],[-32,27]],shade);
+  stroke([[-5,24],[-14,66]],'#ece9ca',2.4);
+  stroke([[7,23],[17,68]],'#ece9ca',2.4);
+  eye(-34,-11,.86);
+ }else if(type==='discus'){
+  // Truly round disc fish, almost as tall as it is long.
+  shape([[29,0],[70,-24],[65,23]],finShade);
+  shape([[-30,-29],[4,-62],[34,-29]],finShade);
+  shape([[-25,30],[10,55],[34,24]],finShade);
+  ellipse(-12,0,41,44,shade);
+  eye(-37,-14,1);
+ }else if(type==='butterfly'){
+  // Thin-bodied reef butterflyfish with an elongated probing nose.
+  shape([[34,0],[73,-25],[66,21]],finShade);
+  shape([[-9,-25],[12,-55],[34,-29]],finShade);
+  shape([[-6,25],[15,54],[35,26]],finShade);
+  ellipse(-10,0,40,33,shade);
+  shape([[-43,-8],[-78,-1],[-44,7]],shade);
+  eye(-38,-13,.91);
+ }else if(type==='tang'){
+  // Flat surgeonfish with high dorsal/anal fins and a knife-like tail blade.
+  shape([[43,0],[86,-27],[77,3],[90,28]],finShade);
+  shape([[-31,-23],[15,-47],[34,-24]],finShade);
+  shape([[-26,23],[15,46],[39,18]],finShade);
+  ellipse(-6,0,46,32,shade);
+  shape([[29,5],[45,0],[43,13]],accent);
+  eye(-39,-11,.83);
  }else if(type==='fan'||type==='disc'){
   var deep=type==='disc';
   shape([[36,0],[89,-35],[79,-6],[89,34]],finShade);
@@ -516,10 +595,10 @@ function fishSprite(sp){
  // Readable, cartoon-bright taxonomic marks are rasterized onto the
  // cached sprite; all bands are clipped inside the species' actual body area.
  var motif=appearance.motif;
- var rx=type==='disc'?35:type==='fan'?43:type==='puffer'?33:
+ var rx=type==='disc'||type==='discus'?35:type==='angel'?29:type==='guppy'||type==='betta'||type==='swordtail'?43:type==='fan'?43:type==='puffer'?33:
   type==='ray'?38:type==='sunfish'?35:type==='flat'?49:
   type==='shark'||type==='hammer'?53:55;
- var ry=type==='disc'?38:type==='puffer'?29:
+ var ry=type==='disc'||type==='discus'?38:type==='angel'?31:type==='guppy'||type==='betta'||type==='swordtail'?14:type==='puffer'?29:
   type==='ray'?27:type==='flat'?14:type==='sunfish'?36:
   type==='shark'||type==='hammer'?17:type==='torpedo'?14:22;
  var bodyX=type==='disc'?-8:-8;
@@ -650,7 +729,7 @@ function fishSprite(sp){
  }
  // Eyes stay crisp above markings and are slightly exaggerated for readability.
  if(/^(clown|neon|koi|tigerbarb|clownloach|discus|angelfish|bluetang|guppy|betta|whaleshark)$/.test(motif)){
-  var x=type==='disc'?-31:type==='fan'?-38:type==='shark'?-53:-43;
+  var x=type==='disc'||type==='discus'?-35:type==='angel'?-34:type==='guppy'||type==='betta'?-47:type==='fan'?-38:type==='shark'?-53:-43;
   eye(x,-10,.86);
  }
  // Small contrasting gill detail and cheek glint for extra species specificity.
