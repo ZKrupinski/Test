@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#092a39">
-<title>인간낚시 · HUMAN FISHING α 1.5</title>
+<title>인간낚시 · HUMAN FISHING α 1.6</title>
 <style>
 :root{color-scheme:dark;--gold:#f5cb81;--aqua:#8ee4e2;--ink:#092b39;--panel:#072633ee}
 *{box-sizing:border-box}body{margin:0;background:#061923;color:#effffb;font:15px/1.45 system-ui,"Pretendard","Malgun Gothic",sans-serif;overflow-x:hidden}
@@ -68,7 +68,7 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 #virtualJoystick.visible{display:block}
 @media(max-width:760px){#virtualJoystick{min-width:56px;border-width:1px}#virtualKnob{border-width:1px}}
 .fever-hud{position:absolute;z-index:3;left:14px;top:14px;bottom:auto;width:min(205px,31%);padding:7px 9px;border-radius:12px;border:1px solid #a6d6d075;background:linear-gradient(125deg,#0b3444ec,#112a3be6);box-shadow:0 4px 20px #0007;pointer-events:none;color:#c4eeec}.fever-hud .fever-top{display:flex;justify-content:space-between;gap:5px;font-size:11px;font-weight:950}.fever-hud .fever-top span:last-child{color:#ffe8a5}.fever-meter{height:8px;background:#061821;border:1px solid #4d7f87;border-radius:50px;margin-top:5px;overflow:hidden}.fever-meter i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#43bac4,#94eadb,#ffcc82);border-radius:50px;transition:width .25s ease}.fever-detail{font-size:9px;color:#b7d6db;margin-top:3px}.fever-hud.ready{border-color:#ffd28f;box-shadow:0 0 24px #ffc36b50,0 6px 17px #0007;background:linear-gradient(120deg,#563343eb,#0a5762ee)}.fever-hud.ready .fever-top span:first-child{color:#ffe4ab}.shop-octo-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:7px 0}.shop-octo-stats span{font-size:11px;color:#d8f7ea;background:#0d3846;border-radius:5px;padding:3px 5px}@media(max-width:760px){.fever-hud{left:6px;top:6px;bottom:auto;width:min(137px,37%);padding:4px 6px;border-radius:6px}.fever-hud .fever-top{font-size:9px}.fever-meter{height:5px;margin-top:3px}.fever-detail{font-size:8px}.shop-octo-stats span{font-size:9px;padding:2px 3px}}</style></head><body><div class="wrap">
-<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 1.5</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
+<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 1.6</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navShop">🛒 상점</button></nav></header>
 <div class="stage" id="stage"><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 어디든 터치해 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
 <div class="hud top"><div class="tag" style="display:none" aria-hidden="true"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins" style="margin-left:auto">◈ 0　🐟 0/240</div></div>
@@ -1260,52 +1260,83 @@ function drawFishRankTag(f){
 // Fish have stable identities, schools, wandering routes, predator/prey behavior
 // and occasional territorial contests; new arrivals enter from outside the view.
 var eco={zone:-1,humanZone:-1,t:0,fishTimer:0,humanTimer:0,next:0,school:0,contests:0};
+// Ecology 1.6: water-safe independent populations and anti-duplicate species.
+function ecoDepthMin(f){return 269+19+29*(f.size||1)}
+function ecoDepthMax(f){return 702-26*(f.size||1)}
+function ecoSafeDepth(f,y){return clamp(y,ecoDepthMin(f),ecoDepthMax(f))}
+function ecoPickSpeciesIndex(lo,hi){
+ var total=0,options=[];
+ for(var k=lo;k<=hi;k++){
+  var id=species[zone*20+k].id,n=0;
+  for(var i=0;i<fish.length;i++)if(fish[i].sp.id===id&&!fish[i].feverCaptured)n++;
+  var weight=1/Math.pow(1+n*4,2);
+  total+=weight;options.push({index:k,weight:weight});
+ }
+ var pick=Math.random()*total;
+ for(var j=0;j<options.length;j++){pick-=options[j].weight;if(pick<=0)return options[j].index}
+ return hi;
+}
 function chooseWildSpecies(){
  var p=gearPower('bait'),r=Math.random();
  var mythic=.00006+p*.00004,legend=.00065+p*.00032,epic=.0026+p*.00075,
-  rare=.0175+p*.0021,uncommon=.11+p*.0038;
- var idx=r<mythic?19:
-  r<mythic+legend?18:
-  r<mythic+legend+epic?17:
-  r<mythic+legend+epic+rare?15+Math.floor(rnd(0,2)):
-  r<mythic+legend+epic+rare+uncommon?11+Math.floor(rnd(0,4)):
-  Math.floor(rnd(0,11));
- return species[zone*20+idx];
+  rare=.0175+p*.0021,uncommon=.14+p*.0038;
+ var lo=0,hi=10;
+ if(r<mythic){lo=19;hi=19}
+ else if(r<mythic+legend){lo=18;hi=18}
+ else if(r<mythic+legend+epic){lo=17;hi=17}
+ else if(r<mythic+legend+epic+rare){lo=15;hi=16}
+ else if(r<mythic+legend+epic+rare+uncommon){lo=11;hi=14}
+ return species[zone*20+ecoPickSpeciesIndex(lo,hi)];
 }
 function ecoCanSchool(sp){
- return /구피|테트라|라스보라|정어리|멸치|청어|전갱이|다니오|송사리|카디널|크로미스|바브|피라미|쉬리|빙어|코리도라스|납자루|몰리|플래티|글로라이트|러미노즈|블루탱|옐로탱|실버달러|해체트|가다랑어|황다랑어/.test(sp.name);
+ return /멸치|정어리|청어|송사리|피라미|갈겨니|다니오|테트라|구피|네온|카디널|크로미스|빙어|카펠린|전갱이|스내퍼|라스보라|코리도라스|바브|납자루/.test(sp.name);
 }
 function ecoIsHunter(sp,sz){
- var name=sp.name;
- return /상어|파이크|배스|농어|아귀|피라냐|참치|다랑어|장어|시클리드|오스카|가물치|늑대고기|돔|그루퍼|방어|바라쿠다|구라미|베타|소드테일|블랙스커트|블랙팬텀|드워프스네이크헤드|그린테러/.test(name)||
+ return /상어|파이크|배스|농어|아귀|피라냐|참치|다랑어|장어|시클리드|오스카|가물치|늑대고기|전갱이|돔|그루퍼|방어|바라쿠다|구라미|베타/.test(sp.name)||
   (sz>1.22&&sp.index>9);
 }
 function makeWildFish(sp,x,y,dir,small,schoolId){
- var size=small?rnd(.65,.87):sp.index>=18?rnd(1.45,1.76):
-  sp.index>=15?rnd(1.17,1.43):rnd(.86,1.22);
- var speed=small?rnd(44,63):size>1.3?rnd(35,53):rnd(36,59);
- var hunter=!small&&ecoIsHunter(sp,size);
- return{
-  ecoId:++eco.next,sp:sp,x:x,y:y,vx:dir*speed,vy:rnd(-6,6),
+ var size=small?rnd(.70,.91):sp.index>=18?rnd(1.42,1.72):
+  sp.index>=15?rnd(1.17,1.39):rnd(.79,1.28);
+ var speed=small?rnd(15,25):size>1.3?rnd(12,21):rnd(15,30);
+ var hunter=!small&&ecoIsHunter(sp,size),styles=['cruise','wander','hover','dart'];
+ var mode=schoolId?'school':styles[Math.floor(Math.random()*styles.length)];
+ var f={
+  ecoId:++eco.next,sp:sp,x:x,y:y,vx:dir*speed,vy:rnd(-3,3),
   speed:speed,dir:dir,size:size,phase:rnd(0,6.28),small:!!small,
   schoolId:schoolId||0,hunter:hunter,behavior:schoolId?'school':'cruise',
+  swimMode:mode,swimFreq:rnd(.19,.68),swimAmp:rnd(3,11),
   panicUntil:0,fearX:0,fearY:0,huntUntil:0,fightUntil:0,fightTarget:0,
-  nextTurn:eco.t+rnd(5,13),homeY:y
+  nextTurn:eco.t+rnd(6,18),homeY:y
  };
+ f.y=ecoSafeDepth(f,y);f.homeY=f.y;
+ return f;
 }
-function spawnWildFish(startInView){
- if(fish.length>=27)return 0;
+function spawnWildFish(startInView,forceSolo){
+ var MAX_FISH=18;
+ if(fish.length>=MAX_FISH)return 0;
  var sp=chooseWildSpecies(),dir=Math.random()<.5?1:-1;
- var small=ecoCanSchool(sp)&&Math.random()<.76;
- var group=small?3+Math.floor(rnd(0,3)):1;
- group=Math.min(group,27-fish.length);
+ var small=ecoCanSchool(sp)&&Math.random()<.34;
+ var schoolCount=fish.filter(function(f){return f.schoolId>0}).length;
+ var group=!forceSolo&&small&&schoolCount<4&&Math.random()<.13?
+  (Math.random()<.20?3:2):1;
+ group=Math.min(group,MAX_FISH-fish.length);
  var schoolId=group>1?++eco.school:0;
- var edge=dir>0?-90:W+90,baseX=startInView?rnd(420,1110):edge;
- var baseY=rnd(340,594),added=0;
+ var edge=dir>0?-105:W+105,baseX=startInView?rnd(100,1160):edge;
+ if(startInView){
+  for(var attempt=0;attempt<14;attempt++){
+   var candidate=rnd(95,1185),crowded=fish.some(function(f){
+    return f.x>0&&f.x<W&&Math.abs(f.x-candidate)<75
+   });
+   if(!crowded){baseX=candidate;break}
+  }
+ }
+ var baseY=rnd(329,656),added=0;
  for(var i=0;i<group;i++){
-  var x=startInView?clamp(baseX+i*30*dir,345,1180):baseX-dir*i*29+rnd(-6,6);
-  var y=clamp(baseY+(i-Math.floor(group/2))*17+rnd(-10,10),327,620);
-  fish.push(makeWildFish(sp,x,y,dir,small,schoolId));added++;
+  var x=startInView?clamp(baseX+i*34*dir,73,1207):baseX-dir*i*46+rnd(-7,7);
+  var y=baseY+(i-(group-1)/2)*22+rnd(-13,13);
+  var f=makeWildFish(sp,x,y,dir,small,schoolId);
+  fish.push(f);added++;
  }
  return added;
 }
@@ -1327,8 +1358,8 @@ function buildFish(){
  // change of habitat makes a new population; existing swimmers survive.
  if(eco.zone===zone)return;
  eco.zone=zone;eco.humanZone=zone;eco.fishTimer=0;eco.humanTimer=0;eco.school=0;fish=[];hum=[];
- for(var i=0;i<8;i++)spawnWildFish(true);
- for(var j=0;j<2;j++)spawnWildFish(false);
+ for(var i=0;i<11;i++)spawnWildFish(true,true);
+ for(var j=0;j<1;j++)spawnWildFish(false,true);
 }
 function buildHum(){
  if(eco.humanZone===zone)return;
