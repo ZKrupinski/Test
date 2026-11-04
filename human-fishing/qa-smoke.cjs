@@ -96,6 +96,8 @@ window.__hfTest={
  aquariumEnsure:aquariumEnsureFish,
  aquariumTap:aquariumTapFish,
  aquariumUpdate:aquariumUpdateFish,
+ aquariumDraw:drawingTank,
+ setTime:function(v){time=v},
  aquariumActors:function(){return aquariumFishActors},
  aquariumTurnScale:aquariumTurnScale,
  aquariumStruggle:aquariumStartStruggle,
@@ -713,6 +715,61 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  aquariumSave.placed=originalPlaced;
  game.switchView(originalView);
 }
+
+// An animated species must use its official sprite player instead of the
+// aquarium fallback's procedural rotation and scale.
+{
+ const aquariumSave=game.getSave();
+ const oldPlaced=aquariumSave.placed.slice();
+ aquariumSave.placed=['F123','F002']; // F123 = Blue Tang / 블루탱
+ game.setTime(40);
+ game.aquariumEnsure(40);
+ const fishActors=game.aquariumActors();
+ const animated=fishActors.find(a=>a.sp?.name==='블루탱');
+ assert.ok(animated,'Aquarium needs the Blue Tang specimen for sprite regression');
+ const calls=[];
+ const prev=mock.window.BlueTangSprites;
+ mock.window.BlueTangSprites={
+  ready(){return true},
+  supports(sp){return !!sp&&sp.name==='블루탱'},
+  draw(ctx,frame,now){
+   calls.push({action:frame.spriteAction,explicit:frame.spriteAquarium,
+    turnStart:frame.spriteTurnStart,turnFrom:frame.spriteTurnFrom,
+    duration:frame.spriteTurnDuration,frame:frame.spriteFrame,
+    x:frame.x,y:frame.y,now:now});
+   return true;
+  }
+ };
+ game.switchView('tank');
+ element('panel').classList.remove('open');
+ element('aquaSaleReceipt').classList.remove('visible');
+ game.aquariumDraw(40);
+ assert.equal(calls.at(-1).action,'swim',
+  'An animated aquarium fish must use its official swimming frames');
+ assert.equal(calls.at(-1).explicit,true,
+  'The sprite player must own animation state and transformations');
+ const beginning=animated.dir;
+ game.setTime(40.1);
+ const e={clientX:animated.x,clientY:animated.y,preventDefault(){}};
+ assert.equal(game.aquariumTap(e),true,'Aquarium must receive a Blue Tang tap');
+ assert.equal(animated.dir,-beginning);
+ game.aquariumDraw(40.28);
+ assert.equal(calls.at(-1).turnStart,40.1,
+  'The official sprite player must receive the aquarium U-turn trigger');
+ assert.equal(calls.at(-1).turnFrom,beginning,
+  'The official sprite player must preserve the original turn direction');
+ game.aquariumStruggle(animated,41.1,1);
+ game.aquariumDraw(41.2);
+ assert.ok(['hooked','last_resist'].includes(calls.at(-1).action),
+  'Wriggling must use an existing official Blue Tang animation');
+ assert.ok(Number.isFinite(calls.at(-1).frame),
+  'Official struggle animation must advance through sprite sheet frames');
+ mock.window.BlueTangSprites=prev;
+ aquariumSave.placed=oldPlaced;
+ game.switchView('fish');
+}
+console.log('PASS: Blue Tang aquarium uses official swim, 8-frame turn and struggle sprite playback');
+
 console.log('PASS: aquarium fish touch-to-turn, independent swimmers and random wriggle timelines');
 
 console.log('PASS: localized fish and octopus shake, gentle contact, bite, suction, escape, human counterattack and limited camera vibration; all previous gameplay tests');
