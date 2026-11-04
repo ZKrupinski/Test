@@ -308,7 +308,7 @@ function fishSpeciesAppearance(sp){
  return{body:colorBody,accent:colorFin,tail:colorTail,
   shadow:colorShade,highlight:colorHighlight,
   mark:speciesFin,identityColor:speciesBody,identityHue:identityHue,
-  identityPattern:globalId%6,motif:namedMotif,
+  identityPattern:globalId%6,preserveNatural:iconicName,motif:namedMotif,
   designNote:iconic||'종별 고유 배색·서식지 기반 형태·고대비 지느러미 및 꼬리 강조'};
 
 }
@@ -739,6 +739,47 @@ function fishSprite(sp){
    g.strokeStyle=k%2?'#f5c359':'#2fb9ae';g.lineWidth=3.7;
    g.beginPath();g.arc(-31+k*13,Math.sin(k)*9,11,Math.PI*.2,Math.PI*1.8);g.stroke();
   }
+
+ }else if(motif.indexOf('identity-')===0){
+  // Six large, intentionally obvious patterns for species that previously
+  // shared the same anonymous ocean/habitat color.
+  var feature=appearance.mark;
+  g.fillStyle=feature;g.strokeStyle=feature;g.lineWidth=6;
+  if(motif==='identity-band'){
+   g.fillRect(-33,-55,16,110);g.fillRect(13,-55,9,110);
+  }else if(motif==='identity-dots'){
+   for(var k=0;k<11;k++){
+    g.beginPath();g.arc(-39+(k%4)*24,-15+Math.floor(k/4)*17,
+     3.8+(k%3)*1.2,0,Math.PI*2);g.fill();
+   }
+  }else if(motif==='identity-half'){
+   g.fillRect(8,-55,63,110);
+   g.fillStyle=appearance.tail;g.fillRect(-42,-6,48,13);
+  }else if(motif==='identity-chevron'){
+   for(var k=0;k<3;k++){
+    g.beginPath();g.moveTo(-40+k*26,-27);g.lineTo(-22+k*26,0);
+    g.lineTo(-40+k*26,27);g.stroke();
+   }
+  }else if(motif==='identity-diagonal'){
+   for(var k=0;k<4;k++){
+    g.beginPath();g.moveTo(-46+k*24,-38);g.lineTo(-21+k*24,40);g.stroke();
+   }
+  }else if(motif==='identity-fin'){
+   g.fillRect(-29,-14,56,13);
+   g.strokeStyle=appearance.tail;g.lineWidth=4;
+   for(var k=0;k<3;k++){
+    g.beginPath();g.moveTo(-35+k*27,5);g.lineTo(-25+k*27,26);g.stroke();
+   }
+  }
+ }
+ if(!appearance.preserveNatural&&motif.indexOf('identity-')<0){
+  // Shared taxonomy motifs (e.g. two reef fish) still get a distinct bright
+  // cheek/tail identifier even when their anatomical pattern stays accurate.
+  g.globalAlpha=.84;g.fillStyle=appearance.mark;
+  g.beginPath();g.ellipse(20,16,12,5.5,.13,0,Math.PI*2);g.fill();
+  g.fillStyle=appearance.tail;
+  g.beginPath();g.ellipse(37,-7,5.5,9,.14,0,Math.PI*2);g.fill();
+  g.globalAlpha=1;
  }
  g.restore();
  // Key distinguishing fin/head features that extend outside the body.
