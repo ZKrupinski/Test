@@ -20,7 +20,7 @@
   var ms={idle:132,swim:90,burst:66,uturn:80,notice:115,inspect:112,
     graze:50,bite:60,hooked:72,lift:80,last_resist:55,slip:65,reentry:65,flee:53};
   var nonLoop={uturn:1,notice:1,graze:1,bite:1,lift:1,slip:1,reentry:1};
-  var sheets={},status={};
+  var sheets={},status={},previewAction=null;
   var loading=false,queue=['idle','inspect','bite','hooked','burst','uturn'];
   var sheetSize=1024,cellW=512,cellH=256;
   function loadNext(){
@@ -41,13 +41,18 @@
       image.onload=null;image.onerror=null;image.src='';
       loading=false;loadNext();
     };
-    image.onerror=function(){status[kind]='error';loading=false;loadNext()};
+    image.onerror=function(){
+      // Local GitHub asset is preferred; original approved atlas is a fallback.
+      if(!image._btFallback){image._btFallback=true;image.src=prefix+filenames[kind];return;}
+      status[kind]='error';loading=false;loadNext();
+    };
     image.decoding='async';
-    image.src=prefix+filenames[kind];
+    image.src='./assets/bluetang/'+kind+'.webp';
   }
   loadNext();
   function clamp(x,min,max){return Math.max(min,Math.min(max,x))}
   function targetAction(a,now,near){
+    if(a._btDemo&&previewAction)return previewAction;
     if(a.spriteAction&&sources[a.spriteAction])return a.spriteAction;
     if(a.shakeUntil>now)return 'graze';
     if((a.panicUntil||0)>now||a.behavior==='flee')return 'flee';
@@ -127,6 +132,8 @@
     ready:function(){return !!sheets.idle},
     status:function(){return Object.assign({},status)},
     actions:Object.keys(sources),
-    loadedSources:function(){return Object.keys(sheets)}
+    loadedSources:function(){return Object.keys(sheets)},
+    setPreviewAction:function(action){previewAction=sources[action]?action:null;return previewAction},
+    getPreviewAction:function(){return previewAction}
   };
 })();
