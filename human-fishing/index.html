@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#092a39">
-<title>인간낚시 · HUMAN FISHING α 1.4</title>
+<title>인간낚시 · HUMAN FISHING α 1.5</title>
 <style>
 :root{color-scheme:dark;--gold:#f5cb81;--aqua:#8ee4e2;--ink:#092b39;--panel:#072633ee}
 *{box-sizing:border-box}body{margin:0;background:#061923;color:#effffb;font:15px/1.45 system-ui,"Pretendard","Malgun Gothic",sans-serif;overflow-x:hidden}
@@ -68,7 +68,7 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 #virtualJoystick.visible{display:block}
 @media(max-width:760px){#virtualJoystick{min-width:56px;border-width:1px}#virtualKnob{border-width:1px}}
 .fever-hud{position:absolute;z-index:3;left:14px;top:14px;bottom:auto;width:min(205px,31%);padding:7px 9px;border-radius:12px;border:1px solid #a6d6d075;background:linear-gradient(125deg,#0b3444ec,#112a3be6);box-shadow:0 4px 20px #0007;pointer-events:none;color:#c4eeec}.fever-hud .fever-top{display:flex;justify-content:space-between;gap:5px;font-size:11px;font-weight:950}.fever-hud .fever-top span:last-child{color:#ffe8a5}.fever-meter{height:8px;background:#061821;border:1px solid #4d7f87;border-radius:50px;margin-top:5px;overflow:hidden}.fever-meter i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#43bac4,#94eadb,#ffcc82);border-radius:50px;transition:width .25s ease}.fever-detail{font-size:9px;color:#b7d6db;margin-top:3px}.fever-hud.ready{border-color:#ffd28f;box-shadow:0 0 24px #ffc36b50,0 6px 17px #0007;background:linear-gradient(120deg,#563343eb,#0a5762ee)}.fever-hud.ready .fever-top span:first-child{color:#ffe4ab}.shop-octo-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:7px 0}.shop-octo-stats span{font-size:11px;color:#d8f7ea;background:#0d3846;border-radius:5px;padding:3px 5px}@media(max-width:760px){.fever-hud{left:6px;top:6px;bottom:auto;width:min(137px,37%);padding:4px 6px;border-radius:6px}.fever-hud .fever-top{font-size:9px}.fever-meter{height:5px;margin-top:3px}.fever-detail{font-size:8px}.shop-octo-stats span{font-size:9px;padding:2px 3px}}</style></head><body><div class="wrap">
-<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 1.4</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
+<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 1.5</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navShop">🛒 상점</button></nav></header>
 <div class="stage" id="stage"><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 어디든 터치해 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
 <div class="hud top"><div class="tag" style="display:none" aria-hidden="true"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins" style="margin-left:auto">◈ 0　🐟 0/240</div></div>
@@ -1254,29 +1254,193 @@ function drawFishRankTag(f){
  ctx.fillText(tierLabels[sp.rarity]+' Lv.'+sp.level,f.x,f.y-32-(f.size||1)*9);
  ctx.restore();
 }
-function buildFish(){
- fish=[];var p=gearPower('bait');
- var mythic=.00006+p*.00004,legend=.00065+p*.00032,epic=.0026+p*.00075,rare=.0175+p*.0021,uncommon=.11+p*.0038;
- for(var i=0;i<16;i++){
-  var r=Math.random(),idx;
-  if(r<mythic)idx=19;
-  else if(r<mythic+legend)idx=18;
-  else if(r<mythic+legend+epic)idx=17;
-  else if(r<mythic+legend+epic+rare)idx=15+Math.floor(rnd(0,2));
-  else if(r<mythic+legend+epic+rare+uncommon)idx=11+Math.floor(rnd(0,4));
-  else idx=Math.floor(rnd(0,11));
-  var sp=species[zone*20+idx];
-  fish.push({sp:sp,x:rnd(335,1180),y:rnd(340,612),vx:rnd(.25,.65)*(Math.random()<.5?-1:1),phase:rnd(0,6.28),size:idx>=18?1.58:idx>=15?1.21:rnd(.8,1.13)});
+// ALPHA 1.5 — continuous reef ecosystem. No re-roll/rebuild per cast.
+// Fish have stable identities, schools, wandering routes, predator/prey behavior
+// and occasional territorial contests; new arrivals enter from outside the view.
+var eco={zone:-1,humanZone:-1,t:0,fishTimer:0,humanTimer:0,next:0,school:0,contests:0};
+function chooseWildSpecies(){
+ var p=gearPower('bait'),r=Math.random();
+ var mythic=.00006+p*.00004,legend=.00065+p*.00032,epic=.0026+p*.00075,
+  rare=.0175+p*.0021,uncommon=.11+p*.0038;
+ var idx=r<mythic?19:
+  r<mythic+legend?18:
+  r<mythic+legend+epic?17:
+  r<mythic+legend+epic+rare?15+Math.floor(rnd(0,2)):
+  r<mythic+legend+epic+rare+uncommon?11+Math.floor(rnd(0,4)):
+  Math.floor(rnd(0,11));
+ return species[zone*20+idx];
+}
+function ecoIsHunter(sp,sz){
+ var name=sp.name;
+ return /상어|파이크|배스|농어|아귀|피라냐|참치|다랑어|장어|시클리드|오스카|가물치|늑대고기|전갱이|돔|그루퍼|방어|바라쿠다|구라미|베타/.test(name)||
+  (sz>1.22&&sp.index>9);
+}
+function makeWildFish(sp,x,y,dir,small,schoolId){
+ var size=small?rnd(.65,.87):sp.index>=18?rnd(1.45,1.76):
+  sp.index>=15?rnd(1.17,1.43):rnd(.86,1.22);
+ var speed=small?rnd(44,63):size>1.3?rnd(35,53):rnd(36,59);
+ var hunter=!small&&ecoIsHunter(sp,size);
+ return{
+  ecoId:++eco.next,sp:sp,x:x,y:y,vx:dir*speed,vy:rnd(-6,6),
+  speed:speed,dir:dir,size:size,phase:rnd(0,6.28),small:!!small,
+  schoolId:schoolId||0,hunter:hunter,behavior:schoolId?'school':'cruise',
+  panicUntil:0,fearX:0,fearY:0,huntUntil:0,fightUntil:0,fightTarget:0,
+  nextTurn:eco.t+rnd(5,13),homeY:y
+ };
+}
+function spawnWildFish(startInView){
+ if(fish.length>=27)return 0;
+ var sp=chooseWildSpecies(),dir=Math.random()<.5?1:-1;
+ var small=sp.index<=10&&Math.random()<.52;
+ var group=small?3+Math.floor(rnd(0,3)):1;
+ group=Math.min(group,27-fish.length);
+ var schoolId=group>1?++eco.school:0;
+ var edge=dir>0?-90:W+90,baseX=startInView?rnd(420,1110):edge;
+ var baseY=rnd(340,594),added=0;
+ for(var i=0;i<group;i++){
+  var x=startInView?clamp(baseX+i*30*dir,345,1180):baseX-dir*i*29+rnd(-6,6);
+  var y=clamp(baseY+(i-Math.floor(group/2))*17+rnd(-10,10),327,620);
+  fish.push(makeWildFish(sp,x,y,dir,small,schoolId));added++;
  }
+ return added;
+}
+function spawnWildHuman(){
+ if(hum.length>=2)return false;
+ var p=gearPower('bait'),bossChance=.00006+p*.000005,
+  eliteChance=.014+p*.00035;
+ var roll=Math.random();
+ if(roll>bossChance+eliteChance)return false;
+ var boss=roll<bossChance,id=boss?20+Math.floor(rnd(0,4)):Math.floor(rnd(0,20));
+ var dir=Math.random()<.5?1:-1;
+ hum.push({ecoId:++eco.next,id:id,x:dir>0?-95:W+95,y:rnd(360,575),
+  phase:rnd(0,6.28),vx:dir*rnd(23,38),vy:rnd(-4,4),
+  size:boss?1.31:1.02,nextTurn:eco.t+rnd(7,13)});
+ return true;
+}
+function buildFish(){
+ // Called on catch, failed catch, fever, gear change and startup. Only a
+ // change of habitat makes a new population; existing swimmers survive.
+ if(eco.zone===zone)return;
+ eco.zone=zone;eco.fishTimer=0;eco.school=0;fish=[];
+ for(var i=0;i<8;i++)spawnWildFish(true);
+ for(var j=0;j<2;j++)spawnWildFish(false);
 }
 function buildHum(){
- hum=[];var p=gearPower('bait'),bossChance=.00002+p*.000004,eliteChance=.006+p*.0005;
- var roll=Math.random();
- if(roll<bossChance||roll<bossChance+eliteChance){
-  var boss=roll<bossChance,id=boss?20+Math.floor(rnd(0,4)):Math.floor(rnd(0,20));
-  hum.push({id:id,x:rnd(415,1120),y:rnd(360,555),phase:rnd(0,6.28),vx:rnd(.16,.34)*(Math.random()<.5?-1:1),size:boss?1.31:1.02});
+ if(eco.humanZone===zone)return;
+ eco.humanZone=zone;eco.humanTimer=0;hum=[];
+ // Rare visitors arrive from offscreen on their own schedules, never in a wave.
+}
+function ecoCrowd(f,dt){
+ var cx=0,cy=0,count=0,ax=0,ay=0,sepX=0,sepY=0;
+ var prey=null,predator=null,rival=null,predDist=1e9,preyDist=1e9,rivalDist=1e9;
+ for(var j=0;j<fish.length;j++){
+  var g=fish[j];if(g===f||g.feverCaptured||g=== (hook&&hook.obj))continue;
+  var dx=g.x-f.x,dy=g.y-f.y,dist=Math.hypot(dx,dy)||1;
+  if(f.schoolId&&f.schoolId===g.schoolId&&dist<240){
+   cx+=g.x;cy+=g.y;ax+=g.vx;ay+=g.vy;count++;
+   if(dist<39){sepX-=dx/dist*(39-dist);sepY-=dy/dist*(39-dist)}
+  }
+  if(f.hunter&&g.hunter&&dist<128&&dist<rivalDist&&g.size>.85){
+   rival=g;rivalDist=dist;
+  }
+  if(f.hunter&&!g.hunter&&dist<240&&dist<preyDist&&g.size<f.size*.92){
+   prey=g;preyDist=dist;
+  }
+  if(!f.hunter&&g.hunter&&dist<175&&dist<predDist&&g.size>f.size*.96){
+   predator=g;predDist=dist;
+  }
+ }
+ return{count:count,cx:cx,cy:cy,ax:ax,ay:ay,
+  sepX:sepX,sepY:sepY,prey:prey,predator:predator,rival:rival};
+}
+function updateEcosystem(dt){
+ if(view!=='fish')return;
+ eco.t+=dt;eco.fishTimer+=dt;eco.humanTimer+=dt;
+ // Continuous immigration. Fish born offscreen swim into frame naturally.
+ var interval=fish.length<11?1.25:fish.length<19?2.45:3.75;
+ if(eco.fishTimer>interval){
+  eco.fishTimer=0;spawnWildFish(false);
+ }
+ if(eco.humanTimer>11){
+  eco.humanTimer=0;spawnWildHuman();
+ }
+ var fLocked=hook&&hook.obj;
+ for(var i=fish.length-1;i>=0;i--){
+  var f=fish[i];
+  if(f.feverCaptured){fish.splice(i,1);continue}
+  if(f===fLocked)continue;
+  var n=ecoCrowd(f,dt),wantX=f.dir*f.speed,wantY=Math.sin(eco.t*.85+f.phase)*9;
+  var state=f.schoolId?'school':'cruise',boost=1;
+  if(n.count){
+   var px=n.cx/n.count-f.x,py=n.cy/n.count-f.y;
+   wantX+=clamp(px*.6,-40,40)+clamp(n.ax/n.count-f.vx,-16,16)*.38+n.sepX*1.3;
+   wantY+=clamp(py*.7,-31,31)+n.sepY*1.5;
+  }
+  if(n.predator){
+   f.panicUntil=Math.max(f.panicUntil,eco.t+.95);
+   f.fearX=n.predator.x;f.fearY=n.predator.y;
+  }
+  var bobNearby=!cast.active&&!hook&&!feverFx&&!escapeFx&&
+   Math.hypot(f.x-bob.x,f.y-bob.y)<68;
+  if(bobNearby){
+   f.panicUntil=Math.max(f.panicUntil,eco.t+.47);
+   f.fearX=bob.x;f.fearY=bob.y;
+  }
+  if(f.panicUntil>eco.t){
+   var dx=f.x-f.fearX,dy=f.y-f.fearY,d=Math.hypot(dx,dy)||1;
+   wantX=dx/d*165+(dx>=0?32:-32);
+   wantY=dy/d*65;state='flee';boost=1.8;
+  }else if(f.fightUntil>eco.t){
+   var rival=fish.find(function(g){return g.ecoId===f.fightTarget});
+   if(rival&&!rival.feverCaptured){
+    var toward=rival.x-f.x,dist=Math.abs(toward);
+    wantX=(toward>=0?1:-1)*(dist>55?118:-125);
+    wantY=clamp((rival.y-f.y)*1.6,-54,54);state='fight';boost=1.55;
+    if(dist<78&&Math.random()<dt*1.9)spawnParticles((f.x+rival.x)*.5,(f.y+rival.y)*.5,3,'water');
+   }else f.fightUntil=0;
+  }else if(f.hunter&&n.prey){
+   var dx=n.prey.x-f.x,dy=n.prey.y-f.y,d=Math.hypot(dx,dy)||1;
+   wantX=dx/d*100+(dx>0?19:-19);
+   wantY=dy/d*65;state='hunt';boost=1.45;
+   n.prey.panicUntil=Math.max(n.prey.panicUntil,eco.t+1.05);
+   n.prey.fearX=f.x;n.prey.fearY=f.y;
+  }else if(f.hunter&&n.rival&&f.fightUntil<=eco.t&&
+   n.rival.fightUntil<=eco.t&&Math.random()<dt*.16){
+   f.fightUntil=eco.t+1.1;n.rival.fightUntil=eco.t+1.1;
+   f.fightTarget=n.rival.ecoId;n.rival.fightTarget=f.ecoId;
+   state='fight';eco.contests++;
+  }
+  if(f.y<338)wantY+=36;
+  if(f.y>612)wantY-=36;
+  if(f.nextTurn<eco.t){
+   f.nextTurn=eco.t+rnd(6,15);
+   if(!f.schoolId&&!f.hunter&&Math.random()<.17)f.dir*=-1;
+   f.homeY=clamp(f.homeY+rnd(-40,40),350,600);
+  }
+  wantY+=clamp((f.homeY-f.y)*.25,-13,13);
+  // Smooth steering; never teleport or snap to a new spawn location.
+  var steer=Math.min(1,dt*(state==='flee'?6.2:state==='fight'?5.5:2.5));
+  f.vx=mix(f.vx,clamp(wantX,-205,205),steer);
+  f.vy=mix(f.vy,clamp(wantY,-90,90),Math.min(1,steer*.8));
+  f.x+=f.vx*dt;f.y+=f.vy*dt;
+  f.phase+=dt*(state==='flee'?3.8:state==='hunt'||state==='fight'?2.5:1);
+  f.behavior=state;
+  if(f.x< -185||f.x>W+185||f.y<245||f.y>705)fish.splice(i,1);
+ }
+ for(var h=hum.length-1;h>=0;h--){
+  var person=hum[h];
+  if(person.feverCaptured){hum.splice(h,1);continue}
+  if(person===fLocked)continue;
+  if(person.nextTurn<eco.t){
+   person.nextTurn=eco.t+rnd(7,16);
+   person.vy=rnd(-9,9);
+  }
+  person.x+=person.vx*dt;person.y=clamp(person.y+person.vy*dt,330,615);
+  person.phase+=dt*.5;
+  if(person.x< -185||person.x>W+185)hum.splice(h,1);
  }
 }
+
 // ALPHA 1.2 — Failed fish fall and flee; human elites counterattack mid-air,
 // stun the octopus, then dive and swim offscreen without vanishing on the surface.
 var escapeFx=null,octoGroggy=0,pendingEscapeRestart=false,feverFx=null,feverSprites={};
