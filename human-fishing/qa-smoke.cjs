@@ -146,6 +146,52 @@ assert.deepEqual([...fishClasses].sort(),['LARGE','MEDIUM','SMALL','SPECIAL'],
  'The 240-fish catalog needs all four visual body-size classes');
 assert.ok(fishShapes.size>=16,'The 240-species catalog needs at least sixteen distinguishable body silhouettes');
 assert.ok(signatureMotifs.size>=17,'Real species need diverse color and marking motifs');
+// 2.0 color-ID regression: same-named species stay stable, different
+// species must not fall back to shared habitat colors.
+const colorIdentities=new Set(),baseColors=new Set(),tailColors=new Set();
+const genusPatterns=new Set();
+function hexRgb(hex){return[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16))}
+function rgbDistance(a,b){const x=hexRgb(a),y=hexRgb(b);return Math.sqrt(x.reduce((n,v,i)=>n+(v-y[i])**2,0))}
+for(const sp of game.species){
+ const p=game.fishAppearance(sp);
+ const token=[p.body,p.accent,p.tail,p.motif].join(':');
+ assert.equal(token,[game.fishAppearance(sp).body,game.fishAppearance(sp).accent,game.fishAppearance(sp).tail,game.fishAppearance(sp).motif].join(':'),
+  'A species must keep its permanent colors across frames and reloads: '+sp.name);
+ assert.ok(/^#[a-f0-9]{6}$/i.test(p.tail),'Every species needs a distinct readable tail color');
+ assert.ok(/^#[a-f0-9]{6}$/i.test(p.mark),'Every species needs a distinct marking color');
+ assert.ok(!colorIdentities.has([p.body,p.accent].join(':')),
+  'Two differently named species must never share the same body/accent combination: '+sp.name);
+ colorIdentities.add([p.body,p.accent].join(':'));
+ baseColors.add(p.body);tailColors.add(p.tail);
+ genusPatterns.add(p.motif);
+}
+assert.equal(colorIdentities.size,240,'All 240 fish must have stable, non-repeating color identities');
+assert.ok(baseColors.size>=225,'Almost every fish should have its own distinct visible body color');
+assert.ok(tailColors.size>=225,'Species tail colors must vary noticeably across the catalog');
+for(let habitat=0;habitat<12;habitat++){
+ const population=game.species.slice(habitat*20,(habitat+1)*20);
+ const colors=population.map(sp=>game.fishAppearance(sp));
+ assert.ok(new Set(colors.map(p=>p.body)).size>=19,
+  'Every habitat should show 19+ visibly different bodies');
+ let contrastingPairs=0;
+ for(let i=1;i<colors.length;i++)
+  if(rgbDistance(colors[i-1].body,colors[i].body)>55)contrastingPairs++;
+ assert.ok(contrastingPairs>=12,
+  'Adjacent entries within a habitat must have high-contrast color choices');
+}
+assert.ok([...genusPatterns].filter(p=>p.startsWith('identity-')).length>=6,
+ 'Every one of the six generic identity patterns should be represented');
+const named=(name)=>game.fishAppearance(game.species.find(sp=>sp.name===name));
+assert.notEqual(named('네온테트라').body,named('카디널테트라').body,
+ 'Similar tetra species must no longer share the same blue');
+assert.notEqual(named('네온테트라').body,named('블랙네온테트라').body,
+ 'Black neon tetras must differ from standard neon tetras');
+assert.notEqual(named('구피').body,named('엔들러구피').body,
+ 'Endler guppies must visually differ from normal guppies');
+assert.equal(named('흰동가리').motif,'clown','Familiar clownfish white bands remain');
+assert.equal(named('블루탱').motif,'bluetang','Blue tang black side design remains');
+assert.equal(named('고래상어').motif,'whaleshark','Whale shark white spots remain');
+
 function requireFish(name,expectedClass,shape,motif){
  const fish=game.species.find(f=>f.name===name);
  assert.ok(fish,'Named fish reference missing: '+name);
@@ -512,5 +558,5 @@ assert.ok(feverBounds.min>=normalBounds.min,'Large lure must stay fully on scree
 joy.dx=-1;game.moveBait(10);
 assert.equal(bait.x,feverBounds.min,'Fever lure must reach left edge without clipping');
 joy.active=false;state.fever.ready=savedFeverReady;
-console.log('PASS: 240 named fish have four body classes, 16+ anatomical silhouettes, species palette and patterns, cached bitmap sprites; fever, ecology, joystick and escapes');
+console.log('PASS: 240 species distinct stable body/fin/tail color IDs, 6 identity patterns, preserved iconic palettes, 12 habitat contrast checks, ecology and catches');
 
