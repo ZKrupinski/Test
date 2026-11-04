@@ -83,6 +83,9 @@ window.__hfTest={
  getHum:function(){return hum},
  switchView:function(v){view=v},
  getBob:function(){return bob},
+ getBaitBounds:baitHorizontalBounds,
+ moveBait:updateJoystick,
+ getJoystick:function(){return joystick},
  getSave:function(){return save},
  chance:catchProbability,
  record:recordFeverCapture,
@@ -409,5 +412,27 @@ for(let i=0;i<2200;i++){
 }
 assert.ok(game.getFish().some(f=>!startIds.has(f.ecoId)),
  'New arrivals must enter gradually instead of an identical mass-wave');
-console.log('PASS: slower speeds, natural-depth bounds, 7+ visible species, sparse shoals, independent swim rhythms, diverse bitmap silhouettes, ecosystem persistence and catches');
+// Joystick bait must reach both screen edges symmetrically without clipping.
+// Historically the left limit was 240px while the right was 1215px.
+game.switchView('fish');game.getCast().active=false;game.setHook(null);
+const savedFeverReady=state.fever.ready;
+const joy=game.getJoystick(),bait=game.getBob();
+joy.active=true;joy.dy=0;joy.dx=-1;
+const normalBounds=game.getBaitBounds();
+assert.equal(normalBounds.min+normalBounds.max,1280,'Left/right limits must be centered on the canvas');
+assert.ok(normalBounds.min<100,'Bait must be able to travel left of the old 240px limit');
+bait.x=640;game.moveBait(10);
+assert.equal(bait.x,normalBounds.min,'Holding left should reach the full safe left edge');
+joy.dx=1;game.moveBait(10);
+assert.equal(bait.x,normalBounds.max,'Holding right should reach the matching safe right edge');
+assert.ok(Math.abs((640-normalBounds.min)-(normalBounds.max-640))<.01,
+ 'Maximum joystick travel distance must be identical in each direction');
+state.fever.ready=true;
+const feverBounds=game.getBaitBounds();
+assert.equal(feverBounds.min+feverBounds.max,1280,'Large octopus lure must also have symmetric limits');
+assert.ok(feverBounds.min>=normalBounds.min,'Large lure must stay fully on screen');
+joy.dx=-1;game.moveBait(10);
+assert.equal(bait.x,feverBounds.min,'Fever lure must reach left edge without clipping');
+joy.active=false;state.fever.ready=savedFeverReady;
+console.log('PASS: symmetric bait joystick left/right range, slower speeds, natural-depth bounds, 7+ visible species, sparse shoals, independent swim rhythms, diverse bitmap silhouettes, ecosystem persistence and catches');
 
