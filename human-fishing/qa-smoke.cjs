@@ -70,6 +70,10 @@ window.__hfTest={
  buildFish:buildFish,
  buildHum:buildHum,
  ecoTick:updateEcosystem,
+ depthMin:ecoDepthMin,
+ depthMax:ecoDepthMax,
+ pickSpecies:chooseWildSpecies,
+ canSchool:ecoCanSchool,
  spawnWild:spawnWildFish,
  makeFish:makeWildFish,
  spawnVisitor:spawnWildHuman,
@@ -373,5 +377,37 @@ assert.ok(!game.getFish().includes(exit),'A fish must leave naturally after swim
 game.nextZone((game.getEco().zone+1)%12);
 assert.ok(game.getFish().every(f=>f.sp.habitat===game.getEco().zone),'Only habitat changes may replace the ecosystem');
 assert.ok(game.getFish().length>0,'New habitat must initialize with swimming residents');
-console.log('PASS: persistent fish and human habitat; offscreen immigration/emigration; small schools, predator-prey chase/flee, territorial fighting; existing catch and fever interactions');
+// Population quality: spread, diversity, safety, and low-speed independent movement.
+const residents=game.getFish().filter(f=>f.x>=0&&f.x<=1280);
+const names=new Set(residents.map(f=>f.sp.id));
+assert.ok(residents.length>=9,'A new habitat should begin with a visible, spread-out population');
+assert.ok(names.size>=7,'Initial scene must contain many different species, not repeated shoals');
+assert.ok(residents.filter(f=>f.schoolId).length===0,'Initial population should not spawn as a giant school');
+assert.ok(residents.some(f=>f.x<500)&&residents.some(f=>f.x>770),
+ 'Fish need to inhabit both sides of the underwater scene');
+assert.ok(residents.every(f=>f.speed<=31),'Ambient fish should swim calmly, not race constantly');
+assert.ok(new Set(residents.map(f=>f.swimMode)).size>=2,
+ 'Individuals should have distinct drifting, hovering and roaming rhythms');
+assert.ok(residents.every(f=>f.y>=game.depthMin(f)&&f.y<=game.depthMax(f)),
+ 'Each complete fish sprite must stay below the waterline and above the seabed');
+assert.match(script,/type==='ray'/,'Rays need a distinct bitmap silhouette');
+assert.match(script,/type==='horse'/,'Seahorses need a distinct bitmap silhouette');
+assert.match(script,/type==='eel'/,'Eels need a distinct bitmap silhouette');
+assert.match(script,/type==='puffer'/,'Puffers need a distinct bitmap silhouette');
+assert.match(script,/type==='shark'/,'Large pelagic species need a distinctive body shape');
+const startIds=new Set(residents.map(f=>f.ecoId));
+game.getCast().active=true;
+for(let i=0;i<2200;i++){
+ game.ecoTick(.04);
+ const live=game.getFish();
+ assert.ok(live.length<=18,'Ambient ecosystem must not overcrowd the screen');
+ for(const f of live){
+  assert.ok(f.y>=game.depthMin(f)-.01&&f.y<=game.depthMax(f)+.01,
+   'Fish body has left its permitted underwater depth range');
+  assert.ok(Math.abs(f.vx)<=85.01,'Wild fish is moving faster than the controlled maximum');
+ }
+}
+assert.ok(game.getFish().some(f=>!startIds.has(f.ecoId)),
+ 'New arrivals must enter gradually instead of an identical mass-wave');
+console.log('PASS: slower speeds, natural-depth bounds, 7+ visible species, sparse shoals, independent swim rhythms, diverse bitmap silhouettes, ecosystem persistence and catches');
 
