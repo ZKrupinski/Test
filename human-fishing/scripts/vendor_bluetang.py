@@ -51,6 +51,73 @@ for name, filename in SOURCES.items():
                              "bytes": target.stat().st_size,
                              "transparent": True}
     print(f"{name}: {original.size} -> 1024x1024 WebP ({target.stat().st_size:,} bytes)")
+
+# Eight additional 8-frame atlases are reconstructed with raster-image
+# cropping, rotation, centering and squash from the six approved originals.
+# These are deliberately marked as derived, not claimed as newly drawn frames.
+DERIVED = {
+    "swim": ("idle", [0, 1, 2, 0, -1, -2, -1, 0]),
+    "notice": ("idle", [0, 0, 2, 5, 7, 6, 3, 0]),
+    "graze": ("burst", [0, -5, -19, -29, -11, 9, 3, 0]),
+    "lift": ("hooked", [0, 10, 17, 28, 40, 52, 63, 70]),
+    "last_resist": ("hooked", [-20, 10, 22, -24, 15, -9, -28, 10]),
+    "slip": ("burst", [19, 28, 7, -21, -29, -10, 9, 0]),
+    "reentry": ("burst", [-60, -53, -47, -37, -29, -17, -8, 0]),
+    "flee": ("burst", [3, 0, -6, 0, 5, 0, -3, 0]),
+}
+for action, (parent, angles) in DERIVED.items():
+    src = Image.open(OUT / f"{parent}.webp").convert("RGBA")
+    atlas = Image.new("RGBA", (1024, 1024), (0, 0, 0, 0))
+    for i in range(8):
+        # Hooked source has damaged top/bottom borders in some original
+        # frames. Use its two intact key poses as the retargeting base.
+        source_i = (1 if i % 2 == 0 else 3) if parent == "hooked" else i
+        left = (source_i % 2) * 512
+        top = (source_i // 2) * 256
+        tile = src.crop((left, top, left + 512, top + 256))
+        alpha_bbox = tile.getchannel("A").getbbox()
+        if alpha_bbox is None:
+            raise RuntimeError(f"{action}: missing source frame {i + 1}")
+        pad = 3
+        x0,y0,x1,y1 = alpha_bbox
+        body = tile.crop((max(0,x0-pad),max(0,y0-pad),
+                          min(512,x1+pad),min(256,y1+pad)))
+        angle = angles[i]
+        if angle:
+            body = body.rotate(angle, Image.Resampling.BICUBIC, expand=True)
+        # Every frame must fit the longer rectangular game sprite cell
+        # with clear transparent gutters on all four edges.
+        limit_w, limit_h = 408, 199
+        ratio = min(limit_w / body.width, limit_h / body.height)
+        target_w = max(1,round(body.width*ratio))
+        target_h = max(1,round(body.height*ratio))
+        body = body.resize((target_w,target_h), Image.Resampling.LANCZOS)
+        frame = Image.new("RGBA", (512,256), (0,0,0,0))
+        dx = [0,2,4,6,5,3,1,0][i] if action == "slip" else 0
+        dy = [0,-3,-4,2,5,4,2,0][i] if action == "graze" else 0
+        frame.alpha_composite(body,((512-target_w)//2+dx,(256-target_h)//2+dy))
+        bb = frame.getchannel("A").getbbox()
+        if bb is None or min(bb[0],bb[1],512-bb[2],256-bb[3]) < 20:
+            raise RuntimeError(f"{action}: output frame {i+1} has unsafe cropping")
+        atlas.alpha_composite(frame,((i%2)*512,(i//2)*256))
+    file = OUT / f"{action}.webp"
+    atlas.save(file,format="WEBP",quality=89,method=6,exact=True)
+    info["atlases"][action] = {"width":1024,"height":1024,
+        "tileWidth":512,"tileHeight":256,"bytes":file.stat().st_size,
+        "transparent":True,"derivedFrom":parent,
+        "method":"bitmap pose retargeting; 8 individual frames"}
+    print(f"{action}: derived {parent} -> 1024x1024 WebP ({file.stat().st_size:,} bytes)")
+info["actions_total"] = len(info["atlases"])
+info["frames_total"] = 8 * len(info["atlases"])
+(OUT / "README_KO.txt").write_text(
+    "블루탱 카툰 비트맵: 14동작 x 8프레임 = 112프레임\n"
+    "각 동작별 2열 x 4행 / 1024x1024 WebP / 개별 셀 512x256 / 투명 배경\n"
+    "원본 원화 6종: idle, burst, uturn, inspect, bite, hooked\n"
+    "기존 힉스필드 원화에 기반한 비트맵 재구성 8종: "
+    "swim, notice, graze, lift, last_resist, slip, reentry, flee\n"
+    "새로운 외부 이미지 생성 작업 없이 기존 원화를 리타게팅했습니다.\n",
+    encoding="utf-8")
+
 (OUT / "manifest.json").write_text(
     json.dumps(info, ensure_ascii=False, indent=2) + "\n",
     encoding="utf-8")
