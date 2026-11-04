@@ -1,0 +1,60 @@
+{
+  "version": "2.4",
+  "species": "블루탱",
+  "layout": [
+    2,
+    4
+  ],
+  "atlases": {
+    "idle": {
+      "width": 1024,
+      "height": 1024,
+      "tileWidth": 512,
+      "tileHeight": 256,
+      "bytes": 155950,
+      "transparent": true
+    },
+    "burst": {
+      "width": 1024,
+      "height": 1024,
+      "tileWidth": 512,
+      "tileHeight": 256,
+      "bytes": 134866,
+      "transparent": true
+    },
+    "uturn": {
+      "width": 1024,
+      "height": 1024,
+      "tileWidth": 512,
+      "tileHeight": 256,
+      "bytes": 140912,
+      "transparent": true
+    },
+    "inspect": {
+      "width": 1024,
+      "height": 1024,
+      "tileWidth": 512,
+      "tileHeight": 256,
+      "bytes": 205110,
+      "transparent": true
+    },
+    "bite": {
+      "width": 1024,
+      "height": 1024,
+      "tileWidth": 512,
+      "tileHeight": 256,
+      "bytes": 216050,
+      "transparent": true
+    },
+    "hooked": {
+      "width": 1024,
+      "height": 1024,
+      "tileWidth": 512,
+      "tileHeight": 256,
+      "bytes": 198688,
+      "transparent": true
+    }
+  },
+  "asset_type": "raster bitmap",
+  "frame_count_each": 8
+}
