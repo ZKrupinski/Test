@@ -18,13 +18,13 @@ var actions=['idle','swim','burst','uturn','notice','inspect','graze','bite',
  'hooked','lift','last_resist','slip','reentry','flee'];
 var sourceOf={idle:'idle',swim:'swim',burst:'burst',uturn:'uturn',
  notice:'idle',inspect:'inspect',graze:'burst',bite:'bite',
- hooked:'hooked',lift:'hooked',last_resist:'hooked',slip:'burst',
+ hooked:'hooked',lift:'hooked',last_resist:'last_resist',slip:'burst',
  reentry:'burst',flee:'flee'};
 var ms={idle:132,swim:95,burst:69,uturn:80,notice:115,inspect:125,
  graze:55,bite:70,hooked:73,lift:82,last_resist:64,slip:67,reentry:70,flee:58};
 var oneShot={uturn:1,notice:1,graze:1,bite:1,lift:1,slip:1,reentry:1};
 var atlas={},status={},previewAction=null,loading=false;
-var queue=['idle','uturn','hooked','burst','inspect','bite'];
+var queue=['idle','uturn','hooked','last_resist','burst','inspect','bite'];
 var SIZE=1024,CW=512,CH=256;
 function makeCanvas(w,h){
  var c=document.createElement('canvas');c.width=w;c.height=h;return c;
@@ -142,8 +142,8 @@ function loadNext(){
     atlas.burst=tailCycle(aligned,0,14);
     atlas.flee=tailCycle(aligned,0,18);
    }else if(kind==='hooked'){
-    // One consistent safe key pose, no alternating cropped/misaligned bodies.
-    atlas.hooked=tailCycle(aligned,1,11);
+    // Keep the authored hooked key poses, center-registered by makeNormalized.
+    atlas.hooked=aligned;
    }
    status[kind]='ready';
   }catch(e){status[kind]='error';status[kind+'_reason']=String(e)}
@@ -151,7 +151,7 @@ function loadNext(){
   loading=false;loadNext();
  };
  image.onerror=function(){
-  if(!image._btFallback){
+  if(!image._btFallback&&filenames[kind]){
    image._btFallback=true;
    image.crossOrigin='anonymous';
    image.src=prefix+filenames[kind];return;
@@ -287,6 +287,9 @@ function draw(ctx,a,now,alpha,near){
  if(!sheet){action='swim';sheet=atlas.swim||atlas.idle}
  if(!sheet)return false;
  var p=poseProgress(a,now,action),i=p.index,pose=transform(action,i);
+ // Aquarium-specific body rotations are disabled for species with
+ // authored animation frames. Their torso pivots are already normalized.
+ if(aquarium&&!turning)pose={r:0,x:0,y:0,sx:1,sy:1};
  // Aquariums may have a different turn duration from live fishing.
  // Sample the official eight U-turn frames across that exact interval.
  if(aquariumTurn)i=clamp(Math.floor(turnProgress*8),0,7);
@@ -332,7 +335,7 @@ window.BlueTangSprites={
   return previewAction;
  },
  getPreviewAction:function(){return previewAction},
- version:'aquarium-official-2.10'
+ version:'aquarium-official-2.11'
 };
 // Other species can register their own sprite players here when their
 // action sheets exist. The aquarium then picks the proper player by species.
