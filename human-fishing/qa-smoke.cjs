@@ -314,13 +314,19 @@ assert.ok(game.getCast().active,'Next cast must resume after swallowing');
 // The ecosystem never destroys/re-rolls surviving fish on a catch, failed
 // catch, wave completion, gear refresh, or successive cast.
 game.switchView('fish');
-const ecoStart=game.getFish().slice(),idBefore=ecoStart.map(f=>f.ecoId);
+// Earlier tests intentionally replaced the simulated fish array with fixtures.
+// Restore a full real habitat before testing the long-running ecosystem.
+game.nextZone((game.getEco().zone+1)%12);
+const ecoStart=game.getFish().slice();
 assert.ok(ecoStart.length>4,'Habitat should begin with an inhabiting population');
 game.buildFish();game.buildHum();
 assert.equal(game.getFish().length,ecoStart.length,'Rebuild on same habitat must be a no-op');
 assert.ok(ecoStart.every((f,i)=>game.getFish()[i]===f),'Fish identities and coordinates must persist');
 const initialGroups=ecoStart.filter(f=>f.schoolId);
 assert.ok(initialGroups.every(f=>f.small),'Only small fish may join a school');
+// Reserve room for one natural immigrant if the initial schools filled the habitat.
+game.setFish(ecoStart.slice(0,Math.min(15,ecoStart.length)));
+const preSpawnCount=game.getFish().length,idBefore=game.getFish().map(f=>f.ecoId);
 const offscreenCount=game.spawnWild(false);
 assert.ok(offscreenCount>=1,'Fish should periodically enter the ecosystem');
 const spawned=game.getFish().filter(f=>!idBefore.includes(f.ecoId));
@@ -333,7 +339,7 @@ game.catchNow();
 assert.equal(state.catches,beforeEcoCatch+1,'A successful catch should still be recorded');
 assert.ok(!game.getFish().includes(removed),'Only hooked fish should be removed');
 assert.ok(game.getFish().includes(spareFish),'All other fish must survive the cast unchanged');
-assert.ok(game.getFish().length>=ecoStart.length-2,'A catch must not wipe the entire population');
+assert.ok(game.getFish().length>=preSpawnCount-1,'A catch must not wipe the entire population');
 
 // Schooling, predator chasing, fleeing and fighting are distinct live behaviors.
 const spSmall=game.species[0],spHunter=game.species[28];
