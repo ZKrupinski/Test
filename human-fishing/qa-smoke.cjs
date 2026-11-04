@@ -689,6 +689,8 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
   'Aquarium fish need independent animation phases');
  const beforeDirection=fishActors[0].dir,otherDirection=fishActors[1].dir;
  game.switchView('tank');
+ element('panel').classList.remove('open');
+ element('aquaSaleReceipt').classList.remove('visible');
  const tap={clientX:fishActors[0].x,clientY:fishActors[0].y,
   defaultPrevented:false,preventDefault(){this.defaultPrevented=true}};
  assert.equal(game.aquariumTap(tap),true,'Tapping a displayed fish must register');
