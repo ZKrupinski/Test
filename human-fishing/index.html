@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#092a39">
-<title>인간낚시 · HUMAN FISHING α 0.6</title>
+<title>인간낚시 · HUMAN FISHING α 0.7</title>
 <style>
 :root{color-scheme:dark;--gold:#f5cb81;--aqua:#8ee4e2;--ink:#092b39;--panel:#072633ee}
 *{box-sizing:border-box}body{margin:0;background:#061923;color:#effffb;font:15px/1.45 system-ui,"Pretendard","Malgun Gothic",sans-serif;overflow-x:hidden}
@@ -67,12 +67,12 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 #virtualKnob{position:absolute;z-index:1;left:50%;top:50%;transform:translate(-50%,-50%);width:44%;aspect-ratio:1;border-radius:50%;border:2px solid #d8fff0b8;background:radial-gradient(circle at 28% 24%,#e7ffec,#6ebec2 38%,#285d77 81%);box-shadow:0 5px 13px #001522b8,inset 0 2px 8px #fff7}
 #virtualJoystick.visible{display:block}
 @media(max-width:760px){#virtualJoystick{min-width:56px;border-width:1px}#virtualKnob{border-width:1px}}
-</style></head><body><div class="wrap">
-<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 0.6</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
+.fever-hud{position:absolute;z-index:3;left:17px;bottom:111px;width:min(270px,35%);padding:10px 12px;border-radius:12px;border:1px solid #a6d6d075;background:linear-gradient(125deg,#0b3444ec,#112a3be6);box-shadow:0 4px 20px #0007;pointer-events:none;color:#c4eeec}.fever-hud .fever-top{display:flex;justify-content:space-between;gap:7px;font-size:13px;font-weight:950}.fever-hud .fever-top span:last-child{color:#ffe8a5}.fever-meter{height:8px;background:#061821;border:1px solid #4d7f87;border-radius:50px;margin-top:6px;overflow:hidden}.fever-meter i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#43bac4,#94eadb,#ffcc82);border-radius:50px;transition:width .25s ease}.fever-detail{font-size:10px;color:#b7d6db;margin-top:4px}.fever-hud.ready{border-color:#ffd28f;box-shadow:0 0 24px #ffc36b50,0 6px 17px #0007;background:linear-gradient(120deg,#563343eb,#0a5762ee)}.fever-hud.ready .fever-top span:first-child{color:#ffe4ab}.shop-octo-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:7px 0}.shop-octo-stats span{font-size:11px;color:#d8f7ea;background:#0d3846;border-radius:5px;padding:3px 5px}@media(max-width:760px){.fever-hud{left:6px;bottom:56px;width:min(166px,38%);padding:5px 7px;border-radius:7px}.fever-hud .fever-top{font-size:9px}.fever-meter{height:5px;margin-top:3px}.fever-detail{font-size:8px}.shop-octo-stats span{font-size:9px;padding:2px 3px}}</style></head><body><div class="wrap">
+<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 0.7</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navShop">🛒 상점</button></nav></header>
 <div class="stage" id="stage"><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 어디든 터치해 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
 <div class="hud top"><div class="tag"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins">◈ 0　🐟 0/240</div></div>
-<div class="hud bottom"><div class="guide"><b id="hintTitle">찌를 물고기 가까이 드래그!</b><small id="hint">손을 떼면 주변 물고기가 낚여 올라옵니다.</small></div><button class="action" id="action">낚싯줄<br>당기기</button></div>
+<div id="feverHud" class="fever-hud"><div class="fever-top"><span>🐙 OCTO FEVER</span><span id="feverNum">0 / 6</span></div><div class="fever-meter"><i id="feverFill"></i></div><div id="feverDetail" class="fever-detail">물고기 포획으로 충전</div></div><div class="hud bottom"><div class="guide"><b id="hintTitle">찌를 물고기 가까이 드래그!</b><small id="hint">손을 떼면 주변 물고기가 낚여 올라옵니다.</small></div><button class="action" id="action">낚싯줄<br>당기기</button></div>
 <div class="center-banner" id="banner"><div class="emoji" id="bannerIcon">🐟</div><strong id="bannerTitle">첫 포획!</strong><p id="bannerSub">새로운 물고기 발견</p></div>
 <div class="sideinfo" id="sideinfo"></div>
 <section class="panel" id="panel"><div class="panelhead"><div><h2 id="panelTitle">도감</h2><div class="minor" id="panelDesc">240종 수집 도전</div></div><button class="smallbtn" id="closePanel">✕ 닫기</button></div><div id="panelBody"></div></section>
@@ -272,7 +272,7 @@ function renderBook(filter,query){
  }).join('')+
  visibleFish.map(function(sp){
   var n=save.owned[sp.id]||0;
-  return '<div class="card '+(n?'':'locked')+'" data-name="'+escapeHtml(sp.name)+'"><div class="face">'+(n?'🐟':'◈')+'</div><div class="name">'+(n?escapeHtml(sp.name):'???')+'</div><div class="meta">'+escapeHtml(habitats[sp.habitat])+'</div><div class="num">'+(n?'보유 '+n+'마리':sp.id+' 미발견')+'</div></div>';
+  return '<div class="card '+(n?'':'locked')+'" data-name="'+escapeHtml(sp.name)+'"><div class="face">'+(n?'🐟':'◈')+'</div><div class="name">'+(n?escapeHtml(sp.name):'???')+'</div><div class="meta">'+escapeHtml(habitats[sp.habitat])+' · '+escapeHtml(sp.rarity)+' Lv.'+sp.level+'</div><div class="num">'+(n?'보유 '+n+'마리':sp.id+' 미발견')+'</div></div>';
  }).join('')+'</div>';
  openPanel('통합 생물 도감','물고기 '+count+'/240 · 인간 '+hCount+'/24 · 264종 컬렉션',tool+cards);
  $('search').oninput=function(){
@@ -663,10 +663,17 @@ var gearCatalog={
  ['jelly','발광 해파리','빛 보조',300,'#a6eaff'],
  ['ray','꼬마 가오리','유영 탐지',700,'#7fc9dc'],
  ['octo','꼬마 문어 친구','릴 조작 보조',1350,'#e2a3f5'],
- ['drone','심해 탐사 드론','자동 지원',2700,'#ffe2a1']]
+ ['drone','심해 탐사 드론','자동 지원',2700,'#ffe2a1']],
+ octopus:[
+ ['baby','아기 산호문어','작지만 빠른 기본 촉수',0,'#f4a39e'],
+ ['lagoon','청록 바다문어','더 커진 촉수 반경',230,'#63d2d2'],
+ ['spotted','독무늬 사냥문어','정교한 빨판·포획력 강화',560,'#b891ef'],
+ ['gold','황금 흡판문어','다수 포획 특화 대형 문어',1200,'#f9c270'],
+ ['glow','심해 발광문어','희귀 생물 광역 포획 특화',2600,'#7fe7c8'],
+ ['king','왕관 괴수문어','최대 크기·발동·포획력',5000,'#ff8db9']]
 };
-var gearIcons={rod:'🎣',bait:'🪱',net:'🕸️',helper:'🦑'};
-var gearCategoryNames={rod:'낚싯대',bait:'미끼',net:'어망',helper:'조력자'};
+var gearIcons={rod:'🎣',bait:'🪱',net:'🕸️',helper:'🦑',octopus:'🐙'};
+var gearCategoryNames={rod:'낚싯대',bait:'미끼',net:'어망',helper:'조력자',octopus:'피버 문어'};
 Object.keys(gearCatalog).forEach(function(cat){
  save.gearOwned[cat]=Array.isArray(save.gearOwned[cat])?save.gearOwned[cat]:[gearCatalog[cat][0][0]];
  save.gearLevels[cat]=save.gearLevels[cat]&&typeof save.gearLevels[cat]==='object'?save.gearLevels[cat]:{};
@@ -703,7 +710,7 @@ function renderShop(){
   return '<div class="shop-card '+(equipped?'equipped':'')+'"><div class="shop-icon" style="border-color:'+item.color+';color:'+item.color+'">'+
    gearIcons[cat]+'</div><div class="shop-detail"><h3>'+escapeHtml(item.name)+'</h3>'+
    '<span class="shop-badge">'+(equipped?'● 장착 중':'')+'</span><span class="shop-badge">TIER '+(item.tier+1)+'</span><span class="shop-badge">LV '+lv+'/10</span>'+
-   '<p>'+escapeHtml(item.desc)+' · 유효 성능 '+power+'</p>'+
+   '<p>'+escapeHtml(item.desc)+(cat==='octopus'?'':' · 유효 성능 '+power)+'</p>'+(cat==='octopus'?octoStatHtml(item.tier,lv):'')+
    '<div class="shop-progress"><i style="width:'+(lv*10)+'%"></i></div>'+
    '<div class="shop-buttons"><button data-gear-action="equip" data-gear-id="'+item.id+'" '+
    (equipped||!canBuy?'disabled':'')+'>'+primary+'</button>'+
@@ -711,7 +718,7 @@ function renderShop(){
    (max?'MAX':'◈ '+cost.toLocaleString()+' 강화')+'</button>':'')+
    '</div></div></div>';
  }).join('');
- var title='장비 상점 · 24가지 장비',description='낚싯대 · 미끼 · 어망 · 조력자 / 종류별 6종 / 각각 최대 10단계';
+ var title='장비 상점 · 30가지 장비',description='낚싯대 · 미끼 · 어망 · 조력자 · 피버 문어 / 각 6종, 개별 10단계';
  var body='<div class="shop-hint">보유 진주 <b style="color:#ffe0aa">◈ '+save.coins.toLocaleString()+
  '</b> · '+gearCategoryNames[shopCategory]+' 현재 장착: <b>'+escapeHtml(g.name)+'</b> · 기존 장비 강화 보너스 유지</div>'+
  tabs+'<div class="shop-grid">'+cards+'</div>';
@@ -735,7 +742,7 @@ function renderShop(){
    save.coins-=cost;save.gearLevels[cat][id]=gearLevel(cat,id)+1;
   }
   persist();updateStats();beep('catch');
-  if(cat==='bait'){buildFish();buildHum()}
+  if(cat==='bait'){buildFish();buildHum()}if(cat==='octopus')updateFeverHud()
   renderShop();
  };
  });
