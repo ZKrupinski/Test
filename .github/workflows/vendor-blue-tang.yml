@@ -38,6 +38,10 @@ jobs:
             exit 0
           fi
           git commit -m "Store approved Blue Tang game sprite atlases locally"
+          # Other asset/document edits may land while bitmap download runs.
+          # Rebase on current main before pushing, never force-push.
+          git fetch origin main
+          git rebase origin/main
           git push origin HEAD:main
       - name: Trigger GitHub Pages deployment after asset commit
         env:
