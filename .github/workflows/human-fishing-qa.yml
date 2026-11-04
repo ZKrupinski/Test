@@ -35,3 +35,5 @@ jobs:
           }
           console.log('PASS: JavaScript parses, all 240 fish are present, gameplay handlers exist.');
           NODE
+      - name: Run game startup, input and shop smoke test
+        run: node human-fishing/qa-smoke.cjs
