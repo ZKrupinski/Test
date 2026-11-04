@@ -1015,7 +1015,7 @@ function renderTankSide(){
  save.humanPlaced.forEach(function(id){humanUsed[id]=(humanUsed[id]||0)+1});
  var fishOptions=Object.keys(save.owned).filter(function(id){return save.owned[id]>(fishUsed[id]||0)});
  var humanOptions=Object.keys(save.human).filter(function(id){return save.human[id]>(humanUsed[id]||0)});
- var html='<h3>🐙 생물 아쿠아리움</h3><p>물고기 '+save.placed.length+'/30 · 인간 '+save.humanPlaced.length+'/8<br>인간은 안전한 거품 캡슐에 전시됩니다.</p>';
+ var html='<h3>🐙 생물 아쿠아리움</h3><p>물고기 '+save.placed.length+'/30 · 인간 '+save.humanPlaced.length+'/8<br>🐟 물고기를 터치하면 방향을 바꾸고 가끔 발버둥 칩니다.</p>';
  html+='<div class="slot"><span>수조 테마</span><button id="decorChange">변경</button></div>';
  html+='<h3>🧑 인간 배치</h3>';
  if(!humanOptions.length)html+='<p>낚시터에서 엘리트 인간을 잡으면 배치할 수 있어요.</p>';
@@ -1081,25 +1081,152 @@ function humanIcon(a,now){
  ctx.font='bold 15px system-ui';ctx.textAlign='center';ctx.fillStyle=boss?'#ffdf7f':'#ffb0a0';ctx.fillText(tier,0,-107);
  ctx.restore();
 }
+// Aquarium inhabitants have stable identities and independent swim states.
+// Old aquarium code recreated a static fish every frame, making taps impossible.
+var aquariumFishActors=[],aquariumFishSignature='',aquariumLastTime=0;
+function aquariumEnsureFish(now){
+ var signature=save.placed.join('|');
+ if(signature===aquariumFishSignature&&aquariumFishActors.length===save.placed.length)return;
+ aquariumFishSignature=signature;
+ aquariumLastTime=now;
+ aquariumFishActors=save.placed.map(function(id,i){
+  var sp=species.find(function(z){return z.id===id});
+  var seed=now*.31+i;
+  return {id:id,sp:sp,x:clamp(100+(i*151)%1070+Math.sin(seed)*45,95,1170),
+   y:clamp(220+(i*89)%370,155,611),baseY:clamp(220+(i*89)%370,155,611),
+   dir:i%2===0?1:-1,speed:11+(i%6)*2.7+Math.random()*5,
+   size:1.05+(i%4)*.2,phase:i*1.6+Math.random()*2.3,
+   turnStart:-100,turnFrom:i%2===0?1:-1,
+   turnDuration:.63+(i%4)*.045,lastTap:-100,
+   struggleStart:-100,struggleEnd:-100,strugglePower:0,
+   nextStruggle:now+4.5+Math.random()*10,
+   // Keep the same source raster and torso pivot across both headings.
+   sprite:sp?{sp:sp,x:0,y:0,vx:-22,size:1.05+(i%4)*.2,phase:i*1.6}:null};
+ });
+}
+function aquariumStartTurn(a,now){
+ if(!a||now-a.lastTap<.24)return false;
+ // Never replace a turn mid-animation; avoid a flip-flop at the midpoint.
+ if(now-a.turnStart<a.turnDuration*.70)return false;
+ a.turnFrom=a.dir;
+ a.dir=-a.dir;
+ a.turnStart=now;
+ a.lastTap=now;
+ return true;
+}
+function aquariumStartStruggle(a,now,strength){
+ if(!a)return;
+ a.struggleStart=now;
+ a.struggleEnd=now+.52+Math.random()*.28;
+ a.strugglePower=strength||1;
+ a.nextStruggle=now+7+Math.random()*12;
+}
+function aquariumTurnScale(a,now){
+ var p=(now-a.turnStart)/a.turnDuration;
+ if(p<0||p>=1)return -a.dir;
+ p=clamp(p,0,1);
+ var smooth=p*p*(3-2*p);
+ var width=Math.cos(Math.PI*smooth);
+ // Minimum frontal silhouette prevents a complete one-frame disappearance.
+ if(Math.abs(width)<.065)width=width<0?-.065:.065;
+ return -a.turnFrom*width;
+}
+function aquariumUpdateFish(now){
+ aquariumEnsureFish(now);
+ var dt=aquariumLastTime>0?clamp(now-aquariumLastTime,0,.05):0;
+ aquariumLastTime=now;
+ aquariumFishActors.forEach(function(a){
+  if(!a.sp)return;
+  // Each fish can react independently, not an identical schooling wave.
+  if(now>=a.nextStruggle)aquariumStartStruggle(a,now,.54+Math.random()*.35);
+  var wriggling=a.struggleEnd>now;
+  var surge=wriggling?1.15:1;
+  a.x+=a.dir*a.speed*dt*surge;
+  if(a.x<92||a.x>1177){
+   a.x=clamp(a.x,92,1177);
+   if(now-a.turnStart>a.turnDuration) {
+    a.turnFrom=a.dir;a.dir=-a.dir;a.turnStart=now;
+   }
+  }
+  a.y=clamp(a.baseY+Math.sin(now*(.55+(a.phase%3)*.08)+a.phase)*12,148,614);
+ });
+}
+function aquariumTapFish(event){
+ if(view!=='tank')return false;
+ if($('aquaSaleReceipt').classList.contains('visible')||$('panel').classList.contains('open'))return false;
+ aquariumEnsureFish(time);
+ var p=resizePointer(event),best=null,dist=2;
+ aquariumFishActors.forEach(function(a){
+  if(!a.sp||!a.sprite)return;
+  var isBlueTang=a.sp.name==='블루탱'&&window.BlueTangSprites&&window.BlueTangSprites.ready();
+  var art=isBlueTang?null:fishSprite(a.sp);
+  var rx=(isBlueTang?60*a.size:art.width*.25*a.size)+18;
+  var ry=(isBlueTang?30*a.size:art.height*.25*a.size)+17;
+  // Touch geometry matches the actual bitmap, with a generous mobile margin.
+  var dx=(p.x-a.x)/Math.max(34,rx),dy=(p.y-a.y)/Math.max(28,ry);
+  var d=dx*dx+dy*dy;
+  if(d<dist&&d<=1.32){best=a;dist=d}
+ });
+ if(!best)return false;
+ var turned=aquariumStartTurn(best,time);
+ if(!turned)return false;
+ // On some taps the fish also panics; intermittent unprompted wriggles
+ // occur through its own timer, and never synchronize across species.
+ if(Math.random()<.66)aquariumStartStruggle(best,time,.8+Math.random()*.35);
+ if(typeof spawnParticles==='function')spawnParticles(best.x,best.y,3,'water');
+ if(event.preventDefault)event.preventDefault();
+ return true;
+}
 function drawingTank(now){
  sea(true);
  ctx.fillStyle='#fffdfa0c';ctx.fillRect(20,25,1240,656);
  ctx.strokeStyle='#c3e3e78b';ctx.lineWidth=20;ctx.strokeRect(20,25,1240,656);
  ctx.strokeStyle='#194451';ctx.lineWidth=6;ctx.strokeRect(20,25,1240,656);
  ctx.fillStyle='#cfb98b';ctx.fillRect(32,656,1216,30);
- for(var i=0;i<20;i++){var x=80+i*58+Math.sin(i*12)*16;ctx.fillStyle=colors[(i+decor*3)%colors.length]+'77';ctx.beginPath();ctx.ellipse(x,638,35,17,0,0,Math.PI*2);ctx.fill()}
+ for(var i=0;i<20;i++){
+  var x=80+i*58+Math.sin(i*12)*16;
+  ctx.fillStyle=colors[(i+decor*3)%colors.length]+'77';
+  ctx.beginPath();ctx.ellipse(x,638,35,17,0,0,Math.PI*2);ctx.fill();
+ }
  coral(now);
- save.placed.forEach(function(id,i){
-  var sp=species.find(function(v){return v.id===id});if(!sp)return;
-  var xx=100+(i*151)%1070+Math.sin(now*(.34+(i%4)*.08)+i)*50,yy=220+((i*89)%370)+Math.sin(now*.8+i)*18;
-  drawFish({sp:sp,x:clamp(xx,90,1130),y:yy,vx:i%2===0?1:-1,size:1.05+(i%4)*.2,phase:i},now);
+ aquariumUpdateFish(now);
+ aquariumFishActors.forEach(function(a){
+  if(!a.sprite)return;
+  ctx.save();
+  ctx.translate(a.x,a.y);
+  ctx.scale(aquariumTurnScale(a,now),1);
+  var wriggle=a.struggleEnd>now,progress=wriggle?
+    clamp((now-a.struggleStart)/(a.struggleEnd-a.struggleStart),0,1):0;
+  if(wriggle){
+   // A pivot-locked, decaying bitmap wriggle; no random root translation.
+   var envelope=Math.sin(Math.PI*progress),energy=a.strugglePower*envelope;
+   ctx.rotate(Math.sin(progress*38+a.phase)*.17*energy);
+   ctx.scale(1+Math.sin(progress*55+a.phase)*.035*energy,
+     1-Math.sin(progress*55+a.phase)*.027*energy);
+  }
+  // This persistent sprite always faces left; the outer tank transform
+  // handles the U-turn for all species, including the animated Blue Tang.
+  a.sprite.x=0;a.sprite.y=0;a.sprite.vx=-22;
+  if(a.sp.name==='블루탱'&&window.BlueTangSprites&&window.BlueTangSprites.ready()){
+   a.sprite.spriteAction=wriggle?'last_resist':'swim';
+   if(wriggle)a.sprite.spriteFrame=Math.floor((now-a.struggleStart)*19)%8;
+   else delete a.sprite.spriteFrame;
+  }else{
+   delete a.sprite.spriteAction;delete a.sprite.spriteFrame;
+  }
+  drawFish(a.sprite,now);
+  ctx.restore();
  });
  save.humanPlaced.forEach(function(id,i){
-  var humanId=Number(id),sx=235+(i%4)*239+Math.sin(now*.6+i)*14,sy=318+Math.floor(i/4)*208+Math.sin(now*1.3+i)*10;
+  var humanId=Number(id),sx=235+(i%4)*239+Math.sin(now*.6+i)*14;
+  var sy=318+Math.floor(i/4)*208+Math.sin(now*1.3+i)*10;
   circle(sx,sy+24,86,humanId>=20?'#ffd48721':'#93ecff24');
-  ctx.beginPath();ctx.ellipse(sx,sy+24,84,108,0,0,Math.PI*2);ctx.lineWidth=4;ctx.strokeStyle=humanId>=20?'#ffe3a4a8':'#b0eaffaa';ctx.stroke();
-  ctx.save();ctx.translate(sx,sy+6);ctx.scale(.76,.76);humanIcon({id:humanId,x:0,y:0,phase:i,size:1},now);ctx.restore();
-  ctx.fillStyle='#f9e7c3';ctx.textAlign='center';ctx.font='bold 12px system-ui';ctx.fillText(humans[humanId],sx,sy+128);
+  ctx.beginPath();ctx.ellipse(sx,sy+24,84,108,0,0,Math.PI*2);
+  ctx.lineWidth=4;ctx.strokeStyle=humanId>=20?'#ffe3a4a8':'#b0eaffaa';ctx.stroke();
+  ctx.save();ctx.translate(sx,sy+6);ctx.scale(.76,.76);
+  humanIcon({id:humanId,x:0,y:0,phase:i,size:1},now);ctx.restore();
+  ctx.fillStyle='#f9e7c3';ctx.textAlign='center';ctx.font='bold 12px system-ui';
+  ctx.fillText(humans[humanId],sx,sy+128);
  });
 }
 function tick(stamp){
@@ -1624,6 +1751,7 @@ function moveVirtualJoystick(p){
  canvas.classList.toggle('dragging',joystick.engaged);
 }
 function onBaitPointerDown(e){
+ if(view==='tank'){aquariumTapFish(e);return;}
  // Keep the natural air-cast. Once the bait has touched water (u >= 1.4),
  // any canvas touch is the origin of a virtual joystick, NOT a teleport.
  if(view!=='fish'||hook||feverFx||catchFx||escapeFx||octoGroggy>0||joystick.active||cast.active&&!cast.landing)return;
