@@ -1619,7 +1619,7 @@ function drawOcto(now){
  ctx.save();ctx.translate(295+hit.x+(octoGroggy>0?Math.sin(now*48)*3.5:0),15+hit.y+Math.sin(now*1.2)*3);
  if(octoGroggy>0)ctx.globalAlpha=.78;
  ctx.drawImage(octo,0,0,280,253);ctx.restore();
- drawOctopusMouth(now);
+ ctx.save();ctx.translate(hit.x,hit.y);drawOctopusMouth(now);ctx.restore();
 }
 function drawRod(now){
  var tip=rodTip(now),base={x:536,y:191},gear=selectedGear('rod'),lv=gearLevel('rod',gear.id);
@@ -1773,6 +1773,8 @@ function tick(stamp){
     var duration=Math.max(.56,baseDuration*(1-gearPower('rod')*.035-gearPower('helper')*.012));
     var o=hook.obj,p=clamp(hook.elapsed/duration,0,1);
     hook.travelDuration=duration;
+    if(!hook.pulled&&p>.38){hook.pulled=true;vibrationPulse('pull')}
+    if(!hook.mouthHit&&p>.79){hook.mouthHit=true;vibrationPulse('swallow')}
     if(hook.willEscape){
      var approach=clamp(hook.elapsed/(duration*(hook.escapeAt||.88)),0,1)*.90;
      var point=swallowPoint(hook.startX,hook.startY,mouthPos(time),approach);
@@ -2314,6 +2316,7 @@ function escapeHook(){
  o.feverCaptured=true;
  hook=null;hideVirtualJoystick();
  var tip=rodTip(time);bob.x=tip.x-9;bob.y=tip.y+19;
+ vibrationPulse('escape');
  beep('hit');spawnParticles(escapeFx.x,escapeFx.y,13,'water');
  $('hintTitle').textContent=human?'인간 반격!':'물고기 탈출!';
  $('hint').textContent=human?'공중에서 문어를 공격하고 잠시 그로기로 만듭니다':'입에서 미끄러져 빠져나와 고속으로 도망칩니다';
@@ -2414,7 +2417,7 @@ function drawEscapeFx(dt){
  fx.lastX=pose.x;fx.lastY=pose.y;
  var m=mouthPos(time);
  if(fx.human&&!fx.impact&&fx.elapsed>=.74){
-  fx.impact=true;octoGroggy=1.55;
+  fx.impact=true;octoGroggy=1.55;vibrationPulse('counter');
   spawnParticles(m.x+fx.dir*17,m.y-8,36,'gold');
   ripple(m.x+fx.dir*17,m.y-8);beep('hit');
  }
@@ -2466,6 +2469,8 @@ release=function(){
  if(save.fever.ready){activateOctoFever();return}
  oldReleaseForDifficulty();
  if(hook){
+  vibrationPulse('bite');
+  if(hook.kind==='fish'){hook.obj.shakeUntil=time+.22;hook.obj.shakePower=3.2}
   var h=hook.kind==='human',target=h?{id:hook.obj.id}:hook.obj.sp;
   var chance=catchProbability(target,h,false);
   hook.captureChance=chance;
@@ -2553,7 +2558,7 @@ function activateOctoFever(){
   }else resisted++;
  });
  save.fever.ready=false;save.fever.count=0;save.fever.activations++;
- persist();updateStats();updateFeverHud();beep('catch');
+ persist();updateStats();updateFeverHud();beep('catch');vibrationPulse('fever');
  spawnParticles(center.x,center.y,52,'gold');ripple(center.x,center.y);
  var swallowSpacing=.13;
  feverFx={
@@ -2639,6 +2644,7 @@ function feverTossPoint(entity,fx,index,now){
 }
 function drawFeverTossCreature(entity,fx,index,now,layer){
  var pose=feverTossPoint(entity,fx,index,now);
+ if(pose.phase==='throw'&&pose.scale<.16&&!entity.vibrationLanded){entity.vibrationLanded=true;vibrationPulse('swallow')}
  if(pose.done||((layer==='attached')!==!!pose.attached))return;
  ctx.save();
  ctx.translate(pose.x,pose.y);ctx.rotate(pose.rotation);
