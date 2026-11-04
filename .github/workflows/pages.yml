@@ -1,7 +1,7 @@
 name: Deploy Crimson Bow Playtest
 on:
-  push:
-    branches: [main]
+  # GitHub Pages already runs its own 'pages build and deployment' on main.
+  # Keep this manual fallback to avoid two deploys competing on each commit.
   workflow_dispatch:
 permissions:
   contents: read
