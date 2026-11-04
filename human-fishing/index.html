@@ -194,95 +194,228 @@ function fishVisualProfile(sp){
   baseScale:(range[0]+range[1])*.5,
   variant:seed%7,pattern:seed%5};
 }
+// One high-resolution bitmap is cached per species.  Shapes, fins, tails,
+// markings and head proportions are fixed per species (never random per frame).
 function fishSprite(sp){
  var key=sp.id;if(sprites[key])return sprites[key];
- var c=document.createElement('canvas');c.width=164;c.height=96;
- var g=c.getContext('2d'),n=sp.name,h=sp.habitat,idx=sp.index;
- var seed=Number(key.slice(1)),color=colors[(seed*5+h*3+Math.floor(seed/9))%colors.length];
- var type=/가오리|홍어/.test(n)?'ray':
-  /해마|시드래곤/.test(n)?'horse':
-  /장어|곰치|산갈치|실고기|리본일|가든일/.test(n)?'eel':
-  /가시복|상자복|복어|블롭피시/.test(n)?'puffer':
-  /상어|황새치|돛새치|청새치|다랑어|참치|방어|만새기|와후/.test(n)?'shark':
-  /넙치|도다리|가자미|광어/.test(n)?'flat':
-  /엔젤|버터플라이|탱|시클리드|원반|디스커스|돔/.test(n)?'disc':
-  (seed%5===0?'slim':seed%5===2?'disc':'fish');
- g.translate(81,47);g.lineJoin='round';g.lineCap='round';
- var grad=g.createLinearGradient(-17,-29,26,35);
- grad.addColorStop(0,'#fff5d8');grad.addColorStop(.35,color);grad.addColorStop(1,'#345c72');
- g.strokeStyle='#264a60';g.lineWidth=2.5;
- function poly(points){g.beginPath();g.moveTo(points[0][0],points[0][1]);
-  for(var k=1;k<points.length;k++)g.lineTo(points[k][0],points[k][1]);g.closePath();
-  g.fillStyle=grad;g.fill();g.stroke()}
- function fin(){g.beginPath();g.moveTo(-13,-13);g.lineTo(1,-42);g.lineTo(19,-21);g.closePath();g.fillStyle=color;g.fill();g.stroke()}
- function eye(ex,ey,scale){g.fillStyle='#fff2cd';g.beginPath();g.arc(ex,ey,6*scale,0,Math.PI*2);g.fill();
-  g.fillStyle='#162b3b';g.beginPath();g.arc(ex-2*scale,ey,3.2*scale,0,Math.PI*2);g.fill()}
+ var profile=fishVisualProfile(sp),type=profile.shape,seed=Number(key.slice(1));
+ var c=document.createElement('canvas');c.width=224;c.height=144;
+ var g=c.getContext('2d');g.translate(112,72);
+ g.lineCap='round';g.lineJoin='round';
+ var body=colors[(seed*5+sp.habitat*3+Math.floor(seed/9))%colors.length];
+ var accent=colors[(seed*7+3+sp.habitat*2)%colors.length];
+ var ink='#203b50',white='#fff3d5';
+ var shade=g.createLinearGradient(-12,-49,22,46);
+ shade.addColorStop(0,'#fff6d7');shade.addColorStop(.27,body);
+ shade.addColorStop(.70,body);shade.addColorStop(1,'#335876');
+ var finShade=g.createLinearGradient(-50,-40,75,47);
+ finShade.addColorStop(0,accent);finShade.addColorStop(1,body);
+ function shape(points,fill,stroke){
+  g.beginPath();g.moveTo(points[0][0],points[0][1]);
+  for(var k=1;k<points.length;k++)g.lineTo(points[k][0],points[k][1]);
+  g.closePath();g.fillStyle=fill||shade;g.fill();
+  if(stroke!==false){g.lineWidth=2.6;g.strokeStyle=ink;g.stroke();}
+ }
+ function ellipse(x,y,rx,ry,fill,angle){
+  g.beginPath();g.ellipse(x,y,rx,ry,angle||0,0,Math.PI*2);
+  g.fillStyle=fill||shade;g.fill();g.strokeStyle=ink;g.lineWidth=2.5;g.stroke();
+ }
+ function stroke(points,col,width){
+  g.beginPath();g.moveTo(points[0][0],points[0][1]);
+  for(var j=1;j<points.length;j++)g.lineTo(points[j][0],points[j][1]);
+  g.strokeStyle=col||ink;g.lineWidth=width||3;g.stroke();
+ }
+ function eye(x,y,scale){
+  g.fillStyle=white;g.beginPath();g.arc(x,y,5.7*scale,0,Math.PI*2);g.fill();
+  g.fillStyle='#142739';g.beginPath();g.arc(x-1.8*scale,y+.4,3.1*scale,0,Math.PI*2);g.fill();
+  g.fillStyle='#ffffff';g.beginPath();g.arc(x-2.5*scale,y-1.2*scale,1.05*scale,0,Math.PI*2);g.fill();
+ }
+ function markings(x,y,w,h){
+  g.save();g.globalAlpha=.64;
+  var style=profile.pattern;
+  if(style===0){
+   for(var p=0;p<4;p++)shape([[x+7+p*14,y-h*.32],[x+2+p*14,y+h*.26],[x+10+p*14,y+h*.26]],'#fff7dc',false);
+  }else if(style===1){
+   for(var p=0;p<6;p++){
+    g.beginPath();g.arc(x+8+(p%3)*19,y-10+Math.floor(p/3)*19,2.4+(p%3),0,Math.PI*2);
+    g.fillStyle='#183a5599';g.fill();
+   }
+  }else if(style===2){
+   stroke([[x+9,y+6],[x+w*.8,y+5]],'#fcffe5',3.5);
+   stroke([[x+15,y-12],[x+w*.7,y-9]],'#255368',2);
+  }else if(style===3){
+   for(var p=0;p<3;p++){
+    ellipse(x+10+p*19,y+10,5,2.3,'#fff0c590',.17);
+   }
+  }else{
+   for(var p=0;p<4;p++){
+    stroke([[x+5+p*15,y-h*.4],[x+11+p*15,y+h*.4]],'#1c526c9c',2.4);
+   }
+  }
+  g.restore();
+ }
+ // Fin, tail and body paths remain inside the 224 × 144 prerender canvas.
+ function forkTail(x,wide){
+  shape([[x-2,0],[x+32,-wide],[x+24,-3],[x+34,wide],[x-2,9]],finShade);
+ }
+ function sail(x,top,wide){
+  shape([[x-27,-13],[x-5,-top],[x+wide,-19]],finShade);
+ }
  if(type==='ray'){
-  // Wide, flattened diamond wings, with a narrow trailing tail.
-  g.strokeStyle='#52758d';g.lineWidth=5;g.beginPath();g.moveTo(30,0);g.quadraticCurveTo(64,8,79,18);g.stroke();
-  poly([[-45,-3],[-5,-26],[29,-8],[46,1],[20,17],[-3,25]]);
-  g.fillStyle='#dff6d6';g.beginPath();g.ellipse(-29,-7,4,3,0,0,Math.PI*2);g.fill();
-  eye(-27,-7,.60);
+  // Diamond body, flying wings, elongated barb tail.
+  g.beginPath();g.moveTo(17,0);g.bezierCurveTo(55,8,64,27,91,37);
+  g.strokeStyle=ink;g.lineWidth=6;g.stroke();g.strokeStyle=accent;g.lineWidth=3.5;g.stroke();
+  shape([[-72,-6],[-24,-47],[18,-39],[54,-6],[25,31],[-18,43],[-64,18]],shade);
+  shape([[-69,-4],[-22,-37],[12,-30],[27,-6],[-12,12]],'#f4e9b788',false);
+  eye(-49,-10,.82);eye(-35,-12,.72);
+  for(var dot=0;dot<9;dot++){
+   g.beginPath();g.arc(-10+(dot%3)*15,-23+Math.floor(dot/3)*14,2+dot%2,0,Math.PI*2);
+   g.fillStyle=accent;g.fill();
+  }
  }else if(type==='horse'){
-  // Upright seahorses with a long snout and curved tail.
-  g.strokeStyle=color;g.lineWidth=13;g.beginPath();g.moveTo(1,-29);
-  g.bezierCurveTo(22,-23,12,2,30,24);g.bezierCurveTo(51,39,57,8,35,8);g.stroke();
-  poly([[-8,-36],[-34,-34],[-43,-24],[-12,-24],[-18,-4],[5,19],[15,-4],[11,-27]]);
-  poly([[4,-26],[19,-37],[19,-20]]);
-  eye(-19,-31,.7);
- }else if(type==='eel'){
-  // Long serpentine body; avoid the generic oval silhouette.
-  g.strokeStyle='#244457';g.lineWidth=23;g.beginPath();g.moveTo(-62,-8);
-  g.bezierCurveTo(-24,-34,7,24,39,-5);g.bezierCurveTo(53,-20,62,1,75,-11);g.stroke();
-  g.strokeStyle=color;g.lineWidth=18;g.stroke();
-  g.strokeStyle='#fff0c0';g.lineWidth=3;g.beginPath();g.moveTo(-42,-18);g.quadraticCurveTo(-15,-21,7,5);g.stroke();
-  eye(-52,-10,.75);
+  // Vertical seahorse with a tightly curled tail and delicate dorsal fan.
+  g.lineWidth=19;g.strokeStyle=ink;g.beginPath();g.moveTo(-3,-31);
+  g.bezierCurveTo(12,-10,9,9,24,27);g.bezierCurveTo(49,49,71,6,43,7);g.stroke();
+  g.lineWidth=13;g.strokeStyle=body;g.stroke();
+  shape([[1,-44],[-26,-43],[-34,-32],[-13,-30],[-17,-9],[0,22],[17,9],[8,-31]],shade);
+  shape([[9,-18],[35,-35],[30,-4]],accent);
+  for(var f=0;f<4;f++)shape([[4,f*11-17],[13,f*11-17],[11,f*11-25]],accent);
+  eye(-20,-34,.75);
+ }else if(type==='eel'||type==='pipe'){
+  // Long ribbon/sinuous eel vs thin, nearly cylindrical pipefish.
+  var w=type==='eel'?21:9;
+  g.beginPath();g.moveTo(-84,-3);g.bezierCurveTo(-44,-24,-1,18,38,-4);
+  g.bezierCurveTo(62,-20,72,10,87,-1);
+  g.strokeStyle=ink;g.lineWidth=w+5;g.stroke();
+  g.strokeStyle=body;g.lineWidth=w;g.stroke();
+  g.strokeStyle='#fff7ce';g.lineWidth=type==='eel'?3.5:1.8;
+  g.beginPath();g.moveTo(-63,-12);g.bezierCurveTo(-22,-9,16,16,38,-1);g.stroke();
+  if(type==='pipe'){
+   shape([[-75,-8],[-99,-7],[-104,-4],[-75,2]],accent);
+   for(var p=0;p<4;p++)shape([[-16+p*17,-10],[-26+p*17,-26],[-5+p*17,-12]],finShade);
+  }else{
+   shape([[57,0],[88,-22],[79,7],[93,25]],finShade);
+   for(var p=0;p<4;p++)stroke([[-20+p*20,-2],[-14+p*20,6]],'#29465c',2);
+  }
+  eye(-74,-4,.65);
+ }else if(type==='sunfish'){
+  // Very tall round sunfish with vertical dorsal/anal fins and a tiny tail.
+  shape([[-8,-37],[2,-63],[15,-39]],finShade);
+  shape([[-3,35],[12,62],[22,36]],finShade);
+  shape([[35,-15],[57,-21],[58,22],[36,17]],finShade);
+  ellipse(-5,0,43,41,shade,.16);
+  shape([[5,-26],[27,-19],[33,-5],[24,7],[5,11]],accent,false);
+  markings(-27,0,46,46);eye(-34,-15,1);
+ }else if(type==='angler'){
+  // Bulky deep-sea fish with exposed teeth and a glowing angler stalk.
+  forkTail(35,19);
+  shape([[-71,12],[-54,-25],[-12,-40],[33,-27],[55,7],[12,35],[-35,30]],shade);
+  g.beginPath();g.moveTo(-37,-25);g.quadraticCurveTo(-62,-62,-79,-48);
+  g.strokeStyle='#d9dcac';g.lineWidth=3.7;g.stroke();
+  g.fillStyle='#ffeeb0';g.shadowColor='#ffeaa2';g.shadowBlur=19;
+  g.beginPath();g.arc(-80,-49,8,0,Math.PI*2);g.fill();g.shadowBlur=0;
+  shape([[-73,6],[-36,16],[-12,25],[-55,29]],'#371e35');
+  for(var p=0;p<6;p++)shape([[-60+p*8,13],[-55+p*8,23],[-52+p*8,15]],white,false);
+  eye(-48,-15,1.05);
+ }else if(type==='lion'){
+  // Fan-like radiating poisonous spines, visually unmistakable.
+  for(var ray=0;ray<10;ray++){
+   var a=-2.05+ray*.44;
+   shape([[-7,0],[Math.cos(a)*74,Math.sin(a)*59],[Math.cos(a+.13)*43,Math.sin(a+.13)*38]],finShade);
+  }
+  forkTail(36,24);ellipse(-7,0,39,26,shade);
+  for(var p=0;p<5;p++)stroke([[-30+p*13,-19],[-21+p*13,22]],'#742c4c',4);
+  eye(-31,-10,.95);
  }else if(type==='puffer'){
-  // Round boxfish and puffer forms with visible spines/corners.
-  for(var spike=0;spike<12;spike++){
-   var a=spike*Math.PI/6;
-   poly([[Math.cos(a)*27,Math.sin(a)*27],
-    [Math.cos(a)*42,Math.sin(a)*42],
-    [Math.cos(a+.16)*25,Math.sin(a+.16)*25]]);
+  // A round inflated fish with protruding individual triangular spines.
+  var box=/상자복/.test(sp.name);
+  for(var p=0;p<14;p++){
+   var a=-Math.PI+p*Math.PI*2/14,r=box?28:34;
+   shape([[Math.cos(a)*r,Math.sin(a)*r],
+    [Math.cos(a)*47,Math.sin(a)*49],
+    [Math.cos(a+.13)*r,Math.sin(a+.13)*r]],finShade);
   }
-  g.beginPath();g.ellipse(-3,0,34,31,0,0,Math.PI*2);g.fillStyle=grad;g.fill();g.stroke();
-  g.fillStyle='#f5e5ac';for(var k=0;k<5;k++){g.beginPath();g.arc((k%3)*15-22,Math.floor(k/3)*20-9,2.8,0,Math.PI*2);g.fill()}
-  eye(-21,-8,.82);
- }else if(type==='shark'){
-  // Narrow pelagic body, long dorsal fin and strongly forked tail.
-  poly([[43,0],[75,-24],[66,0],[76,22]]);
-  poly([[-66,-3],[-39,-17],[3,-20],[35,-10],[53,0],[16,12],[-34,15]]);
-  poly([[-5,-14],[4,-40],[17,-13]]);
-  poly([[6,8],[24,29],[-3,14]]);
-  eye(-46,-8,.75);
+  if(box)shape([[-33,-27],[26,-29],[37,22],[3,32],[-35,22]],shade);
+  else ellipse(-2,0,37,34,shade);
+  shape([[33,1],[63,-14],[57,18]],finShade);
+  for(var p=0;p<5;p++){
+   g.beginPath();g.arc(-16+p%3*16,-7+Math.floor(p/3)*15,3.1,0,Math.PI*2);
+   g.fillStyle=accent;g.fill();
+  }
+  eye(-23,-12,1);
+ }else if(type==='hammer'){
+  forkTail(55,22);
+  shape([[-57,0],[-24,-15],[21,-18],[63,-4],[43,14],[-25,20]],shade);
+  shape([[-13,-14],[0,-48],[16,-16]],finShade);
+  shape([[-56,-12],[-87,-23],[-93,-6],[-59,8]],shade);
+  eye(-83,-16,.61);eye(-83,4,.61);
+ }else if(type==='shark'||type==='bill'){
+  var sword=type==='bill';
+  forkTail(59,26);
+  shape([[-73,1],[-35,-15],[5,-20],[45,-11],[61,0],[13,18],[-35,15]],shade);
+  sail(4,sword?57:50,19);
+  shape([[0,10],[31,34],[-13,15]],finShade);
+  if(sword)shape([[-67,-5],[-105,-11],[-107,-7],[-67,4]],shade);
+  markings(-29,0,48,27);eye(-51,-7,.8);
  }else if(type==='flat'){
-  poly([[42,0],[72,-20],[70,21]]);
-  g.beginPath();g.ellipse(-4,3,56,19,-.12,0,Math.PI*2);g.fillStyle=grad;g.fill();g.stroke();
-  g.beginPath();g.ellipse(-3,-14,48,8,0,0,Math.PI*2);g.fillStyle=color;g.fill();
-  eye(-34,-7,.72);eye(-21,-13,.65);
- }else{
-  var disk=type==='disc',slim=type==='slim';
-  var wide=disk?36:slim?14:21+(seed%3)*3,bodyLong=disk?38:slim?56:49;
-  poly([[32,0],[70,-19-(seed%3)*2],[62,0],[72,19+(seed%3)*2]]);
-  g.beginPath();g.moveTo(-bodyLong,-5);
-  g.bezierCurveTo(-bodyLong,-wide,12,-wide-7,46,-5);
-  g.quadraticCurveTo(58,0,45,7);
-  g.bezierCurveTo(3,wide+6,-bodyLong,wide,-bodyLong,-5);
-  g.closePath();g.fillStyle=grad;g.fill();g.stroke();
-  if(disk){poly([[-13,-22],[9,-44],[27,-21]]);poly([[-8,23],[17,39],[22,14]])}
-  else if(!slim)fin();
-  eye(-bodyLong+16,-8,.77);
- }
- // Species-specific surface bands, spots and a darker lower highlight.
- g.save();g.globalAlpha=.52;g.strokeStyle=seed%2?'#fff4d4':'#244f68';
- if(type==='fish'||type==='disc'||type==='slim'){
-  for(var j=0;j<2+(seed%3);j++){
-   var px=-8+j*12;
-   if(seed%3===0){g.beginPath();g.arc(px,0,2.4+seed%3,0,Math.PI*2);g.fillStyle='#e5f1cd';g.fill()}
-   else{g.lineWidth=2+seed%3;g.beginPath();g.moveTo(px,-13);g.lineTo(px+7,13);g.stroke()}
+  forkTail(52,15);
+  ellipse(-5,7,55,16,shade,-.1);
+  shape([[-48,-7],[10,-25],[47,-7]],finShade);
+  for(var p=0;p<5;p++){
+   g.beginPath();g.arc(-35+p*14,5+(p%2)*7,3,0,Math.PI*2);
+   g.fillStyle=accent;g.fill();
   }
+  eye(-43,-5,.72);eye(-29,-10,.67);
+ }else if(type==='flying'){
+  forkTail(52,22);
+  shape([[-68,-2],[-34,-13],[15,-17],[53,0],[17,16],[-37,12]],shade);
+  shape([[-14,-7],[35,-61],[20,-7],[58,-22],[24,19]],finShade);
+  shape([[-6,10],[33,45],[39,10]],finShade);
+  eye(-48,-7,.74);
+ }else if(type==='armored'||type==='catfish'){
+  forkTail(51,22);
+  ellipse(-5,0,49,25,shade);
+  for(var p=0;p<5;p++)stroke([[p*15-27,-20],[p*15-35,18]],accent,3);
+  shape([[-5,-21],[9,-42],[17,-18]],finShade);
+  if(type==='catfish'){
+   stroke([[-53,7],[-81,21]],'#d9dbb2',2.5);
+   stroke([[-52,8],[-75,2]],'#d9dbb2',2.5);
+  }else for(var p=0;p<4;p++)ellipse(-23+p*17,0,7,4,'#edebb989');
+  eye(-37,-9,.80);
+ }else if(type==='fan'||type==='disc'){
+  var deep=type==='disc';
+  shape([[36,0],[89,-35],[79,-6],[89,34]],finShade);
+  shape([[-16,-21],[9,-61],[30,-17]],finShade);
+  shape([[-12,21],[17,54],[30,17]],finShade);
+  ellipse(-8,0,deep?37:47,deep?42:29,shade);
+  markings(-26,-5,54,48);
+  if(type==='fan')shape([[-14,-22],[16,-47],[27,-19]],accent);
+  eye(-32,-12,.86);
+ }else{
+  var needle=type==='needle',round=type==='round',deep=type==='deep';
+  var long=needle?67:type==='torpedo'?64:deep?41:round?40:53;
+  var tall=needle?13:type==='torpedo'?19:deep?37:round?31:25;
+  // Vary tail shapes by species even within a size class.
+  var tailMode=profile.variant%3;
+  if(tailMode===0)forkTail(49,18+seed%11);
+  else if(tailMode===1)shape([[44,-9],[86,-21],[78,0],[87,25],[43,12]],finShade);
+  else shape([[45,0],[84,-34],[69,0],[84,30]],finShade);
+  if(!needle)shape([[-9,-tall+5],[9,-54],[22,-tall+2]],finShade);
+  if(deep)shape([[-4,tall-5],[23,49],[31,tall-7]],finShade);
+  g.beginPath();g.moveTo(-long,-5);
+  g.bezierCurveTo(-long,-tall-8,21,-tall-7,48,-8);
+  g.quadraticCurveTo(64,0,47,9);
+  g.bezierCurveTo(12,tall+7,-long,tall,-long,-5);
+  g.closePath();g.fillStyle=shade;g.fill();g.lineWidth=2.7;g.strokeStyle=ink;g.stroke();
+  markings(-long+12,-1,long+22,tall*1.4);
+  if(type==='torpedo')stroke([[-24,13],[32,8]],'#fff4d2',2.5);
+  eye(-long+16,-8,needle?.65:deep?.92:.82);
  }
- g.restore();
+ // Small contrasting gill detail and cheek glint for extra species specificity.
+ if(type!=='ray'&&type!=='eel'&&type!=='horse'&&type!=='pipe'){
+  g.strokeStyle='#fff7dd98';g.lineWidth=1.5;g.beginPath();
+  g.moveTo(-31,-5);g.quadraticCurveTo(-20,0,-29,11);g.stroke();
+ }
  sprites[key]=c;return c;
 }
 function drawFish(a,now,alpha){var sp=a.sp;if(!sp)return;var sprite=fishSprite(sp),sz=.5*(a.size||fishVisualProfile(sp).baseScale);if(alpha!==undefined)ctx.globalAlpha=alpha;ctx.save();ctx.translate(a.x,a.y+Math.sin(now*2+a.phase)*Math.min(3,1.8+sz));if(a.vx>0)ctx.scale(-1,1);ctx.drawImage(sprite,-sprite.width*.5*sz,-sprite.height*.5*sz,sprite.width*sz,sprite.height*sz);ctx.restore();ctx.globalAlpha=1}
