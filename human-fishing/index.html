@@ -61,6 +61,26 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 @media(max-width:760px){.shop-tabs button{padding:6px 9px;font-size:11px}.shop-sort select{padding:5px}.shop-badge{font-size:10px}.shop-buttons button{min-width:76px}.shop-controls{gap:4px}}
 
 
+
+/* Dedicated equipment, loadout and stat comparison UI */
+.loadout-slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin:10px 0 13px}
+.loadout-slot{min-width:0;display:flex;align-items:center;gap:8px;text-align:left;padding:10px 8px;background:#0d3645;border:1px solid #5e8c98;border-radius:12px;color:#e9f7f3}
+.loadout-slot.selected{border:2px solid #f4d59a;background:#245261;box-shadow:0 0 16px #f5c78230}
+.loadout-slot .loadout-icon{font-size:27px}.loadout-slot span:last-child{min-width:0;flex:1}
+.loadout-slot small{display:block;color:#9bd6db;font-size:10px}.loadout-slot strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+.loadout-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:8px 0 13px}
+.loadout-stat{padding:10px;background:#0b3443;border:1px solid #527f88;border-radius:9px}
+.loadout-stat small{display:block;font-size:11px;color:#b6dfe1}.loadout-stat strong{color:#ffdc9e;font-size:18px}
+.loadout-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:12px 0 8px}
+.loadout-heading h3{margin:0;color:#ffe2ae;font-size:18px}.loadout-heading small{color:#b5d4d8;font-size:11px}
+.loadout-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:8px 0}
+.loadout-metrics span{background:#082b38;padding:5px 7px;border-radius:6px;font-size:11px;color:#a6d3d5}
+.loadout-metrics b{display:block;color:#ffe1a8;font-size:13px}.loadout-metrics em{font-size:10px;color:#8af2c5;font-style:normal}
+.loadout-next,.loadout-hint{font-size:11px;color:#b8d9da;margin:7px 0}
+.loadout-actions{display:flex;gap:6px;margin-top:8px}.loadout-actions button{flex:1;min-width:0;background:#edc783;color:#243a40;border:0;padding:9px 6px;border-radius:8px;font-weight:850}
+.loadout-actions button:last-child:not(:disabled){background:#9be1d7}.loadout-actions button:disabled{background:#526e77;color:#b1c7c8;cursor:default}
+@media(max-width:760px){.loadout-slots{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.loadout-slot{padding:7px}.loadout-slot .loadout-icon{font-size:20px}.loadout-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.loadout-stat{padding:6px}.loadout-stat strong{font-size:14px}.loadout-heading h3{font-size:16px}}
+@media(max-height:480px) and (orientation:landscape){.loadout-slots{grid-template-columns:repeat(5,minmax(0,1fr))}.loadout-stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
 /* Floating analogue joystick, rendered as a textured CSS control. */
 #virtualJoystick{position:absolute;z-index:5;left:50%;top:50%;width:10.8%;aspect-ratio:1;max-width:170px;min-width:72px;transform:translate(-50%,-50%);display:none;pointer-events:none;opacity:.94;border-radius:50%;border:2px solid #afecf0b8;background:radial-gradient(circle at 34% 28%,#b1e9e533 0%,#133c59bd 33%,#041a2cd9 72%,#071626eb 100%);box-shadow:inset 0 0 0 9px #b0f5fa10,inset 0 0 12px #75cddd70,0 6px 28px #000a}
 #virtualJoystick:after{content:"";position:absolute;inset:23%;border:1px dashed #d5faf85e;border-radius:50%}
@@ -69,7 +89,7 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 @media(max-width:760px){#virtualJoystick{min-width:56px;border-width:1px}#virtualKnob{border-width:1px}}
 .fever-hud{position:absolute;z-index:3;left:14px;top:14px;bottom:auto;width:min(205px,31%);padding:7px 9px;border-radius:12px;border:1px solid #a6d6d075;background:linear-gradient(125deg,#0b3444ec,#112a3be6);box-shadow:0 4px 20px #0007;pointer-events:none;color:#c4eeec}.fever-hud .fever-top{display:flex;justify-content:space-between;gap:5px;font-size:11px;font-weight:950}.fever-hud .fever-top span:last-child{color:#ffe8a5}.fever-meter{height:8px;background:#061821;border:1px solid #4d7f87;border-radius:50px;margin-top:5px;overflow:hidden}.fever-meter i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#43bac4,#94eadb,#ffcc82);border-radius:50px;transition:width .25s ease}.fever-detail{font-size:9px;color:#b7d6db;margin-top:3px}.fever-hud.ready{border-color:#ffd28f;box-shadow:0 0 24px #ffc36b50,0 6px 17px #0007;background:linear-gradient(120deg,#563343eb,#0a5762ee)}.fever-hud.ready .fever-top span:first-child{color:#ffe4ab}.shop-octo-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:7px 0}.shop-octo-stats span{font-size:11px;color:#d8f7ea;background:#0d3846;border-radius:5px;padding:3px 5px}@media(max-width:760px){.fever-hud{left:6px;top:6px;bottom:auto;width:min(137px,37%);padding:4px 6px;border-radius:6px}.fever-hud .fever-top{font-size:9px}.fever-meter{height:5px;margin-top:3px}.fever-detail{font-size:8px}.shop-octo-stats span{font-size:9px;padding:2px 3px}}</style></head><body><div class="wrap">
 <header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 2.2</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
-<nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navShop">🛒 상점</button></nav></header>
+<nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navGear">🎒 장비</button><button id="navShop">🛒 상점</button></nav></header>
 <div class="stage" id="stage"><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 어디든 터치해 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
 <div class="hud top"><div class="tag" style="display:none" aria-hidden="true"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins" style="margin-left:auto">◈ 0　🐟 0/240</div></div>
 <div id="feverHud" class="fever-hud"><div class="fever-top"><span>🐙 OCTO FEVER</span><span id="feverNum">0 / 6</span></div><div class="fever-meter"><i id="feverFill"></i></div><div id="feverDetail" class="fever-detail">물고기 포획으로 충전</div></div>
@@ -1123,19 +1143,24 @@ function renderShop(){
 }
 var priorSetMode=setMode;
 setMode=function(mode){
- priorSetMode(mode==='shop'?'grow':mode);
- if(mode==='shop'){
-  view='shop';
+ priorSetMode(mode==='shop'||mode==='gear'?'grow':mode);
+ if(mode==='shop'||mode==='gear'){
+  view=mode;
   $('navGrow').classList.remove('active');
-  $('navShop').classList.add('active');
-  $('stageNo').textContent='TACKLE SHOP';
-  $('stageName').textContent='낚싯대 · 미끼 · 어망 · 조력자';
-  $('hintTitle').textContent='획득한 진주로 장비를 업그레이드';
-  $('hint').textContent='포획 거리, 희귀 출현, 중복 포획, 보조 효과 강화';
-  renderShop();
- }else $('navShop').classList.remove('active');
+  $('navShop').classList.toggle('active',mode==='shop');
+  $('navGear').classList.toggle('active',mode==='gear');
+  $('stageNo').textContent=mode==='shop'?'TACKLE SHOP':'MY EQUIPMENT';
+  $('stageName').textContent=mode==='shop'?'장비 구매':'장착 장비 및 스탯';
+  $('hintTitle').textContent=mode==='shop'?'장비를 구매해 보세요':'장착·강화로 능력을 높여보세요';
+  $('hint').textContent=mode==='shop'?'장착과 강화는 장비 메뉴에서':'장비에 따라 미끼의 조작감과 포획 성능이 달라집니다';
+  if(mode==='shop')renderShop();else renderEquipment();
+ }else{
+  $('navShop').classList.remove('active');
+  $('navGear').classList.remove('active');
+ }
 };
 $('navShop').onclick=function(){setMode('shop')};
+$('navGear').onclick=function(){setMode('gear')};
 function buildFish(){
  fish=[];
  for(var i=0;i<16;i++){
@@ -1365,13 +1390,91 @@ function rodHandlingHtml(gear,lv){
  return '<p class="rod-handling">미끼 속도 <b>'+p.speed+'px/s</b> · 반응력 <b>'+response+
   '</b> · 제동력 <b>'+brake+'</b> · 흔들림 <b>'+Math.round(p.wobble)+'px/s</b></p>';
 }
+
+var equipmentCategory='rod';
+function equipmentItem(cat,id){
+ var rows=gearCatalog[cat]||[],i=rows.findIndex(function(v){return v[0]===id});
+ return i<0?null:{id:rows[i][0],name:rows[i][1],desc:rows[i][2],price:rows[i][3],color:rows[i][4],tier:i};
+}
+function equipmentMetrics(cat,g,lv){
+ var power=Math.min(24,(Number(save.shop[cat])||0)+g.tier*2+lv);
+ if(cat==='rod'){var p=rodHandling(g,lv);return [['미끼 속도',p.speed,'px/s'],['가속',p.acceleration,'px/s²'],['제동',p.braking,'px/s²'],['흔들림',+p.wobble.toFixed(1),'px']];}
+ if(cat==='bait')return [['유인 능력',power,''],['최상급 물고기 출현',+(Math.min(.23,.035+power*.004+g.tier*.012)*100).toFixed(1),'%'],['보스 인간 출현',+(Math.min(.72,.11+power*.014+g.tier*.024)*100).toFixed(1),'%']];
+ if(cat==='net')return [['추가 포획 확률',+(Math.min(.85,power*.054)*100).toFixed(1),'%'],['진주 보너스',+(power*2.5).toFixed(1),'%']];
+ if(cat==='helper')return [['자동 진주 / 35초',power?Math.max(1,Math.floor(power*3.5)):0,'◈'],['릴 시간 보정',+(power*1.2).toFixed(1),'%']];
+ var q=octoStats(g.tier,lv);return [['피버 문어 크기',q.size,'px'],['광역 반경',q.radius,'px'],['발동 확률',+(q.chance*100).toFixed(1),'%'],['포획 보정',+(q.bonus*100).toFixed(1),'%p']];
+}
+function equipmentMetricsHtml(cat,g,lv,compare){
+ var rows=equipmentMetrics(cat,g,lv),base=compare?equipmentMetrics(cat,compare,gearLevel(cat,compare.id)):null;
+ return '<div class="loadout-metrics">'+rows.map(function(v,i){
+  var delta=base?+(v[1]-base[i][1]).toFixed(1):0,good=i===3&&cat==='rod'?-delta:delta;
+  return '<span>'+v[0]+'<b>'+v[1]+v[2]+'</b>'+(base&&delta?'<em>'+ (good>0?'▲ ':'▼ ')+Math.abs(delta)+v[2]+'</em>':'')+'</span>';
+ }).join('')+'</div>';
+}
+function equipmentSummary(){
+ var rod=rodHandling(),rp=gearPower('rod'),bp=gearPower('bait'),np=gearPower('net'),hp=gearPower('helper');
+ var bait=selectedGear('bait'),oct=selectedGear('octopus'),fever=octoStats(oct.tier,gearLevel('octopus',oct.id));
+ var data=[
+ ['미끼 이동 속도',rod.speed+'px/s'],
+ ['물고기 포획 반경',(118+save.up[1]*20+rp*11+bp*5)+'px'],
+ ['인간 포획 반경',(107+save.up[1]*14+rp*11+bp*8)+'px'],
+ ['보스 인간 출현',+(Math.min(.72,.11+bp*.014+bait.tier*.024)*100).toFixed(1)+'%'],
+ ['추가 포획 확률',+(Math.min(.85,np*.054)*100).toFixed(1)+'%'],
+ ['진주 보상','+'+(np*2.5).toFixed(1)+'%'],
+ ['자동 진주 / 35초','◈ '+(hp?Math.max(1,Math.floor(hp*3.5)):0)],
+ ['피버 포획 범위',fever.radius+'px'],
+ ['피버 발동 확률',+(fever.chance*100).toFixed(1)+'%']
+ ];
+ return '<div class="loadout-heading"><h3>현재 장착 스탯</h3><small>장착 및 강화 시 즉시 업데이트 · ◈ '+save.coins.toLocaleString()+'</small></div>'+
+ '<div class="loadout-stats">'+data.map(function(d){return '<div class="loadout-stat"><small>'+d[0]+'</small><strong>'+d[1]+'</strong></div>'}).join('')+'</div>';
+}
+function renderEquipment(){
+ var slots='<div class="loadout-heading"><h3>장비 슬롯</h3><small>장비를 눌러 보유 장비 변경 및 강화</small></div><div class="loadout-slots">'+Object.keys(gearCatalog).map(function(cat){
+  var g=selectedGear(cat);
+  return '<button type="button" data-gear-slot="'+cat+'" class="loadout-slot '+(equipmentCategory===cat?'selected':'')+'"><span class="loadout-icon">'+gearIcons[cat]+'</span><span><small>'+gearCategoryNames[cat]+'</small><strong>'+escapeHtml(g.name)+'</strong><small>Lv.'+gearLevel(cat,g.id)+'/10</small></span></button>';
+ }).join('')+'</div>';
+ var cat=equipmentCategory,current=selectedGear(cat);
+ var owned=save.gearOwned[cat].map(function(id){return equipmentItem(cat,id)}).filter(Boolean).sort(function(a,b){return a.tier-b.tier});
+ var cards=owned.map(function(item){
+  var lv=gearLevel(cat,item.id),equipped=current.id===item.id,max=lv===10,cost=gearPrice(cat,item);
+  var next=max?[]:equipmentMetrics(cat,item,lv+1),now=equipmentMetrics(cat,item,lv);
+  var delta=next.map(function(v,i){var d=+(v[1]-now[i][1]).toFixed(1);return d?(v[0]+' '+(d>0?'+':'')+d+v[2]):''}).filter(Boolean).join(' · ');
+  return '<article class="shop-card '+(equipped?'equipped':'')+'"><div class="shop-icon" style="border-color:'+item.color+';color:'+item.color+'">'+gearIcons[cat]+'</div><div class="shop-detail"><h3>'+escapeHtml(item.name)+'</h3>'+
+   '<span class="shop-badge">'+(equipped?'● 장착 중':'보유 장비')+'</span><span class="shop-badge">TIER '+(item.tier+1)+'</span><span class="shop-badge">LV '+lv+'/10</span>'+
+   '<p>'+escapeHtml(item.desc)+'</p>'+equipmentMetricsHtml(cat,item,lv,equipped?null:current)+
+   '<div class="shop-progress"><i style="width:'+(lv*10)+'%"></i></div>'+
+   '<div class="loadout-next">'+(max?'최대 강화 완료':'다음 강화 → '+(delta||'성능 유지'))+'</div>'+
+   '<div class="loadout-actions"><button type="button" data-loadout="equip" data-gear-id="'+item.id+'" '+(equipped?'disabled':'')+'>'+(equipped?'장착 중 ✓':'장착하기')+'</button>'+
+   '<button type="button" data-loadout="upgrade" data-gear-id="'+item.id+'" '+(max||save.coins<cost?'disabled':'')+'>'+(max?'MAX':'◈ '+cost.toLocaleString()+' 강화')+'</button></div></div></article>';
+ }).join('');
+ openPanel('나의 장비 · EQUIPMENT','5개 장비 슬롯 · 보유 장비 장착 및 10단계 강화',
+  slots+equipmentSummary()+
+  '<div class="loadout-heading"><h3>'+gearIcons[cat]+' '+gearCategoryNames[cat]+' · 보유 '+owned.length+'/'+gearCatalog[cat].length+'</h3><small>장비별 독립 강화 · 미보유 장비는 상점에서 구매</small></div>'+
+  '<div class="loadout-hint">▲▼는 현재 장착 장비와의 스탯 차이입니다. 장착 변경이나 강화가 실제 낚시 성능에 적용됩니다.</div>'+
+  '<div class="shop-grid">'+cards+'</div><p class="loadout-hint"><button type="button" class="smallbtn" id="gearToShop">🛒 새 장비 구매</button></p>');
+ document.querySelectorAll('[data-gear-slot]').forEach(function(b){b.onclick=function(){equipmentCategory=this.dataset.gearSlot;renderEquipment()}});
+ document.querySelectorAll('[data-loadout]').forEach(function(b){b.onclick=function(){
+  var cat=equipmentCategory,item=equipmentItem(cat,this.dataset.gearId),action=this.dataset.loadout;
+  if(!item||!save.gearOwned[cat].includes(item.id))return;
+  if(action==='equip'){if(save.gearEquipped[cat]===item.id)return;save.gearEquipped[cat]=item.id;}
+  else if(action==='upgrade'){
+   if(gearLevel(cat,item.id)>=10)return;
+   var cost=gearPrice(cat,item);if(save.coins<cost)return;
+   save.coins-=cost;save.gearLevels[cat][item.id]=gearLevel(cat,item.id)+1;
+  }else return;
+  persist();updateStats();beep('catch');
+  if(cat==='bait'){buildFish();buildHum()}
+  if(cat==='octopus')updateFeverHud();
+  renderEquipment();
+ }});
+ $('gearToShop').onclick=function(){shopCategory=equipmentCategory;setMode('shop')};
+}
 function renderShop(){
  var tabs='<div class="shop-controls"><div class="shop-tabs">'+Object.keys(gearCatalog).map(function(cat){
- return '<button data-shop-tab="'+cat+'" class="'+(shopCategory===cat?'selected':'')+'">'+gearIcons[cat]+' '+gearCategoryNames[cat]+'</button>'
+  return '<button data-shop-tab="'+cat+'" class="'+(shopCategory===cat?'selected':'')+'">'+gearIcons[cat]+' '+gearCategoryNames[cat]+'</button>';
  }).join('')+'</div><label class="shop-sort">정렬 <select id="shopSort">'+
- '<option value="tier">등급 낮은순</option><option value="price">가격 낮은순</option>'+
- '<option value="level">레벨 높은순</option><option value="name">이름순</option></select></label></div>';
- var g=selectedGear(shopCategory);
+  '<option value="tier">등급 낮은순</option><option value="price">가격 낮은순</option>'+
+  '<option value="level">레벨 높은순</option><option value="name">이름순</option></select></label></div>';
  var items=gearCatalog[shopCategory].map(function(v,i){return{id:v[0],name:v[1],desc:v[2],price:v[3],color:v[4],tier:i}});
  items.sort(function(a,b){
   if(shopSort==='price')return a.price-b.price;
@@ -1380,49 +1483,27 @@ function renderShop(){
   return a.tier-b.tier;
  });
  var cards=items.map(function(item){
-  var cat=shopCategory,owned=save.gearOwned[cat].includes(item.id),lv=gearLevel(cat,item.id),equipped=g.id===item.id,max=lv>=10,cost=gearPrice(cat,item),power=(Number(save.shop[cat])||0)+item.tier*2+lv;
-  var primary=owned?(equipped?'장착 중 ✓':'장착하기'):'◈ '+item.price.toLocaleString()+' 구매';
-  var canBuy=owned||save.coins>=item.price;
-  return '<div class="shop-card '+(equipped?'equipped':'')+'"><div class="shop-icon" style="border-color:'+item.color+';color:'+item.color+'">'+
-   gearIcons[cat]+'</div><div class="shop-detail"><h3>'+escapeHtml(item.name)+'</h3>'+
-   '<span class="shop-badge">'+(equipped?'● 장착 중':'')+'</span><span class="shop-badge">TIER '+(item.tier+1)+'</span><span class="shop-badge">LV '+lv+'/10</span>'+
-   '<p>'+escapeHtml(item.desc)+(cat==='octopus'?'':' · 유효 성능 '+power)+'</p>'+(cat==='octopus'?octoStatHtml(item.tier,lv):'')+
-    (cat==='rod'?rodHandlingHtml(item,lv):'')+
-   '<div class="shop-progress"><i style="width:'+(lv*10)+'%"></i></div>'+
-   '<div class="shop-buttons"><button data-gear-action="equip" data-gear-id="'+item.id+'" '+
-   (equipped||!canBuy?'disabled':'')+'>'+primary+'</button>'+
-   (owned?'<button data-gear-action="upgrade" data-gear-id="'+item.id+'" '+(max||save.coins<cost?'disabled':'')+'>'+
-   (max?'MAX':'◈ '+cost.toLocaleString()+' 강화')+'</button>':'')+
-   '</div></div></div>';
+  var cat=shopCategory,owned=save.gearOwned[cat].includes(item.id),lv=gearLevel(cat,item.id),current=selectedGear(cat);
+  return '<article class="shop-card '+(current.id===item.id?'equipped':'')+'"><div class="shop-icon" style="border-color:'+item.color+';color:'+item.color+'">'+gearIcons[cat]+'</div>'+
+   '<div class="shop-detail"><h3>'+escapeHtml(item.name)+'</h3>'+
+   '<span class="shop-badge">'+(current.id===item.id?'● 장착 중':owned?'보유 중':'미보유')+'</span><span class="shop-badge">TIER '+(item.tier+1)+'</span><span class="shop-badge">LV '+lv+'/10</span>'+
+   '<p>'+escapeHtml(item.desc)+'</p>'+equipmentMetricsHtml(cat,item,lv,owned?null:current)+
+   '<div class="shop-buttons"><button type="button" data-shop-buy="'+item.id+'" '+(owned||save.coins<item.price?'disabled':'')+'>'+(owned?'보유 중 ✓':'◈ '+item.price.toLocaleString()+' 구매')+'</button></div></div></article>';
  }).join('');
- var title='장비 상점 · 30가지 장비',description='낚싯대 · 미끼 · 어망 · 조력자 · 피버 문어 / 각 6종, 개별 10단계';
- var body='<div class="shop-hint">보유 진주 <b style="color:#ffe0aa">◈ '+save.coins.toLocaleString()+
- '</b> · '+gearCategoryNames[shopCategory]+' 현재 장착: <b>'+escapeHtml(g.name)+'</b> · 기존 장비 강화 보너스 유지</div>'+
- tabs+'<div class="shop-grid">'+cards+'</div>';
- openPanel(title,description,body);
+ openPanel('장비 상점 · 30가지 장비','낚싯대 · 미끼 · 어망 · 조력자 · 피버 문어 / 구매 전용',
+  '<div class="shop-hint">보유 진주 <b style="color:#ffe0aa">◈ '+save.coins.toLocaleString()+
+  '</b> · 상점에서는 <b>구매만</b> 가능합니다. 장착과 강화는 <button type="button" class="smallbtn" id="shopToGear">🎒 장비 메뉴</button>에서 진행하세요.</div>'+
+  tabs+'<div class="shop-grid">'+cards+'</div>');
  $('shopSort').value=shopSort;
  $('shopSort').onchange=function(){shopSort=this.value;renderShop()};
  document.querySelectorAll('[data-shop-tab]').forEach(function(b){b.onclick=function(){shopCategory=b.dataset.shopTab;renderShop()}});
- document.querySelectorAll('[data-gear-action]').forEach(function(button){button.onclick=function(){
-  var cat=shopCategory,id=button.dataset.gearId,action=button.dataset.gearAction;
-  var item=items.find(function(q){return q.id===id});
-  if(!item)return;
-  if(action==='equip'){
-   if(!save.gearOwned[cat].includes(id)){
-    if(save.coins<item.price)return;
-    save.coins-=item.price;save.gearOwned[cat].push(id);save.gearEquipped[cat]=id;
-   }else save.gearEquipped[cat]=id;
-  }else{
-   if(!save.gearOwned[cat].includes(id)||gearLevel(cat,id)>=10)return;
-   var cost=gearPrice(cat,item);
-   if(save.coins<cost)return;
-   save.coins-=cost;save.gearLevels[cat][id]=gearLevel(cat,id)+1;
-  }
-  persist();updateStats();beep('catch');
-  if(cat==='bait'){buildFish();buildHum()}if(cat==='octopus')updateFeverHud()
-  renderShop();
- };
- });
+ document.querySelectorAll('[data-shop-buy]').forEach(function(b){b.onclick=function(){
+  var item=equipmentItem(shopCategory,b.dataset.shopBuy);
+  if(!item||save.gearOwned[shopCategory].includes(item.id)||save.coins<item.price)return;
+  save.coins-=item.price;save.gearOwned[shopCategory].push(item.id);
+  persist();updateStats();beep('catch');renderShop();
+ }});
+ $('shopToGear').onclick=function(){equipmentCategory=shopCategory;setMode('gear')};
 }
 function buildFish(){
  fish=[];var bp=gearPower('bait'),lt=selectedGear('bait').tier;
