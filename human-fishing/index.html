@@ -129,7 +129,7 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 
 </div>
 <script src="./blue-tang-raster.js?v=2.11"></script>
-<script src="./assets/octopus/octopus-sidekicks.js?v=2"></script>
+<script src="./assets/octopus/octopus-sidekicks.js?v=3"></script>
 <script>
 (function(){
 'use strict';
@@ -1730,7 +1730,7 @@ function success(){
  if(!human&&save.placed.length===0)save.placed.push(id);
  persist();updateStats();beep('catch');spawnParticles(645,290,extra?50:32,'gold');
  playCatchFx(o,human,name,reward,extra,fresh);
- if(window.octoSidekicksCheer)window.octoSidekicksCheer(time);
+ if(window.octoSidekicksEat)window.octoSidekicksEat(time);
  hook=null;
  // Keep every non-caught animal and its movement state across casts.
  if(human)hum=hum.filter(function(h){return h!==o});
@@ -2595,7 +2595,7 @@ function escapeHook(){
  hook=null;hideVirtualJoystick();
  var tip=rodTip(time);bob.x=tip.x-9;bob.y=tip.y+19;
  vibrationPulse('escape');
- if(window.octoSidekicksSad)window.octoSidekicksSad(time);
+ if(window.octoSidekicksFail)window.octoSidekicksFail(time);
  beep('hit');spawnParticles(escapeFx.x,escapeFx.y,13,'water');
  $('hintTitle').textContent=human?'인간 반격!':'물고기 탈출!';
  $('hint').textContent=human?'공중에서 문어를 공격하고 잠시 그로기로 만듭니다':'입에서 미끄러져 빠져나와 고속으로 도망칩니다';
