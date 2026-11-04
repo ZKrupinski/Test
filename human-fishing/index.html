@@ -1378,10 +1378,11 @@ function drawEscapeFx(dt){
   spawnParticles(m.x+fx.dir*17,m.y-8,36,'gold');
   ripple(m.x+fx.dir*17,m.y-8);beep('hit');
  }
- if(!fx.splash&&pose.stage==='flee'){
+ if(!fx.splash&&pose.y>=273&&fx.lastWasAboveWater!==false){
   fx.splash=true;
   ripple(pose.x,273);spawnParticles(pose.x,273,20,'water');
  }
+ fx.lastWasAboveWater=pose.y<273;
  ctx.save();ctx.translate(pose.x,pose.y);ctx.rotate(pose.rot);
  if(fx.human){
   ctx.scale(1.08,1.08);
