@@ -76,6 +76,9 @@ window.__hfTest={
  record:recordFeverCapture,
  activate:activateOctoFever,
  getFeverFx:function(){return feverFx},
+ reel:feverReelState,
+ getReelSprites:function(){return feverSprites},
+ rodTip:rodTip,
  getCatchFx:function(){return catchFx},
  path:swallowPoint,
  mouthOpen:mouthGape,
@@ -178,11 +181,23 @@ assert.equal(game.getFeverFx().caught.length,2,'Fever must capture multiple fish
 assert.equal(state.fever.ready,false,'Activation must consume stored fever');
 assert.equal(state.fever.count,0,'Fever gauge must reset');
 assert.ok(game.getFeverFx(),'Octopus arm burst must start');
-step(48);
+const lureStart={x:bob.x,y:bob.y};
+step(48); // Initial eight-arm burst has finished and rod retrieval is underway
+assert.ok(game.getFeverFx().reeling,'Fever lure should begin reeling shortly after tentacle spread');
+assert.ok(game.getFeverFx().reelFrame<11,'Tentacles should begin closing as reel winds');
+assert.ok(game.getFeverFx().reelFrame>0,'Tentacles should not instantly snap shut');
+assert.ok(bob.y<lureStart.y,'Fever lure must move upward as line is retrieved');
 assert.ok(game.mouthOpen()>.5,'Main octopus must open its mouth during multi-capture');
 assert.ok(Object.keys(game.mouthFrames()).length>0,'Mouth must use prerendered bitmap animation frames');
-step(155); // Complete every staggered swallow before next cast.
-assert.equal(game.getFeverFx(),null,'Fever burst must complete only after all targets reach the mouth');
+const midFrame=game.getFeverFx().reelFrame,midY=bob.y;
+step(45); // Continue reel, show gradual closing and upward movement
+assert.ok(game.getFeverFx().reelFrame<midFrame,'Reeling must reduce tentacle spread over time');
+assert.ok(bob.y<midY,'Reeling must continuously pull the bait toward rod tip');
+assert.ok(Object.keys(game.getReelSprites()).some(k=>k.startsWith('fold-')),'Curling tentacle bitmap frames must render');
+const tip=game.rodTip(clock/1000);
+assert.ok(Math.hypot(bob.x-tip.x,bob.y-tip.y)<Math.hypot(lureStart.x-tip.x,lureStart.y-tip.y),'Bait must close distance to rod tip');
+step(110); // Finish retraction and all staggered creature swallows
+assert.equal(game.getFeverFx(),null,'Fever burst must finish only after retracting and swallowing');
 assert.ok(game.getCast().active,'Next cast should start automatically after full swallow');
 mock.Math=Math;
 const currentCatchCount=state.catches,currentCoins=state.coins;
@@ -217,4 +232,4 @@ assert.ok(game.getCatchFx()?.swallowed,'Reward state must mark creature as alrea
 step(35);
 assert.equal(game.getCatchFx(),null,'Brief glint must finish without a replayed swallow');
 assert.ok(game.getCast().active,'Next cast must resume after swallowing');
-console.log('PASS: continuous underwater-to-mouth parabola, early mouth opening, no replay/pause, fever multi-swallow, rare escape, joystick and shop');
+console.log('PASS: gradual 8-arm tentacle folding, reeling line toward rod, spinning crank, fever multi-swallow, continuous hook parabola, joystick, shop');
