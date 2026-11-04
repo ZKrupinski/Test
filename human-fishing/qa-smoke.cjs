@@ -88,6 +88,9 @@ window.__hfTest={
  getBob:function(){return bob},
  getBaitBounds:baitHorizontalBounds,
  moveBait:updateJoystick,
+ rodHandling:rodHandling,
+ getRodMotion:function(){return rodMotion},
+ hideStick:hideVirtualJoystick,
  getJoystick:function(){return joystick},
  getSave:function(){return save},
  chance:catchProbability,
@@ -558,5 +561,47 @@ assert.ok(feverBounds.min>=normalBounds.min,'Large lure must stay fully on scree
 joy.dx=-1;game.moveBait(10);
 assert.equal(bait.x,feverBounds.min,'Fever lure must reach left edge without clipping');
 joy.active=false;state.fever.ready=savedFeverReady;
-console.log('PASS: 240 species distinct stable body/fin/tail color IDs, 6 identity patterns, preserved iconic palettes, 12 habitat contrast checks, ecology and catches');
+// Rod physics: tier upgrades should be unmistakable in moving, turning, and stopping.
+const poor=game.rodHandling(game.selectGear('rod'),0);
+const topGear={id:'abyss',tier:5};
+const elite=game.rodHandling(topGear,10);
+assert.ok(elite.speed>=poor.speed*2.6,'Top rods must move the lure dramatically faster');
+assert.ok(elite.acceleration>poor.acceleration*8,'High-end rods should accelerate promptly');
+assert.ok(elite.braking>poor.braking*8,'High-end rods should stop with precision');
+assert.ok(elite.deadZone<poor.deadZone,'High-end rods must sense small input better');
+assert.ok(elite.wobble<poor.wobble*.1,'High-end rods should hold a stable heading');
+assert.ok(game.rodHandling({id:'cork',tier:0},10).speed>poor.speed,
+ 'Upgrading the same rod should improve handling, not only capture probability');
+const equippedRod=state.gearEquipped.rod;
+function steeringTrial(id,lv){
+ state.gearEquipped.rod=id;
+ state.gearLevels.rod[id]=lv;
+ game.hideStick();
+ joy.active=true;joy.dx=1;joy.dy=0;
+ bait.x=640;bait.y=420;
+ for(let n=0;n<45;n++)game.moveBait(1/60);
+ const advance=bait.x-640,forward=game.getRodMotion().vx;
+ joy.dx=-1;
+ for(let n=0;n<18;n++)game.moveBait(1/60);
+ const reversed=game.getRodMotion().vx;
+ joy.dx=0;
+ for(let n=0;n<16;n++)game.moveBait(1/60);
+ const stopped=game.getRodMotion().vx;
+ game.hideStick();
+ return{advance,forward,reversed,stopped};
+}
+const lowTrial=steeringTrial('cork',0);
+const highTrial=steeringTrial('abyss',10);
+assert.ok(highTrial.advance>lowTrial.advance*2.4,
+ 'High-quality fishing rod must visibly travel much farther on identical stick input');
+assert.ok(lowTrial.reversed>0,
+ 'Basic fishing rod should retain rightward inertia after sudden reversal');
+assert.ok(highTrial.reversed<0,
+ 'Legendary fishing rod should already be moving left after reversal');
+assert.ok(Math.abs(highTrial.stopped)<Math.abs(lowTrial.stopped),
+ 'Premium rod should settle faster after releasing the joystick');
+state.gearEquipped.rod=equippedRod;
+assert.match(script,/rodHandlingHtml\(item,lv\)/,
+ 'The rod shop must show the actual handling parameters for purchases and upgrades');
+console.log('PASS: rod class handling: slow basic rod, faster top rod, steering inertia vs precision, braking, level upgrades, shop stats, symmetric bounds; species identities and catches');
 
