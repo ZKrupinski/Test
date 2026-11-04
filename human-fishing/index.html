@@ -128,7 +128,7 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 </div>
 
 </div>
-<script src="./blue-tang-raster.js?v=2.7"></script>
+<script src="./blue-tang-raster.js?v=2.10"></script>
 <script>
 (function(){
 'use strict';
@@ -1116,10 +1116,16 @@ function aquariumStartTurn(a,now){
 }
 function aquariumStartStruggle(a,now,strength){
  if(!a)return;
- a.struggleStart=now;
- a.struggleEnd=now+.52+Math.random()*.28;
+ // Finish the official U-turn first; a wriggle triggered on the same
+ // touch starts immediately AFTER the 8-frame U-turn has played.
+ var start=now;
+ if(now-a.turnStart>=0&&now-a.turnStart<a.turnDuration)
+  start=Math.max(start,a.turnStart+a.turnDuration);
+ a.struggleStart=start;
+ a.struggleEnd=start+.52+Math.random()*.28;
  a.strugglePower=strength||1;
- a.nextStruggle=now+7+Math.random()*12;
+ a.struggleAction=Math.random()<.50?'hooked':'last_resist';
+ a.nextStruggle=a.struggleEnd+7+Math.random()*12;
 }
 function aquariumTurnScale(a,now){
  var p=(now-a.turnStart)/a.turnDuration;
@@ -1139,7 +1145,7 @@ function aquariumUpdateFish(now){
   if(!a.sp)return;
   // Each fish can react independently, not an identical schooling wave.
   if(now>=a.nextStruggle)aquariumStartStruggle(a,now,.54+Math.random()*.35);
-  var wriggling=a.struggleEnd>now;
+  var wriggling=a.struggleStart<=now&&a.struggleEnd>now;
   var surge=wriggling?1.15:1;
   a.x+=a.dir*a.speed*dt*surge;
   if(a.x<92||a.x>1177){
@@ -1192,28 +1198,48 @@ function drawingTank(now){
  aquariumUpdateFish(now);
  aquariumFishActors.forEach(function(a){
   if(!a.sprite)return;
+  var wriggle=a.struggleStart<=now&&a.struggleEnd>now;
+  var player=window.BlueTangSprites;
+  // Official animation takes precedence. No aquarium-specific scaling,
+  // shaking, rotation or frame distortion is applied to these fish.
+  if(player&&player.ready()&&player.supports&&player.supports(a.sp)){
+   var sprite=a.sprite;
+   sprite.x=a.x;sprite.y=a.y;
+   sprite.vx=a.dir*22;
+   sprite.spriteAquarium=true;
+   sprite.spriteTurnStart=a.turnStart;
+   sprite.spriteTurnFrom=a.turnFrom;
+   sprite.spriteTurnDuration=a.turnDuration;
+   sprite.spriteAction=wriggle?(a.struggleAction||'last_resist'):'swim';
+   if(wriggle){
+    var progress=Math.max(0,now-a.struggleStart);
+    sprite.spriteFrame=Math.floor(progress*1000/
+      (sprite.spriteAction==='hooked'?73:64))%8;
+   }else delete sprite.spriteFrame;
+   drawFish(sprite,now);
+   return;
+  }
+  // Fallback for fish that do not have dedicated turn/struggle sprite
+  // sheets yet. Their standard original bitmap remains unchanged.
   ctx.save();
   ctx.translate(a.x,a.y);
   ctx.scale(aquariumTurnScale(a,now),1);
-  var wriggle=a.struggleEnd>now,progress=wriggle?
-    clamp((now-a.struggleStart)/(a.struggleEnd-a.struggleStart),0,1):0;
   if(wriggle){
-   // A pivot-locked, decaying bitmap wriggle; no random root translation.
-   var envelope=Math.sin(Math.PI*progress),energy=a.strugglePower*envelope;
-   ctx.rotate(Math.sin(progress*38+a.phase)*.17*energy);
-   ctx.scale(1+Math.sin(progress*55+a.phase)*.035*energy,
-     1-Math.sin(progress*55+a.phase)*.027*energy);
+   var progressFallback=clamp(
+     (now-a.struggleStart)/(a.struggleEnd-a.struggleStart),0,1);
+   var envelope=Math.sin(Math.PI*progressFallback);
+   var energy=a.strugglePower*envelope;
+   ctx.rotate(Math.sin(progressFallback*38+a.phase)*.17*energy);
+   ctx.scale(1+Math.sin(progressFallback*55+a.phase)*.035*energy,
+     1-Math.sin(progressFallback*55+a.phase)*.027*energy);
   }
-  // This persistent sprite always faces left; the outer tank transform
-  // handles the U-turn for all species, including the animated Blue Tang.
   a.sprite.x=0;a.sprite.y=0;a.sprite.vx=-22;
-  if(a.sp.name==='블루탱'&&window.BlueTangSprites&&window.BlueTangSprites.ready()){
-   a.sprite.spriteAction=wriggle?'last_resist':'swim';
-   if(wriggle)a.sprite.spriteFrame=Math.floor((now-a.struggleStart)*19)%8;
-   else delete a.sprite.spriteFrame;
-  }else{
-   delete a.sprite.spriteAction;delete a.sprite.spriteFrame;
-  }
+  delete a.sprite.spriteAquarium;
+  delete a.sprite.spriteTurnStart;
+  delete a.sprite.spriteTurnFrom;
+  delete a.sprite.spriteTurnDuration;
+  delete a.sprite.spriteAction;
+  delete a.sprite.spriteFrame;
   drawFish(a.sprite,now);
   ctx.restore();
  });
