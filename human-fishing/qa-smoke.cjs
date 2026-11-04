@@ -74,6 +74,7 @@ window.__hfTest={
  getFeverFx:function(){return feverFx},
  getCast:function(){return cast},
  getHook:function(){return hook},
+ setHook:function(h){hook=h},
  triggerEscape:escapeHook,
  selectGear:selectedGear,
  octoStats:octoStats,
@@ -167,4 +168,11 @@ assert.equal(state.fever.count,0,'Fever gauge must reset');
 assert.ok(game.getFeverFx(),'Octopus arm burst must start');
 step(105); // complete burst and let next casting sequence begin
 assert.equal(game.getFeverFx(),null,'Fever burst must complete');
-console.log('PASS: graded fish levels, boss resistance, gear impact, 5-tab octopus shop, underwater joystick, fever AOE, saved progress');
+const currentCatchCount=state.catches,currentCoins=state.coins;
+const ordinary=game.species[0];
+game.setHook({obj:{sp:ordinary,x:650,y:440,vx:.2,size:1},kind:'fish',elapsed:.6,startX:660,startY:470});
+game.triggerEscape();
+assert.equal(game.getHook(),null,'Resistant hooked fish must escape and clear the hook');
+assert.equal(state.catches,currentCatchCount,'Escaped fish cannot increment catches');
+assert.equal(state.coins,currentCoins,'Escaped fish cannot give pearls');
+console.log('PASS: 6 rarity tiers & levels, human boss ultra-low odds, gear increases capture, escape without reward, 5-tab octopus shop, fever AOE, joystick');
