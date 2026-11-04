@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#092a39">
-<title>인간낚시 · HUMAN FISHING α 2.1</title>
+<title>인간낚시 · HUMAN FISHING α 2.2</title>
 <style>
 :root{color-scheme:dark;--gold:#f5cb81;--aqua:#8ee4e2;--ink:#092b39;--panel:#072633ee}
 *{box-sizing:border-box}body{margin:0;background:#061923;color:#effffb;font:15px/1.45 system-ui,"Pretendard","Malgun Gothic",sans-serif;overflow-x:hidden}
@@ -68,7 +68,7 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 #virtualJoystick.visible{display:block}
 @media(max-width:760px){#virtualJoystick{min-width:56px;border-width:1px}#virtualKnob{border-width:1px}}
 .fever-hud{position:absolute;z-index:3;left:14px;top:14px;bottom:auto;width:min(205px,31%);padding:7px 9px;border-radius:12px;border:1px solid #a6d6d075;background:linear-gradient(125deg,#0b3444ec,#112a3be6);box-shadow:0 4px 20px #0007;pointer-events:none;color:#c4eeec}.fever-hud .fever-top{display:flex;justify-content:space-between;gap:5px;font-size:11px;font-weight:950}.fever-hud .fever-top span:last-child{color:#ffe8a5}.fever-meter{height:8px;background:#061821;border:1px solid #4d7f87;border-radius:50px;margin-top:5px;overflow:hidden}.fever-meter i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#43bac4,#94eadb,#ffcc82);border-radius:50px;transition:width .25s ease}.fever-detail{font-size:9px;color:#b7d6db;margin-top:3px}.fever-hud.ready{border-color:#ffd28f;box-shadow:0 0 24px #ffc36b50,0 6px 17px #0007;background:linear-gradient(120deg,#563343eb,#0a5762ee)}.fever-hud.ready .fever-top span:first-child{color:#ffe4ab}.shop-octo-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:7px 0}.shop-octo-stats span{font-size:11px;color:#d8f7ea;background:#0d3846;border-radius:5px;padding:3px 5px}@media(max-width:760px){.fever-hud{left:6px;top:6px;bottom:auto;width:min(137px,37%);padding:4px 6px;border-radius:6px}.fever-hud .fever-top{font-size:9px}.fever-meter{height:5px;margin-top:3px}.fever-detail{font-size:8px}.shop-octo-stats span{font-size:9px;padding:2px 3px}}</style></head><body><div class="wrap">
-<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 2.0</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
+<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 2.2</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navShop">🛒 상점</button></nav></header>
 <div class="stage" id="stage"><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 어디든 터치해 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
 <div class="hud top"><div class="tag" style="display:none" aria-hidden="true"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins" style="margin-left:auto">◈ 0　🐟 0/240</div></div>
@@ -1690,8 +1690,63 @@ function drawHelpers(now){
   if(gear.tier>=2){circle(x,y-23,3,'#e5fdff')}
  }
 }
+// Alpha 2.2 — separately decaying camera, octopus and lure vibration layers.
+var vibrations={screen:[],octo:[],lure:[],lastBrush:-5,lastSwallow:-5};
+var vibrationPresets={
+ brush:{screen:.18,octo:0,lure:1.15,duration:.085,haptic:8},
+ bite:{screen:1.8,octo:1.0,lure:2.4,duration:.20,haptic:28},
+ pull:{screen:.55,octo:.65,lure:0,duration:.12,haptic:0},
+ swallow:{screen:3.7,octo:4.5,lure:0,duration:.29,haptic:42},
+ escape:{screen:4.7,octo:5.7,lure:2.0,duration:.36,haptic:65},
+ counter:{screen:5.6,octo:6.4,lure:0,duration:.40,haptic:75},
+ fever:{screen:3.0,octo:2.8,lure:3.4,duration:.27,haptic:40}
+};
+function vibrationPulse(kind){
+ var p=vibrationPresets[kind];if(!p)return false;
+ if(kind==='brush'&&time-vibrations.lastBrush<.18)return false;
+ if(kind==='swallow'&&time-vibrations.lastSwallow<.15)return false;
+ if(kind==='brush')vibrations.lastBrush=time;
+ if(kind==='swallow')vibrations.lastSwallow=time;
+ for(var k of ['screen','octo','lure']){
+  if(!p[k])continue;
+  var items=vibrations[k];
+  if(items.length>=5)items.shift();
+  items.push({start:time,duration:p.duration,power:p[k],phase:Math.random()*Math.PI*2});
+ }
+ if(p.haptic&&typeof navigator!=='undefined'&&typeof navigator.vibrate==='function'){
+  try{navigator.vibrate(p.haptic)}catch(e){}
+ }
+ return true;
+}
+function vibrationOffset(layer){
+ var items=vibrations[layer],x=0,y=0;
+ for(var i=items.length-1;i>=0;i--){
+  var q=items[i],t=(time-q.start)/q.duration;
+  if(t>=1){items.splice(i,1);continue}
+  var fade=Math.pow(1-clamp(t,0,1),1.45),amplitude=q.power*fade;
+  x+=Math.sin(t*76+q.phase)*amplitude;
+  y+=Math.cos(t*99+q.phase)*amplitude*.65;
+ }
+ var limit=layer==='screen'?6:layer==='octo'?8:4;
+ return{x:clamp(x,-limit,limit),y:clamp(y,-limit,limit)};
+}
+function checkBaitBrush(){
+ if(view!=='fish'||cast.active||hook||feverFx||escapeFx||catchFx)return;
+ for(var i=0;i<fish.length;i++){
+  var f=fish[i];if(f.feverCaptured)continue;
+  var rx=15+36*(f.size||1),ry=12+21*(f.size||1);
+  var dx=(f.x-bob.x)/rx,dy=(f.y-bob.y)/ry;
+  var touching=dx*dx+dy*dy<=1;
+  if(touching&&!f.brushTouching&&(time-(f.lastBrushAt||-5)>.55)){
+   f.lastBrushAt=time;vibrationPulse('brush');
+   f.shakeUntil=time+.14;f.shakePower=1.5;
+  }
+  f.brushTouching=touching;
+ }
+}
 function tick(stamp){
  var dt=Math.min((stamp-last)/1000,.045);last=stamp;time+=dt;ctx.clearRect(0,0,W,H);
+ var cameraVibration=vibrationOffset('screen');ctx.save();ctx.translate(cameraVibration.x,cameraVibration.y);
  if(view==='tank')drawingTank(time);
  else{
   sea(false);coral(time);
@@ -1704,7 +1759,7 @@ function tick(stamp){
     if(!a.feverCaptured&&(!hook||hook.obj!==a))humanIcon(a,time);
    });
   }
-  if(view==='fish'){castMotion(dt);updateJoystick(dt);if(feverFx){
+  if(view==='fish'){castMotion(dt);updateJoystick(dt);checkBaitBrush();if(feverFx){
    var currentReel=feverReelState(feverFx,time);
    bob.x=currentReel.x;bob.y=currentReel.y;
   }}
@@ -1749,6 +1804,7 @@ function tick(stamp){
  drawCatchFx(dt);drawFeverFx(dt);drawEscapeFx(dt);drawGroggyFx(dt);
   if(!escapeFx&&octoGroggy===0&&pendingEscapeRestart){pendingEscapeRestart=false;if(view==='fish')startCast()}
  if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}
+ ctx.restore();
  requestAnimationFrame(tick);
 }
 
