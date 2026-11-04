@@ -12,7 +12,8 @@ const elements=new Map();
 const memory=new Map();
 const style=()=>({});
 const gradient=()=>({addColorStop(){}});
-const ctx=new Proxy({createLinearGradient:gradient,createRadialGradient:gradient}, {
+let lastTranslate=null;
+const ctx=new Proxy({createLinearGradient:gradient,createRadialGradient:gradient,translate(x,y){lastTranslate={x,y}}}, {
   get(obj,k){return Object.hasOwn(obj,k)?obj[k]:function(){}},
   set(obj,k,v){obj[k]=v;return true;}
 });
@@ -59,22 +60,40 @@ assert.equal(typeof frame,'function','Animation must start');
 assert.ok(typeof element('navShop').onclick==='function','Shop navigation is missing');
 assert.ok(typeof listeners.pointerdown==='function','Pointer input is missing');
 function step(n){for(let i=0;i<n;i++){clock+=16.7;const current=frame;current(clock);}}
-step(235); // approx 4 seconds, enough for slow sinking phase
-assert.match(element('hintTitle').textContent,/미끼를 손가락|드래그/,'Cast should finish and enable manual bait drag');
 function pointer(type,x,y){
  const e={pointerId:1,pointerType:'touch',clientX:x,clientY:y,preventDefault(){}};
  listeners[type](e);
 }
-const initialTitle=element('hintTitle').textContent;
-// Tapping blank water must not teleport the lure.
-pointer('pointerdown',1050,300);pointer('pointerup',1050,300);step(2);
-assert.equal(element('hintTitle').textContent,initialTitle,'Blank tap should not trigger fishing');
-// Tapping the bait without dragging must do nothing.
-pointer('pointerdown',640,436);pointer('pointerup',640,436);step(2);
-assert.equal(element('hintTitle').textContent,initialTitle,'Bait tap without movement should do nothing');
-// Dragging the bait is the only accepted action.
-pointer('pointerdown',640,436);pointer('pointermove',770,447);pointer('pointerup',770,447);
-step(8);
+const stick=element('virtualJoystick');
+// Air phase: a touch must NOT summon a joystick before splashdown.
+step(57); // 0.95 seconds, still airborne
+pointer('pointerdown',1060,350);
+assert.equal(stick.classList.contains('visible'),false,'Joystick should be locked in air');
+pointer('pointerup',1060,350);
+// After water entry (at ~1.4s), allow input well before the full 3.25s descent.
+step(46); // 1.72 seconds total
+const before={...lastTranslate};
+pointer('pointerdown',1070,360); // far away from lure (~640, 295), should still work
+assert.equal(stick.classList.contains('visible'),true,'Any underwater touch should open the joystick');
+assert.equal(element('virtualKnob').style.left,'50%','Knob should start centered');
+step(2);
+assert.ok(lastTranslate.x<750,'Touching distant water must not teleport the lure');
+// Releasing an unmoved stick should not catch.
+pointer('pointerup',1070,360);
+assert.equal(stick.classList.contains('visible'),false,'Joystick should close on touch release');
+const still={...lastTranslate};
+step(2);
+assert.ok(Math.abs(lastTranslate.x-still.x)<25,'Tap-only gesture should leave bait in place');
+// Control from arbitrary screen position and move bait while held.
+pointer('pointerdown',1120,360);
+pointer('pointermove',1190,360);
+step(18);
+assert.ok(lastTranslate.x>before.x+24,'Rightward joystick tilt must move the lure');
+assert.ok(lastTranslate.x<900,'Joystick must move relative to bait, never teleport to touch position');
+assert.equal(stick.classList.contains('visible'),true,'Joystick must remain visible during drag');
+pointer('pointerup',1190,360);
+assert.equal(stick.classList.contains('visible'),false,'Joystick must hide on release');
+step(10);
 assert.equal(typeof frame,'function');
 // Shop catalog must render all 4 tabs and allow changing the sort field.
 element('navShop').onclick();
@@ -88,4 +107,4 @@ assert.ok(catalog.includes('가격 낮은순'),'Sort control missing');
 const sort=element('shopSort');assert.equal(typeof sort.onchange,'function');
 sort.value='level';sort.onchange();step(12);
 assert.ok(element('panelBody').innerHTML.includes('shop-card'),'Shop should remain rendered');
-console.log('PASS: startup, sink/ready state, strict bait dragging, tabbed sortable shop, rendering frames');
+console.log('PASS: airborne lock, underwater early joystick, no teleport, relative movement, release, 24-gear shop');
