@@ -88,6 +88,10 @@ window.__hfTest={
  getHook:function(){return hook},
  setHook:function(h){hook=h},
  triggerEscape:escapeHook,
+ getEscape:function(){return escapeFx},
+ getGroggy:function(){return octoGroggy},
+ getPendingEscape:function(){return pendingEscapeRestart},
+ escapePose:escapePose,
  selectGear:selectedGear,
  octoStats:octoStats,
  renderShop:renderShop,
@@ -202,11 +206,43 @@ assert.ok(game.getCast().active,'Next cast should start automatically after full
 mock.Math=Math;
 const currentCatchCount=state.catches,currentCoins=state.coins;
 const ordinary=game.species[0];
-game.setHook({obj:{sp:ordinary,x:650,y:440,vx:.2,size:1},kind:'fish',elapsed:.6,startX:660,startY:470});
+// Failed fish must almost reach the mouth, then thrash, slip back, dive and flee.
+game.switchView('fish');game.getCast().active=false;
+game.setHook({obj:{sp:ordinary,x:480,y:187,vx:.2,size:1,phase:0},kind:'fish',elapsed:.6,startX:660,startY:470,willEscape:true,escapeAt:.88});
 game.triggerEscape();
 assert.equal(game.getHook(),null,'Resistant hooked fish must escape and clear the hook');
+assert.equal(game.getEscape().kind,'fish','Fish failure must use a visible escape animation');
+step(23);
+assert.ok(['slip','struggle'].includes(game.getEscape().stage),'Fish should thrash near the octopus mouth');
+step(34);
+assert.equal(game.getEscape().stage,'dive','Fish must slip down and dive back into the water');
+assert.ok(game.getEscape().splash,'Water splash should occur as the fish re-enters the water');
+step(100);
+assert.equal(game.getEscape(),null,'Escaping fish must swim completely offscreen before removal');
+assert.equal(game.getGroggy(),0,'Fish must not stun the octopus');
 assert.equal(state.catches,currentCatchCount,'Escaped fish cannot increment catches');
 assert.equal(state.coins,currentCoins,'Escaped fish cannot give pearls');
+
+// Human elites use a separate air counterattack sequence that stuns the octopus.
+game.getCast().active=false;
+game.setHook({obj:{id:3,x:489,y:189,vx:.22,size:1,phase:0},kind:'human',
+ elapsed:.8,startX:830,startY:490,willEscape:true,escapeAt:.89});
+game.triggerEscape();
+assert.equal(game.getEscape().kind,'human');
+step(39);
+assert.equal(game.getEscape().stage,'strike','Human must attack midair after slipping free');
+step(10);
+assert.equal(game.getEscape().impact,true,'Air attack must strike the octopus');
+assert.ok(game.getGroggy()>0,'Air attack must give octopus temporary groggy');
+step(48);
+assert.ok(['dive','flee'].includes(game.getEscape().stage),'Human must dive back to the water after strike');
+assert.equal(game.getEscape().splash,true,'Diving human must splash on reentry');
+step(100);
+assert.equal(game.getEscape(),null,'Human must swim rapidly offscreen, not fade at the surface');
+assert.equal(game.getGroggy(),0,'Octopus groggy must end');
+assert.ok(game.getCast().active,'Next cast must resume after the octopus recovers');
+assert.equal(state.catches,currentCatchCount,'Human escape must not grant catches');
+assert.equal(state.coins,currentCoins,'Human escape must not grant pearls');
 // The entire hook travels along one upward Bézier arc directly into the mouth.
 const mouth={x:452,y:191},origin={x:830,y:510};
 const first=game.path(origin.x,origin.y,mouth,.26);
@@ -232,4 +268,4 @@ assert.ok(game.getCatchFx()?.swallowed,'Reward state must mark creature as alrea
 step(35);
 assert.equal(game.getCatchFx(),null,'Brief glint must finish without a replayed swallow');
 assert.ok(game.getCast().active,'Next cast must resume after swallowing');
-console.log('PASS: gradual 8-arm tentacle folding, reeling line toward rod, spinning crank, fever multi-swallow, continuous hook parabola, joystick, shop');
+console.log('PASS: fish struggle/diving high-speed escape, human air counterattack and octopus groggy, no false rewards, gradual fever-lure reeling, joystick, shop');
