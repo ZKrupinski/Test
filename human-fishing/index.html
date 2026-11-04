@@ -1923,7 +1923,7 @@ function playCatchFx(caught,isHuman,name,reward,isDouble,isNew){
   sp:isHuman?null:caught.sp,dir:caught.vx||1,size:caught.size||1.4,
   phase:caught.phase||0,name:name,reward:reward,double:!!isDouble,
   fresh:!!isNew,elapsed:0,duration:.42,swallowed:true};
- spawnParticles(x,y,13+(isHuman?7:0),'gold');
+ spawnParticles(x,y,13+(isHuman?7:0),'gold');vibrationPulse('swallow');
 }
 function drawCatchFx(dt){
  if(!catchFx)return;
@@ -2317,7 +2317,7 @@ function escapeHook(){
  hook=null;hideVirtualJoystick();
  var tip=rodTip(time);bob.x=tip.x-9;bob.y=tip.y+19;
  vibrationPulse('escape');
- beep('hit');spawnParticles(escapeFx.x,escapeFx.y,13,'water');
+ beep('hit');spawnParticles(escapeFx.x,escapeFx.y,13,'water');vibrationPulse('escape');
  $('hintTitle').textContent=human?'인간 반격!':'물고기 탈출!';
  $('hint').textContent=human?'공중에서 문어를 공격하고 잠시 그로기로 만듭니다':'입에서 미끄러져 빠져나와 고속으로 도망칩니다';
 }
@@ -2417,7 +2417,7 @@ function drawEscapeFx(dt){
  fx.lastX=pose.x;fx.lastY=pose.y;
  var m=mouthPos(time);
  if(fx.human&&!fx.impact&&fx.elapsed>=.74){
-  fx.impact=true;octoGroggy=1.55;vibrationPulse('counter');
+  fx.impact=true;octoGroggy=1.55;vibrationPulse('counter');vibrationPulse('counter');
   spawnParticles(m.x+fx.dir*17,m.y-8,36,'gold');
   ripple(m.x+fx.dir*17,m.y-8);beep('hit');
  }
@@ -2559,7 +2559,7 @@ function activateOctoFever(){
  });
  save.fever.ready=false;save.fever.count=0;save.fever.activations++;
  persist();updateStats();updateFeverHud();beep('catch');vibrationPulse('fever');
- spawnParticles(center.x,center.y,52,'gold');ripple(center.x,center.y);
+ spawnParticles(center.x,center.y,52,'gold');ripple(center.x,center.y);vibrationPulse('fever');
  var swallowSpacing=.13;
  feverFx={
   x:center.x,y:center.y,radius:v.radius,tier:g.tier,color:g.color,
