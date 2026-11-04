@@ -65,6 +65,7 @@ window.__hfTest={
  getFish:function(){return fish},
  setFish:function(items){fish=items},
  getHum:function(){return hum},
+ switchView:function(v){view=v},
  getBob:function(){return bob},
  getSave:function(){return save},
  chance:catchProbability,
@@ -160,7 +161,7 @@ assert.equal(element('feverNum').textContent,'READY','Fever gauge must show read
 const bob=game.getBob();
 const caughtFish=game.species[0];
 game.setFish([{sp:caughtFish,x:bob.x+10,y:bob.y+10,vx:.2,size:1,phase:0}]);
-game.activate();
+game.switchView('fish');game.activate();
 assert.equal(state.fever.ready,false,'Activation must consume stored fever');
 assert.equal(state.fever.count,0,'Fever gauge must reset');
 assert.ok(game.getFeverFx(),'Octopus arm burst must start');
