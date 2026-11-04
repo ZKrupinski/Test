@@ -2825,7 +2825,30 @@ if(blueTangShowcase){
     fish=fish.filter(function(f){return f.sp.name!=='블루탱'});
     var previewFish=makeWildFish(previewSpecies,825,453,-1,false,0);
     previewFish.size=1.65;previewFish.speed=15;previewFish.swimMode='wander';
+    previewFish._btDemo=true;
     fish.unshift(previewFish);
+    // Animation inspection UI exists only in the ?bluetang=1 test session.
+    var qa=document.createElement('div');
+    qa.id='blueTangSpriteQA';
+    qa.style.cssText='position:fixed;left:12px;bottom:12px;z-index:1200;max-width:calc(100vw - 24px);padding:8px 12px;border-radius:9px;background:#081e2be8;color:#f7f7ef;border:1px solid #7ac9d4;font:700 13px sans-serif;display:flex;align-items:center;gap:9px';
+    var qaLabel=document.createElement('label');
+    qaLabel.textContent='블루탱 8프레임 테스트';
+    qaLabel.htmlFor='blueTangActionSelect';
+    var qaSelect=document.createElement('select');
+    qaSelect.id='blueTangActionSelect';
+    qaSelect.style.cssText='background:#133c50;color:#fff;border:1px solid #72bacb;border-radius:5px;padding:5px;max-width:55vw';
+    var names=[['','자동 전투 상태'],['idle','제자리 유영'],['swim','일반 이동'],
+      ['burst','급가속'],['uturn','유턴'],['notice','미끼 발견'],['inspect','경계 탐색'],
+      ['graze','미끼 스침'],['bite','입질'],['hooked','물린 상태 발버둥'],
+      ['lift','수면 위로 끌림'],['last_resist','입 직전 발버둥'],['slip','미끄러짐'],
+      ['reentry','재진입'],['flee','패닉 도주']];
+    names.forEach(function(pair){var opt=document.createElement('option');
+      opt.value=pair[0];opt.textContent=pair[1];qaSelect.appendChild(opt)});
+    qaSelect.onchange=function(){
+      if(window.BlueTangSprites)window.BlueTangSprites.setPreviewAction(qaSelect.value);
+      previewFish._btAction='';previewFish._btStart=0;
+    };
+    qa.appendChild(qaLabel);qa.appendChild(qaSelect);document.body.appendChild(qa);
   }
 }
 updateStats();setMode('fish');requestAnimationFrame(tick);
