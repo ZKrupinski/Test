@@ -512,6 +512,146 @@ function fishSprite(sp){
   if(type==='torpedo')stroke([[-24,13],[32,8]],'#fff4d2',2.5);
   eye(-long+16,-8,needle?.65:deep?.92:.82);
  }
+ // Readable, cartoon-bright taxonomic marks are rasterized onto the
+ // cached sprite; all bands are clipped inside the species' actual body area.
+ var motif=appearance.motif;
+ var rx=type==='disc'?35:type==='fan'?43:type==='puffer'?33:
+  type==='ray'?38:type==='sunfish'?35:type==='flat'?49:
+  type==='shark'||type==='hammer'?53:55;
+ var ry=type==='disc'?38:type==='puffer'?29:
+  type==='ray'?27:type==='flat'?14:type==='sunfish'?36:
+  type==='shark'||type==='hammer'?17:type==='torpedo'?14:22;
+ var bodyX=type==='disc'?-8:-8;
+ function band(x,w,col,edge){
+  if(edge){
+   g.fillStyle='#203342';g.fillRect(x-3,-70,w+6,140);
+  }
+  g.fillStyle=col;g.fillRect(x,-70,w,140);
+ }
+ g.save();
+ g.beginPath();g.ellipse(bodyX,0,rx,ry,0,0,Math.PI*2);g.clip();
+ if(motif==='clown'){
+  band(-51,14,'#fff8e0',true);band(-11,14,'#fff8e0',true);
+  band(30,11,'#fff8e0',true);
+ }else if(motif==='neon'){
+  g.fillStyle='#19395e';g.fillRect(-62,-8,116,10);
+  g.fillStyle='#75eeff';g.fillRect(-58,-9,110,5);
+  g.fillStyle='#ff4d55';g.fillRect(-30,4,84,9);
+ }else if(motif==='bluetang'){
+  g.strokeStyle='#152b68';g.lineWidth=10;g.beginPath();
+  g.moveTo(-50,-11);g.quadraticCurveTo(3,-23,39,0);
+  g.quadraticCurveTo(3,25,-40,12);g.stroke();
+ }else if(motif==='rummynose'){
+  g.fillStyle='#eb5f58';g.fillRect(-75,-35,38,70);
+  for(var k=0;k<3;k++)band(35+k*12,5,'#1c2e38',false);
+ }else if(motif==='longstripe'){
+  g.strokeStyle=appearance.accent;g.lineWidth=5;g.beginPath();
+  g.moveTo(-63,0);g.lineTo(64,0);g.stroke();
+  g.strokeStyle='#faf7df';g.lineWidth=1.6;g.beginPath();
+  g.moveTo(-62,-4);g.lineTo(62,-4);g.stroke();
+ }else if(motif==='tigerbarb'||motif==='clownloach'||motif==='angelfish'){
+  for(var k=0;k<(motif==='clownloach'?3:4);k++){
+   var x=-48+k*(motif==='clownloach'?35:25);
+   band(x,motif==='angelfish'?7:10,'#202939',false);
+  }
+ }else if(motif==='discus'){
+  for(var k=0;k<5;k++){
+   var x=-34+k*14;
+   g.strokeStyle=k%2?'#dfd6b0':'#4c93a8';g.lineWidth=3.3;
+   g.beginPath();g.moveTo(x,-49);g.bezierCurveTo(x-11,-17,x+13,14,x-3,52);g.stroke();
+  }
+  for(var k=0;k<9;k++){
+   g.fillStyle='#f6da9c';g.beginPath();
+   g.arc(-25+(k%3)*22,-23+Math.floor(k/3)*20,2.2,0,Math.PI*2);g.fill();
+  }
+ }else if(motif==='guppy'||motif==='betta'){
+  for(var k=0;k<7;k++){
+   g.beginPath();g.arc(-22+(k%4)*16,-11+Math.floor(k/4)*19,2.8+(k%2),0,Math.PI*2);
+   g.fillStyle=k%2?'#e5f2ff':'#f9b248';g.fill();
+  }
+ }else if(motif==='koi'){
+  for(var k=0;k<5;k++){
+   g.save();g.translate(-39+(k*19)%80,-12+(k%3)*11);g.rotate(k*.65);
+   g.beginPath();g.ellipse(0,0,10+(k%3)*3,8+(k%2)*2,0,0,Math.PI*2);
+   g.fillStyle=k%3===0?'#303e4a':'#e75b3b';g.fill();g.restore();
+  }
+ }else if(motif==='goldfish'){
+  g.fillStyle='#fff7dc';g.beginPath();g.ellipse(-17,14,33,12,0,0,Math.PI*2);g.fill();
+ }else if(motif==='redbelly'){
+  g.fillStyle='#d95855';g.beginPath();g.ellipse(-9,21,51,18,0,0,Math.PI*2);g.fill();
+ }else if(motif==='whaleshark'||motif==='bluepoints'){
+  for(var k=0;k<22;k++){
+   var x=-45+(k%6)*17,y=-14+Math.floor(k/6)*9;
+   g.fillStyle=motif==='bluepoints'?'#249cdd':'#f2f7df';
+   g.beginPath();g.arc(x,y,motif==='bluepoints'?3.4:2.1,0,Math.PI*2);g.fill();
+  }
+ }else if(motif==='lion'||motif==='oscar'||motif==='arapaima'||motif==='scales'){
+  for(var k=0;k<6;k++){
+   if(motif==='lion'){
+    band(-47+k*19,7,k%2?'#8e394c':'#fff3da',false);
+   }else if(motif==='oscar'){
+    g.fillStyle='#e79053';g.beginPath();
+    g.ellipse(-43+k*17,(k%2)*11-6,8,4,0,0,Math.PI*2);g.fill();
+   }else{
+    g.strokeStyle=motif==='arapaima'?'#d85f5f88':'#f4e6c289';
+    g.lineWidth=2;g.beginPath();g.arc(-44+k*16,3,12,-1.4,1.4);g.stroke();
+   }
+  }
+ }else if(motif==='speckles'||motif==='spots'||motif==='seahorse'){
+  for(var k=0;k<15;k++){
+   var x=-44+(k%5)*18,y=-16+Math.floor(k/5)*14;
+   g.fillStyle=motif==='spots'?appearance.accent:'#294b65';
+   g.beginPath();g.arc(x,y,2.2+(k%3)*.65,0,Math.PI*2);g.fill();
+  }
+ }else if(motif==='manta'){
+  g.fillStyle='#222f41';g.fillRect(-61,-28,122,27);
+  g.fillStyle='#ebeddd';g.beginPath();g.ellipse(-8,23,36,8,0,0,Math.PI*2);g.fill();
+ }else if(motif==='dragon'){
+  g.fillStyle='#d4e4ec';for(var k=0;k<7;k++){
+   g.beginPath();g.arc(-39+k*14,15,1.6,0,Math.PI*2);g.fill();
+  }
+ }else if(motif==='mandarin'||motif==='seadragon'){
+  for(var k=0;k<5;k++){
+   g.strokeStyle=k%2?'#f5c359':'#2fb9ae';g.lineWidth=3.7;
+   g.beginPath();g.arc(-31+k*13,Math.sin(k)*9,11,Math.PI*.2,Math.PI*1.8);g.stroke();
+  }
+ }
+ g.restore();
+ // Key distinguishing fin/head features that extend outside the body.
+ if(motif==='betta'){
+  for(var k=0;k<7;k++){
+   g.strokeStyle=k%2?'#dc5b8d':'#4673d1';g.lineWidth=3.2;g.beginPath();
+   g.moveTo(29,k*7-21);
+   g.quadraticCurveTo(56,k*12-38,94,k*13-39);g.stroke();
+  }
+ }else if(motif==='guppy'){
+  for(var k=0;k<9;k++){
+   var a=-.8+k*.19;
+   g.strokeStyle=k%2?'#f6b64b':'#3d96c2';g.lineWidth=2.8;g.beginPath();
+   g.moveTo(57,0);g.lineTo(91,Math.tan(a)*23);g.stroke();
+  }
+ }else if(motif==='swordtail'){
+  shape([[61,6],[96,53],[84,16],[58,3]],'#e48d47');
+ }else if(motif==='goldfish'){
+  shape([[58,0],[95,-43],[88,-5],[102,33],[66,14]],finShade);
+ }else if(motif==='angelfish'){
+  stroke([[-3,22],[-9,66]],'#f3e5b7',2.1);
+  stroke([[8,24],[25,66]],'#e8e5cf',2.1);
+ }else if(motif==='seadragon'){
+  for(var k=0;k<6;k++){
+   var x=-15+k*16,y=-9+(k%2)*12;
+   shape([[x,y],[x-8,y-27],[x+13,y-12]],'#8fac65',false);
+  }
+ }else if(motif==='billfish'){
+  shape([[-73,-3],[-105,-6],[-105,-2],[-69,4]],appearance.highlight);
+ }else if(motif==='shark'){
+  shape([[8,13],[28,37],[35,10]],appearance.highlight);
+ }
+ // Eyes stay crisp above markings and are slightly exaggerated for readability.
+ if(/^(clown|neon|koi|tigerbarb|clownloach|discus|angelfish|bluetang|guppy|betta|whaleshark)$/.test(motif)){
+  var x=type==='disc'?-31:type==='fan'?-38:type==='shark'?-53:-43;
+  eye(x,-10,.86);
+ }
  // Small contrasting gill detail and cheek glint for extra species specificity.
  if(type!=='ray'&&type!=='eel'&&type!=='horse'&&type!=='pipe'){
   g.strokeStyle='#fff7dd98';g.lineWidth=1.5;g.beginPath();
