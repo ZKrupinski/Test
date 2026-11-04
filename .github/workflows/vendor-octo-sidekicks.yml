@@ -1,0 +1,63 @@
+name: Vendor Octopus Companion Sprite Atlases
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vendor-octo-sidekicks.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: vendor-octo-sprite-atlases
+  cancel-in-progress: false
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout latest version
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download approved sprite frame atlases and validate SHA256
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p human-fishing/assets/octopus/atlases
+          cd human-fishing/assets/octopus/atlases
+          curl --retry 3 --retry-delay 2 --connect-timeout 15 -fLsS 'https://d2ol7oe51mr4n9.cloudfront.net/user_3KlCHKRIJO34SPkOC5UMUPo7vEp/8a5a263d-0600-466b-bb49-068a1354badf.webp' -o "purple_idle.webp"
+          printf '10884db32a97725760c6f60881d5b2a5a7d15475fd9885a785cb9c12ffd42e82  purple_idle.webp\n' | sha256sum -c -
+          curl --retry 3 --retry-delay 2 --connect-timeout 15 -fLsS 'https://d2ol7oe51mr4n9.cloudfront.net/user_3KlCHKRIJO34SPkOC5UMUPo7vEp/09a79702-6662-4d36-ad2c-fd9faaddb2f7.webp' -o "purple_bait.webp"
+          printf '4e885dc11f5d1ec7f23e659617abef81752224637bd6afccd21382ebd6d0b166  purple_bait.webp\n' | sha256sum -c -
+          curl --retry 3 --retry-delay 2 --connect-timeout 15 -fLsS 'https://d2ol7oe51mr4n9.cloudfront.net/user_3KlCHKRIJO34SPkOC5UMUPo7vEp/546d1136-5f7c-46fe-9354-b3c4547ae561.webp' -o "purple_open.webp"
+          printf 'd175f0ee1164e6a418801b027c66044c47b122f55e9b87b618793c1b83bb58bb  purple_open.webp\n' | sha256sum -c -
+          curl --retry 3 --retry-delay 2 --connect-timeout 15 -fLsS 'https://d2ol7oe51mr4n9.cloudfront.net/user_3KlCHKRIJO34SPkOC5UMUPo7vEp/8de14dc8-c884-47ab-8207-c5042bc667e2.webp' -o "purple_eat.webp"
+          printf 'f1256425a2321e8f4d0d8a5f203ab95bfe5d1f5ef96eff9b06d4dfe1289c5c4c  purple_eat.webp\n' | sha256sum -c -
+          curl --retry 3 --retry-delay 2 --connect-timeout 15 -fLsS 'https://d2ol7oe51mr4n9.cloudfront.net/user_3KlCHKRIJO34SPkOC5UMUPo7vEp/c3541031-56ff-41d0-840c-fc8d100115f1.webp' -o "purple_chew.webp"
+          printf '1153bda94d37287163f2a26d8c3caf4420c00c896006e4e204107ee136abe5b7  purple_chew.webp\n' | sha256sum -c -
+          curl --retry 3 --retry-delay 2 --connect-timeout 15 -fLsS 'https://d2ol7oe51mr4n9.cloudfront.net/user_3KlCHKRIJO34SPkOC5UMUPo7vEp/a277f0c7-2641-412c-8ee2-2b2bf0872eca.webp' -o "purple_fail.webp"
+          printf '3d11f0c88ff2c63c8ca9b9983044aa9c9aff2b93ee10509efdc0299c892b7826  purple_fail.webp\n' | sha256sum -c -
+          curl --retry 3 --retry-delay 2 --connect-timeout 15 -fLsS 'https://d2ol7oe51mr4n9.cloudfront.net/user_3KlCHKRIJO34SPkOC5UMUPo7vEp/6d92aa3b-301b-4250-8789-0f7525455605.webp' -o "purple_celebrate.webp"
+          printf 'e935cb135dddc2db9f3c642d6e781b4556d52fce792a821960ea900d3f8ec196  purple_celebrate.webp\n' | sha256sum -c -
+          curl --retry 3 --retry-delay 2 --connect-timeout 15 -fLsS 'https://d2ol7oe51mr4n9.cloudfront.net/user_3KlCHKRIJO34SPkOC5UMUPo7vEp/95ae80cc-5553-4cdc-963a-ff44d58ba912.webp' -o "red_all.webp"
+          printf 'e3ffbedfaa4a553759842540fdf1554ea91403846798855b424ba3b9228bc23e  red_all.webp\n' | sha256sum -c -
+      - name: Commit verified bitmap assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add human-fishing/assets/octopus/atlases
+          if git diff --cached --quiet; then
+            echo "Atlases already checked in"
+          else
+            git commit -m "Store approved red and purple octopus animated raster atlases"
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Trigger published Pages deployment with asset files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref main
