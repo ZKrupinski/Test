@@ -6,6 +6,9 @@ const assert=require('node:assert/strict');
 const html=fs.readFileSync(require('node:path').join(__dirname,'index.html'),'utf8');
 const script=html.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
 assert.ok(script,'Inline game script is missing');
+assert.doesNotMatch(html,/id="hintTitle"/,'Bottom situation label must be removed');
+assert.doesNotMatch(html,/id="action"/,'Fishing release button must be removed');
+assert.doesNotMatch(html,/<footer>/i,'Bottom instructions footer must be removed');
 new vm.Script(script,{filename:'human-fishing.js'});
 const finalSuccess=script.slice(script.lastIndexOf('function success(){'),script.indexOf('function startCast()',script.lastIndexOf('function success(){')));
 assert.match(finalSuccess,/playCatchFx\(/,'Success must trigger in-world capture visual');
@@ -64,6 +67,7 @@ window.__hfTest={
  species:species,
  getFish:function(){return fish},
  setFish:function(items){fish=items},
+ setHum:function(items){hum=items},
  getHum:function(){return hum},
  switchView:function(v){view=v},
  getBob:function(){return bob},
@@ -72,6 +76,10 @@ window.__hfTest={
  record:recordFeverCapture,
  activate:activateOctoFever,
  getFeverFx:function(){return feverFx},
+ getCatchFx:function(){return catchFx},
+ mouthOpen:mouthGape,
+ mouthFrames:function(){return mouthFrames},
+ swallow:playCatchFx,
  getCast:function(){return cast},
  getHook:function(){return hook},
  setHook:function(h){hook=h},
@@ -162,12 +170,20 @@ assert.equal(element('feverNum').textContent,'READY','Fever gauge must show read
 const bob=game.getBob();
 const caughtFish=game.species[0];
 game.setFish([{sp:caughtFish,x:bob.x+10,y:bob.y+10,vx:.2,size:1,phase:0}]);
+game.setHum([{id:3,x:bob.x+24,y:bob.y+24,vx:.12,size:1,phase:0}]);
+const riggedMath=Object.create(Math);riggedMath.random=()=>0;mock.Math=riggedMath;
 game.switchView('fish');game.activate();
+assert.equal(game.getFeverFx().caught.length,2,'Fever must capture multiple fish and elite humans when rolls succeed');
 assert.equal(state.fever.ready,false,'Activation must consume stored fever');
 assert.equal(state.fever.count,0,'Fever gauge must reset');
 assert.ok(game.getFeverFx(),'Octopus arm burst must start');
-step(105); // complete burst and let next casting sequence begin
-assert.equal(game.getFeverFx(),null,'Fever burst must complete');
+step(48);
+assert.ok(game.mouthOpen()>.5,'Main octopus must open its mouth during multi-capture');
+assert.ok(Object.keys(game.mouthFrames()).length>0,'Mouth must use prerendered bitmap animation frames');
+step(155); // Complete every staggered swallow before next cast.
+assert.equal(game.getFeverFx(),null,'Fever burst must complete only after all targets reach the mouth');
+assert.ok(game.getCast().active,'Next cast should start automatically after full swallow');
+mock.Math=Math;
 const currentCatchCount=state.catches,currentCoins=state.coins;
 const ordinary=game.species[0];
 game.setHook({obj:{sp:ordinary,x:650,y:440,vx:.2,size:1},kind:'fish',elapsed:.6,startX:660,startY:470});
@@ -175,4 +191,12 @@ game.triggerEscape();
 assert.equal(game.getHook(),null,'Resistant hooked fish must escape and clear the hook');
 assert.equal(state.catches,currentCatchCount,'Escaped fish cannot increment catches');
 assert.equal(state.coins,currentCoins,'Escaped fish cannot give pearls');
-console.log('PASS: 6 rarity tiers & levels, human boss ultra-low odds, gear increases capture, escape without reward, 5-tab octopus shop, fever AOE, joystick');
+game.switchView('fish');
+game.swallow({id:5,x:820,y:472,vx:.1,size:1,phase:0},true,'잠수부',70,false,true);
+step(20);
+assert.ok(game.getCatchFx(),'Single human capture must animate into the mouth');
+assert.ok(game.mouthOpen()>.8,'The octopus mouth must open very wide');
+step(110);
+assert.equal(game.getCatchFx(),null,'Whole-body suction must finish and close');
+assert.ok(game.getCast().active,'After swallowing, the next casting animation should start');
+console.log('PASS: no bottom HUD/buttons, whole-creature octopus swallowing, human and fish multi-catch fever, escape odds, joystick, shop');
