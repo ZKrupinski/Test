@@ -119,6 +119,10 @@ window.__hfTest={
  getPendingEscape:function(){return pendingEscapeRestart},
  escapePose:escapePose,
  fishHeading:escapeFishHeading,
+ pulse:vibrationPulse,
+ offset:vibrationOffset,
+ getVibration:function(){return vibrations},
+ checkBrush:checkBaitBrush,
  selectGear:selectedGear,
  octoStats:octoStats,
  renderShop:renderShop,
@@ -607,5 +611,46 @@ assert.ok(Math.abs(highTrial.stopped)<Math.abs(lowTrial.stopped),
 state.gearEquipped.rod=equippedRod;
 assert.match(script,/rodHandlingHtml\(item,lv\)/,
  'The rod shop must show the actual handling parameters for purchases and upgrades');
-console.log('PASS: rod class handling: slow basic rod, faster top rod, steering inertia vs precision, braking, level upgrades, shop stats, symmetric bounds; species identities and catches');
+// Alpha 2.2: separate screen, animal and lure vibration layers, short contact pulses.
+const impacts=game.getVibration();
+assert.ok(game.pulse('brush'),'First fish contact should trigger a subtle vibration');
+assert.equal(impacts.screen.length,1,'Fish grazing bait should create one small screen pulse');
+assert.equal(impacts.octo.length,0,'Grazing must not jolt the octopus');
+assert.equal(impacts.lure.length,1,'Grazing must shake the lure itself');
+const softPower=impacts.screen[0].power;
+assert.ok(softPower<.3,'Grazing should be almost imperceptible on the entire screen');
+assert.equal(game.pulse('brush'),false,'Contact pulses must be debounced to prevent nonstop shaking');
+assert.ok(game.pulse('bite'),'Hook bite must have a dedicated impact');
+assert.ok(impacts.screen.at(-1).power>softPower*5,'Hooking must be clearly more forceful than grazing');
+assert.ok(impacts.octo.length>0,'Hooking should create a small octopus recoil');
+assert.ok(game.pulse('swallow'),'Swallowing should produce a strong but finite impulse');
+assert.ok(impacts.octo.at(-1).power>impacts.screen.at(-1).power,
+ 'Octopus should visibly react more than the entire camera at swallowing');
+assert.equal(game.pulse('swallow'),false,'Multiple catches in one mouth frame must not stack unlimited impacts');
+assert.ok(game.pulse('escape'),'Escaped fish must recoil hard against line, octopus and screen');
+const capped=game.offset('screen');
+assert.ok(Math.abs(capped.x)<=6&&Math.abs(capped.y)<=6,'Camera shake must stay within a 6px safety cap');
+assert.ok(game.pulse('fever'),'Fever casting has a separate pulse');
+assert.ok(game.pulse('counter'),'Human aerial counterattack requires a stronger recoil');
+assert.ok(impacts.screen.length<=5&&impacts.octo.length<=5,
+ 'Continuous multi-catch actions must never accumulate unbounded vibrations');
+// A single fish brushing the lure should shake just that fish once until it exits.
+game.switchView('fish');game.getCast().active=false;game.setHook(null);
+const grazed=game.makeFish(game.species[0],660,425,1,false,0);
+game.setFish([grazed]);
+const brushBob=game.getBob();brushBob.x=660;brushBob.y=425;
+impacts.lastBrush=-5;impacts.screen.length=0;impacts.lure.length=0;
+game.checkBrush();
+assert.ok(grazed.shakeUntil>0,'Fish must have its own local sprite vibration at bait contact');
+const brushCount=impacts.lure.length;
+game.checkBrush();
+assert.equal(impacts.lure.length,brushCount,'One continuous graze must not repeat vibration every frame');
+brushBob.x=900;game.checkBrush();
+assert.equal(grazed.brushTouching,false,'Contact must clear when fish and lure separate');
+assert.match(script,/vibration:hook\.kind==='fish'/,'Flying hooked fish must keep struggling toward the octopus mouth');
+assert.match(script,/vibrationPulse\('swallow'\)/,'Successful mouth swallowing must trigger impact');
+assert.match(script,/vibrationPulse\('escape'\)/,'Failed catches must rebound visibly');
+assert.match(script,/vibrationPulse\('fever'\)/,'Fever catches must vibrate');
+assert.match(script,/ctx\.translate\(cameraVibration\.x,cameraVibration\.y\)/,'Camera shake must move the entire fishing scene');
+console.log('PASS: localized fish and octopus shake, gentle contact, bite, suction, escape, human counterattack and limited camera vibration; all previous gameplay tests');
 
