@@ -878,14 +878,27 @@ function fishSprite(sp){
  }
  sprites[key]=c;return c;
 }
+function fishAnimatorFor(sp){
+ if(!sp)return null;
+ var players=window.FishSpritePlayers||[];
+ // Also handle providers loaded by older game builds or test stubs.
+ if(window.BlueTangSprites&&players.indexOf(window.BlueTangSprites)<0)
+  players=[window.BlueTangSprites].concat(players);
+ for(var i=0;i<players.length;i++){
+  var player=players[i];
+  if(player&&player.supports&&player.ready&&player.ready()&&player.supports(sp))
+   return player;
+ }
+ return null;
+}
 function drawFish(a,now,alpha){
-  // Blue Tang-only raster animation. All other species use their existing art.
-  if(window.BlueTangSprites&&a&&a.sp&&a.sp.name==='블루탱'){
-    var nearBait=0;
-    if(view==='fish'&&!cast.active&&!hook&&!feverFx&&!escapeFx&&!catchFx)
-      nearBait=Math.hypot(a.x-bob.x,a.y-bob.y);
-    if(window.BlueTangSprites.draw(ctx,a,now,alpha,nearBait))return;
-  }
+ var player=fishAnimatorFor(a&&a.sp);
+ if(player){
+  var nearBait=0;
+  if(view==='fish'&&!cast.active&&!hook&&!feverFx&&!escapeFx&&!catchFx)
+   nearBait=Math.hypot(a.x-bob.x,a.y-bob.y);
+  if(player.draw(ctx,a,now,alpha,nearBait))return;
+ }
 var sp=a.sp;if(!sp)return;var sprite=fishSprite(sp),sz=.5*(a.size||fishVisualProfile(sp).baseScale);if(alpha!==undefined)ctx.globalAlpha=alpha;ctx.save();ctx.translate(a.x,a.y+Math.sin(now*2+a.phase)*Math.min(3,1.8+sz));if(a.shakeUntil>now){var fade=clamp((a.shakeUntil-now)/.14,0,1),strength=(a.shakePower||1.4)*fade;ctx.translate(Math.sin(now*63+a.phase)*strength,Math.cos(now*83+a.phase)*strength*.6);ctx.rotate(Math.sin(now*46+a.phase)*strength*.023)}if(a.vx>0)ctx.scale(-1,1);ctx.drawImage(sprite,-sprite.width*.5*sz,-sprite.height*.5*sz,sprite.width*sz,sprite.height*sz);ctx.restore();ctx.globalAlpha=1}
 function drawOcto(now){ctx.save();ctx.translate(102,448+Math.sin(now*1.2)*8);ctx.drawImage(octo,0,0,260,236);ctx.restore()}
 function drawLine(){var anchor={x:352,y:548+Math.sin(time*1.2)*5},end=hook?{x:hook.obj.x,y:hook.obj.y}:bob;ctx.lineCap='round';ctx.lineJoin='round';var sag=drag?55:hook?0:105;ctx.beginPath();ctx.moveTo(anchor.x,anchor.y);ctx.bezierCurveTo(anchor.x+170,anchor.y-210+sag,end.x-130,end.y+sag,end.x,end.y);ctx.strokeStyle='#053945b8';ctx.lineWidth=5;ctx.stroke();ctx.strokeStyle='#f7e8c8';ctx.lineWidth=2.4;ctx.stroke();ctx.beginPath();ctx.moveTo(end.x-6,end.y-3);ctx.lineTo(end.x+7,end.y+8);ctx.strokeStyle='#fff7dc';ctx.lineWidth=2;ctx.stroke()}
@@ -1164,10 +1177,10 @@ function aquariumTapFish(event){
  var p=resizePointer(event),best=null,dist=2;
  aquariumFishActors.forEach(function(a){
   if(!a.sp||!a.sprite)return;
-  var isBlueTang=a.sp.name==='블루탱'&&window.BlueTangSprites&&window.BlueTangSprites.ready();
-  var art=isBlueTang?null:fishSprite(a.sp);
-  var rx=(isBlueTang?60*a.size:art.width*.25*a.size)+18;
-  var ry=(isBlueTang?30*a.size:art.height*.25*a.size)+17;
+  var animated=!!fishAnimatorFor(a.sp);
+  var art=animated?null:fishSprite(a.sp);
+  var rx=(animated?60*a.size:art.width*.25*a.size)+18;
+  var ry=(animated?30*a.size:art.height*.25*a.size)+17;
   // Touch geometry matches the actual bitmap, with a generous mobile margin.
   var dx=(p.x-a.x)/Math.max(34,rx),dy=(p.y-a.y)/Math.max(28,ry);
   var d=dx*dx+dy*dy;
@@ -1199,10 +1212,10 @@ function drawingTank(now){
  aquariumFishActors.forEach(function(a){
   if(!a.sprite)return;
   var wriggle=a.struggleStart<=now&&a.struggleEnd>now;
-  var player=window.BlueTangSprites;
+  var player=fishAnimatorFor(a.sp);
   // Official animation takes precedence. No aquarium-specific scaling,
   // shaking, rotation or frame distortion is applied to these fish.
-  if(player&&player.ready()&&player.supports&&player.supports(a.sp)){
+  if(player){
    var sprite=a.sprite;
    sprite.x=a.x;sprite.y=a.y;
    sprite.vx=a.dir*22;
