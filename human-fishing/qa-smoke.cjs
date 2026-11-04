@@ -656,6 +656,6 @@ assert.match(script,/vibration:hook\.kind==='fish'/,'Flying hooked fish must kee
 assert.match(script,/vibrationPulse\('swallow'\)/,'Successful mouth swallowing must trigger impact');
 assert.match(script,/vibrationPulse\('escape'\)/,'Failed catches must rebound visibly');
 assert.match(script,/vibrationPulse\('fever'\)/,'Fever catches must vibrate');
-assert.match(script,/ctx\.translate\(cameraVibration\.x,cameraVibration\.y\)/,'Camera shake must move the entire fishing scene');
+assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibration\.y\)/,'Camera shake must move the entire fishing scene');
 console.log('PASS: localized fish and octopus shake, gentle contact, bite, suction, escape, human counterattack and limited camera vibration; all previous gameplay tests');
 
