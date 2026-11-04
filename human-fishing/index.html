@@ -2816,7 +2816,7 @@ updateFeverHud();
 
 // Optional non-destructive showcase: ?bluetang=1 starts in the tropical reef
 // and guarantees a medium blue tang for testing every fishing stage.
-var blueTangShowcase=/(?:\?|&)bluetang=1(?:&|$)/.test(location.search);
+var blueTangShowcase=typeof location!=='undefined'&&/(?:\?|&)bluetang=1(?:&|$)/.test(location.search||'');
 if(blueTangShowcase){zone=2;eco.zone=-1;eco.humanZone=-1;}
 buildFish();buildHum();
 if(blueTangShowcase){
