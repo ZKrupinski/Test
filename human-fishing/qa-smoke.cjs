@@ -77,6 +77,7 @@ window.__hfTest={
  activate:activateOctoFever,
  getFeverFx:function(){return feverFx},
  getCatchFx:function(){return catchFx},
+ path:swallowPoint,
  mouthOpen:mouthGape,
  mouthFrames:function(){return mouthFrames},
  swallow:playCatchFx,
@@ -191,12 +192,29 @@ game.triggerEscape();
 assert.equal(game.getHook(),null,'Resistant hooked fish must escape and clear the hook');
 assert.equal(state.catches,currentCatchCount,'Escaped fish cannot increment catches');
 assert.equal(state.coins,currentCoins,'Escaped fish cannot give pearls');
-game.switchView('fish');
-game.swallow({id:5,x:820,y:472,vx:.1,size:1,phase:0},true,'잠수부',70,false,true);
-step(20);
-assert.ok(game.getCatchFx(),'Single human capture must animate into the mouth');
-assert.ok(game.mouthOpen()>.8,'The octopus mouth must open very wide');
-step(110);
-assert.equal(game.getCatchFx(),null,'Whole-body suction must finish and close');
-assert.ok(game.getCast().active,'After swallowing, the next casting animation should start');
-console.log('PASS: no bottom HUD/buttons, whole-creature octopus swallowing, human and fish multi-catch fever, escape odds, joystick, shop');
+// The entire hook travels along one upward Bézier arc directly into the mouth.
+const mouth={x:452,y:191},origin={x:830,y:510};
+const first=game.path(origin.x,origin.y,mouth,.26);
+const middle=game.path(origin.x,origin.y,mouth,.54);
+const near=game.path(origin.x,origin.y,mouth,.88);
+const finish=game.path(origin.x,origin.y,mouth,1);
+assert.ok(first.y<origin.y,'Fish should immediately rise after hooking');
+assert.ok(middle.y<first.y,'Hook trajectory must continue rising with no surface pause');
+assert.ok(near.y<269,'Approaching fish must pass the waterline without stopping');
+assert.ok(Math.abs(finish.x-mouth.x)<.001&&Math.abs(finish.y-mouth.y)<.001,'Path must end in the octopus mouth');
+assert.match(script,/if\(!fx\.swallowed\)drawSwallowCreature/,'Reward animation must not replay a second flight');
+game.switchView('fish');game.getCast().active=false;
+const actual={sp:ordinary,x:origin.x,y:origin.y,vx:.3,size:1,phase:0};
+game.setFish([actual]);
+game.setHook({obj:actual,kind:'fish',elapsed:0,startX:origin.x,startY:origin.y,willEscape:false});
+step(45);
+assert.ok(game.getHook(),'Live hooked creature must be flying before arriving at mouth');
+assert.ok(actual.y<269,'Live hook should have crossed waterline on a direct arc');
+assert.ok(game.mouthOpen()>.75,'Octopus should open wide before the creature arrives');
+step(35);
+assert.equal(game.getHook(),null,'Hook must finish at the mouth and release the live creature');
+assert.ok(game.getCatchFx()?.swallowed,'Reward state must mark creature as already swallowed');
+step(35);
+assert.equal(game.getCatchFx(),null,'Brief glint must finish without a replayed swallow');
+assert.ok(game.getCast().active,'Next cast must resume after swallowing');
+console.log('PASS: continuous underwater-to-mouth parabola, early mouth opening, no replay/pause, fever multi-swallow, rare escape, joystick and shop');
