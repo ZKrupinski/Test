@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#092a39">
-<title>인간낚시 · HUMAN FISHING α 1.0</title>
+<title>인간낚시 · HUMAN FISHING α 1.1</title>
 <style>
 :root{color-scheme:dark;--gold:#f5cb81;--aqua:#8ee4e2;--ink:#092b39;--panel:#072633ee}
 *{box-sizing:border-box}body{margin:0;background:#061923;color:#effffb;font:15px/1.45 system-ui,"Pretendard","Malgun Gothic",sans-serif;overflow-x:hidden}
@@ -68,7 +68,7 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 #virtualJoystick.visible{display:block}
 @media(max-width:760px){#virtualJoystick{min-width:56px;border-width:1px}#virtualKnob{border-width:1px}}
 .fever-hud{position:absolute;z-index:3;left:14px;top:14px;bottom:auto;width:min(205px,31%);padding:7px 9px;border-radius:12px;border:1px solid #a6d6d075;background:linear-gradient(125deg,#0b3444ec,#112a3be6);box-shadow:0 4px 20px #0007;pointer-events:none;color:#c4eeec}.fever-hud .fever-top{display:flex;justify-content:space-between;gap:5px;font-size:11px;font-weight:950}.fever-hud .fever-top span:last-child{color:#ffe8a5}.fever-meter{height:8px;background:#061821;border:1px solid #4d7f87;border-radius:50px;margin-top:5px;overflow:hidden}.fever-meter i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#43bac4,#94eadb,#ffcc82);border-radius:50px;transition:width .25s ease}.fever-detail{font-size:9px;color:#b7d6db;margin-top:3px}.fever-hud.ready{border-color:#ffd28f;box-shadow:0 0 24px #ffc36b50,0 6px 17px #0007;background:linear-gradient(120deg,#563343eb,#0a5762ee)}.fever-hud.ready .fever-top span:first-child{color:#ffe4ab}.shop-octo-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:7px 0}.shop-octo-stats span{font-size:11px;color:#d8f7ea;background:#0d3846;border-radius:5px;padding:3px 5px}@media(max-width:760px){.fever-hud{left:6px;top:6px;bottom:auto;width:min(137px,37%);padding:4px 6px;border-radius:6px}.fever-hud .fever-top{font-size:9px}.fever-meter{height:5px;margin-top:3px}.fever-detail{font-size:8px}.shop-octo-stats span{font-size:9px;padding:2px 3px}}</style></head><body><div class="wrap">
-<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 1.0</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
+<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 1.1</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navShop">🛒 상점</button></nav></header>
 <div class="stage" id="stage"><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 어디든 터치해 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
 <div class="hud top"><div class="tag" style="display:none" aria-hidden="true"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins" style="margin-left:auto">◈ 0　🐟 0/240</div></div>
@@ -922,7 +922,7 @@ function drawRod(now){
 }
 function drawLine(){
  var tip=rodTip(time),end=hook?{x:hook.obj.x,y:hook.obj.y+18}:bob;
- var slack=hook?2:cast.active?23:drag?12:47;
+ var slack=hook?2:feverFx?Math.max(2,14*(1-(feverFx.reelProgress||0))):cast.active?23:drag?12:47;
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
  ctx.beginPath();ctx.moveTo(tip.x,tip.y);
  ctx.bezierCurveTo(tip.x+22,tip.y+95+slack,mix(tip.x,end.x,.7),end.y+slack,end.x,end.y);
@@ -977,7 +977,10 @@ function tick(stamp){
     if(!a.feverCaptured&&(!hook||hook.obj!==a||hook.willEscape))humanIcon(a,time);
    });
   }
-  if(view==='fish'){castMotion(dt);updateJoystick(dt);}
+  if(view==='fish'){castMotion(dt);updateJoystick(dt);if(feverFx){
+   var currentReel=feverReelState(feverFx,time);
+   bob.x=currentReel.x;bob.y=currentReel.y;
+  }}
   drawOcto(time);drawRod(time);drawHelpers(time);
   if(view==='fish'){
    if(hook){
@@ -1300,18 +1303,21 @@ release=function(){
   }
  }
 };
-function octoSprite(tier,frame){
- var key=tier+'-'+frame;
+function octoSprite(tier,frame,folding){
+ var key=(folding?'fold-':'open-')+tier+'-'+frame;
  if(feverSprites[key])return feverSprites[key];
  var cvs=document.createElement('canvas');cvs.width=520;cvs.height=520;
  var g=cvs.getContext('2d'),x=260,y=260,col=gearCatalog.octopus[tier][4];
- var e=frame/11,arm=22+192*e;
+ var e=frame/11,arm=22+192*e,fold=folding?(1-e)*e:0;
  g.lineCap='round';g.lineJoin='round';
  for(var i=0;i<8;i++){
   var a=i*Math.PI/4-Math.PI/2,p1x=x+Math.cos(a)*arm*.54,p1y=y+Math.sin(a)*arm*.54;
-  var x2=x+Math.cos(a)*arm,y2=y+Math.sin(a)*arm,wave=Math.sin(i*2.2+e*4)*25*e;
+  // Fold the tips into soft curls as the octopus lure is reeled upward.
+  var curl=fold*60*(i%2===0?1:-1);
+  var x2=x+Math.cos(a)*arm-Math.sin(a)*curl,y2=y+Math.sin(a)*arm+Math.cos(a)*curl;
+  var wave=Math.sin(i*2.2+e*4)*25*e+fold*32;
   g.beginPath();g.moveTo(x,y);
-  g.bezierCurveTo(x+Math.cos(a)*arm*.34-Math.sin(a)*wave,y+Math.sin(a)*arm*.34+Math.cos(a)*wave,p1x+Math.sin(a)*wave,p1y-Math.cos(a)*wave,x2,y2);
+  g.bezierCurveTo(x+Math.cos(a)*arm*.30-Math.sin(a)*wave,y+Math.sin(a)*arm*.30+Math.cos(a)*wave,p1x+Math.sin(a)*(wave+curl*.65),p1y-Math.cos(a)*(wave+curl*.65),x2,y2);
   g.strokeStyle='#34243fa6';g.lineWidth=22+(tier*.7);g.stroke();
   g.strokeStyle=col;g.lineWidth=16+tier*.8;g.stroke();
   for(var n=1;n<=3;n++){
@@ -1378,28 +1384,46 @@ function activateOctoFever(){
   x:center.x,y:center.y,radius:v.radius,tier:g.tier,color:g.color,
   caught:targets,resisted:resisted,coins:coins,elapsed:0,
   duration:2.30+Math.max(0,targets.length-1)*swallowSpacing,
-  swallowSpacing:swallowSpacing
+  swallowSpacing:swallowSpacing,reelProgress:0,reelFrame:0,reeling:false
  };
  $('hintTitle').textContent='🐙 피버! '+targets.length+'마리 입속으로 꿀꺽';
  $('hint').textContent='모든 포획 생물이 문어 입 안으로 들어간 뒤 다음 낚시로 이어집니다.';
 }
+// Rod retrieval and folding are one continuous movement. This also supplies
+// the bait position used by drawLine(), keeping the fishing line attached.
+function feverReelState(fx,now){
+ var liftStart=.58,liftEnd=Math.max(liftStart+.6,fx.duration-.18);
+ var raw=clamp((fx.elapsed-liftStart)/(liftEnd-liftStart),0,1);
+ var smooth=raw*raw*(3-2*raw);
+ var tip=rodTip(now),folding=fx.elapsed>=liftStart;
+ var expanded=clamp(fx.elapsed/liftStart,0,1);
+ var arm=folding?(1-smooth):expanded;
+ return{
+  progress:raw,folding:folding,frame:Math.max(0,Math.min(11,Math.round(arm*11))),
+  x:mix(fx.x,tip.x-11,smooth),
+  y:mix(fx.y,tip.y+18,smooth)-Math.sin(Math.PI*smooth)*18
+ };
+}
 function drawFeverFx(dt){
  if(!feverFx)return;
  var fx=feverFx;fx.elapsed+=dt;
- var p=clamp(fx.elapsed/fx.duration,0,1),expansion=clamp(fx.elapsed/.59,0,1);
- var armFrame=Math.max(0,Math.min(11,Math.floor(expansion*11)));
+ var p=clamp(fx.elapsed/fx.duration,0,1);
+ var reel=feverReelState(fx,time);
+ fx.reelProgress=reel.progress;
+ fx.reelFrame=reel.frame;
+ fx.reeling=reel.folding;
+ bob.x=reel.x;bob.y=reel.y;
  var diam=fx.radius*2+92;
  ctx.save();
- if(fx.elapsed<1.02){
-  ctx.globalAlpha=fx.elapsed<.76?1:1-(fx.elapsed-.76)/.26;
-  ctx.shadowColor=fx.color;ctx.shadowBlur=17+13*Math.sin(Math.PI*expansion);
-  ctx.drawImage(octoSprite(fx.tier,armFrame),fx.x-diam/2,fx.y-diam/2,diam,diam);
-  ctx.shadowBlur=0;
- }
- ctx.globalAlpha=1;ctx.textAlign='center';
- ctx.shadowColor='#021820';ctx.shadowBlur=7;
+ // The lure remains visible on its line as eight arms close, instead of fading out.
+ ctx.shadowColor=fx.color;
+ ctx.shadowBlur=reel.folding?12+10*(1-reel.progress):17+13*Math.sin(Math.PI*clamp(fx.elapsed/.58,0,1));
+ ctx.drawImage(octoSprite(fx.tier,reel.frame,reel.folding),reel.x-diam/2,reel.y-diam/2,diam,diam);
+ ctx.shadowBlur=0;
+ ctx.globalAlpha=Math.max(0,1-p*.85);
+ ctx.textAlign='center';ctx.shadowColor='#021820';ctx.shadowBlur=7;
  ctx.font='900 26px system-ui';ctx.fillStyle='#ffe8a1';
- var label=fx.caught.filter(function(z){return z.human}).length?' · HUMAN':'';
+ var label=fx.caught.some(function(z){return z.human})?' · HUMAN':'';
  ctx.fillText('OCTO FEVER'+label,fx.x,Math.max(230,fx.y-115)-35*Math.min(1,p*2));
  ctx.font='900 17px system-ui';ctx.fillStyle='#f6ffea';
  ctx.fillText(fx.caught.length+' CATCH · '+fx.resisted+' RESIST · ◈ '+fx.coins,fx.x,Math.max(255,fx.y-84)-35*Math.min(1,p*2));
