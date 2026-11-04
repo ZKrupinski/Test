@@ -581,12 +581,16 @@ function steeringTrial(id,lv){
  bait.x=640;bait.y=420;
  for(let n=0;n<45;n++)game.moveBait(1/60);
  const advance=bait.x-640,forward=game.getRodMotion().vx;
- joy.dx=-1;
- for(let n=0;n<18;n++)game.moveBait(1/60);
- const reversed=game.getRodMotion().vx;
+ // Braking is measured from full forward velocity before testing reversal.
  joy.dx=0;
  for(let n=0;n<16;n++)game.moveBait(1/60);
  const stopped=game.getRodMotion().vx;
+ game.hideStick();joy.active=true;joy.dx=1;joy.dy=0;
+ bait.x=640;bait.y=420;
+ for(let n=0;n<45;n++)game.moveBait(1/60);
+ joy.dx=-1;
+ for(let n=0;n<18;n++)game.moveBait(1/60);
+ const reversed=game.getRodMotion().vx;
  game.hideStick();
  return{advance,forward,reversed,stopped};
 }
