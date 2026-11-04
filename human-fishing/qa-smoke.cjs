@@ -7,6 +7,10 @@ const html=fs.readFileSync(require('node:path').join(__dirname,'index.html'),'ut
 const script=html.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
 assert.ok(script,'Inline game script is missing');
 new vm.Script(script,{filename:'human-fishing.js'});
+const finalSuccess=script.slice(script.lastIndexOf('function success(){'),script.indexOf('function startCast()',script.lastIndexOf('function success(){')));
+assert.match(finalSuccess,/playCatchFx\(/,'Success must trigger in-world capture visual');
+assert.doesNotMatch(finalSuccess,/announce\(/,'Successful catch must not display old center banner');
+assert.match(script,/function drawCatchFx\(dt\)/,'In-world capture VFX must be implemented');
 const listeners={};
 const elements=new Map();
 const memory=new Map();
@@ -107,4 +111,4 @@ assert.ok(catalog.includes('가격 낮은순'),'Sort control missing');
 const sort=element('shopSort');assert.equal(typeof sort.onchange,'function');
 sort.value='level';sort.onchange();step(12);
 assert.ok(element('panelBody').innerHTML.includes('shop-card'),'Shop should remain rendered');
-console.log('PASS: airborne lock, underwater early joystick, no teleport, relative movement, release, 24-gear shop');
+console.log('PASS: 240 species, joystick after splash, non-blocking in-world capture FX, 24-gear shop');
