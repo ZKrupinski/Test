@@ -291,12 +291,12 @@ function fishSpeciesAppearance(sp){
  var speciesFin=fishHslHex((identityHue+126+(globalId%3)*12)%360,87,64);
  var speciesTail=fishHslHex((identityHue+202+(globalId%4)*7)%360,85,60);
  var iconicName=/^(?:흰동가리|퍼큘라클라운피시|블루탱|옐로탱|파우더블루탱|네온테트라|카디널테트라|러미노즈테트라|구피|엔들러구피|베타|금붕어|비단잉어|디스커스|스칼라엔젤피시|고래상어|귀상어|만타가오리|푸른점가오리|쏠배감펭|산갈치|아귀|가시해마|피그미해마)$/.test(n);
- var pigment=iconicName?.05:.80;
+ var pigment=iconicName?.05:iconic?.24:.80;
  var colorBody=fishMixHex(palette.body,speciesBody,pigment);
- var colorFin=fishMixHex(palette.accent,speciesFin,iconicName?.06:.89);
- var colorTail=fishMixHex(palette.accent,speciesTail,iconicName?.06:.94);
- var colorShade=fishMixHex(palette.shadow,fishHslHex(identityHue,48,24),iconicName?.05:.40);
- var colorHighlight=fishMixHex(palette.highlight,fishHslHex(identityHue,82,82),iconicName?.05:.40);
+ var colorFin=fishMixHex(palette.accent,speciesFin,iconicName?.06:iconic?.44:.89);
+ var colorTail=fishMixHex(palette.accent,speciesTail,iconicName?.06:iconic?.80:.94);
+ var colorShade=fishMixHex(palette.shadow,fishHslHex(identityHue,48,24),iconicName?.05:iconic?.18:.40);
+ var colorHighlight=fishMixHex(palette.highlight,fishHslHex(identityHue,82,82),iconicName?.05:iconic?.18:.40);
  // Break up repeated habitat "organic" colors with species-specific markings.
  var namedMotif=motif;
  if(motif==='organic')namedMotif=['identity-band','identity-dots','identity-half','identity-chevron','identity-diagonal','identity-fin'][globalId%6];
@@ -304,6 +304,10 @@ function fishSpeciesAppearance(sp){
   colorBody='#2865c8';colorFin='#fa4553';colorTail='#eb4958';
  }else if(n==='블랙네온테트라'){
   colorBody='#6a8793';colorFin='#272d3d';colorTail='#c5ddd3';
+ }else if(n==='엔들러구피'){
+  colorBody='#80ca53';colorFin='#fa862e';colorTail='#f9bd45';
+ }else if(n==='퍼큘라클라운피시'){
+  colorBody='#d95a2f';colorFin='#f2eee2';colorTail='#eaa45d';
  }
  return{body:colorBody,accent:colorFin,tail:colorTail,
   shadow:colorShade,highlight:colorHighlight,
