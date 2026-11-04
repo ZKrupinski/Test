@@ -66,6 +66,14 @@ const instrumented=script.replace(/\}\)\(\);\s*$/,String.raw`
 window.__hfTest={
  species:species,
  getFish:function(){return fish},
+ getEco:function(){return eco},
+ buildFish:buildFish,
+ buildHum:buildHum,
+ ecoTick:updateEcosystem,
+ spawnWild:spawnWildFish,
+ makeFish:makeWildFish,
+ spawnVisitor:spawnWildHuman,
+ nextZone:function(z){zone=z;buildFish();buildHum()},
  setFish:function(items){fish=items},
  setHum:function(items){hum=items},
  getHum:function(){return hum},
@@ -88,6 +96,7 @@ window.__hfTest={
  swallow:playCatchFx,
  getCast:function(){return cast},
  getHook:function(){return hook},
+ catchNow:success,
  setHook:function(h){hook=h},
  triggerEscape:escapeHook,
  getEscape:function(){return escapeFx},
@@ -302,4 +311,61 @@ assert.ok(game.getCatchFx()?.swallowed,'Reward state must mark creature as alrea
 step(35);
 assert.equal(game.getCatchFx(),null,'Brief glint must finish without a replayed swallow');
 assert.ok(game.getCast().active,'Next cast must resume after swallowing');
-console.log('PASS: fleeing fish face right/left travel, pitch down on dive and level while swimming; faster octopus reel, left toss, escape counterattack, groggy, rewards and joystick');
+// The ecosystem never destroys/re-rolls surviving fish on a catch, failed
+// catch, wave completion, gear refresh, or successive cast.
+game.switchView('fish');
+const ecoStart=game.getFish().slice(),idBefore=ecoStart.map(f=>f.ecoId);
+assert.ok(ecoStart.length>4,'Habitat should begin with an inhabiting population');
+game.buildFish();game.buildHum();
+assert.equal(game.getFish().length,ecoStart.length,'Rebuild on same habitat must be a no-op');
+assert.ok(ecoStart.every((f,i)=>game.getFish()[i]===f),'Fish identities and coordinates must persist');
+const initialGroups=ecoStart.filter(f=>f.schoolId);
+assert.ok(initialGroups.every(f=>f.small),'Only small fish may join a school');
+const offscreenCount=game.spawnWild(false);
+assert.ok(offscreenCount>=1,'Fish should periodically enter the ecosystem');
+const spawned=game.getFish().filter(f=>!idBefore.includes(f.ecoId));
+assert.ok(spawned.some(f=>f.x<0||f.x>1280),'New fish must enter from outside the screen');
+const spareFish=game.getFish().find(f=>f.ecoId!==spawned[0].ecoId);
+const removed=spawned[0];
+game.setHook({obj:removed,kind:'fish',elapsed:0,startX:removed.x,startY:removed.y,willEscape:false});
+const beforeEcoCatch=state.catches;
+game.catchNow();
+assert.equal(state.catches,beforeEcoCatch+1,'A successful catch should still be recorded');
+assert.ok(!game.getFish().includes(removed),'Only hooked fish should be removed');
+assert.ok(game.getFish().includes(spareFish),'All other fish must survive the cast unchanged');
+assert.ok(game.getFish().length>=ecoStart.length-2,'A catch must not wipe the entire population');
+
+// Schooling, predator chasing, fleeing and fighting are distinct live behaviors.
+const spSmall=game.species[0],spHunter=game.species[28];
+const smallSchoolId=933;
+const a=game.makeFish(spSmall,630,470,1,true,smallSchoolId);
+const b=game.makeFish(spSmall,654,477,1,true,smallSchoolId);
+const predator=game.makeFish(spHunter,680,480,-1,false,0);
+predator.hunter=true;predator.size=1.6;
+game.setFish([a,b,predator]);game.getCast().active=true;
+game.ecoTick(.07);game.ecoTick(.07);
+assert.equal(a.behavior,'flee','Prey must flee a nearby predator');
+assert.equal(b.behavior,'flee','School companions must scatter from an attack');
+assert.equal(predator.behavior,'hunt','Predators must actively chase smaller fish');
+const farSchool1=game.makeFish(spSmall,700,400,1,true,431);
+const farSchool2=game.makeFish(spSmall,745,415,1,true,431);
+game.setFish([farSchool1,farSchool2]);
+game.ecoTick(.08);
+assert.equal(farSchool1.behavior,'school','Small fish must flock when safe');
+assert.equal(farSchool2.behavior,'school','Small fish must share a school identity');
+const rival=game.makeFish(spHunter,710,455,-1,false,0);
+const fighter=game.makeFish(spHunter,628,449,1,false,0);
+fighter.hunter=true;rival.hunter=true;
+fighter.fightTarget=rival.ecoId;rival.fightTarget=fighter.ecoId;
+fighter.fightUntil=game.getEco().t+1.1;rival.fightUntil=game.getEco().t+1.1;
+game.setFish([fighter,rival]);game.ecoTick(.12);
+assert.equal(fighter.behavior,'fight','Rival predators must visibly engage in territorial conflict');
+assert.equal(rival.behavior,'fight','Rival must fight rather than simply cruise');
+const exit=game.makeFish(spSmall,1480,425,1,false,0);
+game.setFish([exit]);game.ecoTick(.04);
+assert.ok(!game.getFish().includes(exit),'A fish must leave naturally after swimming entirely offscreen');
+game.nextZone((game.getEco().zone+1)%12);
+assert.ok(game.getFish().every(f=>f.sp.habitat===game.getEco().zone),'Only habitat changes may replace the ecosystem');
+assert.ok(game.getFish().length>0,'New habitat must initialize with swimming residents');
+console.log('PASS: persistent fish and human habitat; offscreen immigration/emigration; small schools, predator-prey chase/flee, territorial fighting; existing catch and fever interactions');
+
