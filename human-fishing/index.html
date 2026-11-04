@@ -786,7 +786,10 @@ function success(){
  if(!human&&save.placed.length===0)save.placed.push(id);
  persist();updateStats();beep('catch');spawnParticles(645,290,extra?50:32,'gold');
  playCatchFx(o,human,name,reward,extra,fresh);
- hook=null;buildFish();buildHum();
+ hook=null;
+ // Keep every non-caught animal and its movement state across casts.
+ if(human)hum=hum.filter(function(h){return h!==o});
+ else fish=fish.filter(function(f){return f!==o});
  $('hintTitle').textContent='잡은 생물이 문어 입속으로 들어가는 중';
  $('hint').textContent='미끼가 잠겨 멈추면, 미끼를 직접 잡아 드래그하세요.';
 }
@@ -973,13 +976,12 @@ function tick(stamp){
  if(view==='tank')drawingTank(time);
  else{
   sea(false);coral(time);
+  updateEcosystem(dt);
   if(view==='fish'||view==='book'||view==='grow'||view==='shop'){
-   fish.forEach(function(a){if(!hook||a!==hook.obj){
-    a.x+=a.vx*dt*60;a.phase+=dt*.4;if(a.x<320||a.x>1195)a.vx*=-1}
+   fish.forEach(function(a){
     if(!a.feverCaptured&&(!hook||hook.obj!==a)){drawFish(a,time);drawFishRankTag(a)}
    });
-   hum.forEach(function(a){if(!hook||a!==hook.obj){
-    a.x+=a.vx*dt*55;a.phase+=dt*.23;if(a.x<350||a.x>1200)a.vx*=-1}
+   hum.forEach(function(a){
     if(!a.feverCaptured&&(!hook||hook.obj!==a))humanIcon(a,time);
    });
   }
@@ -1321,7 +1323,7 @@ function buildFish(){
  // Called on catch, failed catch, fever, gear change and startup. Only a
  // change of habitat makes a new population; existing swimmers survive.
  if(eco.zone===zone)return;
- eco.zone=zone;eco.fishTimer=0;eco.school=0;fish=[];
+ eco.zone=zone;eco.humanZone=zone;eco.fishTimer=0;eco.humanTimer=0;eco.school=0;fish=[];hum=[];
  for(var i=0;i<8;i++)spawnWildFish(true);
  for(var j=0;j<2;j++)spawnWildFish(false);
 }
@@ -1368,6 +1370,13 @@ function updateEcosystem(dt){
  for(var i=fish.length-1;i>=0;i--){
   var f=fish[i];
   if(f.feverCaptured){fish.splice(i,1);continue}
+  // Keep compatibility with older fish objects and test fixtures.
+  if(!Number.isFinite(f.speed)){
+   f.ecoId=++eco.next;f.dir=f.vx<0?-1:1;
+   f.speed=clamp(Math.abs(f.vx||.4)*65,30,90);f.vx=f.dir*f.speed;f.vy=0;
+   f.homeY=f.y;f.nextTurn=eco.t+10;f.hunter=false;f.small=false;
+   f.schoolId=0;f.panicUntil=0;f.fightUntil=0;
+  }
   if(f===fLocked)continue;
   var n=ecoCrowd(f,dt),wantX=f.dir*f.speed,wantY=Math.sin(eco.t*.85+f.phase)*9;
   var state=f.schoolId?'school':'cruise',boost=1;
@@ -1430,6 +1439,9 @@ function updateEcosystem(dt){
  for(var h=hum.length-1;h>=0;h--){
   var person=hum[h];
   if(person.feverCaptured){hum.splice(h,1);continue}
+  if(!Number.isFinite(person.nextTurn)){
+   person.nextTurn=eco.t+10;person.vx=person.vx<0?-28:28;person.vy=0;
+  }
   if(person===fLocked)continue;
   if(person.nextTurn<eco.t){
    person.nextTurn=eco.t+rnd(7,16);
