@@ -77,6 +77,8 @@ window.__hfTest={
  activate:activateOctoFever,
  getFeverFx:function(){return feverFx},
  reel:feverReelState,
+ toss:feverTossPoint,
+ flingSprite:feverFlingStreakSprite,
  getReelSprites:function(){return feverSprites},
  rodTip:rodTip,
  getCatchFx:function(){return catchFx},
@@ -186,11 +188,25 @@ assert.equal(state.fever.ready,false,'Activation must consume stored fever');
 assert.equal(state.fever.count,0,'Fever gauge must reset');
 assert.ok(game.getFeverFx(),'Octopus arm burst must start');
 const lureStart={x:bob.x,y:bob.y};
+const fxStart=game.getFeverFx();
+const startingFish=fxStart.caught[0];
+const startingHuman=fxStart.caught[1];
+const earlyToss=game.toss(startingFish,fxStart,0,clock/1000);
+assert.equal(earlyToss.phase,'hold','Before the flick, captured fish should stay in the closing tentacles');
+assert.ok(game.reel({...fxStart,elapsed:1.48},clock/1000).progress>=.99,
+ 'Fever reeling must be noticeably faster than the prior long retrieval');
 step(48); // Initial eight-arm burst has finished and rod retrieval is underway
 assert.ok(game.getFeverFx().reeling,'Fever lure should begin reeling shortly after tentacle spread');
 assert.ok(game.getFeverFx().reelFrame<11,'Tentacles should begin closing as reel winds');
 assert.ok(game.getFeverFx().reelFrame>0,'Tentacles should not instantly snap shut');
 assert.ok(bob.y<lureStart.y,'Fever lure must move upward as line is retrieved');
+assert.ok(bob.x<lureStart.x-25,'Fever lure must swing toward left side while curling its tentacles');
+const fishToss=game.toss(startingFish,game.getFeverFx(),0,clock/1000);
+assert.ok(['gather','throw'].includes(fishToss.phase),'Fish must be gathered and flung during the tentacle sweep');
+assert.ok(fishToss.x<startingFish.x,'Caught fish must visibly fly left toward the main octopus');
+const humanToss=game.toss(startingHuman,game.getFeverFx(),1,clock/1000);
+assert.ok(humanToss.x<=startingHuman.x,'Fever-caught human must follow the same leftward throwing motion');
+assert.ok(game.reel(game.getFeverFx(),clock/1000).tilt<0,'The lure should twist left in the recovery swing');
 assert.ok(game.mouthOpen()>.5,'Main octopus must open its mouth during multi-capture');
 assert.ok(Object.keys(game.mouthFrames()).length>0,'Mouth must use prerendered bitmap animation frames');
 const midFrame=game.getFeverFx().reelFrame,midY=bob.y;
@@ -198,6 +214,9 @@ step(45); // Continue reel, show gradual closing and upward movement
 assert.ok(game.getFeverFx().reelFrame<midFrame,'Reeling must reduce tentacle spread over time');
 assert.ok(bob.y<midY,'Reeling must continuously pull the bait toward rod tip');
 assert.ok(Object.keys(game.getReelSprites()).some(k=>k.startsWith('fold-')),'Curling tentacle bitmap frames must render');
+assert.ok(game.flingSprite(),'Leftward throwing motion streak must be cached as bitmap art');
+const lastToss=game.toss(startingFish,game.getFeverFx(),0,clock/1000);
+assert.equal(lastToss.done,true,'Fish should reach the octopus mouth during the faster throwing motion');
 const tip=game.rodTip(clock/1000);
 assert.ok(Math.hypot(bob.x-tip.x,bob.y-tip.y)<Math.hypot(lureStart.x-tip.x,lureStart.y-tip.y),'Bait must close distance to rod tip');
 step(110); // Finish retraction and all staggered creature swallows
@@ -268,4 +287,4 @@ assert.ok(game.getCatchFx()?.swallowed,'Reward state must mark creature as alrea
 step(35);
 assert.equal(game.getCatchFx(),null,'Brief glint must finish without a replayed swallow');
 assert.ok(game.getCast().active,'Next cast must resume after swallowing');
-console.log('PASS: fish struggle/diving high-speed escape, human air counterattack and octopus groggy, no false rewards, gradual fever-lure reeling, joystick, shop');
+console.log('PASS: accelerated octopus reel, strong left curling sweep, synchronized fish/human throwing path and bitmap streak, escape counterattack and groggy, no false rewards, joystick, shop');
