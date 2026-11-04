@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#092a39">
-<title>인간낚시 · HUMAN FISHING α 2.0</title>
+<title>인간낚시 · HUMAN FISHING α 2.1</title>
 <style>
 :root{color-scheme:dark;--gold:#f5cb81;--aqua:#8ee4e2;--ink:#092b39;--panel:#072633ee}
 *{box-sizing:border-box}body{margin:0;background:#061923;color:#effffb;font:15px/1.45 system-ui,"Pretendard","Malgun Gothic",sans-serif;overflow-x:hidden}
@@ -1359,6 +1359,12 @@ function selectedGear(cat){
 function gearLevel(cat,key){return Math.max(0,Math.min(10,Number(save.gearLevels[cat][key])||0))}
 function gearPower(cat){var g=selectedGear(cat);return Math.min(24,(Number(save.shop[cat])||0)+g.tier*2+gearLevel(cat,g.id))}
 function gearPrice(cat,g){var l=gearLevel(cat,g.id);return Math.ceil((75+g.tier*95)*(1+l*.65)/10)*10}
+function rodHandlingHtml(gear,lv){
+ var p=rodHandling(gear,lv);
+ var response=Math.round(p.acceleration/35),brake=Math.round(p.braking/35);
+ return '<p class="rod-handling">미끼 속도 <b>'+p.speed+'px/s</b> · 반응력 <b>'+response+
+  '</b> · 제동력 <b>'+brake+'</b> · 흔들림 <b>'+Math.round(p.wobble)+'px/s</b></p>';
+}
 function renderShop(){
  var tabs='<div class="shop-controls"><div class="shop-tabs">'+Object.keys(gearCatalog).map(function(cat){
  return '<button data-shop-tab="'+cat+'" class="'+(shopCategory===cat?'selected':'')+'">'+gearIcons[cat]+' '+gearCategoryNames[cat]+'</button>'
@@ -1381,6 +1387,7 @@ function renderShop(){
    gearIcons[cat]+'</div><div class="shop-detail"><h3>'+escapeHtml(item.name)+'</h3>'+
    '<span class="shop-badge">'+(equipped?'● 장착 중':'')+'</span><span class="shop-badge">TIER '+(item.tier+1)+'</span><span class="shop-badge">LV '+lv+'/10</span>'+
    '<p>'+escapeHtml(item.desc)+(cat==='octopus'?'':' · 유효 성능 '+power)+'</p>'+(cat==='octopus'?octoStatHtml(item.tier,lv):'')+
+    (cat==='rod'?rodHandlingHtml(item,lv):'')+
    '<div class="shop-progress"><i style="width:'+(lv*10)+'%"></i></div>'+
    '<div class="shop-buttons"><button data-gear-action="equip" data-gear-id="'+item.id+'" '+
    (equipped||!canBuy?'disabled':'')+'>'+primary+'</button>'+
@@ -1494,9 +1501,12 @@ function castMotion(dt){
   $('hint').textContent='스틱을 밀어 이동하고 손을 떼면 가까운 생물 포획!';
  }
 }
+// Each rod has its own actual velocity, braking, reversal and drift response.
 var joystick={active:false,id:null,x:0,y:0,dx:0,dy:0,engaged:false,traveled:0};
+var rodMotion={vx:0,vy:0};
 function hideVirtualJoystick(){
  joystick.active=false;joystick.id=null;joystick.dx=0;joystick.dy=0;joystick.engaged=false;
+ rodMotion.vx=0;rodMotion.vy=0;
  $('virtualJoystick').classList.remove('visible');
  $('virtualKnob').style.left='50%';$('virtualKnob').style.top='50%';
  canvas.classList.remove('dragging');
@@ -1558,13 +1568,45 @@ function baitHorizontalBounds(){
  var margin=Math.max(62,Math.ceil(radius+8));
  return{min:margin,max:W-margin};
 }
+// Rod tier drives the feel; upgrading an individual rod noticeably improves it.
+// Tier 0 feels heavy and imprecise, while tier 5 can turn and stop immediately.
+function rodHandling(gear,level){
+ var g=gear||selectedGear('rod');
+ var lv=level===undefined?gearLevel('rod',g.id):level;
+ var quality=clamp((g.tier+Math.min(10,lv)*.065+(Number(save.shop.rod)||0)*.035)/5.8,0,1);
+ return{
+  quality:quality,
+  speed:Math.round(150+360*quality),
+  acceleration:Math.round(225+3200*quality*quality),
+  braking:Math.round(175+3500*quality*quality),
+  reversePenalty:.67+.33*quality,
+  deadZone:.16-.085*quality,
+  wobble:12*(1-quality)*(1-quality)
+ };
+}
 function updateJoystick(dt){
  if(!joystick.active||view!=='fish'||hook)return;
- var nx=joystick.dx,ny=joystick.dy,mag=Math.hypot(nx,ny);
- if(mag<.12)return;
- var speed=390,curve=Math.min(1,(mag-.12)/.88),bounds=baitHorizontalBounds();
- bob.x=clamp(bob.x+nx/mag*speed*curve*dt,bounds.min,bounds.max);
- bob.y=clamp(bob.y+ny/mag*speed*curve*dt,274,615);
+ var rod=rodHandling(),nx=joystick.dx,ny=joystick.dy;
+ var mag=Math.hypot(nx,ny),p=mag>rod.deadZone?
+  Math.min(1,(mag-rod.deadZone)/(1-rod.deadZone)):0;
+ var desiredX=0,desiredY=0;
+ if(p>0){
+  // Low-grade rods are slower to accelerate and have mild side-to-side drift.
+  var sway=Math.sin(time*3.5+0.7)*rod.wobble;
+  desiredX=nx/mag*rod.speed*p+sway*ny/mag;
+  desiredY=ny/mag*rod.speed*p-sway*nx/mag;
+ }
+ var diffX=desiredX-rodMotion.vx,diffY=desiredY-rodMotion.vy;
+ var diff=Math.hypot(diffX,diffY);
+ var reverse=desiredX*rodMotion.vx+desiredY*rodMotion.vy<0;
+ var rate=p>0?rod.acceleration*(reverse?rod.reversePenalty:1):rod.braking;
+ var move=Math.min(diff,rate*Math.max(0,dt));
+ if(diff>.0001){rodMotion.vx+=diffX/diff*move;rodMotion.vy+=diffY/diff*move}
+ var bounds=baitHorizontalBounds();
+ bob.x=clamp(bob.x+rodMotion.vx*dt,bounds.min,bounds.max);
+ bob.y=clamp(bob.y+rodMotion.vy*dt,274,615);
+ if((bob.x<=bounds.min&&rodMotion.vx<0)||(bob.x>=bounds.max&&rodMotion.vx>0))rodMotion.vx=0;
+ if((bob.y<=274&&rodMotion.vy<0)||(bob.y>=615&&rodMotion.vy>0))rodMotion.vy=0;
 }
 function rodTip(now){
  var rod=selectedGear('rod'),p=cast.active?cast.elapsed:10,casting=cast.active&&p<1.0;
