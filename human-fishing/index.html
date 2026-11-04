@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#092a39">
-<title>인간낚시 · HUMAN FISHING α 2.2</title>
+<title>인간낚시 · HUMAN FISHING α 2.3</title>
 <style>
 :root{color-scheme:dark;--gold:#f5cb81;--aqua:#8ee4e2;--ink:#092b39;--panel:#072633ee}
 *{box-sizing:border-box}body{margin:0;background:#061923;color:#effffb;font:15px/1.45 system-ui,"Pretendard","Malgun Gothic",sans-serif;overflow-x:hidden}
@@ -88,7 +88,7 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 #virtualJoystick.visible{display:block}
 @media(max-width:760px){#virtualJoystick{min-width:56px;border-width:1px}#virtualKnob{border-width:1px}}
 .fever-hud{position:absolute;z-index:3;left:14px;top:14px;bottom:auto;width:min(205px,31%);padding:7px 9px;border-radius:12px;border:1px solid #a6d6d075;background:linear-gradient(125deg,#0b3444ec,#112a3be6);box-shadow:0 4px 20px #0007;pointer-events:none;color:#c4eeec}.fever-hud .fever-top{display:flex;justify-content:space-between;gap:5px;font-size:11px;font-weight:950}.fever-hud .fever-top span:last-child{color:#ffe8a5}.fever-meter{height:8px;background:#061821;border:1px solid #4d7f87;border-radius:50px;margin-top:5px;overflow:hidden}.fever-meter i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#43bac4,#94eadb,#ffcc82);border-radius:50px;transition:width .25s ease}.fever-detail{font-size:9px;color:#b7d6db;margin-top:3px}.fever-hud.ready{border-color:#ffd28f;box-shadow:0 0 24px #ffc36b50,0 6px 17px #0007;background:linear-gradient(120deg,#563343eb,#0a5762ee)}.fever-hud.ready .fever-top span:first-child{color:#ffe4ab}.shop-octo-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:7px 0}.shop-octo-stats span{font-size:11px;color:#d8f7ea;background:#0d3846;border-radius:5px;padding:3px 5px}@media(max-width:760px){.fever-hud{left:6px;top:6px;bottom:auto;width:min(137px,37%);padding:4px 6px;border-radius:6px}.fever-hud .fever-top{font-size:9px}.fever-meter{height:5px;margin-top:3px}.fever-detail{font-size:8px}.shop-octo-stats span{font-size:9px;padding:2px 3px}}</style></head><body><div class="wrap">
-<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 2.2</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
+<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 2.3</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navGear">🎒 장비</button><button id="navShop">🛒 상점</button></nav></header>
 <div class="stage" id="stage"><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 어디든 터치해 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
 <div class="hud top"><div class="tag" style="display:none" aria-hidden="true"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins" style="margin-left:auto">◈ 0　🐟 0/240</div></div>
@@ -1120,27 +1120,8 @@ var shopItems=[
  {id:'helper',name:'조력자',icon:'🦑',base:190,desc:'꼬마 심해 생물이 릴을 돕고, 낚시 중 주기적으로 진주를 가져옵니다.',benefit:function(l){return '릴 속도 +'+(l*2)+'% · 35초마다 진주 +'+(l*5)}}
 ];
 function shopPrice(item,lv){return Math.round(item.base*(lv+1)*(1+lv*.28)/5)*5}
-function renderShop(){
- var html='<div style="color:#c4e9e8;font-size:13px">현재 진주 <b style="color:#ffe2a4">◈ '+save.coins.toLocaleString()+'</b>　·　장비 강화는 저장되며 낚시와 포획 보상에 즉시 반영됩니다.</div>'+
- '<div class="shop-grid">'+shopItems.map(function(item){
- var lv=save.shop[item.id],price=shopPrice(item,lv),max=lv>=10;
- return '<article class="shop-card"><div class="shop-icon">'+item.icon+'</div><div class="shop-detail"><h3>'+item.name+'</h3>'+
- '<div class="level">LEVEL '+lv+' / 10</div><p>'+item.desc+'</p><p style="color:#8de4e0">'+item.benefit(lv)+'</p>'+
- '<div class="shop-progress"><i style="width:'+(lv*10)+'%"></i></div>'+
- '<button data-shop="'+item.id+'" '+(max||save.coins<price?'disabled':'')+'>'+(max?'최대 강화 완료':save.coins<price?'◈ '+price+' · 진주 부족':'◈ '+price+' · 강화하기')+'</button></div></article>'
- }).join('')+'</div>';
- openPanel('장비 상점 · TACKLE SHOP','낚싯대 / 미끼 / 어망 / 조력자 — 각각 최대 10단계',html);
- document.querySelectorAll('[data-shop]').forEach(function(button){
-  button.onclick=function(){
-   var item=shopItems.find(function(q){return q.id===button.dataset.shop}),lv=save.shop[item.id],price=shopPrice(item,lv);
-   if(lv>=10||save.coins<price)return;
-   save.coins-=price;save.shop[item.id]=lv+1;persist();updateStats();
-   beep('catch');spawnParticles(740,260,16,'gold');
-   if(item.id==='bait'){buildFish();buildHum()}
-   renderShop();
-  };
- });
-}
+// Legacy save.shop bonuses are preserved for returning players.
+// Equipment and shop UI are rendered by the dedicated loadout handlers below.
 var priorSetMode=setMode;
 setMode=function(mode){
  priorSetMode(mode==='shop'||mode==='gear'?'grow':mode);
