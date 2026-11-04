@@ -613,6 +613,8 @@ assert.match(script,/rodHandlingHtml\(item,lv\)/,
  'The rod shop must show the actual handling parameters for purchases and upgrades');
 // Alpha 2.2: separate screen, animal and lure vibration layers, short contact pulses.
 const impacts=game.getVibration();
+for(const name of ['screen','octo','lure'])impacts[name].length=0;
+impacts.lastBrush=-5;impacts.lastSwallow=-5;
 assert.ok(game.pulse('brush'),'First fish contact should trigger a subtle vibration');
 assert.equal(impacts.screen.length,1,'Fish grazing bait should create one small screen pulse');
 assert.equal(impacts.octo.length,0,'Grazing must not jolt the octopus');
