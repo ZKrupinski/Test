@@ -1147,7 +1147,8 @@ function catchProbability(target,isHuman,fever){
  if(!isHuman&&target.rarity==='MYTHIC'&&rod+bait<22)cap=.004;
  if(!isHuman&&target.rarity==='LEGEND'&&rod+bait<10)cap=.018;
  if(isHuman&&target.id>=20&&rod+bait<35)cap=.0008;
- return clamp(chance,.001,cap);
+ var floor=isHuman?(target.id>=20?.00005:.003):target.rarity==='MYTHIC'?.00065:.001;
+ return clamp(chance,floor,cap);
 }
 function drawFishRankTag(f){
  var sp=f.sp;if(!sp||sp.rarity==='COMMON'||sp.rarity==='UNCOMMON')return;
