@@ -1272,9 +1272,12 @@ function chooseWildSpecies(){
   Math.floor(rnd(0,11));
  return species[zone*20+idx];
 }
+function ecoCanSchool(sp){
+ return /구피|테트라|라스보라|정어리|멸치|청어|전갱이|다니오|송사리|카디널|크로미스|바브|피라미|쉬리|빙어|코리도라스|납자루|몰리|플래티|글로라이트|러미노즈|블루탱|옐로탱|실버달러|해체트|가다랑어|황다랑어/.test(sp.name);
+}
 function ecoIsHunter(sp,sz){
  var name=sp.name;
- return /상어|파이크|배스|농어|아귀|피라냐|참치|다랑어|장어|시클리드|오스카|가물치|늑대고기|전갱이|돔|그루퍼|방어|바라쿠다|구라미|베타/.test(name)||
+ return /상어|파이크|배스|농어|아귀|피라냐|참치|다랑어|장어|시클리드|오스카|가물치|늑대고기|돔|그루퍼|방어|바라쿠다|구라미|베타|소드테일|블랙스커트|블랙팬텀|드워프스네이크헤드|그린테러/.test(name)||
   (sz>1.22&&sp.index>9);
 }
 function makeWildFish(sp,x,y,dir,small,schoolId){
@@ -1293,7 +1296,7 @@ function makeWildFish(sp,x,y,dir,small,schoolId){
 function spawnWildFish(startInView){
  if(fish.length>=27)return 0;
  var sp=chooseWildSpecies(),dir=Math.random()<.5?1:-1;
- var small=sp.index<=10&&Math.random()<.52;
+ var small=ecoCanSchool(sp)&&Math.random()<.76;
  var group=small?3+Math.floor(rnd(0,3)):1;
  group=Math.min(group,27-fish.length);
  var schoolId=group>1?++eco.school:0;
@@ -1394,6 +1397,13 @@ function updateEcosystem(dt){
   if(bobNearby){
    f.panicUntil=Math.max(f.panicUntil,eco.t+.47);
    f.fearX=bob.x;f.fearY=bob.y;
+  }
+  // Two rivals may challenge each other even with prey nearby.
+  if(f.hunter&&n.rival&&f.fightUntil<=eco.t&&n.rival.fightUntil<=eco.t&&
+     Math.random()<dt*.27){
+   f.fightUntil=eco.t+1.05;n.rival.fightUntil=eco.t+1.05;
+   f.fightTarget=n.rival.ecoId;n.rival.fightTarget=f.ecoId;
+   eco.contests++;
   }
   if(f.panicUntil>eco.t){
    var dx=f.x-f.fearX,dy=f.y-f.fearY,d=Math.hypot(dx,dy)||1;
