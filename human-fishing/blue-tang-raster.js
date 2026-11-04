@@ -24,7 +24,7 @@ var ms={idle:132,swim:95,burst:69,uturn:80,notice:115,inspect:125,
  graze:55,bite:70,hooked:73,lift:82,last_resist:64,slip:67,reentry:70,flee:58};
 var oneShot={uturn:1,notice:1,graze:1,bite:1,lift:1,slip:1,reentry:1};
 var atlas={},status={},previewAction=null,loading=false;
-var queue=['idle','burst','inspect','bite','hooked','uturn'];
+var queue=['idle','uturn','hooked','burst','inspect','bite'];
 var SIZE=1024,CW=512,CH=256;
 function makeCanvas(w,h){
  var c=document.createElement('canvas');c.width=w;c.height=h;return c;
@@ -220,8 +220,25 @@ function draw(ctx,a,now,alpha,near){
  if(a._btFacing===undefined)a._btFacing=direction;
  var forced=!!a.spriteAction;
  var showcase=!!a._btDemo&&previewAction==='uturn';
+ var aquarium=!!a.spriteAquarium;
+ var aquariumDuration=Math.max(.15,Number(a.spriteTurnDuration)||TURN_DURATION);
+ var aquariumElapsed=now-Number(a.spriteTurnStart);
+ var aquariumTurn=aquarium&&Number.isFinite(a.spriteTurnStart)&&
+  aquariumElapsed>=0&&aquariumElapsed<aquariumDuration;
  var turning=false,turnProgress=1,turnFrom=1;
- if(showcase){
+ if(aquariumTurn){
+  // The aquarium chooses when a turn starts; the animation player owns
+  // every frame and the actual 180-degree sprite orientation.
+  turning=true;
+  turnFrom=a.spriteTurnFrom===-1?-1:1;
+  turnProgress=clamp(aquariumElapsed/aquariumDuration,0,1);
+  a._btFacing=turnFrom;
+  action='uturn';
+ }else if(aquarium){
+  // Do not keep the cached heading from the previous aquarium turn.
+  // All non-turn actions use the aquarium fish's real swim direction.
+  a._btFacing=direction;
+ }else if(showcase){
   // A repeatable full turn is always visible from the QA dropdown,
   // even if this particular fish's AI never reverses direction.
   if(a._btPreviewRevision!==previewRevision){
@@ -263,13 +280,16 @@ function draw(ctx,a,now,alpha,near){
  }else a._btPendingDir=0;
  var sheet=atlas[sourceOf[action]];
  if(turning){
-  // The locked-torso swimming bitmap supplies stable geometry through the
-  // yaw; original U-turn image poses were not reliably facing backwards.
-  sheet=atlas.swim||atlas.idle||sheet;
+  // Play the actual official U-turn sprite sequence, not an artificial
+  // aquarium-only animation. The torso-space yaw only orients its frames.
+  sheet=atlas.uturn||atlas.swim||atlas.idle||sheet;
  }
  if(!sheet){action='swim';sheet=atlas.swim||atlas.idle}
  if(!sheet)return false;
  var p=poseProgress(a,now,action),i=p.index,pose=transform(action,i);
+ // Aquariums may have a different turn duration from live fishing.
+ // Sample the official eight U-turn frames across that exact interval.
+ if(aquariumTurn)i=clamp(Math.floor(turnProgress*8),0,7);
  var sx=(i%2)*CW,sy=Math.floor(i/2)*CH;
  var sz=.5*(a.size||1),drawW=240*sz,drawH=120*sz;
  ctx.save();
@@ -301,6 +321,7 @@ function draw(ctx,a,now,alpha,near){
 
 window.BlueTangSprites={
  draw:draw,
+ supports:function(sp){return !!sp&&sp.name==='블루탱'},
  ready:function(){return !!atlas.idle},
  status:function(){return Object.assign({},status)},
  actions:actions.slice(),
@@ -311,6 +332,6 @@ window.BlueTangSprites={
   return previewAction;
  },
  getPreviewAction:function(){return previewAction},
- version:'visible-uturn-2.7'
+ version:'aquarium-official-2.10'
 };
 })();
