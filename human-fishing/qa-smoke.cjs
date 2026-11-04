@@ -65,6 +65,9 @@ const mock={document,window:{addEventListener(){}},navigator:{vibrate(){}},conso
 const instrumented=script.replace(/\}\)\(\);\s*$/,String.raw`
 window.__hfTest={
  species:species,
+ fishVisual:fishVisualProfile,
+ fishAppearance:fishSpeciesAppearance,
+ fishSprite:fishSprite,
  getFish:function(){return fish},
  getEco:function(){return eco},
  buildFish:buildFish,
@@ -124,6 +127,44 @@ vm.runInNewContext(instrumented,mock,{filename:'human-fishing.js',timeout:4000})
 const game=mock.window.__hfTest;
 assert.ok(game,'Test bridge missing');
 assert.equal(game.species.length,240);
+
+const fishClasses=new Set(),fishShapes=new Set(),signatureMotifs=new Set();
+for(const fish of game.species){
+ const visual=game.fishVisual(fish),art=game.fishAppearance(fish);
+ fishClasses.add(visual.category);fishShapes.add(visual.shape);signatureMotifs.add(art.motif);
+ assert.ok(['SMALL','MEDIUM','LARGE','SPECIAL'].includes(visual.category),
+  'Fish needs one valid size class: '+fish.name);
+ assert.ok(visual.maxScale>visual.minScale&&visual.minScale>.4&&visual.maxScale<2.5,
+  'Species display size must be well-defined: '+fish.name);
+ assert.ok(/^#[a-f\d]{6}$/i.test(art.body)&&/^#[a-f\d]{6}$/i.test(art.accent),
+  'Real-species art palette must use RGB hex colors: '+fish.name);
+ assert.ok(art.designNote.length>2,'Fish needs a future bitmap-art note: '+fish.name);
+ assert.equal(game.fishSprite(fish),game.fishSprite(fish),
+  'Each fish must reuse its cached bitmap artwork: '+fish.name);
+}
+assert.deepEqual([...fishClasses].sort(),['LARGE','MEDIUM','SMALL','SPECIAL'],
+ 'The 240-fish catalog needs all four visual body-size classes');
+assert.ok(fishShapes.size>=16,'The 240-species catalog needs at least sixteen distinguishable body silhouettes');
+assert.ok(signatureMotifs.size>=17,'Real species need diverse color and marking motifs');
+function requireFish(name,expectedClass,shape,motif){
+ const fish=game.species.find(f=>f.name===name);
+ assert.ok(fish,'Named fish reference missing: '+name);
+ assert.equal(game.fishVisual(fish).category,expectedClass,'Wrong characteristic size for '+name);
+ assert.equal(game.fishVisual(fish).shape,shape,'Wrong anatomy for '+name);
+ assert.equal(game.fishAppearance(fish).motif,motif,'Wrong signature markings for '+name);
+}
+requireFish('네온테트라','SMALL','needle','neon');
+requireFish('구피','SMALL','fan','guppy');
+requireFish('비단잉어','SPECIAL','fan','koi');
+requireFish('흰동가리','MEDIUM','standard','clown');
+requireFish('가시해마','SPECIAL','horse','seahorse');
+requireFish('만타가오리','SPECIAL','ray','manta');
+requireFish('고래상어','LARGE','shark','whaleshark');
+requireFish('귀상어','LARGE','hammer','solid');
+requireFish('쏠배감펭','SPECIAL','lion','lion');
+requireFish('산갈치','SPECIAL','eel','oarfish');
+requireFish('레드벨리피라냐','MEDIUM','standard','redbelly');
+
 for(const label of ['COMMON','UNCOMMON','RARE','EPIC','LEGEND','MYTHIC'])assert.ok(game.species.some(f=>f.rarity===label),'Missing rarity '+label);
 assert.ok(game.species.every(f=>f.level>=1),'Each fish must have a level');
 const baseFish=game.species.slice(0,20);
@@ -465,5 +506,5 @@ assert.ok(feverBounds.min>=normalBounds.min,'Large lure must stay fully on scree
 joy.dx=-1;game.moveBait(10);
 assert.equal(bait.x,feverBounds.min,'Fever lure must reach left edge without clipping');
 joy.active=false;state.fever.ready=savedFeverReady;
-console.log('PASS: full fever catches held by half-curled lure underwater, released after surface, multi-catch swallowing; symmetric joystick, ecological swimming, and capture/escape interactions');
+console.log('PASS: 240 named fish have four body classes, 16+ anatomical silhouettes, species palette and patterns, cached bitmap sprites; fever, ecology, joystick and escapes');
 
