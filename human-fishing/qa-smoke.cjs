@@ -59,7 +59,43 @@ const mock={document,window:{addEventListener(){}},navigator:{vibrate(){}},conso
  localStorage:{getItem(k){return memory.get(k)||null},setItem(k,v){memory.set(k,v)}},
  requestAnimationFrame(cb){frame=cb}
 };
-vm.runInNewContext(script,mock,{filename:'human-fishing.js',timeout:4000});
+const instrumented=script.replace(/\}\)\(\);\s*$/,String.raw\`
+window.__hfTest={
+ species:species,
+ getFish:function(){return fish},
+ setFish:function(items){fish=items},
+ getHum:function(){return hum},
+ getBob:function(){return bob},
+ getSave:function(){return save},
+ chance:catchProbability,
+ record:recordFeverCapture,
+ activate:activateOctoFever,
+ getFeverFx:function(){return feverFx},
+ getCast:function(){return cast},
+ getHook:function(){return hook},
+ triggerEscape:escapeHook,
+ selectGear:selectedGear,
+ octoStats:octoStats,
+ renderShop:renderShop,
+ switchCategory:function(k){shopCategory=k;renderShop()},
+ shopModels:gearCatalog
+};
+})();\`);
+vm.runInNewContext(instrumented,mock,{filename:'human-fishing.js',timeout:4000});
+const game=mock.window.__hfTest;
+assert.ok(game,'Test bridge missing');
+assert.equal(game.species.length,240);
+for(const label of ['COMMON','UNCOMMON','RARE','EPIC','LEGEND','MYTHIC'])assert.ok(game.species.some(f=>f.rarity===label),'Missing rarity '+label);
+assert.ok(game.species.every(f=>f.level>=1),'Each fish must have a level');
+const baseFish=game.species.slice(0,20);
+assert.ok(game.chance(baseFish[0],false,false)>game.chance(baseFish[15],false,false),'Common catches should be easier than rare');
+assert.ok(game.chance(baseFish[15],false,false)>game.chance(baseFish[18],false,false),'Rare catches should be easier than legendary');
+assert.ok(game.chance({id:21},true,false)<game.chance(baseFish[19],false,false),'Human bosses must be harder than mythic fish');
+const priorRareChance=game.chance(baseFish[15],false,false);
+const state=game.getSave();
+state.gearEquipped.rod='abyss';state.gearLevels.rod.abyss=10;state.gearEquipped.bait='void';state.gearLevels.bait.void=10;
+assert.ok(game.chance(baseFish[15],false,false)>priorRareChance,'Advanced gear must improve rare fish capture odds');
+state.gearEquipped.rod='cork';state.gearLevels.rod.cork=0;state.gearEquipped.bait='worm';state.gearLevels.bait.worm=0;
 assert.equal(typeof frame,'function','Animation must start');
 assert.ok(typeof element('navShop').onclick==='function','Shop navigation is missing');
 assert.ok(typeof listeners.pointerdown==='function','Pointer input is missing');
@@ -102,13 +138,32 @@ assert.equal(typeof frame,'function');
 // Shop catalog must render all 4 tabs and allow changing the sort field.
 element('navShop').onclick();
 const catalog=element('panelBody').innerHTML;
-for(const name of ['낚싯대','미끼','어망','조력자'])assert.ok(catalog.includes(name),name+' missing');
+for(const name of ['낚싯대','미끼','어망','조력자','피버 문어'])assert.ok(catalog.includes(name),name+' missing');
 assert.ok(catalog.includes('data-shop-tab="rod"'),'Rod tab missing');
 assert.ok(catalog.includes('data-shop-tab="bait"'),'Bait tab missing');
 assert.ok(catalog.includes('data-shop-tab="net"'),'Net tab missing');
 assert.ok(catalog.includes('data-shop-tab="helper"'),'Helper tab missing');
+assert.ok(catalog.includes('data-shop-tab="octopus"'),'Octopus fever tab missing');
+assert.equal(game.shopModels.octopus.length,6,'Six octopus models required');
+game.switchCategory('octopus');
+assert.ok(element('panelBody').innerHTML.includes('발동'),'Shop must display fever proc stats');
+assert.ok(element('panelBody').innerHTML.includes('광역 반경'),'Shop must display radial range');
 assert.ok(catalog.includes('가격 낮은순'),'Sort control missing');
 const sort=element('shopSort');assert.equal(typeof sort.onchange,'function');
 sort.value='level';sort.onchange();step(12);
 assert.ok(element('panelBody').innerHTML.includes('shop-card'),'Shop should remain rendered');
-console.log('PASS: 240 species, joystick after splash, non-blocking in-world capture FX, 24-gear shop');
+// Fever must trigger at or before the guarantee threshold and activate 8-tentacle AOE.
+state.fever.count=15;state.fever.ready=false;
+game.record(1);
+assert.equal(state.fever.ready,true,'Fever should be guaranteed by 16 fish captures');
+assert.equal(element('feverNum').textContent,'READY','Fever gauge must show ready');
+const bob=game.getBob();
+const caughtFish=game.species[0];
+game.setFish([{sp:caughtFish,x:bob.x+10,y:bob.y+10,vx:.2,size:1,phase:0}]);
+game.activate();
+assert.equal(state.fever.ready,false,'Activation must consume stored fever');
+assert.equal(state.fever.count,0,'Fever gauge must reset');
+assert.ok(game.getFeverFx(),'Octopus arm burst must start');
+step(105); // complete burst and let next casting sequence begin
+assert.equal(game.getFeverFx(),null,'Fever burst must complete');
+console.log('PASS: graded fish levels, boss resistance, gear impact, 5-tab octopus shop, underwater joystick, fever AOE, saved progress');
