@@ -1013,57 +1013,116 @@ function tick(stamp){
 }
 
 // Alpha 0.6: successful catches play directly in the fishing scene, not in a center modal.
-var catchFx=null;
+// Alpha 0.8 — giant octopus mouth and uninterrupted whole-creature suction.
+// Raster frames are prerendered into offscreen canvases; only the fishing LINE remains vector.
+var mouthFrames={},catchFx=null;
+function mouthPos(now){return{x:452,y:191+Math.sin(now*1.2)*3}}
+function mouthGape(){
+ if(view!=='fish')return 0;
+ if(catchFx){
+  var q=catchFx.elapsed,d=catchFx.duration;
+  return clamp(Math.min(q/.19,(d-q)/.30,1),0,1);
+ }
+ if(feverFx&&feverFx.caught.length){
+  var e=feverFx.elapsed,d=feverFx.duration;
+  return clamp(Math.min((e-.44)/.24,(d-e)/.34,1),0,1);
+ }
+ return 0;
+}
+function mouthFrame(frame){
+ if(mouthFrames[frame])return mouthFrames[frame];
+ var c=document.createElement('canvas');c.width=256;c.height=256;
+ var g=c.getContext('2d'),u=frame/12;
+ g.save();g.translate(128,128);
+ var outerW=24+78*u,outerH=17+86*u;
+ var skin=g.createRadialGradient(-23,-33,6,0,0,106);
+ skin.addColorStop(0,'#ffcbb0');skin.addColorStop(.55,'#df847d');skin.addColorStop(1,'#a84c5a');
+ g.fillStyle=skin;g.beginPath();g.ellipse(0,4,outerW,outerH,0,0,Math.PI*2);g.fill();
+ g.strokeStyle='#843f52';g.lineWidth=4;g.stroke();
+ var rimW=15+72*u,rimH=7+76*u;
+ var rim=g.createLinearGradient(0,-88,0,90);
+ rim.addColorStop(0,'#ffcebd');rim.addColorStop(.50,'#c65c6d');rim.addColorStop(1,'#7f354c');
+ g.fillStyle=rim;g.beginPath();g.ellipse(0,5,rimW,rimH,0,0,Math.PI*2);g.fill();
+ var innerW=Math.max(6,rimW-11),innerH=Math.max(3,rimH-10);
+ var cavity=g.createRadialGradient(-16,-30,3,0,24,90);
+ cavity.addColorStop(0,'#6d233f');cavity.addColorStop(.44,'#34132d');cavity.addColorStop(1,'#0d101f');
+ g.fillStyle=cavity;g.beginPath();g.ellipse(0,7,innerW,innerH,0,0,Math.PI*2);g.fill();
+ if(u>.25){
+  g.fillStyle='#c65b78';g.beginPath();
+  g.ellipse(0,30+u*36,innerW*.65,Math.max(3,innerH*.24),0,0,Math.PI*2);g.fill();
+  g.fillStyle='#ffa3a6';g.beginPath();
+  g.ellipse(-8,35+u*31,innerW*.23,Math.max(2,innerH*.07),0,0,Math.PI*2);g.fill();
+  // Cream lip teeth. Each is anchored to the mouth rim.
+  for(var j=-3;j<=3;j++){
+   var k=j/4,xx=k*innerW*.95,yTop=7-innerH*Math.sqrt(Math.max(.05,1-k*k));
+   g.beginPath();g.moveTo(xx-4,yTop+1);g.lineTo(xx+1,yTop+8+u*10);g.lineTo(xx+6,yTop+1);
+   g.fillStyle='#fff1d7';g.fill();
+   var yBottom=7+innerH*Math.sqrt(Math.max(.05,1-k*k));
+   g.beginPath();g.moveTo(xx-3,yBottom-1);g.lineTo(xx,yBottom-6-u*7);g.lineTo(xx+4,yBottom-1);g.fill();
+  }
+ }
+ g.strokeStyle='#ffdfc0a3';g.lineWidth=3;g.beginPath();
+ g.ellipse(0,5,rimW+2,rimH+2,0,Math.PI*.08,Math.PI*.93);g.stroke();
+ g.restore();mouthFrames[frame]=c;return c;
+}
+function drawOctopusMouth(now){
+ var open=mouthGape();if(open<=.012)return;
+ var sprite=mouthFrame(Math.max(1,Math.min(12,Math.round(open*12))));
+ var m=mouthPos(now);
+ ctx.save();ctx.drawImage(sprite,m.x-128,m.y-128,256,256);ctx.restore();
+}
+function drawSwallowCreature(entity,elapsed,delay,travel,mouth){
+ var p=clamp((elapsed-delay)/travel,0,1);
+ if(p>=1)return false;
+ var q=p*p*(3-2*p),sx=entity.x,sy=entity.y;
+ // A broad, curved suction path, with the very end guided straight into the mouth.
+ var midX=(sx+mouth.x)*.5+((sx>mouth.x)?45:-35);
+ var midY=Math.min(sy,mouth.y)+Math.max(20,Math.abs(sy-mouth.y)*.08);
+ var inv=1-q;
+ var x=inv*inv*sx+2*inv*q*midX+q*q*mouth.x;
+ var y=inv*inv*sy+2*inv*q*midY+q*q*mouth.y;
+ var scale=p<.78?1:Math.max(.02,1-(p-.78)/.22);
+ ctx.save();
+ ctx.translate(x,y);
+ ctx.scale(scale,scale); // The ENTIRE creature shrinks only as it enters the cavity.
+ if(entity.human){
+  ctx.rotate(Math.sin(p*10+entity.id)*.17);
+  humanIcon({id:entity.id,x:0,y:0,phase:entity.phase||0,size:1},time);
+ }else if(entity.sp){
+  ctx.rotate((mouth.x<sx?-.36:.2)*Math.sin(Math.PI*q));
+  drawFish({sp:entity.sp,x:0,y:0,vx:entity.vx||1,size:entity.size||1.35,phase:entity.phase||0},time);
+ }
+ ctx.restore();
+ if(p>.12&&p<.92&&Math.random()<.32){
+  particles.push({x:x+rnd(-14,14),y:y+rnd(-10,10),vx:(mouth.x-x)*.014,vy:(mouth.y-y)*.014,life:.26,size:rnd(2,5),kind:'water'});
+ }
+ return true;
+}
 function playCatchFx(caught,isHuman,name,reward,isDouble,isNew){
- var x=clamp(Number(caught.x)||510,285,990),y=clamp(Number(caught.y)||285,255,490);
+ var x=clamp(Number(caught.x)||510,260,1050),y=clamp(Number(caught.y)||310,205,615);
  catchFx={x:x,y:y,human:!!isHuman,id:isHuman?Number(caught.id):0,
-  sp:isHuman?null:caught.sp,dir:caught.vx||1,phase:caught.phase||0,
-  name:name,reward:reward,double:!!isDouble,fresh:!!isNew,elapsed:0,duration:1.45};
- // The pearlescent burst stays at the original catch position, under gameplay controls.
- spawnParticles(x,y,22+(isHuman?17:0),'gold');
- ripple(x,y);
+  sp:isHuman?null:caught.sp,dir:caught.vx||1,size:caught.size||1.4,
+  phase:caught.phase||0,name:name,reward:reward,double:!!isDouble,
+  fresh:!!isNew,elapsed:0,duration:1.75};
+ spawnParticles(x,y,16+(isHuman?12:0),'gold');ripple(x,y);
 }
 function drawCatchFx(dt){
  if(!catchFx)return;
- var fx=catchFx;fx.elapsed+=dt;var p=clamp(fx.elapsed/fx.duration,0,1);
- var ascend=1-Math.pow(1-p,2),x=fx.x+Math.sin(p*Math.PI)*12,y=fx.y-95*ascend;
+ var fx=catchFx;fx.elapsed+=dt;var p=clamp(fx.elapsed/fx.duration,0,1),mouth=mouthPos(time);
+ var entity={human:fx.human,id:fx.id,sp:fx.sp,vx:fx.dir,size:fx.size,phase:fx.phase,x:fx.x,y:fx.y};
+ drawSwallowCreature(entity,fx.elapsed,.12,1.20,mouth);
  ctx.save();
- // Bright flash at the hook; the caught silhouette rises and disappears into pearls.
- var ring=26+p*112;
- ctx.globalAlpha=Math.max(0,(1-p)*.8);
- ctx.beginPath();ctx.ellipse(fx.x,fx.y,ring,ring*.57,0,0,Math.PI*2);
- ctx.strokeStyle=fx.human?'#ffe0a5':'#baffed';ctx.lineWidth=5*(1-p)+1;ctx.stroke();
- if(p<.57){
-  ctx.globalAlpha=Math.min(1,(1-p/.65)*1.28);
-  if(fx.human){
-   ctx.save();ctx.translate(x,y);ctx.scale(.65+p*.3,.65+p*.3);
-   humanIcon({id:fx.id,x:0,y:0,phase:fx.phase,size:1},time);
-   ctx.restore();
-  }else if(fx.sp){
-   drawFish({sp:fx.sp,x:x,y:y,vx:fx.dir,size:1.6+p*.6,phase:fx.phase},time);
-  }
- }
- ctx.globalAlpha=Math.max(0,Math.min(1,p*7,1-p)*1.7);
- ctx.textAlign='center';ctx.textBaseline='middle';
- ctx.shadowColor='#06232b';ctx.shadowBlur=7;
- ctx.font='900 18px system-ui,sans-serif';ctx.fillStyle=fx.fresh?'#ffe09c':'#e1fff8';
- ctx.fillText(fx.fresh?'✦ NEW DISCOVERY ✦':(fx.human?'✦ ELITE CATCH ✦':'✦ CATCH ✦'),fx.x,fx.y+48-36*ascend);
- ctx.font='900 22px system-ui,sans-serif';ctx.fillStyle='#fff9e7';
- ctx.fillText(fx.name+(fx.double?' ×2':''),fx.x,fx.y+73-48*ascend);
- ctx.font='800 18px system-ui,sans-serif';ctx.fillStyle='#ffde8d';
- ctx.fillText('◈ +'+fx.reward,fx.x,fx.y+99-60*ascend);
- ctx.shadowBlur=0;
- // Tiny collectible pearls travel toward the top-right pearl counter.
- for(var i=0;i<8;i++){
-  var delay=i*.045,q=clamp((p-delay)/.83,0,1),easeQ=q*q*(3-2*q);
-  if(q<=0||q>=1)continue;
-  var px=fx.x+(1117-fx.x)*easeQ+Math.sin(i*2.4)*35*Math.sin(Math.PI*q);
-  var py=fx.y+(42-fx.y)*easeQ-85*Math.sin(Math.PI*q);
-  ctx.globalAlpha=Math.sin(Math.PI*q)*.85;ctx.beginPath();
-  ctx.arc(px,py,2.5+(i%3),0,Math.PI*2);ctx.fillStyle='#ffdf9b';ctx.fill();
- }
+ ctx.globalAlpha=Math.max(0,Math.min(1,fx.elapsed*5,(fx.duration-fx.elapsed)*2.5));
+ ctx.textAlign='left';ctx.shadowColor='#031d25';ctx.shadowBlur=7;
+ ctx.fillStyle=fx.fresh?'#ffe7a6':'#e2fcf3';ctx.font='900 17px system-ui';
+ ctx.fillText((fx.fresh?'✦ NEW · ':'')+fx.name+(fx.double?' ×2':''),mouth.x+108,mouth.y-26);
+ ctx.fillStyle='#ffe3a0';ctx.font='900 16px system-ui';
+ ctx.fillText('◈ +'+fx.reward,mouth.x+108,mouth.y+1);
  ctx.restore();
- if(fx.elapsed>=fx.duration)catchFx=null;
+ if(fx.elapsed>=fx.duration){
+  catchFx=null;
+  if(view==='fish')startCast();
+ }
 }
 
 var previousModeAlpha04=setMode;
