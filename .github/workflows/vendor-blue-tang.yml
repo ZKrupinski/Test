@@ -9,6 +9,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  actions: write
 jobs:
   vendor:
     runs-on: ubuntu-latest
@@ -38,3 +39,7 @@ jobs:
           fi
           git commit -m "Store approved Blue Tang game sprite atlases locally"
           git push origin HEAD:main
+      - name: Trigger GitHub Pages deployment after asset commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref main
