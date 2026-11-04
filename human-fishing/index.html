@@ -76,7 +76,7 @@ var raw=[
 var habitats=[],species=[];
 raw.forEach(function(s,h){var z=s.split('|');habitats.push(z[0]);z[1].split(',').forEach(function(n,k){species.push({id:'F'+String(species.length+1).padStart(3,'0'),name:n,habitat:h,rarity:k>=18?'LEGEND':k>=14?'RARE':'NORMAL',index:k})})});
 var humans=['졸린 어부','수다쟁이 관광객','과자 부자','꼬마 해적 선장','과학자','용감한 탐험가','황금 상인','진주 사냥꾼','잠수부','보물 수집가','망원경 선장','낚시왕','마술사','음악가','화가','장군','모험가','공주','왕','심해 교수','기계공','우주 여행자','고고학자','전설의 낚시왕'];
-var key='humanFishingAlpha01',save={coins:80,owned:{},placed:[],human:{},up:[0,0,0],catches:0,zone:0,decor:0};
+var key='humanFishingAlpha01',save={coins:80,owned:{},placed:[],human:{},humanPlaced:[],up:[0,0,0],catches:0,zone:0,decor:0};
 try{var old=JSON.parse(localStorage.getItem(key)||'null');if(old){save=Object.assign(save,old)}}catch(e){}
 function persist(){try{localStorage.setItem(key,JSON.stringify(save))}catch(e){}}
 function $(id){return document.getElementById(id)}
@@ -112,8 +112,8 @@ function chooseZone(){var html='<div class="cards">'+habitats.map(function(h,i){
 $('navFish').onclick=function(){setMode('fish');chooseZone()};$('navHuman').onclick=function(){setMode('human')};$('navTank').onclick=function(){setMode('tank')};$('navBook').onclick=function(){setMode('book')};$('navGrow').onclick=function(){setMode('grow')};$('closePanel').onclick=function(){setMode('fish')};$('stageName').parentElement.style.cursor='pointer';$('stageName').parentElement.onclick=function(){if(view==='fish')chooseZone()};
 function circle(x,y,r,col){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=col;ctx.fill()}
 function rounded(x,y,w,h,r,fill){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=fill;ctx.fill()}
-function sea(under){var sky=ctx.createLinearGradient(0,0,0,230);sky.addColorStop(0,under?'#0e3c4e':'#8ac4c3');sky.addColorStop(1,under?'#286f7f':'#d4d6b2');ctx.fillStyle=sky;ctx.fillRect(0,0,W,230);circle(1035,82,38,under?'#82b3aa55':'#fff1b0');for(var i=0;i<9;i++){var x=(i*183+90)%1350;ctx.fillStyle=under?'#0a4a5b48':'#43868c47';ctx.beginPath();ctx.moveTo(x,208);ctx.lineTo(x+95,92+(i%3)*27);ctx.lineTo(x+210,208);ctx.fill()}
-var ocean=ctx.createLinearGradient(0,198,0,720);var palettes=[['#37a5b3','#0c536b','#092e4c'],['#2c92a0','#13516a','#073449'],['#6397a0','#2c626e','#112e45']];var pal=palettes[under?decor%3:zone%3];ocean.addColorStop(0,pal[0]);ocean.addColorStop(.55,pal[1]);ocean.addColorStop(1,pal[2]);ctx.fillStyle=ocean;ctx.fillRect(0,198,1280,522);ctx.strokeStyle='#b5f6e050';ctx.lineWidth=3;ctx.beginPath();for(var k=0;k<1280;k+=8){var y=200+Math.sin(k*.024+time*1.7)*3; k===0?ctx.moveTo(k,y):ctx.lineTo(k,y)}ctx.stroke();
+function sea(under){var sky=ctx.createLinearGradient(0,0,0,230);sky.addColorStop(0,under?'#0e3c4e':'#8ac4c3');sky.addColorStop(1,under?'#286f7f':'#d4d6b2');ctx.fillStyle=sky;ctx.fillRect(0,0,W,269);circle(1035,82,38,under?'#82b3aa55':'#fff1b0');for(var i=0;i<9;i++){var x=(i*183+90)%1350;ctx.fillStyle=under?'#0a4a5b48':'#43868c47';ctx.beginPath();ctx.moveTo(x,263);ctx.lineTo(x+95,92+(i%3)*27);ctx.lineTo(x+210,263);ctx.fill()}
+var ocean=ctx.createLinearGradient(0,269,0,720);var palettes=[['#37a5b3','#0c536b','#092e4c'],['#2c92a0','#13516a','#073449'],['#6397a0','#2c626e','#112e45']];var pal=palettes[under?decor%3:zone%3];ocean.addColorStop(0,pal[0]);ocean.addColorStop(.55,pal[1]);ocean.addColorStop(1,pal[2]);ctx.fillStyle=ocean;ctx.fillRect(0,269,1280,451);ctx.strokeStyle='#b5f6e050';ctx.lineWidth=3;ctx.beginPath();for(var k=0;k<1280;k+=8){var y=269+Math.sin(k*.024+time*1.7)*3; k===0?ctx.moveTo(k,y):ctx.lineTo(k,y)}ctx.stroke();
 for(var j=0;j<12;j++){var yy=250+j*35;ctx.strokeStyle='rgba(197,255,246,'+(.016+(12-j)*.003)+')';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(120+Math.sin(time+j)*40,yy);ctx.quadraticCurveTo(580,yy+15,1110,yy);ctx.stroke()}
 for(var c=0;c<16;c++){var cx=c*96-15;ctx.fillStyle=c%3?'#114f61':'#155e6b';ctx.beginPath();ctx.moveTo(cx,720);ctx.quadraticCurveTo(cx-45,680,cx,637+Math.sin(c)*14);ctx.quadraticCurveTo(cx+40,681,cx+75,720);ctx.fill()}
 for(var p=0;p<10;p++){var px=p*153+20,py=704;ctx.strokeStyle=p%2?'#7db8aa7a':'#548b8d8a';ctx.lineWidth=8;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(px,py);ctx.quadraticCurveTo(px-28,py-55,px+Math.sin(time*.7+p)*20,py-120-random()*0);ctx.stroke()}
@@ -149,6 +149,251 @@ if(view==='human'){hum.forEach(function(a){if(!hook||a!==hook.obj){a.x+=a.vx*dt*
 if(view!=='tank'){drawOcto(time);if(view==='fish'||view==='human'){if(hook){hook.elapsed+=dt;var t=ease(hook.elapsed/(1.10-save.up[0]*.08)),o=hook.obj;o.x=mix(hook.startX,430,t);o.y=mix(hook.startY,315-100*Math.sin(t*Math.PI),t);bob.x=o.x;bob.y=o.y;if(hook.elapsed>1.2-save.up[0]*.08)success()}drawLine();if(!hook)drawBob()}}
 bubbles.forEach(function(b){b.y-=b.speed*dt*50;b.x+=Math.sin(time+b.phase)*dt*4;if(b.y<0){b.y=730;b.x=rnd(10,1250)}ctx.strokeStyle='#b4f8f052';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,7);ctx.stroke()});
 particleFrame(dt);if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}requestAnimationFrame(tick)}
+
+// ALPHA 0.2 — unified fish + elite/boss humans; human codex and underwater exhibits.
+// Preserve the existing humanFishingAlpha01 save key and the fish inventory.
+if(!Array.isArray(save.humanPlaced))save.humanPlaced=[];
+if(!save.human||typeof save.human!=='object')save.human={};
+$('navHuman').style.display='none';
+$('navFish').textContent='🎣 통합 낚시';
+$('navTank').textContent='🐠 생물 아쿠아리움';
+$('navBook').textContent='📖 통합 도감';
+$('action').innerHTML='찌 놓기<br>포획';
+function humanTier(id){return id>=20?'BOSS':'ELITE'}
+function buildHum(){
+ hum=[];
+ for(var i=0;i<3;i++){
+   var id=i===2&&Math.random()<.17 ? 20+Math.floor(rnd(0,4)):i===0?8+Math.floor(rnd(0,12)):Math.floor(rnd(0,20));
+   hum.push({id:id,x:420+i*330+rnd(-85,45),y:325+i*78+rnd(-27,28),phase:rnd(0,6.28),vx:rnd(.18,.44)*(Math.random()<.5?-1:1),size:id>=20?1.27:1});
+ }
+}
+function updateStats(){
+ var count=Object.keys(save.owned).length,h=Object.keys(save.human).filter(function(k){return save.human[k]>0}).length;
+ $('coins').textContent='◈ '+save.coins.toLocaleString()+'　🐟 '+count+'/240　🧑 '+h+'/24';
+}
+function setMode(m){
+ if(m==='human')m='fish';
+ view=m;hook=null;drag=false;canvas.classList.remove('dragging');
+ $('panel').classList.remove('open');
+ $('sideinfo').classList.toggle('show',m==='tank');
+ ['Fish','Tank','Book','Grow'].forEach(function(n){
+  $('nav'+n).classList.toggle('active',({Fish:'fish',Tank:'tank',Book:'book',Grow:'grow'})[n]===m);
+ });
+ $('action').style.display=m==='fish'?'':'none';
+ $('hintTitle').textContent=m==='tank'?'물고기와 엘리트 인간을 함께 전시하세요':m==='book'?'물고기 240종 · 인간 24종':m==='grow'?'진주로 문어를 성장시켜요':'물고기 또는 인간 가까이 찌를 드래그!';
+ $('hint').textContent=m==='tank'?'잡은 인간은 거품 캡슐 속에서 헤엄칩니다.':m==='fish'?'손을 떼면 포획! 인간은 강한 저항 연출이 있어요.':'통합 도감과 성장 시스템';
+ $('stageName').textContent=m==='tank'?'생물 아쿠아리움':m==='book'?'통합 생물 도감':m==='grow'?'문어 성장':habitats[zone]+' · 인간 출몰';
+ $('stageNo').textContent=m==='tank'?'MY AQUARIUM':m==='book'?'240 FISH + 24 HUMANS':m==='grow'?'UPGRADES':'STAGE '+String(zone+1).padStart(2,'0')+' / 12';
+ bob={x:680,y:430};
+ if(m==='book')renderBook(-3,'');
+ if(m==='grow')renderGrow();
+ if(m==='tank')renderTankSide();
+ updateStats();
+}
+function nearest(){
+ var best=null,score=1,kind='';
+ fish.forEach(function(a){
+  var d=Math.hypot(a.x-bob.x,a.y-bob.y)/(135+save.up[1]*20);
+  if(d<score){score=d;best=a;kind='fish'}
+ });
+ hum.forEach(function(a){
+  var d=Math.hypot(a.x-bob.x,a.y+22-bob.y)/(117+save.up[1]*14+(a.id>=20?40:0));
+  if(d<score){score=d;best=a;kind='human'}
+ });
+ return best?{obj:best,kind:kind}:null;
+}
+function release(){
+ if(hook||view!=='fish')return;
+ var found=nearest();ripple(bob.x,bob.y);beep('hit');
+ if(found){
+  hook={obj:found.obj,kind:found.kind,elapsed:0,startX:found.obj.x,startY:found.obj.y,originX:bob.x,originY:bob.y};
+  $('hintTitle').textContent=found.kind==='human'?(humanTier(found.obj.id)+' 인간이 낚싯줄에 걸렸어!'):'물고기 입질 성공!';
+  $('hint').textContent=found.kind==='human'?'엘리트는 격렬하게 저항하지만 자동으로 끌려옵니다.':'낚싯줄이 당겨지며 자동으로 올라옵니다.';
+  spawnParticles(bob.x,bob.y,found.kind==='human'?24:12,'water');
+ }else{
+  announce('💧','앗, 놓쳤다!','물고기 또는 헤엄치는 인간 가까이 놓으세요.');
+  $('hintTitle').textContent='찌를 다시 드래그해보세요';spawnParticles(bob.x,bob.y,8,'water');
+ }
+}
+function success(){
+ var o=hook.obj,human=hook.kind==='human',id=human?String(o.id):o.sp.id;
+ var name=human?humans[o.id]:o.sp.name,owned=human?save.human:save.owned,fresh=!owned[id];
+ owned[id]=(owned[id]||0)+1;
+ var reward=(human?70:15)+(human?(o.id>=20?180:o.id*5):o.sp.index>=18?85:o.sp.index>=14?35:0)+save.up[2]*4;
+ save.coins+=reward;save.catches++;
+ if(human&&save.humanPlaced.length===0)save.humanPlaced.push(id);
+ if(!human&&save.placed.length===0)save.placed.push(id);
+ persist();updateStats();
+ announce(human?'🧑':'🐟',(fresh?'NEW! ':'')+name+(human?' · '+humanTier(o.id):'')+' 포획!',(fresh?'통합 도감에 등록 · ':'')+'진주 +'+reward);
+ beep('catch');spawnParticles(420,260,human?42:26,'gold');
+ hook=null;buildFish();buildHum();
+ $('hintTitle').textContent='다음 물고기나 엘리트 인간을 노려보세요!';
+ $('hint').textContent='모든 생물이 하나의 낚시터에서 함께 등장합니다.';
+}
+function renderBook(filter,query){
+ filter=filter===undefined?-3:Number(filter);query=query||'';
+ var count=Object.keys(save.owned).length,hCount=Object.keys(save.human).filter(function(k){return save.human[k]>0}).length;
+ var tool='<div class="toolbar"><input id="search" placeholder="인간·물고기 이름 검색" value="'+escapeHtml(query)+'"><select id="filter">'+
+ '<option value="-3" '+(filter===-3?'selected':'')+'>전체 생물 · 264종</option>'+
+ '<option value="-2" '+(filter===-2?'selected':'')+'>🧑 인간 도감 · 24종</option>'+
+ '<option value="-1" '+(filter===-1?'selected':'')+'>🐟 물고기 도감 · 240종</option>'+
+ habitats.map(function(n,i){return '<option value="'+i+'" '+(filter===i?'selected':'')+'>'+escapeHtml(n)+'</option>'}).join('')+'</select></div>';
+ var visibleFish=filter===-3||filter===-1||filter>=0?species.filter(function(x){return filter<0||x.habitat===filter}):[];
+ var visibleHuman=filter===-3||filter===-2?humans.map(function(n,id){return{id:id,name:n}}):[];
+ var cards='<div class="cards">'+visibleHuman.map(function(a){
+  var id=String(a.id),n=save.human[id]||0,tier=humanTier(a.id);
+  return '<div class="card '+(n?'':'locked')+'" data-name="'+escapeHtml(a.name)+'"><div class="face">'+(n?(tier==='BOSS'?'👑':'🧑'):'◈')+'</div>'+
+  '<div class="name">'+(n?escapeHtml(a.name):'???')+'</div><div class="meta">'+tier+' · 인간</div><div class="num">'+(n?'포획 '+n+'명':'H'+String(a.id+1).padStart(3,'0')+' 미발견')+'</div></div>';
+ }).join('')+
+ visibleFish.map(function(sp){
+  var n=save.owned[sp.id]||0;
+  return '<div class="card '+(n?'':'locked')+'" data-name="'+escapeHtml(sp.name)+'"><div class="face">'+(n?'🐟':'◈')+'</div><div class="name">'+(n?escapeHtml(sp.name):'???')+'</div><div class="meta">'+escapeHtml(habitats[sp.habitat])+'</div><div class="num">'+(n?'보유 '+n+'마리':sp.id+' 미발견')+'</div></div>';
+ }).join('')+'</div>';
+ openPanel('통합 생물 도감','물고기 '+count+'/240 · 인간 '+hCount+'/24 · 264종 컬렉션',tool+cards);
+ $('search').oninput=function(){
+  var q=this.value.toLowerCase();
+  document.querySelectorAll('#panelBody .cards .card').forEach(function(card){card.style.display=card.dataset.name.toLowerCase().includes(q)?'':'none'});
+ };
+ $('filter').onchange=function(){renderBook(Number(this.value),'')};
+}
+function renderTankSide(){
+ var fishUsed={},humanUsed={};
+ save.placed.forEach(function(id){fishUsed[id]=(fishUsed[id]||0)+1});
+ save.humanPlaced.forEach(function(id){humanUsed[id]=(humanUsed[id]||0)+1});
+ var fishOptions=Object.keys(save.owned).filter(function(id){return save.owned[id]>(fishUsed[id]||0)});
+ var humanOptions=Object.keys(save.human).filter(function(id){return save.human[id]>(humanUsed[id]||0)});
+ var html='<h3>🐙 생물 아쿠아리움</h3><p>물고기 '+save.placed.length+'/30 · 인간 '+save.humanPlaced.length+'/8<br>인간은 안전한 거품 캡슐에 전시됩니다.</p>';
+ html+='<div class="slot"><span>수조 테마</span><button id="decorChange">변경</button></div>';
+ html+='<h3>🧑 인간 배치</h3>';
+ if(!humanOptions.length)html+='<p>낚시터에서 엘리트 인간을 잡으면 배치할 수 있어요.</p>';
+ humanOptions.forEach(function(id){var name=humans[Number(id)]||'인간';html+='<div class="slot"><span>'+ (Number(id)>=20?'👑 ':'🧑 ')+escapeHtml(name)+'</span><button data-humanplace="'+id+'">＋</button></div>'});
+ if(save.humanPlaced.length){html+='<h3>🧑 전시 중인 인간</h3>';save.humanPlaced.forEach(function(id,i){html+='<div class="slot"><span>🧑 '+escapeHtml(humans[Number(id)]||'인간')+'</span><button data-humanremove="'+i+'">−</button></div>'})}
+ html+='<h3>🐟 물고기 배치</h3>';
+ if(!fishOptions.length)html+='<p>잡은 물고기를 먼저 모아보세요.</p>';
+ fishOptions.slice(0,40).forEach(function(id){var sp=species.find(function(z){return z.id===id});if(sp)html+='<div class="slot"><span>🐟 '+escapeHtml(sp.name)+'</span><button data-fishplace="'+id+'">＋</button></div>'});
+ if(save.placed.length){html+='<h3>🐠 전시 중인 물고기</h3>';save.placed.forEach(function(id,i){var sp=species.find(function(z){return z.id===id});html+='<div class="slot"><span>🐠 '+escapeHtml(sp?sp.name:id)+'</span><button data-fishremove="'+i+'">−</button></div>'})}
+ $('sideinfo').innerHTML=html;
+ $('decorChange').onclick=function(){decor=(decor+1)%3;save.decor=decor;persist();renderTankSide()};
+ document.querySelectorAll('[data-humanplace]').forEach(function(btn){btn.onclick=function(){
+  var id=this.dataset.humanplace,c=save.humanPlaced.filter(function(x){return x===id}).length;
+  if(save.humanPlaced.length>=8||c>=save.human[id]){announce('⚠','전시 공간 부족','인간 전시 8명까지 또는 보유 수량만 배치할 수 있어요.');return}
+  save.humanPlaced.push(id);persist();renderTankSide();beep('catch');
+ }});
+ document.querySelectorAll('[data-humanremove]').forEach(function(btn){btn.onclick=function(){save.humanPlaced.splice(Number(this.dataset.humanremove),1);persist();renderTankSide()}});
+ document.querySelectorAll('[data-fishplace]').forEach(function(btn){btn.onclick=function(){
+  var id=this.dataset.fishplace,c=save.placed.filter(function(x){return x===id}).length;
+  if(save.placed.length>=30||c>=save.owned[id])return;
+  save.placed.push(id);persist();renderTankSide();beep('catch');
+ }});
+ document.querySelectorAll('[data-fishremove]').forEach(function(btn){btn.onclick=function(){save.placed.splice(Number(this.dataset.fishremove),1);persist();renderTankSide()}});
+}
+function drawOcto(now){
+ // The baby octopus fishes FROM ABOVE the surface; only the line is vector-rendered.
+ ctx.save();ctx.translate(35,27+Math.sin(now*1.2)*3);
+ ctx.fillStyle='#2d4d54bb';ctx.beginPath();ctx.ellipse(136,240,145,20,0,0,Math.PI*2);ctx.fill();
+ ctx.drawImage(octo,0,0,260,232);
+ ctx.restore();
+}
+function drawLine(){
+ var anchor={x:302,y:234+Math.sin(time*1.2)*3};
+ var end=hook?{x:hook.obj.x,y:hook.obj.y+20}:bob;
+ ctx.lineCap='round';ctx.lineJoin='round';
+ var slack=drag?23:hook?2:68;
+ ctx.beginPath();ctx.moveTo(anchor.x,anchor.y);
+ ctx.bezierCurveTo(anchor.x+86,anchor.y+40+slack,end.x-95,end.y+slack,end.x,end.y);
+ ctx.strokeStyle='#042634b2';ctx.lineWidth=3.7;ctx.stroke();
+ ctx.strokeStyle=hook?'#fff6d6':'#d0f6ef';ctx.lineWidth=1.6;ctx.stroke();
+ ctx.beginPath();ctx.moveTo(end.x-6,end.y-3);ctx.lineTo(end.x+7,end.y+7);
+ ctx.strokeStyle='#fff1d3';ctx.lineWidth=1.5;ctx.stroke();
+}
+function humanIcon(a,now){
+ var x=a.x,y=a.y+Math.sin(now*1.4+(a.phase||0))*6,tier=humanTier(a.id),boss=tier==='BOSS',sz=(a.size||1)*(boss?1.05:1);
+ ctx.save();ctx.translate(x,y);ctx.scale(sz,sz);
+ // elite/boss glow, swimming bubbles, animated fin straps
+ circle(0,7,boss?72:59,boss?'#faba5929':'#d7576c24');
+ ctx.fillStyle=boss?'#d9aa4d':'#c76c70';ctx.beginPath();ctx.ellipse(0,18,27,46,.15,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle='#694754';ctx.lineWidth=14;ctx.lineCap='round';
+ ctx.beginPath();ctx.moveTo(-17,36);ctx.lineTo(-37+Math.sin(now*4)*13,69);ctx.moveTo(16,37);ctx.lineTo(40-Math.sin(now*4)*12,64);ctx.stroke();
+ ctx.strokeStyle='#e8a67f';ctx.lineWidth=13;
+ ctx.beginPath();ctx.moveTo(-25,0);ctx.lineTo(-48,10+Math.sin(now*3)*10);ctx.moveTo(25,0);ctx.lineTo(50,10-Math.sin(now*3)*10);ctx.stroke();
+ var skin=ctx.createRadialGradient(-10,-40,5,0,-23,57);skin.addColorStop(0,'#ffddba');skin.addColorStop(1,'#cc7f74');
+ ctx.fillStyle=skin;ctx.beginPath();ctx.ellipse(0,-29,boss?44:38,boss?44:40,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle=boss?'#47334f':'#5c333f';ctx.beginPath();ctx.ellipse(0,-59,38,16,0,Math.PI,Math.PI*2);ctx.fill();
+ if(a.id%4===1){ctx.fillStyle='#d3b06b';ctx.fillRect(-47,-64,96,11);ctx.fillRect(-23,-83,46,22)}
+ if(a.id%4===2){ctx.fillStyle='#849eaa';ctx.beginPath();ctx.ellipse(0,-50,48,14,0,Math.PI,Math.PI*2);ctx.fill()}
+ if(boss){ctx.fillStyle='#f6d78f';ctx.beginPath();ctx.moveTo(-30,-68);ctx.lineTo(-20,-97);ctx.lineTo(-3,-71);ctx.lineTo(9,-103);ctx.lineTo(22,-71);ctx.lineTo(33,-93);ctx.lineTo(35,-65);ctx.fill();}
+ circle(-14,-29,7,'#fff8df');circle(14,-29,7,'#fff8df');circle(-12,-29,3.5,boss?'#f14a4b':'#3c3340');circle(12,-29,3.5,boss?'#f14a4b':'#3c3340');
+ ctx.fillStyle='#653340';ctx.beginPath();ctx.ellipse(0,-9,10,7,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle=boss?'#edbb7c':'#acd6da';ctx.fillRect(-21,42,42,10);
+ ctx.font='bold 15px system-ui';ctx.textAlign='center';ctx.fillStyle=boss?'#ffdf7f':'#ffb0a0';ctx.fillText(tier,0,-107);
+ ctx.restore();
+}
+function drawingTank(now){
+ sea(true);
+ ctx.fillStyle='#fffdfa0c';ctx.fillRect(20,25,1240,656);
+ ctx.strokeStyle='#c3e3e78b';ctx.lineWidth=20;ctx.strokeRect(20,25,1240,656);
+ ctx.strokeStyle='#194451';ctx.lineWidth=6;ctx.strokeRect(20,25,1240,656);
+ ctx.fillStyle='#cfb98b';ctx.fillRect(32,656,1216,30);
+ for(var i=0;i<20;i++){var x=80+i*58+Math.sin(i*12)*16;ctx.fillStyle=colors[(i+decor*3)%colors.length]+'77';ctx.beginPath();ctx.ellipse(x,638,35,17,0,0,Math.PI*2);ctx.fill()}
+ coral(now);
+ save.placed.forEach(function(id,i){
+  var sp=species.find(function(v){return v.id===id});if(!sp)return;
+  var xx=100+(i*151)%1070+Math.sin(now*(.34+(i%4)*.08)+i)*50,yy=220+((i*89)%370)+Math.sin(now*.8+i)*18;
+  drawFish({sp:sp,x:clamp(xx,90,1130),y:yy,vx:i%2===0?1:-1,size:1.05+(i%4)*.2,phase:i},now);
+ });
+ save.humanPlaced.forEach(function(id,i){
+  var humanId=Number(id),sx=235+(i%4)*239+Math.sin(now*.6+i)*14,sy=318+Math.floor(i/4)*208+Math.sin(now*1.3+i)*10;
+  circle(sx,sy+24,86,humanId>=20?'#ffd48721':'#93ecff24');
+  ctx.beginPath();ctx.ellipse(sx,sy+24,84,108,0,0,Math.PI*2);ctx.lineWidth=4;ctx.strokeStyle=humanId>=20?'#ffe3a4a8':'#b0eaffaa';ctx.stroke();
+  ctx.save();ctx.translate(sx,sy+6);ctx.scale(.76,.76);humanIcon({id:humanId,x:0,y:0,phase:i,size:1},now);ctx.restore();
+  ctx.fillStyle='#f9e7c3';ctx.textAlign='center';ctx.font='bold 12px system-ui';ctx.fillText(humans[humanId],sx,sy+128);
+ });
+}
+function tick(stamp){
+ var dt=Math.min((stamp-last)/1000,.045);last=stamp;time+=dt;
+ ctx.clearRect(0,0,W,H);
+ if(view==='tank'){drawingTank(time)}
+ else{
+  sea(false);coral(time);
+  if(view==='fish'||view==='book'||view==='grow'){
+   fish.forEach(function(a){
+    if(!hook||a!==hook.obj){a.x+=a.vx*dt*60;a.phase+=dt*.4;if(a.x<320||a.x>1195)a.vx*=-1}
+    drawFish(a,time);
+   });
+   hum.forEach(function(a){
+    if(!hook||a!==hook.obj){a.x+=a.vx*dt*55;a.phase+=dt*.23;if(a.x<350||a.x>1200)a.vx*=-1}
+    humanIcon(a,time);
+   });
+  }
+  drawOcto(time);
+  if(view==='fish'){
+   if(hook){
+    hook.elapsed+=dt;
+    var duration=hook.kind==='human'?(hook.obj.id>=20?2.5:1.85):(1.10-save.up[0]*.08);
+    var p=ease(hook.elapsed/duration),o=hook.obj;
+    o.x=mix(hook.startX,390,p)+ (hook.kind==='human'?Math.sin(time*21)*(1-p)*15:0);
+    o.y=mix(hook.startY,260-55*Math.sin(p*Math.PI),p);
+    bob.x=o.x;bob.y=o.y;
+    if(hook.elapsed>=duration)success();
+   }
+   drawLine();if(!hook)drawBob();
+  }
+ }
+ bubbles.forEach(function(b){
+  b.y-=b.speed*dt*50;b.x+=Math.sin(time+b.phase)*dt*4;
+  if(b.y<0){b.y=730;b.x=rnd(10,1250)}
+  ctx.strokeStyle='#b4f8f052';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.stroke();
+ });
+ particleFrame(dt);
+ if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}
+ requestAnimationFrame(tick);
+}
+$('navFish').onclick=function(){setMode('fish');chooseZone()};
+$('navTank').onclick=function(){setMode('tank')};
+$('navBook').onclick=function(){setMode('book')};
+$('navGrow').onclick=function(){setMode('grow')};
+$('action').onclick=function(){if(view==='fish'&&!hook)release()};
+
 buildFish();buildHum();updateStats();setMode('fish');requestAnimationFrame(tick);
 })();
 </script></body></html>
