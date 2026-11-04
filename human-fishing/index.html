@@ -828,7 +828,7 @@ function fishSprite(sp){
  }
  sprites[key]=c;return c;
 }
-function drawFish(a,now,alpha){var sp=a.sp;if(!sp)return;var sprite=fishSprite(sp),sz=.5*(a.size||fishVisualProfile(sp).baseScale);if(alpha!==undefined)ctx.globalAlpha=alpha;ctx.save();ctx.translate(a.x,a.y+Math.sin(now*2+a.phase)*Math.min(3,1.8+sz));if(a.vx>0)ctx.scale(-1,1);ctx.drawImage(sprite,-sprite.width*.5*sz,-sprite.height*.5*sz,sprite.width*sz,sprite.height*sz);ctx.restore();ctx.globalAlpha=1}
+function drawFish(a,now,alpha){var sp=a.sp;if(!sp)return;var sprite=fishSprite(sp),sz=.5*(a.size||fishVisualProfile(sp).baseScale);if(alpha!==undefined)ctx.globalAlpha=alpha;ctx.save();ctx.translate(a.x,a.y+Math.sin(now*2+a.phase)*Math.min(3,1.8+sz));if(a.shakeUntil>now){var fade=clamp((a.shakeUntil-now)/.14,0,1),strength=(a.shakePower||1.4)*fade;ctx.translate(Math.sin(now*63+a.phase)*strength,Math.cos(now*83+a.phase)*strength*.6);ctx.rotate(Math.sin(now*46+a.phase)*strength*.023)}if(a.vx>0)ctx.scale(-1,1);ctx.drawImage(sprite,-sprite.width*.5*sz,-sprite.height*.5*sz,sprite.width*sz,sprite.height*sz);ctx.restore();ctx.globalAlpha=1}
 function drawOcto(now){ctx.save();ctx.translate(102,448+Math.sin(now*1.2)*8);ctx.drawImage(octo,0,0,260,236);ctx.restore()}
 function drawLine(){var anchor={x:352,y:548+Math.sin(time*1.2)*5},end=hook?{x:hook.obj.x,y:hook.obj.y}:bob;ctx.lineCap='round';ctx.lineJoin='round';var sag=drag?55:hook?0:105;ctx.beginPath();ctx.moveTo(anchor.x,anchor.y);ctx.bezierCurveTo(anchor.x+170,anchor.y-210+sag,end.x-130,end.y+sag,end.x,end.y);ctx.strokeStyle='#053945b8';ctx.lineWidth=5;ctx.stroke();ctx.strokeStyle='#f7e8c8';ctx.lineWidth=2.4;ctx.stroke();ctx.beginPath();ctx.moveTo(end.x-6,end.y-3);ctx.lineTo(end.x+7,end.y+8);ctx.strokeStyle='#fff7dc';ctx.lineWidth=2;ctx.stroke()}
 function drawBob(){var x=bob.x,y=bob.y;circle(x,y,28,drag?'#fff6be2c':'#ffeaad15');ctx.strokeStyle=drag?'#f4e49daa':'#efffff33';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y,27+Math.sin(time*4)*3,11,0,0,7);ctx.stroke();ctx.fillStyle='#ffe9ba';ctx.beginPath();ctx.ellipse(x,y,11,18,0,0,7);ctx.fill();ctx.fillStyle='#ed736d';ctx.beginPath();ctx.ellipse(x,y-5,11,11,0,Math.PI,Math.PI*2);ctx.fill();ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.stroke();circle(x-3,y-7,2,'#ffffff')}
@@ -1615,7 +1615,8 @@ function rodTip(now){
 }
 function drawOcto(now){
  // Base octopus is a bitmap, with 12 cached bitmap mouth-opening phases.
- ctx.save();ctx.translate(295+(octoGroggy>0?Math.sin(now*48)*3.5:0),15+Math.sin(now*1.2)*3);
+ var hit=vibrationOffset('octo');
+ ctx.save();ctx.translate(295+hit.x+(octoGroggy>0?Math.sin(now*48)*3.5:0),15+hit.y+Math.sin(now*1.2)*3);
  if(octoGroggy>0)ctx.globalAlpha=.78;
  ctx.drawImage(octo,0,0,280,253);ctx.restore();
  drawOctopusMouth(now);
@@ -1668,7 +1669,8 @@ function drawBob(){
   ctx.setLineDash([6,8]);ctx.strokeStyle='#b5f6e9a6';ctx.lineWidth=1.5;
   ctx.beginPath();ctx.arc(x,y,70,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
  }
- ctx.save();ctx.translate(x,y);ctx.rotate(Math.sin(time*2.8)*.08);
+ var hit=vibrationOffset('lure');
+ ctx.save();ctx.translate(x+hit.x,y+hit.y);ctx.rotate(Math.sin(time*2.8)*.08);
  var b=ctx.createLinearGradient(-8,-17,10,16);b.addColorStop(0,'#fff5d9');b.addColorStop(.48,lure.color);b.addColorStop(1,'#744e5a');
  ctx.beginPath();ctx.ellipse(0,0,11+lure.tier*.6,18+lure.tier*.5,0,0,Math.PI*2);ctx.fillStyle=b;ctx.fill();
  ctx.strokeStyle='#ffebcb';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,14);ctx.lineTo(0,25);ctx.quadraticCurveTo(6,29,8,20);ctx.stroke();
@@ -1887,6 +1889,7 @@ function drawSwallowCreature(entity,elapsed,delay,travel,mouth){
  var point=swallowPoint(entity.x,entity.y,mouth,p),x=point.x,y=point.y;
  var scale=p<.79?1:Math.max(.02,1-(p-.79)/.21);
  ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);
+ if(entity.vibration){var shake=entity.vibration;ctx.translate(Math.sin(time*48+(entity.phase||0))*shake,Math.cos(time*63+(entity.phase||0))*shake*.55);ctx.rotate(Math.sin(time*36+(entity.phase||0))*shake*.021)}
  if(entity.human){
   ctx.rotate(Math.sin(p*10+(entity.id||0))*.14);
   humanIcon({id:entity.id,x:0,y:0,phase:entity.phase||0,size:1},time);
@@ -1905,6 +1908,7 @@ function drawHookSwallow(now){
  if(!hook||!hook.travelDuration)return;
  var o=hook.obj;
  var entity={x:hook.startX,y:hook.startY,human:hook.kind==='human',
+  vibration:hook.kind==='fish'?(2.0+3*clamp(hook.elapsed/(hook.travelDuration||1),0,1)):1.7,
   id:hook.kind==='human'?o.id:0,sp:hook.kind==='fish'?o.sp:null,
   size:o.size||1.35,vx:o.vx||1,phase:o.phase||0};
  var approach=hook.willEscape?clamp(hook.elapsed/(hook.travelDuration*(hook.escapeAt||.88)),0,1)*.90:clamp(hook.elapsed/hook.travelDuration,0,1);
@@ -2420,6 +2424,7 @@ function drawEscapeFx(dt){
  }
  fx.lastWasAboveWater=pose.y<273;
  ctx.save();ctx.translate(pose.x,pose.y);
+ if(!fx.human&&(pose.stage==='struggle'||pose.stage==='slip')){var rush=Math.max(0,1-fx.elapsed/.58);ctx.translate(Math.sin(fx.elapsed*77)*5*rush,Math.cos(fx.elapsed*92)*3*rush)}
  ctx.rotate(fx.human?pose.rot:escapeFishHeading(fx,fx.elapsed));
  if(fx.human){
   ctx.scale(1.08,1.08);
@@ -2511,7 +2516,8 @@ drawBob=function(){
  var g=selectedGear('octopus'),v=octoStats(g.tier,gearLevel('octopus',g.id)),size=v.size;
  ctx.save();
  ctx.shadowColor=g.color;ctx.shadowBlur=15;
- ctx.drawImage(octoSprite(g.tier,0),bob.x-size/2,bob.y-size/2,size,size);
+ var hit=vibrationOffset('lure');
+ ctx.drawImage(octoSprite(g.tier,0),bob.x-size/2+hit.x,bob.y-size/2+hit.y,size,size);
  ctx.restore();
 };
 // Alpha 0.8: eight-tentacle harvest followed by a full queue of creatures into the main octopus mouth.
