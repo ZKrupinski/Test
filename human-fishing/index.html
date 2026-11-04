@@ -151,15 +151,98 @@ function eye(x,y,rot){g.save();g.translate(x,y);g.rotate(rot);g.fillStyle='#713a
 eye(112,130,-.2);eye(225,122,.13);g.fillStyle='#803744';g.beginPath();g.ellipse(179,188,27,22,.05,0,7);g.fill();g.fillStyle='#fff3cd';for(var n=0;n<5;n++){g.beginPath();g.moveTo(161+n*9,174);g.lineTo(168+n*8,183);g.lineTo(170+n*9,174);g.fill()}g.fillStyle='#c65e68';g.beginPath();g.moveTo(271,44);g.lineTo(286,0);g.lineTo(297,23);g.closePath();g.fill();return c}
 function rndLocal(n,a,b){return a+((Math.sin(n*84.234)*46758.5)%1+1)%1*(b-a)}function circleG(g,x,y,r,col){g.beginPath();g.arc(x,y,r,0,7);g.fillStyle=col;g.fill()}
 var octo=octopusSprite(),sprites={};
-function fishSprite(sp){var k=sp.id;if(sprites[k])return sprites[k];var c=document.createElement('canvas');c.width=164;c.height=96;var g=c.getContext('2d'),idx=Number(k.slice(1)),h=sp.habitat,shape=idx%7,base=colors[(idx+Math.floor(idx/11))%colors.length];g.translate(81,47);g.shadowBlur=6;g.shadowColor='#001a2550';
-g.fillStyle=base;g.strokeStyle='#24485a';g.lineWidth=3;g.beginPath();g.moveTo(49,0);g.lineTo(77,-24+(shape%3)*6);g.quadraticCurveTo(66,0,77,24-(shape%3)*6);g.closePath();g.fill();g.stroke();
-g.beginPath();g.moveTo(-42,-7);g.quadraticCurveTo(-20,-43,12,-29-(shape%2)*7);g.lineTo(29,-14);g.closePath();g.fill();g.stroke();
-var grad=g.createLinearGradient(0,-30,0,30);grad.addColorStop(0,'#fff8d8');grad.addColorStop(.37,base);grad.addColorStop(1,'#47677c');g.fillStyle=grad;g.beginPath();g.ellipse(0,0,50+shape*1.3,24+(shape%3)*4,0,0,7);g.fill();g.stroke();
-g.fillStyle='#fff1cf';g.beginPath();g.ellipse(-25,-7,7,8,0,0,7);g.fill();circleG(g,-24,-7,4,'#182e3b');circleG(g,-26,-9,2,'white');
-for(var i=0;i<4;i++){g.strokeStyle=(idx%2?'#fff1db85':'#24506388');g.lineWidth=idx%2?5:3;g.beginPath();if(idx%2){g.moveTo(-5+i*12,-16);g.lineTo(-11+i*12,18)}else{g.arc(1+i*11,Math.sin(i)*7,4,0,7)}g.stroke()}
-g.fillStyle='#f5cd9f';g.beginPath();g.moveTo(10,13);g.lineTo(35,37);g.lineTo(-10,21);g.closePath();g.fill();g.stroke();
-if(idx%11===0){g.strokeStyle='#effffd';g.lineWidth=5;g.beginPath();g.moveTo(36,-16);g.lineTo(47,18);g.stroke()}
-sprites[k]=c;return c}
+// Sprite silhouettes vary by species and habitat, rendered once into bitmap canvases.
+function fishSprite(sp){
+ var key=sp.id;if(sprites[key])return sprites[key];
+ var c=document.createElement('canvas');c.width=164;c.height=96;
+ var g=c.getContext('2d'),n=sp.name,h=sp.habitat,idx=sp.index;
+ var seed=Number(key.slice(1)),color=colors[(seed*5+h*3+Math.floor(seed/9))%colors.length];
+ var type=/가오리|홍어/.test(n)?'ray':
+  /해마|시드래곤/.test(n)?'horse':
+  /장어|곰치|산갈치|실고기|리본일|가든일/.test(n)?'eel':
+  /가시복|상자복|복어|블롭피시/.test(n)?'puffer':
+  /상어|황새치|돛새치|청새치|다랑어|참치|방어|만새기|와후/.test(n)?'shark':
+  /넙치|도다리|가자미|광어/.test(n)?'flat':
+  /엔젤|버터플라이|탱|시클리드|원반|디스커스|돔/.test(n)?'disc':
+  (seed%5===0?'slim':seed%5===2?'disc':'fish');
+ g.translate(81,47);g.lineJoin='round';g.lineCap='round';
+ var grad=g.createLinearGradient(-17,-29,26,35);
+ grad.addColorStop(0,'#fff5d8');grad.addColorStop(.35,color);grad.addColorStop(1,'#345c72');
+ g.strokeStyle='#264a60';g.lineWidth=2.5;
+ function poly(points){g.beginPath();g.moveTo(points[0][0],points[0][1]);
+  for(var k=1;k<points.length;k++)g.lineTo(points[k][0],points[k][1]);g.closePath();
+  g.fillStyle=grad;g.fill();g.stroke()}
+ function fin(){g.beginPath();g.moveTo(-13,-13);g.lineTo(1,-42);g.lineTo(19,-21);g.closePath();g.fillStyle=color;g.fill();g.stroke()}
+ function eye(ex,ey,scale){g.fillStyle='#fff2cd';g.beginPath();g.arc(ex,ey,6*scale,0,Math.PI*2);g.fill();
+  g.fillStyle='#162b3b';g.beginPath();g.arc(ex-2*scale,ey,3.2*scale,0,Math.PI*2);g.fill()}
+ if(type==='ray'){
+  // Wide, flattened diamond wings, with a narrow trailing tail.
+  g.strokeStyle='#52758d';g.lineWidth=5;g.beginPath();g.moveTo(30,0);g.quadraticCurveTo(64,8,79,18);g.stroke();
+  poly([[-45,-3],[-5,-26],[29,-8],[46,1],[20,17],[-3,25]]);
+  g.fillStyle='#dff6d6';g.beginPath();g.ellipse(-29,-7,4,3,0,0,Math.PI*2);g.fill();
+  eye(-27,-7,.60);
+ }else if(type==='horse'){
+  // Upright seahorses with a long snout and curved tail.
+  g.strokeStyle=color;g.lineWidth=13;g.beginPath();g.moveTo(1,-29);
+  g.bezierCurveTo(22,-23,12,2,30,24);g.bezierCurveTo(51,39,57,8,35,8);g.stroke();
+  poly([[-8,-36],[-34,-34],[-43,-24],[-12,-24],[-18,-4],[5,19],[15,-4],[11,-27]]);
+  poly([[4,-26],[19,-37],[19,-20]]);
+  eye(-19,-31,.7);
+ }else if(type==='eel'){
+  // Long serpentine body; avoid the generic oval silhouette.
+  g.strokeStyle='#244457';g.lineWidth=23;g.beginPath();g.moveTo(-62,-8);
+  g.bezierCurveTo(-24,-34,7,24,39,-5);g.bezierCurveTo(53,-20,62,1,75,-11);g.stroke();
+  g.strokeStyle=color;g.lineWidth=18;g.stroke();
+  g.strokeStyle='#fff0c0';g.lineWidth=3;g.beginPath();g.moveTo(-42,-18);g.quadraticCurveTo(-15,-21,7,5);g.stroke();
+  eye(-52,-10,.75);
+ }else if(type==='puffer'){
+  // Round boxfish and puffer forms with visible spines/corners.
+  for(var spike=0;spike<12;spike++){
+   var a=spike*Math.PI/6;
+   poly([[Math.cos(a)*27,Math.sin(a)*27],
+    [Math.cos(a)*42,Math.sin(a)*42],
+    [Math.cos(a+.16)*25,Math.sin(a+.16)*25]]);
+  }
+  g.beginPath();g.ellipse(-3,0,34,31,0,0,Math.PI*2);g.fillStyle=grad;g.fill();g.stroke();
+  g.fillStyle='#f5e5ac';for(var k=0;k<5;k++){g.beginPath();g.arc((k%3)*15-22,Math.floor(k/3)*20-9,2.8,0,Math.PI*2);g.fill()}
+  eye(-21,-8,.82);
+ }else if(type==='shark'){
+  // Narrow pelagic body, long dorsal fin and strongly forked tail.
+  poly([[43,0],[75,-24],[66,0],[76,22]]);
+  poly([[-66,-3],[-39,-17],[3,-20],[35,-10],[53,0],[16,12],[-34,15]]);
+  poly([[-5,-14],[4,-40],[17,-13]]);
+  poly([[6,8],[24,29],[-3,14]]);
+  eye(-46,-8,.75);
+ }else if(type==='flat'){
+  poly([[42,0],[72,-20],[70,21]]);
+  g.beginPath();g.ellipse(-4,3,56,19,-.12,0,Math.PI*2);g.fillStyle=grad;g.fill();g.stroke();
+  g.beginPath();g.ellipse(-3,-14,48,8,0,0,Math.PI*2);g.fillStyle=color;g.fill();
+  eye(-34,-7,.72);eye(-21,-13,.65);
+ }else{
+  var disk=type==='disc',slim=type==='slim';
+  var wide=disk?36:slim?14:21+(seed%3)*3,bodyLong=disk?38:slim?56:49;
+  poly([[32,0],[70,-19-(seed%3)*2],[62,0],[72,19+(seed%3)*2]]);
+  g.beginPath();g.moveTo(-bodyLong,-5);
+  g.bezierCurveTo(-bodyLong,-wide,12,-wide-7,46,-5);
+  g.quadraticCurveTo(58,0,45,7);
+  g.bezierCurveTo(3,wide+6,-bodyLong,wide,-bodyLong,-5);
+  g.closePath();g.fillStyle=grad;g.fill();g.stroke();
+  if(disk){poly([[-13,-22],[9,-44],[27,-21]]);poly([[-8,23],[17,39],[22,14]])}
+  else if(!slim)fin();
+  eye(-bodyLong+16,-8,.77);
+ }
+ // Species-specific surface bands, spots and a darker lower highlight.
+ g.save();g.globalAlpha=.52;g.strokeStyle=seed%2?'#fff4d4':'#244f68';
+ if(type==='fish'||type==='disc'||type==='slim'){
+  for(var j=0;j<2+(seed%3);j++){
+   var px=-8+j*12;
+   if(seed%3===0){g.beginPath();g.arc(px,0,2.4+seed%3,0,Math.PI*2);g.fillStyle='#e5f1cd';g.fill()}
+   else{g.lineWidth=2+seed%3;g.beginPath();g.moveTo(px,-13);g.lineTo(px+7,13);g.stroke()}
+  }
+ }
+ g.restore();
+ sprites[key]=c;return c;
+}
 function drawFish(a,now,alpha){var sp=a.sp;if(!sp)return;var sprite=fishSprite(sp),sz=.5*a.size;if(alpha!==undefined)ctx.globalAlpha=alpha;ctx.save();ctx.translate(a.x,a.y+Math.sin(now*2+a.phase)*4);if(a.vx>0)ctx.scale(-1,1);ctx.drawImage(sprite,-82*sz,-48*sz,164*sz,96*sz);ctx.restore();ctx.globalAlpha=1}
 function drawOcto(now){ctx.save();ctx.translate(102,448+Math.sin(now*1.2)*8);ctx.drawImage(octo,0,0,260,236);ctx.restore()}
 function drawLine(){var anchor={x:352,y:548+Math.sin(time*1.2)*5},end=hook?{x:hook.obj.x,y:hook.obj.y}:bob;ctx.lineCap='round';ctx.lineJoin='round';var sag=drag?55:hook?0:105;ctx.beginPath();ctx.moveTo(anchor.x,anchor.y);ctx.bezierCurveTo(anchor.x+170,anchor.y-210+sag,end.x-130,end.y+sag,end.x,end.y);ctx.strokeStyle='#053945b8';ctx.lineWidth=5;ctx.stroke();ctx.strokeStyle='#f7e8c8';ctx.lineWidth=2.4;ctx.stroke();ctx.beginPath();ctx.moveTo(end.x-6,end.y-3);ctx.lineTo(end.x+7,end.y+8);ctx.strokeStyle='#fff7dc';ctx.lineWidth=2;ctx.stroke()}
@@ -1253,7 +1336,7 @@ function drawFishRankTag(f){
  var sp=f.sp;if(!sp||sp.rarity==='COMMON'||sp.rarity==='UNCOMMON')return;
  ctx.save();ctx.font='bold 12px system-ui';ctx.textAlign='center';
  ctx.shadowColor='#061923';ctx.shadowBlur=6;ctx.fillStyle=tierColors[sp.rarity];
- ctx.fillText(tierLabels[sp.rarity]+' Lv.'+sp.level,f.x,f.y-32-(f.size||1)*9);
+ ctx.fillText(tierLabels[sp.rarity]+' Lv.'+sp.level,f.x,Math.max(287,f.y-32-(f.size||1)*9));
  ctx.restore();
 }
 // ALPHA 1.5 — continuous reef ecosystem. No re-roll/rebuild per cast.
