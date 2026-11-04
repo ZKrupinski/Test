@@ -160,10 +160,14 @@ function fishVisualProfile(sp){
   /귀상어/.test(n)?'hammer':
   /가오리|홍어/.test(n)?'ray':
   /해마|시드래곤/.test(n)?'horse':
+  /엘리펀트노즈/.test(n)?'elephant':
+  /프로그피시|스톤피시/.test(n)?'frog':
+  /고스트나이프/.test(n)?'knife':
+  /철갑상어/.test(n)?'sturgeon':
   /개복치/.test(n)?'sunfish':
-  /아귀|시데블|루스조/.test(n)?'angler':
+  /아귀|시데블|루스조|바이퍼피시|송곳니고기|드래곤피시/.test(n)?'angler':
   /쏠배감펭/.test(n)?'lion':
-  /가시복|상자복|복어|블롭피시/.test(n)?'puffer':
+  /가시복|상자복|복어|블롭피시|럼프피시/.test(n)?'puffer':
   /일|코넷피시|트럼펫피시|실고기|가든일/.test(n)?'pipe':
   /장어|곰치|산갈치|로프피시|리본일/.test(n)?'eel':
   /황새치|돛새치|청새치/.test(n)?'bill':
@@ -172,11 +176,11 @@ function fishVisualProfile(sp){
   /상어|샤크/.test(n)?'shark':
   /플레코|코리도라스|철갑상어|비키르/.test(n)?'armored':
   /메기|캣피시|시노돈티스/.test(n)?'catfish':
-  /구피|엔들러|베타|금붕어|비단잉어/.test(n)?'fan':
+  /구피|엔들러|베타|금붕어|비단잉어|소드테일/.test(n)?'fan':
   /엔젤|버터플라이|디스커스|스칼라|시클리드|달러|탱|돔|그라마/.test(n)?'disc':
   /정어리|멸치|청어|송사리|와후|다랑어|참치|연어|송어|꽁치|고등어|전갱이/.test(n)?'torpedo':
   seed%6===0?'deep':seed%5===0?'needle':seed%4===0?'round':'standard';
- var odd=/^(ray|horse|sunfish|angler|lion|puffer|pipe|eel|flying)$/.test(shape)||
+ var odd=/^(ray|horse|sunfish|angler|lion|puffer|pipe|eel|flying|elephant|frog|knife)$/.test(shape)||
   /프로그피시|스톤피시|엘리펀트노즈|트라이포드|배럴아이|가시해마|만다린피시|베타|소드테일|금붕어|비단잉어/.test(n);
  var big=/아라파이마|고래상어|백상아리|귀상어|그린란드상어|연어상어|식스길상어|나일퍼치|대서양연어|왕연어|노던파이크|백철갑상어|황새치|돛새치|청새치|황다랑어|참다랑어|눈다랑어|날개다랑어|가다랑어|아로와나|자이언트구라미|모토로민물가오리|흑새치|줄무늬청새치|대형/.test(n);
  var tiny=/구피|테트라|라스보라|송사리|피라미|갈겨니|멸치|정어리|청어|빙어|카펠린|바브|다니오|크로미스|파이어피시|카디널피시|쉬리|납자루|피그미|클리너래스/.test(n);
@@ -530,8 +534,9 @@ function renderBook(filter,query){
   '<div class="name">'+(n?escapeHtml(a.name):'???')+'</div><div class="meta">'+tier+' · 인간</div><div class="num">'+(n?'포획 '+n+'명':'H'+String(a.id+1).padStart(3,'0')+' 미발견')+'</div></div>';
  }).join('')+
  visibleFish.map(function(sp){
-  var n=save.owned[sp.id]||0;
-  return '<div class="card '+(n?'':'locked')+'" data-name="'+escapeHtml(sp.name)+'"><div class="face">'+(n?'🐟':'◈')+'</div><div class="name">'+(n?escapeHtml(sp.name):'???')+'</div><div class="meta">'+escapeHtml(habitats[sp.habitat])+' · '+escapeHtml(sp.rarity)+' Lv.'+sp.level+'</div><div class="num">'+(n?'보유 '+n+'마리':sp.id+' 미발견')+'</div></div>';
+  var n=save.owned[sp.id]||0,visual=fishVisualProfile(sp);
+  var className={SMALL:'소형',MEDIUM:'중형',LARGE:'대형',SPECIAL:'특수형'}[visual.category];
+  return '<div class="card '+(n?'':'locked')+'" data-name="'+escapeHtml(sp.name)+'"><div class="face">'+(n?'🐟':'◈')+'</div><div class="name">'+(n?escapeHtml(sp.name):'???')+'</div><div class="meta">'+escapeHtml(habitats[sp.habitat])+' · '+escapeHtml(sp.rarity)+' Lv.'+sp.level+(n?' · '+className:'')+'</div><div class="num">'+(n?'보유 '+n+'마리':sp.id+' 미발견')+'</div></div>';
  }).join('')+'</div>';
  openPanel('통합 생물 도감','물고기 '+count+'/240 · 인간 '+hCount+'/24 · 264종 컬렉션',tool+cards);
  $('search').oninput=function(){
@@ -1581,10 +1586,23 @@ function makeWildFish(sp,x,y,dir,small,schoolId){
  f.y=ecoSafeDepth(f,y);f.homeY=f.y;
  return f;
 }
-function spawnWildFish(startInView,forceSolo){
+function ecoVisualRepresentative(category){
+ // Visual variety uses only common and uncommon habitat residents; rare
+ // encounter/catch probabilities remain separate from the size categories.
+ var candidates=species.slice(zone*20,zone*20+15).filter(function(sp){
+  return fishVisualProfile(sp).category===category;
+ });
+ if(!candidates.length)return null;
+ var available=candidates.filter(function(sp){
+  return !fish.some(function(f){return f.sp.id===sp.id&&!f.feverCaptured});
+ });
+ var options=available.length?available:candidates;
+ return options[Math.floor(Math.random()*options.length)];
+}
+function spawnWildFish(startInView,forceSolo,visualClass){
  var MAX_FISH=18;
  if(fish.length>=MAX_FISH)return 0;
- var sp=chooseWildSpecies(),dir=Math.random()<.5?1:-1;
+ var sp=(visualClass&&ecoVisualRepresentative(visualClass))||chooseWildSpecies(),dir=Math.random()<.5?1:-1;
  var small=ecoCanSchool(sp)&&Math.random()<.34;
  var schoolCount=fish.filter(function(f){return f.schoolId>0}).length;
  var group=!forceSolo&&small&&schoolCount<4&&Math.random()<.13?
@@ -1627,7 +1645,8 @@ function buildFish(){
  // change of habitat makes a new population; existing swimmers survive.
  if(eco.zone===zone)return;
  eco.zone=zone;eco.humanZone=zone;eco.fishTimer=0;eco.humanTimer=0;eco.school=0;fish=[];hum=[];
- for(var i=0;i<11;i++)spawnWildFish(true,true);
+ var showcase=['SMALL','MEDIUM','SPECIAL','LARGE'];
+ for(var i=0;i<11;i++)spawnWildFish(true,true,i<4?showcase[i]:null);
  for(var j=0;j<1;j++)spawnWildFish(false,true);
 }
 function buildHum(){
