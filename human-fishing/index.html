@@ -913,7 +913,11 @@ function drawRod(now){
  ctx.strokeStyle=gear.color;ctx.lineWidth=9;ctx.stroke();
  ctx.beginPath();ctx.arc(565,201,15,0,Math.PI*2);ctx.fillStyle='#19353d';ctx.fill();ctx.strokeStyle='#d3d7c7';ctx.lineWidth=3;ctx.stroke();
  ctx.beginPath();ctx.arc(565,201,5,0,Math.PI*2);ctx.fillStyle='#f4d39c';ctx.fill();
- ctx.strokeStyle='#ffd9a1';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(574,206);ctx.lineTo(589,220);ctx.stroke();
+ // The reel crank spins while the little octopus lure is being pulled in.
+ var spin=feverFx&&feverFx.reeling?feverFx.reelProgress*Math.PI*12:0;
+ var cx=565+Math.cos(spin)*23,cy=201+Math.sin(spin)*23;
+ ctx.strokeStyle='#ffd9a1';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(565,201);ctx.lineTo(cx,cy);ctx.stroke();
+ ctx.beginPath();ctx.arc(cx,cy,5,0,Math.PI*2);ctx.fillStyle='#daba86';ctx.fill();
  // Gripping tentacle wraps over the rod's cork handle.
  ctx.strokeStyle='#7f3a4b';ctx.lineWidth=23;ctx.beginPath();ctx.moveTo(500,230);ctx.quadraticCurveTo(549,219,538,187);ctx.stroke();
  ctx.strokeStyle='#e9a08d';ctx.lineWidth=16;ctx.stroke();ctx.fillStyle='#ffd0ae';
