@@ -93,6 +93,13 @@ window.__hfTest={
  hideStick:hideVirtualJoystick,
  getJoystick:function(){return joystick},
  getSave:function(){return save},
+ aquariumEnsure:aquariumEnsureFish,
+ aquariumTap:aquariumTapFish,
+ aquariumUpdate:aquariumUpdateFish,
+ aquariumActors:function(){return aquariumFishActors},
+ aquariumTurnScale:aquariumTurnScale,
+ aquariumStruggle:aquariumStartStruggle,
+
  chance:catchProbability,
  record:recordFeverCapture,
  activate:activateOctoFever,
@@ -667,5 +674,44 @@ assert.match(script,/vibrationPulse\('swallow'\)/,'Successful mouth swallowing m
 assert.match(script,/vibrationPulse\('escape'\)/,'Failed catches must rebound visibly');
 assert.match(script,/vibrationPulse\('fever'\)/,'Fever catches must vibrate');
 assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibration\.y\)/,'Camera shake must move the entire fishing scene');
+
+// Aquarium regression: target the touched fish, rotate 180 degrees and keep
+// other inhabitants undisturbed. Wriggling must have an independent timer.
+{
+ const aquariumSave=game.getSave();
+ const originalPlaced=aquariumSave.placed.slice();
+ const originalView='fish';
+ aquariumSave.placed=['F001','F002'];
+ game.aquariumEnsure(10);
+ const fishActors=game.aquariumActors();
+ assert.equal(fishActors.length,2,'Two placed species need two stable tank actors');
+ assert.notEqual(fishActors[0].phase,fishActors[1].phase,
+  'Aquarium fish need independent animation phases');
+ const beforeDirection=fishActors[0].dir,otherDirection=fishActors[1].dir;
+ game.switchView('tank');
+ const tap={clientX:fishActors[0].x,clientY:fishActors[0].y,
+  defaultPrevented:false,preventDefault(){this.defaultPrevented=true}};
+ assert.equal(game.aquariumTap(tap),true,'Tapping a displayed fish must register');
+ assert.equal(fishActors[0].dir,-beforeDirection,
+  'The selected fish must reverse its swim direction');
+ assert.equal(fishActors[1].dir,otherDirection,
+  'Other fish must not simultaneously reverse');
+ assert.equal(tap.defaultPrevented,true,
+  'Captured aquarium taps should not trigger fishing gestures');
+ const turnStart=fishActors[0].turnStart,turnDuration=fishActors[0].turnDuration;
+ assert.equal(game.aquariumTurnScale(fishActors[0],turnStart),-beforeDirection,
+  'Turn must begin in the original facing');
+ assert.ok(Math.abs(game.aquariumTurnScale(fishActors[0],
+  turnStart+turnDuration*.5))<.08,'Halfway through turn should show side-on silhouette');
+ assert.equal(game.aquariumTurnScale(fishActors[0],turnStart+turnDuration+.01),
+  beforeDirection,'The 180-degree turn must end facing the opposite direction');
+ game.aquariumStruggle(fishActors[0],turnStart+1,1);
+ assert.ok(fishActors[0].struggleEnd>turnStart+1,
+  'Wriggling must be scheduled independently from fish direction');
+ aquariumSave.placed=originalPlaced;
+ game.switchView(originalView);
+}
+console.log('PASS: aquarium fish touch-to-turn, independent swimmers and random wriggle timelines');
+
 console.log('PASS: localized fish and octopus shake, gentle contact, bite, suction, escape, human counterattack and limited camera vibration; all previous gameplay tests');
 
