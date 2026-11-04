@@ -200,18 +200,77 @@ function fishVisualProfile(sp){
 }
 // One high-resolution bitmap is cached per species.  Shapes, fins, tails,
 // markings and head proportions are fixed per species (never random per frame).
+// Species palette is named-species first, habitat fallback second. This is the
+// art-direction source of truth for future hand-painted bitmap sprite sheets.
+function fishSpeciesAppearance(sp){
+ var n=sp.name,h=sp.habitat;
+ var palette=null,motif='organic',iconic='';
+ function set(a,b,c,d){palette={body:a,accent:b,shadow:c,highlight:d};}
+ if(/흰동가리|퍼큘라클라운/.test(n)){set('#f78925','#f5f1e7','#933c19','#fff5cf');motif='clown';iconic='흰 띠 세 줄과 검은 테두리'}
+ else if(/블루탱/.test(n)){set('#2157d7','#ffcf28','#142c74','#7da6ff');motif='bluetang';iconic='푸른 몸, 검은 무늬, 노란 꼬리'}
+ else if(/옐로탱/.test(n)){set('#f9d631','#ffe893','#b58d16','#fff7b3');motif='solid';iconic='선명한 노란색 납작한 몸'}
+ else if(/파우더블루탱/.test(n)){set('#4ca8d7','#f1d856','#244b76','#bce5f8');motif='bluetang';iconic='하늘색 몸과 노란 지느러미'}
+ else if(/네온테트라|블랙네온|카디널테트라/.test(n)){set('#65bbdf','#ef4d50','#244d8f','#e9fdff');motif='neon';iconic='전기 청색 수평선과 붉은 아랫줄'}
+ else if(/러미노즈/.test(n)){set('#c8d3c7','#e65645','#5c7586','#f5f5ea');motif='rummynose';iconic='빨간 머리와 검은 꼬리 줄무늬'}
+ else if(/엠버테트라/.test(n)){set('#e8872a','#ffcc55','#a74424','#fff1af');motif='solid';iconic='주황색 투명한 작은 몸'}
+ else if(/글로라이트테트라/.test(n)){set('#dfbd87','#f48445','#8e7a61','#fff5bd');motif='longstripe';iconic='몸을 가로지르는 발광 주황색 선'}
+ else if(/블랙스커트|블랙팬텀/.test(n)){set('#6c7382','#303340','#353d56','#cfdddc');motif='stripes';iconic='어두운 회색 몸과 넓은 검정 지느러미'}
+ else if(/구피|엔들러/.test(n)){set('#78c7c8','#f48a2a','#286d8e','#fff0c0');motif='guppy';iconic='작은 몸 대비 부채처럼 넓은 화려한 꼬리'}
+ else if(/베타/.test(n)){set('#cb3569','#3156b4','#552858','#ffa0ac');motif='betta';iconic='긴 베일 지느러미와 붉고 푸른 그러데이션'}
+ else if(/금붕어/.test(n)){set('#ed8c30','#f8c16b','#9c4c25','#fff1bc');motif='goldfish';iconic='주황색 통통한 몸과 두 갈래 부채꼬리'}
+ else if(/비단잉어/.test(n)){set('#eee8d9','#dd6547','#888c80','#ffffff');motif='koi';iconic='흰 바탕과 큰 붉고 검은 비단잉어 반점'}
+ else if(/소드테일/.test(n)){set('#db794c','#f5bc61','#a13a38','#fff0bd');motif='swordtail';iconic='붉은 몸과 아래로 길게 뻗은 꼬리 검'}
+ else if(/플래티|몰리/.test(n)){set('#eda356','#dc5d66','#926050','#fff0b5');motif='spots';iconic='짧고 도톰한 몸과 점박이 무늬'}
+ else if(/디스커스/.test(n)){set('#e58d51','#6eafc5','#824c64','#ffe2a0');motif='discus';iconic='둥근 원반 몸과 촘촘한 파도 줄무늬'}
+ else if(/스칼라엔젤|엔젤피시|프렌치엔젤|황제엔젤/.test(n)){set('#ead599','#2b607d','#64616a','#f9f4cf');motif='angelfish';iconic='높은 삼각 지느러미와 세로 검은 줄'}
+ else if(/타이거바브/.test(n)){set('#dba43b','#303e43','#8b5b28','#ffe7a2');motif='tigerbarb';iconic='주황색 몸에 굵은 검은 줄 네 줄'}
+ else if(/클라운로치/.test(n)){set('#f0a33e','#343b4a','#966131','#ffe0a0');motif='clownloach';iconic='주황색 몸과 검은 세로 띠'}
+ else if(/오스카/.test(n)){set('#4c5b5a','#ee884b','#1e353c','#a8a897');motif='oscar';iconic='어두운 몸에 주황색 얼룩과 눈알 점'}
+ else if(/레드벨리피라냐/.test(n)){set('#aeb8b5','#d64b4d','#566675','#eef4e5');motif='redbelly';iconic='은빛 몸과 넓은 붉은 배'}
+ else if(/아라파이마/.test(n)){set('#6b7778','#d77b62','#344c56','#c2cac3');motif='arapaima';iconic='길고 큰 은회색 몸에 붉게 물든 비늘 끝'}
+ else if(/아로와나/.test(n)){set('#a5aca0','#dfb97a','#5a7d7c','#e7e9d4');motif='scales';iconic='큰 판상 비늘과 위로 향한 입'}
+ else if(/고래상어/.test(n)){set('#4e778a','#f0f6df','#23455c','#9cbbc5');motif='whaleshark';iconic='매우 넓은 머리, 짙은 등과 흰 점'}
+ else if(/귀상어/.test(n)){set('#728d99','#c1dce1','#405766','#ecf3ec');motif='solid';iconic='넓은 망치형 머리'}
+ else if(/백상아리|식스길상어|그린란드상어|연어상어/.test(n)){set('#738b94','#b7c3c0','#314b5d','#f0f4e7');motif='shark';iconic='짙은 등과 흰 배, 날카로운 등지느러미'}
+ else if(/만타가오리|매가오리/.test(n)){set('#4d6875','#d6d6bf','#263e55','#b6c1c4');motif='manta';iconic='검은 날개와 밝은 배, 매우 넓은 양날개'}
+ else if(/푸른점가오리/.test(n)){set('#d6b77a','#348fd1','#7e775f','#fff1c7');motif='bluepoints';iconic='모래색 등 위의 둥근 푸른 점'}
+ else if(/가시해마|피그미해마|해마/.test(n)){set('#e8b45d','#cd785b','#a36542','#fff0bb');motif='seahorse';iconic='굽은 목과 동그랗게 말린 꼬리'}
+ else if(/쏠배감펭/.test(n)){set('#e3b18e','#933f4f','#8b4c48','#ffeed6');motif='lion';iconic='붉고 흰 줄무늬와 길게 방사되는 독가시'}
+ else if(/가시복|복어/.test(n)){set('#d3aa54','#f6e4ba','#8d6c40','#fff8da');motif='puffer';iconic='큰 눈, 둥근 배, 짧은 가시'}
+ else if(/앵무|만다린피시/.test(n)){set('#e48760','#2ca8aa','#793f69','#fff0a5');motif='mandarin';iconic='복잡하고 화려한 파란색과 주황색 파도무늬'}
+ else if(/리피시드래곤|위디시드래곤/.test(n)){set('#8eae6e','#dfc389','#4d765b','#e4eaa4');motif='seadragon';iconic='나뭇잎 같은 위장 돌기'}
+ else if(/황새치|청새치|돛새치/.test(n)){set('#568ba8','#e6ecdd','#244f7c','#c7e7ee');motif='billfish';iconic='매우 긴 주둥이와 날카로운 돛 지느러미'}
+ else if(/아귀|시데블|루스조/.test(n)){set('#5c6174','#c1a67a','#2b3145','#b8aaba');motif='angler';iconic='몸보다 큰 머리와 빛나는 낚싯대'}
+ else if(/블랙드래곤|바이퍼피시|송곳니고기/.test(n)){set('#343b53','#b9b8d2','#171b2c','#8c95a3');motif='dragon';iconic='까만 몸과 커다란 송곳니'}
+ else if(/산갈치/.test(n)){set('#c0d4dd','#df3d53','#72899d','#f0f7f5');motif='oarfish';iconic='은빛 띠 몸에 붉은 머리 볏'}
+ else if(/전기뱀장어/.test(n)){set('#7e8a76','#dbd48c','#404e4d','#dfebc4');motif='eel';iconic='길고 두꺼운 갈색 원통형 몸'}
+ else if(/철갑상어/.test(n)){set('#7b9180','#c3b6a2','#465a57','#d5ddc3');motif='armor';iconic='다섯 줄 뼈판과 아래로 향한 입'}
+ else if(/대서양연어|송어|연어/.test(n)){set('#9fa5a5','#d39589','#4d7279','#e2e9df');motif='speckles';iconic='은회색 몸통에 점무늬와 연분홍 옆선'}
+ else if(/정어리|청어|멸치|빙어/.test(n)){set('#9fbac1','#d5e7d9','#487991','#ebf8e9');motif='longstripe';iconic='가느다란 은빛 몸과 빛나는 푸른 등'}
+ else if(/개복치/.test(n)){set('#8d99a0','#bcc8c0','#516779','#e1e3dc');motif='solid';iconic='거대한 원반형 몸과 짧게 잘린 꼬리'}
+ else if(/금빛|옐로랩|골든|황금/.test(n)){set('#f0c243','#fff1ad','#927134','#fff9d9');motif='spots';iconic='밝은 노란색 몸'}
+ else if(/블루|파란|일렉트릭/.test(n)){set('#4f99c7','#b5e2e2','#305a8d','#e8ffff');motif='stripes';iconic='청색 몸과 명도 대비 무늬'}
+ else if(/레드|홍|빨강/.test(n)){set('#cf6554','#f0bb84','#813e4c','#ffd9ac');motif='spots';iconic='붉은색 강조 패턴'}
+ else if(h===0||h===1){set('#89b8b0','#d3a776','#457e85','#e7f3d5');motif='organic'}
+ else if(h===6||h===7){set('#63a7a6','#f0c77d','#3a6986','#e6f0dd');motif='organic'}
+ else if(h===9){set('#6b99af','#c8d5c9','#31577a','#e7eae1');motif='organic'}
+ else if(h===10){set('#607585','#bac1b2','#313e57','#bfcdd0');motif='organic'}
+ else{set('#96aa9d','#d2b287','#4d7579','#f0ebd8');motif='organic'}
+ return{body:palette.body,accent:palette.accent,shadow:palette.shadow,
+  highlight:palette.highlight,motif:motif,designNote:iconic||'서식지 톤과 원래 실루엣 중심'};
+}
 function fishSprite(sp){
  var key=sp.id;if(sprites[key])return sprites[key];
  var profile=fishVisualProfile(sp),type=profile.shape,seed=Number(key.slice(1));
  var c=document.createElement('canvas');c.width=224;c.height=144;
  var g=c.getContext('2d');g.translate(112,72);
  g.lineCap='round';g.lineJoin='round';
- var body=colors[(seed*5+sp.habitat*3+Math.floor(seed/9))%colors.length];
- var accent=colors[(seed*7+3+sp.habitat*2)%colors.length];
+ var appearance=fishSpeciesAppearance(sp);
+ var body=appearance.body,accent=appearance.accent;
  var ink='#203b50',white='#fff3d5';
  var shade=g.createLinearGradient(-12,-49,22,46);
- shade.addColorStop(0,'#fff6d7');shade.addColorStop(.27,body);
- shade.addColorStop(.70,body);shade.addColorStop(1,'#335876');
+ shade.addColorStop(0,appearance.highlight);shade.addColorStop(.27,body);
+ shade.addColorStop(.70,body);shade.addColorStop(1,appearance.shadow);
  var finShade=g.createLinearGradient(-50,-40,75,47);
  finShade.addColorStop(0,accent);finShade.addColorStop(1,body);
  function shape(points,fill,stroke){
