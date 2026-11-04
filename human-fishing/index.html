@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#092a39">
-<title>인간낚시 · HUMAN FISHING α 0.5</title>
+<title>인간낚시 · HUMAN FISHING α 0.6</title>
 <style>
 :root{color-scheme:dark;--gold:#f5cb81;--aqua:#8ee4e2;--ink:#092b39;--panel:#072633ee}
 *{box-sizing:border-box}body{margin:0;background:#061923;color:#effffb;font:15px/1.45 system-ui,"Pretendard","Malgun Gothic",sans-serif;overflow-x:hidden}
@@ -25,8 +25,8 @@ canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}canvas
 .guide{max-width:60%;border-radius:14px;background:#063040b8;padding:10px 14px;border:1px solid #78c4c55a;backdrop-filter:blur(7px)}.guide b{display:block;font-size:15px;color:#ffdda0}.guide small{display:block;font-size:12px;color:#cae9e8}
 .action{width:120px;height:70px;border:2px solid #ffecd0;border-radius:22px;background:linear-gradient(160deg,#ffedb4,#ffbb6f 65%,#dc8158);box-shadow:0 6px 0 #9f5a3d,0 10px 25px #0006;color:#402d2c;font-weight:1000;font-size:17px;line-height:1.2}
 .action:active{transform:translateY(3px);box-shadow:0 3px 0 #9f5a3d,0 5px 16px #0006}
-.center-banner{position:absolute;z-index:4;top:42%;left:50%;transform:translate(-50%,-50%) scale(.94);background:#082c3fe8;border:1px solid #ffdc97b0;border-radius:22px;box-shadow:0 18px 60px #0008;text-align:center;padding:22px 32px;min-width:275px;max-width:85%;pointer-events:none;opacity:0;transition:opacity .2s,transform .2s}
-.center-banner.visible{opacity:1;transform:translate(-50%,-50%) scale(1)}.center-banner .emoji{font-size:34px}.center-banner strong{display:block;color:var(--gold);font-size:24px}.center-banner p{margin:5px 0 0;color:#bce5e0}
+.center-banner{position:absolute;z-index:4;top:21%;right:2.5%;left:auto;transform:translateY(-8px);background:transparent;border:none;border-radius:0;box-shadow:none;text-align:right;padding:4px 8px;min-width:0;max-width:46%;pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;text-shadow:0 2px 8px #01212d,0 3px 14px #00171d}
+.center-banner.visible{opacity:1;transform:translateY(0)}.center-banner .emoji{font-size:20px}.center-banner strong{display:block;color:var(--gold);font-size:15px}.center-banner p{margin:3px 0 0;color:#bce5e0;font-size:11px}
 .panel{position:absolute;z-index:6;inset:0;display:none;background:linear-gradient(135deg,#062e3def,#082333f7);padding:25px;overflow:auto;backdrop-filter:blur(9px)}.panel.open{display:block}
 .panelhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}.panel h2{margin:0;font-size:27px;letter-spacing:-.05em}.panel .minor{color:#9ed3d4;font-size:13px}
 .toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:13px}.toolbar input,.toolbar select,.toolbar button{min-height:41px;background:#123e4a;color:#def5f5;border:1px solid #51818b;border-radius:11px;padding:8px 11px}
@@ -68,7 +68,7 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 #virtualJoystick.visible{display:block}
 @media(max-width:760px){#virtualJoystick{min-width:56px;border-width:1px}#virtualKnob{border-width:1px}}
 </style></head><body><div class="wrap">
-<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 0.5</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
+<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 0.6</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navShop">🛒 상점</button></nav></header>
 <div class="stage" id="stage"><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 어디든 터치해 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
 <div class="hud top"><div class="tag"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins">◈ 0　🐟 0/240</div></div>
@@ -776,7 +776,7 @@ function success(){
  if(human&&save.humanPlaced.length===0)save.humanPlaced.push(id);
  if(!human&&save.placed.length===0)save.placed.push(id);
  persist();updateStats();beep('catch');spawnParticles(645,290,extra?50:32,'gold');
- announce(human?'🧑':'🐟',(fresh?'NEW! ':'')+name+(human?' · '+humanTier(o.id):'')+(extra?' ×2':'')+' 포획!',(fresh?'통합 도감 등록 · ':'')+'진주 +'+reward);
+ playCatchFx(o,human,name,reward,extra,fresh);
  hook=null;buildFish();buildHum();startCast();
  $('hintTitle').textContent='다음 생물을 낚기 위해 다시 찌를 던집니다';
  $('hint').textContent='미끼가 잠겨 멈추면, 미끼를 직접 잡아 드래그하세요.';
@@ -996,9 +996,65 @@ function tick(stamp){
   ctx.strokeStyle='#b4f8f052';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.stroke();
  });
  particleFrame(dt);
+ drawCatchFx(dt);
  if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}
  requestAnimationFrame(tick);
 }
+
+// Alpha 0.6: successful catches play directly in the fishing scene, not in a center modal.
+var catchFx=null;
+function playCatchFx(caught,isHuman,name,reward,isDouble,isNew){
+ var x=clamp(Number(caught.x)||510,285,990),y=clamp(Number(caught.y)||285,255,490);
+ catchFx={x:x,y:y,human:!!isHuman,id:isHuman?Number(caught.id):0,
+  sp:isHuman?null:caught.sp,dir:caught.vx||1,phase:caught.phase||0,
+  name:name,reward:reward,double:!!isDouble,fresh:!!isNew,elapsed:0,duration:1.45};
+ // The pearlescent burst stays at the original catch position, under gameplay controls.
+ spawnParticles(x,y,22+(isHuman?17:0),'gold');
+ ripple(x,y);
+}
+function drawCatchFx(dt){
+ if(!catchFx)return;
+ var fx=catchFx;fx.elapsed+=dt;var p=clamp(fx.elapsed/fx.duration,0,1);
+ var ascend=1-Math.pow(1-p,2),x=fx.x+Math.sin(p*Math.PI)*12,y=fx.y-95*ascend;
+ ctx.save();
+ // Bright flash at the hook; the caught silhouette rises and disappears into pearls.
+ var ring=26+p*112;
+ ctx.globalAlpha=Math.max(0,(1-p)*.8);
+ ctx.beginPath();ctx.ellipse(fx.x,fx.y,ring,ring*.57,0,0,Math.PI*2);
+ ctx.strokeStyle=fx.human?'#ffe0a5':'#baffed';ctx.lineWidth=5*(1-p)+1;ctx.stroke();
+ if(p<.57){
+  ctx.globalAlpha=Math.min(1,(1-p/.65)*1.28);
+  if(fx.human){
+   ctx.save();ctx.translate(x,y);ctx.scale(.65+p*.3,.65+p*.3);
+   humanIcon({id:fx.id,x:0,y:0,phase:fx.phase,size:1},time);
+   ctx.restore();
+  }else if(fx.sp){
+   drawFish({sp:fx.sp,x:x,y:y,vx:fx.dir,size:1.6+p*.6,phase:fx.phase},time);
+  }
+ }
+ ctx.globalAlpha=Math.max(0,Math.min(1,p*7,1-p)*1.7);
+ ctx.textAlign='center';ctx.textBaseline='middle';
+ ctx.shadowColor='#06232b';ctx.shadowBlur=7;
+ ctx.font='900 18px system-ui,sans-serif';ctx.fillStyle=fx.fresh?'#ffe09c':'#e1fff8';
+ ctx.fillText(fx.fresh?'✦ NEW DISCOVERY ✦':(fx.human?'✦ ELITE CATCH ✦':'✦ CATCH ✦'),fx.x,fx.y+48-36*ascend);
+ ctx.font='900 22px system-ui,sans-serif';ctx.fillStyle='#fff9e7';
+ ctx.fillText(fx.name+(fx.double?' ×2':''),fx.x,fx.y+73-48*ascend);
+ ctx.font='800 18px system-ui,sans-serif';ctx.fillStyle='#ffde8d';
+ ctx.fillText('◈ +'+fx.reward,fx.x,fx.y+99-60*ascend);
+ ctx.shadowBlur=0;
+ // Tiny collectible pearls travel toward the top-right pearl counter.
+ for(var i=0;i<8;i++){
+  var delay=i*.045,q=clamp((p-delay)/.83,0,1),easeQ=q*q*(3-2*q);
+  if(q<=0||q>=1)continue;
+  var px=fx.x+(1117-fx.x)*easeQ+Math.sin(i*2.4)*35*Math.sin(Math.PI*q);
+  var py=fx.y+(42-fx.y)*easeQ-85*Math.sin(Math.PI*q);
+  ctx.globalAlpha=Math.sin(Math.PI*q)*.85;ctx.beginPath();
+  ctx.arc(px,py,2.5+(i%3),0,Math.PI*2);ctx.fillStyle='#ffdf9b';ctx.fill();
+ }
+ ctx.restore();
+ if(fx.elapsed>=fx.duration)catchFx=null;
+}
+
 var previousModeAlpha04=setMode;
 setMode=function(m){previousModeAlpha04(m);if(m==='fish')startCast();else hideVirtualJoystick()};
 $('action').onclick=function(){
