@@ -51,7 +51,7 @@ const document={
   }
 };
 let clock=300, frame=null;
-const mock={document,window:{},navigator:{vibrate(){}},console,Math,performance:{now(){return clock}},
+const mock={document,window:{addEventListener(){}},navigator:{vibrate(){}},console,Math,performance:{now(){return clock}},
  localStorage:{getItem(k){return memory.get(k)||null},setItem(k,v){memory.set(k,v)}},
  requestAnimationFrame(cb){frame=cb}
 };
