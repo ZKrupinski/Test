@@ -33,7 +33,8 @@ for(const [action,frames] of Object.entries(meta)){
   const draw=operations.find(o=>o.kind==='draw');
   assert.ok(draw,'source frame was not copied');
   const [src,x,y,w,h,dx,dy,dw,dh]=draw.args;
-  const col=i%4,row=Math.floor(i/4);
+  const frameIndex=action==='idle_alt'?env.playerIdleGazeFrames[i]:i;
+  const col=frameIndex%4,row=Math.floor(frameIndex/4);
   assert.equal(x,Math.round(col*1254/4));
   assert.equal(y,Math.round(row*1254/4));
   assert.equal(w,Math.round((col+1)*1254/4)-x);
