@@ -4,7 +4,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
 const src=fs.readFileSync('human-fishing/index.html','utf8');
 const a=src.indexOf("var playerOctoLastIdle='idle_alt'");
-const b=src.indexOf('function drawOcto(now){',a);
+const b=src.indexOf('function drawOcto(now,poseOverride){',a);
 assert.ok(a>=0&&b>a,'Player pose director not found');
 let seed=41;
 const fakeMath=Object.create(Math);
