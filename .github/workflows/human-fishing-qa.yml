@@ -43,6 +43,8 @@ jobs:
         run: node human-fishing/qa-player-animation-director.cjs
       - name: Verify center-attached bait string and gently swinging octopus
         run: node human-fishing/qa-lure-line-hang.cjs
+      - name: Verify normal and hooked bait is behind fish, Fever above
+        run: node human-fishing/qa-lure-depth-order.cjs
       - name: Verify 128 isolated player sprite frames and aligned foot anchors
         run: node human-fishing/qa-octo-player-geometry.cjs
       - name: Inspect original player octopus frame bounds and foot baselines
