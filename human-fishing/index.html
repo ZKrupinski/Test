@@ -1976,6 +1976,7 @@ function playerOctoTile(action,frame){
  }
  return tile;
 }
+var playerOctoIdleState=null;
 function playerOctoPose(now){
  if(octoGroggy>0||escapeFx)return{action:'fail_alt',frame:Math.floor(now*14)%16};
  var open=mouthGape();
@@ -1990,7 +1991,15 @@ function playerOctoPose(now){
  if(hook||feverFx)return{action:'excited',frame:Math.floor(now*16)%16};
  if(cast.active&&cast.elapsed<1)return{action:'toss',frame:Math.min(15,Math.max(0,Math.floor(cast.elapsed*16)))};
  if(view==='human')return{action:'swim',frame:Math.floor(now*10)%16};
- return{action:'idle_alt',frame:Math.floor(now*10)%16};
+ // Original open/eat/failure sprites now also appear in the idle shuffle.
+ if(!playerOctoIdleState||now>=playerOctoIdleState.until){
+  var pool=['idle_alt','idle_alt','idle_alt','idle_alt','gorge','snack','fail_alt'];
+  var pick=pool[Math.floor(Math.random()*pool.length)];
+  if(playerOctoIdleState&&pick===playerOctoIdleState.action&&pick!=='idle_alt')pick='idle_alt';
+  playerOctoIdleState={action:pick,start:now,until:now+(pick==='idle_alt'?1.6:1.2)};
+ }
+ var phase=(now-playerOctoIdleState.start)/(playerOctoIdleState.until-playerOctoIdleState.start);
+ return{action:playerOctoIdleState.action,frame:Math.min(15,Math.floor(phase*16))};
 }
 function drawOcto(now){
  var hit=vibrationOffset('octo'),pose=playerOctoPose(now),
