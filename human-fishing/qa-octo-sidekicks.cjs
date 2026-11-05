@@ -40,5 +40,11 @@ assert.ok(passiveActions.has('idle_alt'));
 assert.equal(passiveActions.has('swim'),false);
 const files=['purple_idle_v2.webp','purple_excited.webp','purple_toss.webp','purple_gorge.webp',
  'purple_snack.webp','purple_victory.webp','purple_fail_v2.webp','purple_swim.webp'];
-for(const name of files)assert.ok(source.includes(name),'Missing 16-frame asset slot: '+name);
-console.log('PASS: two companions, shared ground, shuffle bags, casting, bite, eat, failure, fever and eight high-resolution sheet slots');
+const player=fs.readFileSync('human-fishing/index.html','utf8');
+for(const name of files){
+ assert.ok(player.includes(name),'Missing 16-frame PLAYER asset: '+name);
+ assert.ok(!source.includes(name),'New player artwork leaked into original companion: '+name);
+}
+assert.ok(player.includes('playerOctoPose(now)'));
+assert.ok(player.includes("action:'gorge'"));
+console.log('PASS: original red/purple companion atlases restored, player uses eight untouched final 16-frame sheets');
