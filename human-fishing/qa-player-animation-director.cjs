@@ -20,25 +20,21 @@ vm.createContext(env);
 vm.runInContext(src.slice(a,b),env,{filename:'player-pose-director.js'});
 function pose(t){env.time=t;return env.playerOctoPose(t)}
 assert.equal(env.PLAYER_ANIM_RATE,.91,'Rate change must be subtle');
-assert.equal(pose(0).action,'idle_alt','Idle must start as the default pose');
-assert.equal(pose(3).action,'idle_alt','Do not continuously cycle poses by default');
-let durationByPhase=0,nonIdleFrames=0,last='idle_alt',previousNonIdle=null;
+assert.equal(pose(0).action,'excited',
+ 'The screenshot-matched excited bitmap is the ONLY fishing default idle');
+assert.equal(pose(3).action,'excited','Default body animation must keep looping');
+const expectedFrames=[6,7,8,9,10,11,12,13,12,11,10,9,8,7];
+assert.match(src,/var playerExcitedIdleFrames=\[6,7,8,9,10,11,12,13,12,11,10,9,8,7\]/,
+ 'Use only approved expressive middle frames, ping-pong without a sharp pop');
 for(let i=0;i<3500;i++){
- let t=i*.08;
- const p=pose(t);
- if(p.action!=='idle_alt')nonIdleFrames++;
- if(last==='idle_alt'&&p.action!=='idle_alt'){
-  if(previousNonIdle)assert.notEqual(p.action,previousNonIdle,'Duplicate emote twice in a row');
-  previousNonIdle=p.action;
- }
- if(last!=='idle_alt'&&p.action!=='idle_alt'&&last!==p.action)
-  throw Error('Adjacent emote actions must be separated by Idle');
- last=p.action;
+ const t=i*.08,p=pose(t);
+ assert.equal(p.action,'excited','No heavy-lidded eye, disappointment, or random idle');
+ assert.ok(expectedFrames.includes(p.frame),'The resting pose must use the approved excited frames');
 }
-assert.ok(nonIdleFrames>110,'Occasional expressions must still appear');
-assert.ok(nonIdleFrames<1100,'Idle should occupy a majority of ordinary time');
-assert.doesNotMatch(src.match(/var choices=\[[^\]]+\]/)?.[0]||'',/['"]swim['"]/,
- 'Swimming sheet is reserved exclusively for the entrance');
+assert.doesNotMatch(src,/var choices=\['old_mouth_idle','excited'\]/,
+ 'No old random idle roulette should silently replace the screenshot pose');
+assert.doesNotMatch(src,/var choices=\['[^']*fail_alt/,
+ 'The failure expression is only for actual failure');
 env.cast={active:true,elapsed:.70};
 assert.equal(pose(300).action,'excited',
  'Fishing cast must use clean protagonist artwork without the painted extra rod or fish bucket');
@@ -51,22 +47,22 @@ const sinking=pose(300.1);
 assert.equal(sinking.action,'bait_sinking',
  'New bowed-head sprite must appear ONLY while the lure is actually sinking underwater');
 assert.ok(sinking.frame>0&&sinking.frame<16,'Water sinking uses the full painted 16-frame sequence');
-assert.match(src,/var choices=\['old_mouth_idle','excited'\]/,
- 'Disappointment and scared face must be excluded from passive idle pool');
+assert.match(src,/function nextPlayerOctoIdle\(\)\{[^}]*return'excited';/s,
+ 'The only permitted idle choice is the screenshot-approved excited action');
 env.cast={active:false,elapsed:0};
 env.joystick={active:true,engaged:true};
 assert.equal(pose(301).action,'excited','Moving the bait should alert the protagonist, not replay swim');
 env.joystick={active:false,engaged:false};
 env.playerOctoCue('excited',.9);
 assert.equal(pose(301).action,'excited','Bait brush/touch must trigger an excited reaction');
-assert.equal(pose(302).action,'idle_alt','A brief input reaction must return to calm idle');
+assert.equal(pose(302).action,'excited','A brief input reaction must return to approved idle');
 env.hook={kind:'fish',obj:{sp:{},x:100},elapsed:.05,travelDuration:1.0,willEscape:false};
 assert.equal(pose(303).action,'mouth_open','Reeling needs the approved new mouth sprite');
 env.hook.elapsed=.76;
 assert.equal(pose(303).frame,15,'Main mouth must be fully open early on ascent');
 env.hook=null;
 env.feverFx={caught:[{sp:{}}],elapsed:.75};
-assert.equal(pose(304).action,'idle_alt','Only underwater bait opens during Fever suction; player remains idle');
+assert.equal(pose(304).action,'excited','Fever suction leaves the protagonist in approved idle until reeling');
 env.feverFx=null;
 env.playerOctoReaction={type:'swallow_success',start:305,duration:.86};
 assert.equal(pose(305).action,'swallow_success','The successful catch must override idle');
@@ -82,5 +78,5 @@ env.introEntrance.active=false;
 assert.match(src,/if\(introEntrance\.active\)\{/,'Entrance state must override idle');
 assert.match(src,/function advanceIntroEntrance\(dt\)/,'Entrance progression is required');
 assert.match(src,/if\(introEntrance\.active\)return;/,'First cast must wait for the entrance');
-console.log('PASS: normal idle dominates; occasional non-consecutive original emotes; cast, joystick, brush, reel, fever, success, failure and 9% slower playback');
+console.log('PASS: screenshot-matched excited idle continuously; all casts, joystick, brush, reel, fever, success, failure and 9% slower playback');
 
