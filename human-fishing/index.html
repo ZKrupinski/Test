@@ -2507,6 +2507,9 @@ function tick(stamp){
    ctx.restore();
   }
   if(view==='fish'&&!introEntrance.active)drawLine();
+  // New bitmapped OCTO FEVER bait shares the exact ordinary bait middle
+  // layer: above player/rod/line and BELOW every swimming or hooked fish.
+  if(view==='fish'&&!introEntrance.active&&feverFx)drawFeverFx(dt);
   // Explicit foreground-over-PLAYER bait layer (do not merge with the
   // protagonist/rod draw group). This must stay AFTER the last drawOcto,
   // drawRod and drawLine call but BEFORE swimming and singly hooked fish.
@@ -2545,7 +2548,7 @@ function tick(stamp){
   ctx.strokeStyle='#b4f8f052';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.stroke();
  });
  particleFrame(dt);
- drawCatchFx(dt);drawFeverFx(dt);drawEscapeFx(dt);drawGroggyFx(dt);
+ drawCatchFx(dt);drawEscapeFx(dt);drawGroggyFx(dt);
   if(!escapeFx&&octoGroggy===0&&pendingEscapeRestart){pendingEscapeRestart=false;if(view==='fish')startCast()}
  if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}
  ctx.restore();
@@ -3304,6 +3307,44 @@ function octoSprite(tier,frame,folding){
 // 3 independent 4x4 sheets (16 frames each), separate from the purple player
 // and the two cheering sidekicks. The original drawings are not regenerated.
 var redLureAtlas={},redLureReaction=null;
+// User-approved painted 4x4 / 16-frame OCTO FEVER mouth:
+// 512px padded transparent cells, original character/bubble pixels retained.
+var redFeverMouthArt=null;
+if(typeof Image!=='undefined'){
+ redFeverMouthArt=new Image();
+ redFeverMouthArt.ready=false;
+ redFeverMouthArt.decoding='async';
+ redFeverMouthArt.onload=function(){redFeverMouthArt.ready=true};
+ redFeverMouthArt.onerror=function(){redFeverMouthArt.ready=false};
+ redFeverMouthArt.src='./assets/octopus/bait/red_lure_fever_mouth.webp?v=20261105-big-mouth-v1';
+}
+function feverMouthSpriteFrame(fx){
+ var p=clamp(fx.elapsed/fx.duration,0,1);
+ // Opening 0-4 -> extended massive suction with droplets 5-11 ->
+ // closing 12-15. No giant tentacles or vector octopus artwork.
+ if(p<.22)return Math.min(4,Math.floor(p/.22*5));
+ if(p<.78)return 5+Math.min(6,Math.floor((p-.22)/.56*7));
+ return 12+Math.min(3,Math.floor((p-.78)/.22*4));
+}
+function drawFeverMouthSprite(fx,reel){
+ if(!redFeverMouthArt||!redFeverMouthArt.ready){
+  // A *bitmap* backup while the specialized sprite is arriving.
+  return drawRedLure(time,reel.x,reel.y,90);
+ }
+ var frame=feverMouthSpriteFrame(fx),image=redFeverMouthArt,
+  col=frame%4,row=Math.floor(frame/4),
+  tileW=image.naturalWidth/4,tileH=image.naturalHeight/4,
+  scale=clamp((fx.radius*2+92)/355,.94,1.42);
+ ctx.save();
+ ctx.translate(reel.x,reel.y);
+ ctx.rotate(reel.tilt*.65);
+ // The painted original source is 314x314. Each frame is padded to 512x512
+ // with a transparent 90px+ gutter so the >body-size mouth never clips.
+ ctx.drawImage(image,col*tileW,row*tileH,tileW,tileH,
+  -tileW*.5*scale,-tileH*.5*scale,tileW*scale,tileH*scale);
+ ctx.restore();
+ return true;
+}
 // A softly damped pendulum for the actual octopus BAIT, not the player.
 // Keep physics independent of image changes; even a harsh joystick movement
 // cannot snap the sprite more than 0.8 radians/sec.
@@ -3395,10 +3436,7 @@ drawBob=function(){
   size=Math.max(75,Math.min(94,v.size));
  ctx.save();
  ctx.shadowColor=g.color;ctx.shadowBlur=16;
- if(!drawRedLure(time,bob.x,bob.y,size)){
-  var hit=vibrationOffset('lure');
-  ctx.drawImage(octoSprite(g.tier,0),bob.x-size/2+hit.x,bob.y-size/2+hit.y,size,size);
- }
+ drawRedLure(time,bob.x,bob.y,size); // Approved bitmap even while Fever is merely ready.
  ctx.restore();
 };
 // Alpha 0.8: eight-tentacle harvest followed by a full queue of creatures into the main octopus mouth.
@@ -3565,32 +3603,13 @@ function drawFeverFx(dt){
  fx.reelFrame=reel.frame;
  fx.reeling=reel.folding;
  bob.x=reel.x;bob.y=reel.y;
- var diam=fx.radius*2+92;
- // FEVER is the ONLY mode where the octopus occupies the foremost creature
- // layer. Draw BOTH the held fish and the launched/reeling fish first so the
- // giant tentacles and body cover them even as they rise towards the mouth.
- fx.caught.forEach(function(entity,i){
-  drawFeverTossCreature(entity,fx,i,time,'attached');
- });
- fx.caught.forEach(function(entity,i){
-  drawFeverTossCreature(entity,fx,i,time,'released');
- });
+ // FEVER uses EXACTLY the normal bait depth, NOT a foreground effect:
+ // protagonist + rod < line < RED FEVER BAIT < ambient and caught fish.
+ // All suction droplets, huge opening and closure are painted bitmap frames.
  ctx.save();
- // The lure remains visible on its line as eight arms close, instead of fading out.
  ctx.shadowColor=fx.color;
- ctx.shadowBlur=reel.folding?12+10*(1-reel.progress):17+13*Math.sin(Math.PI*clamp(fx.elapsed/.58,0,1));
- // The lure twists left while its arms sweep the captured creatures away.
- ctx.save();ctx.translate(reel.x,reel.y);ctx.rotate(reel.tilt);
- var artScale=1-.11*reel.progress;
- ctx.scale(artScale,artScale);
- ctx.drawImage(octoSprite(fx.tier,reel.frame,reel.folding),-diam/2,-diam/2,diam,diam);
- ctx.restore();
- if(reel.folding&&reel.progress>.10&&reel.progress<.86){
-  var flash=Math.sin(Math.PI*clamp((reel.progress-.10)/.76,0,1));
-  ctx.globalAlpha=flash*.78;
-  ctx.drawImage(feverFlingStreakSprite(),reel.x-213,reel.y-59,202,102);
-  ctx.globalAlpha=1;
- }
+ ctx.shadowBlur=6+8*Math.sin(Math.PI*clamp(p,0,1));
+ drawFeverMouthSprite(fx,reel);
  ctx.shadowBlur=0;
  ctx.globalAlpha=Math.max(0,1-p*.85);
  ctx.textAlign='center';ctx.shadowColor='#021820';ctx.shadowBlur=7;
@@ -3600,6 +3619,14 @@ function drawFeverFx(dt){
  ctx.font='900 17px system-ui';ctx.fillStyle='#f6ffea';
  ctx.fillText(fx.caught.length+' CATCH · '+fx.resisted+' RESIST · ◈ '+fx.coins,fx.x,Math.max(255,fx.y-84)-35*Math.min(1,p*2));
  ctx.restore();
+ // Fever fish sit IN FRONT of the sprite in all subphases, just like a
+ // single hooked fish during ordinary fishing; keep the suction trajectory.
+ fx.caught.forEach(function(entity,i){
+  drawFeverTossCreature(entity,fx,i,time,'attached');
+ });
+ fx.caught.forEach(function(entity,i){
+  drawFeverTossCreature(entity,fx,i,time,'released');
+ });
  if(fx.elapsed>=fx.duration){
   if(fx.caught.length)startPlayerOctoReaction('swallow_success');
   feverFx=null;buildFish();buildHum();
