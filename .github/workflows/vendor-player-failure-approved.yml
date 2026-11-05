@@ -1,0 +1,37 @@
+name: Vendor Approved Player Failure Sprite
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vendor-player-failure-approved.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: vendor-approved-player-failure
+  cancel-in-progress: false
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Retrieve exactly the user-approved failure 16-frame sprite
+        run: |
+          set -euo pipefail
+          mkdir -p human-fishing/assets/octopus/player
+          curl --retry 3 --retry-delay 2 -fLsS 'https://d2ol7oe51mr4n9.cloudfront.net/user_3KlCHKRIJO34SPkOC5UMUPo7vEp/243fea30-cce0-4b87-8901-aab4e8845630.webp' -o human-fishing/assets/octopus/player/swallow_failure_original_style.webp
+          printf '%s\n' '8e4628eb275df4498dfd2226b1db8f998092e17efd464b9f3cb05ba919fd16e7  human-fishing/assets/octopus/player/swallow_failure_original_style.webp' | sha256sum -c -
+      - name: Commit exact failure asset independently of original Idle art
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add human-fishing/assets/octopus/player/swallow_failure_original_style.webp
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Use exact user-approved disappointment sprite for main octopus failure"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
