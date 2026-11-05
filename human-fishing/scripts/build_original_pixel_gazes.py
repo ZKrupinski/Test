@@ -3,7 +3,7 @@
 
 All hat, goggles, flower, scarf, body, tentacles, satchel and silhouette pixels
 are sampled from the approved ORIGINAL player sprite. No new character redraw.
-Only the original iris patches are translated in the unchanged eye sockets.
+Only existing original pixels move: eyes scan, body breathes, tentacles sway.
 """
 from pathlib import Path
 from PIL import Image
@@ -71,51 +71,68 @@ for cx,cy in centers:
 BASE_X=xs.astype(np.float32)
 BASE_Y=ys.astype(np.float32)
 
-def make_frame(dx,dy,bow=0):
-    # Both irises get the same tiny displacement. No pupil extraction,
-    # inpainting, arbitrary circles, Photoshop-like iris redraw or shadows.
-    # A face remains entirely identical to the approved source elsewhere.
-    shift_x=np.zeros((sh,sw),np.float32)
-    shift_y=np.zeros((sh,sw),np.float32)
+def make_frame(dx,dy,bow=0,phase=0):
+    # Start from exact approved source RGBA for every frame.
+    # The 2D remap displaces existing pixels only; never paint new shapes.
+    # Eye movement has become clearly readable at gameplay size, while both
+    # eyes share one direction and the fixed original eyelids stay intact.
+    motion_x=np.zeros((sh,sw),np.float32)
+    motion_y=np.zeros((sh,sw),np.float32)
     for field in eye_fields:
-        shift_x+=float(dx)*field
-        shift_y+=float(dy)*field
+        motion_x+=float(dx)*field
+        motion_y+=float(dy)*field
+
+    # Original-art secondary idle movement:
+    # tiny natural head/body breath, plus opposing elastic tentacle sways.
+    # These localized Gaussian fields vanish before the planted foot line.
+    breathe=math.sin(phase*math.tau)
+    head_field=np.exp(-.5*(((BASE_X-162)/119)**2+((BASE_Y-119)/94)**2)).astype(np.float32)
+    motion_y+=(-2.6*breathe)*head_field
+    left_field=np.exp(-.5*(((BASE_X-56)/47)**2+((BASE_Y-228)/39)**2)).astype(np.float32)
+    right_field=np.exp(-.5*(((BASE_X-266)/40)**2+((BASE_Y-220)/42)**2)).astype(np.float32)
+    front_field=np.exp(-.5*(((BASE_X-152)/78)**2+((BASE_Y-263)/25)**2)).astype(np.float32)
+    motion_x+=(5.3*math.sin(phase*math.tau+.25))*left_field
+    motion_x+=(5.8*math.sin(phase*math.tau+2.05))*right_field
+    motion_y+=(2.5*math.sin(phase*math.tau*2-.6))*front_field
+
+    # Small expressive movement of the ORIGINAL eyes, never black circles,
+    # recoloring, pupil extraction or misplaced white highlights.
     remap=cv2.remap(source_rgba,
-                    BASE_X-shift_x,BASE_Y-shift_y,
+                    BASE_X-motion_x,BASE_Y-motion_y,
                     interpolation=cv2.INTER_LINEAR,
                     borderMode=cv2.BORDER_REPLICATE)
-    output=np.where(((shift_x!=0)|(shift_y!=0))[:,:,None],
-                    remap,source_rgba).astype(np.uint8)
+    output=remap.astype(np.uint8)
+    # Unmoved pixels retain their exact RGBA values.
+    unchanged=(np.abs(motion_x)<1e-5)&(np.abs(motion_y)<1e-5)
+    output[unchanged]=source_rgba[unchanged]
     canvas=Image.fromarray(output,"RGBA")
     frame=Image.new("RGBA",(CELL_W,CELL_H),(0,0,0,0))
-    # Uniform scale: the original 313x313 illustration stays 1:1 in pixels
-    # in every state, at a stable transparent frame center/foot line.
     scaled=canvas.resize((360,360),Image.Resampling.LANCZOS)
     left=round(200-156*360/sw)
     top=round(412-285*360/sh)
     frame.alpha_composite(scaled,(left,top))
     if bow>0:
-        # Original pixels only: barely visible forward nod during bait sink.
-        angle=.9*bow
-        frame=frame.rotate(angle,Image.Resampling.BICUBIC,center=(200,412))
+        # Only the bait-descending pose bends 1.6 degrees maximum.
+        frame=frame.rotate(1.6*bow,Image.Resampling.BICUBIC,center=(200,412))
     return frame
 
-# Idle stays friendly, no head tilt and NO uneven eyelid transitions.
-# Move both existing pupils together by at most 2px horizontally and 2px
-# downward in the ORIGINAL 313px source. Loop turns back smoothly.
-IDLE=[(0,0),(0,1),(-1,1),(-2,2),(-2,2),(-1,1),(0,1),(0,0),
-      (0,0),(1,1),(2,2),(2,2),(1,1),(0,1),(0,0),(0,0)]
-# During bait descent the whole original character looks marginally lower;
-# the head bend is <1 degree so face details and silhouette cannot pop.
-SINK=[(0,0,0),(0,1,.06),(0,2,.14),(0,2,.25),
-      (-1,2,.34),(-1,2,.45),(-1,2,.54),(-1,2,.64),
-      (-1,2,.74),(0,2,.82),(0,2,.89),(0,2,.95),
-      (0,2,1),(0,2,1),(0,2,1),(0,2,1)]
+# Smile stays friendly. Head does NOT bow during Idle; eyes clearly search
+# down-left, then down-right. Pupil travel peaks at ~5 px on the GAME canvas.
+# The body breathes and tentacles sway in counterphase across all 16 frames.
+IDLE=[(0,1,0),(-2,2,0),(-4,3,0),(-6,4,0),
+      (-6,4,0),(-4,3,0),(-2,2,0),(0,1,0),
+      (0,1,0),(2,2,0),(4,3,0),(6,4,0),
+      (6,4,0),(4,3,0),(2,2,0),(0,1,0)]
+# Cast sinking: watch the lure move downward and gently bend toward the water.
+SINK=[(0,1,0),(0,2,.06),(0,3,.14),(0,4,.22),
+      (-1,5,.31),(-1,6,.42),(-1,7,.53),(-1,7,.63),
+      (0,7,.73),(0,7,.82),(0,7,.90),(0,7,.96),
+      (0,7,1),(0,7,1),(0,7,1),(0,7,1)]
 def export(name,sequence):
     sheet=Image.new("RGBA",(SHEET_W,SHEET_H),(0,0,0,0))
     for i,pose in enumerate(sequence):
       x=(i%4)*CELL_W;y=(i//4)*CELL_H
-      frame=make_frame(*pose)
+      frame=make_frame(*pose,phase=i/16)
       sheet.alpha_composite(frame,(x,y))
     png=OUT/(name+".png")
     webp=OUT/(name+".webp")
