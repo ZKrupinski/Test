@@ -3546,9 +3546,14 @@ function drawFeverFx(dt){
  fx.reeling=reel.folding;
  bob.x=reel.x;bob.y=reel.y;
  var diam=fx.radius*2+92;
- // Draw held fish behind the eight arms so the tentacles visibly clasp them.
+ // FEVER is the ONLY mode where the octopus occupies the foremost creature
+ // layer. Draw BOTH the held fish and the launched/reeling fish first so the
+ // giant tentacles and body cover them even as they rise towards the mouth.
  fx.caught.forEach(function(entity,i){
   drawFeverTossCreature(entity,fx,i,time,'attached');
+ });
+ fx.caught.forEach(function(entity,i){
+  drawFeverTossCreature(entity,fx,i,time,'released');
  });
  ctx.save();
  // The lure remains visible on its line as eight arms close, instead of fading out.
@@ -3575,10 +3580,6 @@ function drawFeverFx(dt){
  ctx.font='900 17px system-ui';ctx.fillStyle='#f6ffea';
  ctx.fillText(fx.caught.length+' CATCH · '+fx.resisted+' RESIST · ◈ '+fx.coins,fx.x,Math.max(255,fx.y-84)-35*Math.min(1,p*2));
  ctx.restore();
- var mouth=mouthPos(time);
- fx.caught.forEach(function(entity,i){
-  drawFeverTossCreature(entity,fx,i,time,'released');
- });
  if(fx.elapsed>=fx.duration){
   if(fx.caught.length)startPlayerOctoReaction('swallow_success');
   feverFx=null;buildFish();buildHum();
