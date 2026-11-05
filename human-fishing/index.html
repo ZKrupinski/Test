@@ -2310,7 +2310,7 @@ function drawOcto(now){
  }
  ctx.restore();
 }
-function rodBitmapPath(id){return './assets/rods/'+id+'.png?v=20261105-bitmap-rods1'}
+function rodBitmapPath(id){return './assets/rods/'+id+'.png?v=20261105-chunky-approved2'}
 // Six transparent 5x PNGs; the physically connected fishing line remains vector.
 var rodBitmapSprites={};
 ['cork','bamboo','marine','carbon','titan','abyss'].forEach(function(id){
@@ -2320,48 +2320,29 @@ var rodBitmapSprites={};
  im.src=rodBitmapPath(id);rodBitmapSprites[id]=im;
 });
 function drawRod(now){
- var worldTip=rodTip(now),tip={x:worldTip.x,y:worldTip.y-PLAYER_STAGE_DROP},base={x:536,y:191},gear=selectedGear('rod'),lv=gearLevel('rod',gear.id);
+ // Approved chunky, hand-painted transparent PNG rods. No vector rod fallback.
+ var worldTip=rodTip(now);
+ var tip={x:worldTip.x,y:worldTip.y-PLAYER_STAGE_DROP};
+ var base={x:536,y:191},gear=selectedGear('rod');
  var rodArt=rodBitmapSprites[gear.id];
- if(rodArt&&rodArt.ready){
-  // PNG rest tip is exactly (640,141), moving with rodTip during casts.
-  var dx=tip.x-base.x,dy=tip.y-base.y;
-  var angle=Math.atan2(dy,dx)-Math.atan2(-50,104);
-  var scale=Math.hypot(dx,dy)/Math.hypot(104,-50);
-  ctx.save();ctx.translate(base.x,base.y);ctx.rotate(angle);ctx.scale(scale,scale);
-  ctx.imageSmoothingEnabled=true;
-  ctx.drawImage(rodArt,484-base.x,106-base.y,210,160);
-  ctx.restore();
-  // Foreground tentacle grips the painted rod and never obscures the fishing line.
-  ctx.save();ctx.lineCap='round';ctx.strokeStyle='#7f3a4b';ctx.lineWidth=23;
-  ctx.beginPath();ctx.moveTo(500,230);ctx.quadraticCurveTo(549,219,538,187);ctx.stroke();
-  ctx.strokeStyle='#e9a08d';ctx.lineWidth=16;ctx.stroke();ctx.fillStyle='#ffd0ae';
-  ctx.beginPath();ctx.ellipse(540,195,9,7,.4,0,Math.PI*2);ctx.fill();ctx.restore();
-  return;
- }
- ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.shadowColor='#00121caa';ctx.shadowBlur=7;
- ctx.beginPath();ctx.moveTo(base.x,base.y);ctx.bezierCurveTo(mix(base.x,tip.x,.30),mix(base.y,tip.y,.20),mix(base.x,tip.x,.71),mix(base.y,tip.y,.65),tip.x,tip.y);
- ctx.strokeStyle='#111d28';ctx.lineWidth=12;ctx.stroke();ctx.shadowBlur=0;
- var g=ctx.createLinearGradient(base.x,base.y,tip.x,tip.y);
- g.addColorStop(0,gear.color);g.addColorStop(.68,lv>=5?'#e9d8ab':gear.color);g.addColorStop(1,'#e9f3e8');
- ctx.strokeStyle=g;ctx.lineWidth=6+gear.tier*.3;ctx.stroke();
- ctx.strokeStyle='#f7e6c799';ctx.lineWidth=1.4;ctx.stroke();
- for(var i=1;i<=4;i++){
-  var a=i/5,x=mix(base.x,tip.x,a),y=mix(base.y,tip.y,a)-10*Math.sin(a*Math.PI);
-  ctx.strokeStyle='#ecdfc9';ctx.lineWidth=2.4;ctx.beginPath();ctx.ellipse(x,y,6-a*3,8-a*3,.4,0,Math.PI*2);ctx.stroke();
- }
- ctx.strokeStyle='#724632';ctx.lineWidth=15;ctx.beginPath();ctx.moveTo(512,208);ctx.lineTo(561,180);ctx.stroke();
- ctx.strokeStyle=gear.color;ctx.lineWidth=9;ctx.stroke();
- ctx.beginPath();ctx.arc(565,201,15,0,Math.PI*2);ctx.fillStyle='#19353d';ctx.fill();ctx.strokeStyle='#d3d7c7';ctx.lineWidth=3;ctx.stroke();
- ctx.beginPath();ctx.arc(565,201,5,0,Math.PI*2);ctx.fillStyle='#f4d39c';ctx.fill();
- // The reel crank spins while the little octopus lure is being pulled in.
- var spin=feverFx&&feverFx.reeling?feverFx.reelProgress*Math.PI*12:0;
- var cx=565+Math.cos(spin)*23,cy=201+Math.sin(spin)*23;
- ctx.strokeStyle='#ffd9a1';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(565,201);ctx.lineTo(cx,cy);ctx.stroke();
- ctx.beginPath();ctx.arc(cx,cy,5,0,Math.PI*2);ctx.fillStyle='#daba86';ctx.fill();
- // Gripping tentacle wraps over the rod's cork handle.
- ctx.strokeStyle='#7f3a4b';ctx.lineWidth=23;ctx.beginPath();ctx.moveTo(500,230);ctx.quadraticCurveTo(549,219,538,187);ctx.stroke();
- ctx.strokeStyle='#e9a08d';ctx.lineWidth=16;ctx.stroke();ctx.fillStyle='#ffd0ae';
- ctx.beginPath();ctx.ellipse(540,195,9,7,.4,0,Math.PI*2);ctx.fill();
+ if(!rodArt||!rodArt.ready)return;
+ // Every transparent 5x sprite is laid out on the same 210x160 frame:
+ // gripped handle near (500,187), reel below, tip at (640,141).
+ // Affine pivot is applied only to follow the subtle cast/idle sway.
+ var dx=tip.x-base.x,dy=tip.y-base.y;
+ var angle=Math.atan2(dy,dx)-Math.atan2(-50,104);
+ var scale=Math.hypot(dx,dy)/Math.hypot(104,-50);
+ ctx.save();
+ ctx.translate(base.x,base.y);ctx.rotate(angle);ctx.scale(scale,scale);
+ ctx.imageSmoothingEnabled=true;
+ ctx.drawImage(rodArt,484-base.x,106-base.y,210,160);
+ ctx.restore();
+ // Player's tentacle still grips every rod in front of the bitmap.
+ ctx.save();ctx.lineCap='round';
+ ctx.strokeStyle='#7f3a4b';ctx.lineWidth=23;
+ ctx.beginPath();ctx.moveTo(500,230);ctx.quadraticCurveTo(549,219,538,187);ctx.stroke();
+ ctx.strokeStyle='#e9a08d';ctx.lineWidth=16;ctx.stroke();
+ ctx.fillStyle='#ffd0ae';ctx.beginPath();ctx.ellipse(540,195,9,7,.4,0,Math.PI*2);ctx.fill();
  ctx.restore();
 }
 // Dedicated depth layer for the small red fishing BAIT. Never draw it inside
