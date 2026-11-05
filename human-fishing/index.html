@@ -1252,6 +1252,21 @@ function aquariumTapFish(event){
  if(event.preventDefault)event.preventDefault();
  return true;
 }
+// Barrel-and-fish idle motion stays exclusively in the aquarium.
+function aquariumKeeperPose(now){
+ var cycle=((now%10.8)+10.8)%10.8;
+ var action=cycle<2.3?'gorge':cycle<4.8?'snack':'idle_alt';
+ var img=playerOctoAtlas[action];
+ if(!img||!img.ready)action='idle_alt';
+ var phase=action==='gorge'?cycle:cycle-2.3;
+ var frame=action==='idle_alt'?Math.floor(now*8)%16:
+  Math.min(15,Math.floor(phase/2.5*16));
+ return{action:action,frame:frame};
+}
+function drawAquariumKeeper(now){
+ ctx.save();ctx.translate(14,-20);ctx.scale(.64,.64);
+ drawOcto(now,aquariumKeeperPose(now));ctx.restore();
+}
 function drawingTank(now){
  sea(true);
  ctx.fillStyle='#fffdfa0c';ctx.fillRect(20,25,1240,656);
@@ -1323,6 +1338,7 @@ function drawingTank(now){
   ctx.fillStyle='#f9e7c3';ctx.textAlign='center';ctx.font='bold 12px system-ui';
   ctx.fillText(humans[humanId],sx,sy+128);
  });
+ drawAquariumKeeper(now);
 }
 function tick(stamp){
  var dt=Math.min((stamp-last)/1000,.045);last=stamp;time+=dt;
@@ -2051,6 +2067,45 @@ Object.keys(playerOctoSources).forEach(function(action){
 // original source frames. Avoid the cross-eyed 1,2,5,7,8,13,14,15 frames
 // without re-painting iris, eye highlights or costume details.
 var playerIdleGazeFrames=[0,3,4,3,0,0,6,6,9,10,11,12,11,10,9,6];
+
+function cleanDetachedPlayerPixels(context,x0,y0,w,h){
+ // Sprite sheet columns are 313.5px: remove foreign frame tail fragments
+ // without painting over or resizing any protagonist artwork.
+ if(!Number.isFinite(w)||!Number.isFinite(h)||w<8||h<8)return;
+ var data;
+ try{data=context.getImageData(x0,y0,w,h)}catch(error){return}
+ if(!data||!data.data||data.data.length!==w*h*4)return;
+ var rgba=data.data,total=w*h,groupId=new Int32Array(total),
+  queue=new Int32Array(total),group=0,biggest=0,best=0;
+ for(var start=0;start<total;start++){
+  if(groupId[start]||rgba[start*4+3]<48)continue;
+  var head=0,tail=1,area=0;queue[0]=start;groupId[start]=++group;
+  while(head<tail){
+   var p=queue[head++],px=p%w,py=(p-px)/w;
+   for(var yy=Math.max(0,py-1);yy<=Math.min(h-1,py+1);yy++)
+    for(var xx=Math.max(0,px-1);xx<=Math.min(w-1,px+1);xx++){
+     var k=yy*w+xx;
+     if(!groupId[k]&&rgba[k*4+3]>=48){groupId[k]=group;queue[tail++]=k}
+    }
+   area++;
+  }
+  if(area>biggest){biggest=area;best=group}
+ }
+ if(!best)return;
+ for(var index=0;index<total;index++){
+  if(!rgba[index*4+3]||groupId[index]===best)continue;
+  var xi=index%w,yi=(index-xi)/w,near=false;
+  for(var dy=-2;dy<=2&&!near;dy++){
+   var y=yi+dy;if(y<0||y>=h)continue;
+   for(var dx=-2;dx<=2;dx++){
+    var x=xi+dx;if(x>=0&&x<w&&groupId[y*w+x]===best){near=true;break}
+   }
+  }
+  if(!near)rgba[index*4+3]=0;
+ }
+ context.putImageData(data,x0,y0);
+}
+
 function playerOctoTile(action,frame){
  if(action==='idle_alt')frame=playerIdleGazeFrames[Math.max(0,Math.min(15,frame))];
  var key=action+':'+frame,hit=playerOctoTiles[key];
@@ -2071,6 +2126,7 @@ function playerOctoTile(action,frame){
  if(!g)return null;
  g.clearRect(0,0,canvas.width,canvas.height);
  g.drawImage(img,x0,y0,w,h,pad,pad,w,h);
+ if(action==='swim')cleanDetachedPlayerPixels(g,pad,pad,w,h);
  var rect=info[frame],style=playerOctoStyles[action],
   foot=rect[4],
   bottomSeam=rect[3]>=h-1&&foot>style.foot+15;
@@ -2145,7 +2201,8 @@ function playerOctoIdleWait(now){
 function nextPlayerOctoIdle(){
  // Previous mouth-open, older eating/failure and other expressive
  // original sprite sheets are *occasional* idle emotes, not catch actions.
- var choices=['old_mouth_idle','gorge','snack','fail_alt','excited'];
+ // The fish-from-bucket artwork is aquarium-only, never a fishing idle.
+ var choices=['old_mouth_idle','fail_alt','excited'];
  var eligible=choices.filter(function(a){return a!==playerOctoLastIdle});
  var pick=eligible[Math.floor(Math.random()*eligible.length)];
  playerOctoLastIdle=pick;
@@ -2218,7 +2275,7 @@ function playerOctoPose(now){
    playerOctoIdleState=playerOctoIdleWait(now);
   }else{
    var emote=nextPlayerOctoIdle(),seconds=emote==='old_mouth_idle'?1.5:
-    emote==='gorge'||emote==='fail_alt'?1.55:1.35;
+    emote==='fail_alt'?1.55:1.35;
    playerOctoIdleState={action:emote,start:now,
     until:now+seconds/PLAYER_ANIM_RATE};
   }
@@ -2230,8 +2287,8 @@ function playerOctoPose(now){
   Math.max(.01,playerOctoIdleState.until-playerOctoIdleState.start),0,.999);
  return{action:playerOctoIdleState.action,frame:Math.min(15,Math.floor(phase*16))};
 }
-function drawOcto(now){
- var hit=vibrationOffset('octo'),pose=playerOctoPose(now),
+function drawOcto(now,poseOverride){
+ var hit=vibrationOffset('octo'),pose=poseOverride||playerOctoPose(now),
   illustrated=playerReactionArt[pose.action],
   tile=illustrated&&illustrated.ready?null:playerOctoTile(pose.action,pose.frame);
  ctx.save();
@@ -2578,9 +2635,9 @@ function tick(stamp){
 var mouthFrames={},catchFx=null;
 // Final capture and red bait landing spot on the illustrated OPEN mouth.
 // Previous (452,191+DROP) stopped slightly down-left of the open cavity.
-// Shift the target +18px right and -14px up; red bait, hooked creature,
+// Move another 12px right and 9px up to hit the actual mouth center; red bait, hooked creature,
 // success suction and Fever toss share this EXACT animated mouth position.
-var CATCH_MOUTH_X=470,CATCH_MOUTH_LOCAL_Y=177;
+var CATCH_MOUTH_X=482,CATCH_MOUTH_LOCAL_Y=168;
 function mouthPos(now){
  return{x:CATCH_MOUTH_X,y:CATCH_MOUTH_LOCAL_Y+PLAYER_STAGE_DROP+
   Math.sin(now*1.2)*3};
@@ -3557,32 +3614,48 @@ function feverReelState(fx,now){
   holding:fx.elapsed<fx.reelStart+.82,leftSweep:0,tilt:-.12*Math.sin(Math.PI*smooth),x:x,y:y};
 }
 function feverGripSlot(fx,index){
- // Separated slots remain intact throughout gathering and group retrieval.
- var ring=Math.floor(index/6),n=Math.min(6,fx.caught.length-ring*6);
- var angle=-Math.PI/2+(index%6)*Math.PI*2/n+ring*.45;
- var radius=72+ring*52;
+ // Evenly spaced ring slots spiral inward during collection and ascent.
+ var ring=Math.floor(index/6),n=Math.max(1,Math.min(6,fx.caught.length-ring*6)),
+  progress=clamp((fx.elapsed-.15)/Math.max(.1,fx.reelStart+.82-.15),0,1),
+  inward=progress*progress*(3-2*progress),
+  radius=[0,61,67,75,84,94,103][n]+ring*100-inward*13,
+  angle=-Math.PI+(index%6)*Math.PI*2/n+ring*.30+inward*.27;
  return{x:Math.cos(angle)*radius,y:Math.sin(angle)*radius,
-  scale:fx.caught.length>6?.65:.82};
+  scale:fx.caught.length>6?.53:fx.caught.length>=5?.63:.77};
 }
 function feverTossPoint(entity,fx,index,now){
- var slot=feverGripSlot(fx,index),reel=feverReelState(fx,now);
- // Shift the entire cluster inward near screen edges, preserving slot spacing.
- var extent=72+Math.floor(Math.max(0,fx.caught.length-1)/6)*52;
- var offsetX=clamp(fx.x,extent+35,W-extent-35)-fx.x;
- var offsetY=clamp(fx.y,WATER_SURFACE_Y+extent+30,H-extent-30)-fx.y;
- var hold={x:reel.x+offsetX+slot.x,y:reel.y+offsetY+slot.y};
- var gather=clamp(fx.elapsed/.80,0,1),q=gather*gather*(3-2*gather);
- if(fx.elapsed<.80)return{x:mix(entity.x,hold.x,q),y:mix(entity.y,hold.y,q),
-  rotation:Math.sin(now*8+index)*.06,scale:mix(1,slot.scale,q),
-  done:false,phase:'gather',attached:true};
- // Every fish remains visible beside the bait, all rising on the same frame.
  var releaseAt=fx.reelStart+.82;
- if(fx.elapsed<releaseAt)return{x:hold.x,y:hold.y,rotation:Math.sin(now*9+index)*.08,
+ // Freeze the group arrangement at release so individual arcs do not jump.
+ var phase=Math.min(fx.elapsed,releaseAt);
+ var slot=feverGripSlot(Object.assign({},fx,{elapsed:phase}),index),
+  reel=feverReelState(fx,now);
+ var rings=Math.max(1,Math.ceil(fx.caught.length/6)),
+  outer=Math.max(1,fx.caught.length-(rings-1)*6),
+  extent=[0,61,67,75,84,94,103][outer]+(rings-1)*100+10;
+ var offsetX=clamp(fx.x,extent+22,W-extent-22)-fx.x;
+ var offsetY=clamp(fx.y,WATER_SURFACE_Y+extent+14,H-extent-14)-fx.y;
+ // Independent frantic flails are small enough to preserve empty gaps.
+ var struggle=fx.elapsed<releaseAt?1:0,
+  wobbleX=Math.sin(now*21+index*2.47)*(3.3+index%3)*struggle,
+  wobbleY=Math.cos(now*24+index*1.78)*3.2*struggle;
+ var hold={x:reel.x+offsetX+slot.x+wobbleX,
+  y:reel.y+offsetY+slot.y+wobbleY};
+ var gather=clamp(fx.elapsed/.80,0,1),q=gather*gather*(3-2*gather);
+ if(fx.elapsed<.80){
+  // Sucked into a whirl with tangential motion, never just lifted in place.
+  var swirl=Math.sin(Math.PI*q)*(12+(index%3)*3),
+   direction=Math.atan2(slot.y,slot.x);
+  return{x:mix(entity.x,hold.x,q)-Math.sin(direction)*swirl,
+   y:mix(entity.y,hold.y,q)+Math.cos(direction)*swirl,
+   rotation:Math.sin(now*27+index*2.2)*.18,
+   scale:mix(1,slot.scale,q),done:false,phase:'gather',attached:true};
+ }
+ if(fx.elapsed<releaseAt)return{x:hold.x,y:hold.y,
+  rotation:Math.sin(now*24+index*2.3)*.16,
   scale:slot.scale,done:false,phase:'held',attached:true};
- // After lifting the whole catch out, deliver it to the MAIN octopus as before.
  var launch=feverReelState(Object.assign({},fx,{elapsed:releaseAt}),now);
- var sx=launch.x+offsetX+slot.x,sy=launch.y+offsetY+slot.y;
- var mouth=mouthPos(now),t=clamp((fx.elapsed-releaseAt)/.72,0,1),inv=1-t;
+ var sx=launch.x+offsetX+slot.x,sy=launch.y+offsetY+slot.y,
+  mouth=mouthPos(now),t=clamp((fx.elapsed-releaseAt)/.72,0,1),inv=1-t;
  var cx=(sx+mouth.x)*.5,cy=Math.min(sy,mouth.y)-50-index%3*14;
  return{x:inv*inv*sx+2*inv*t*cx+t*t*mouth.x,
   y:inv*inv*sy+2*inv*t*cy+t*t*mouth.y,
