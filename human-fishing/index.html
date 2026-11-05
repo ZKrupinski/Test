@@ -2445,6 +2445,40 @@ function tick(stamp){
  else{
   sea(false);coral(time);
   updateEcosystem(dt);
+  if(view==='fish'){castMotion(dt);updateJoystick(dt);checkBaitBrush();if(feverFx){
+   var currentReel=feverReelState(feverFx,time);
+   bob.x=currentReel.x;bob.y=currentReel.y;
+  }}
+  // 1) Advance lure and hooked-fish WORLD positions before any rendering.
+  // This keeps the bitmap lure and the reel path synchronized to the same frame.
+  if(view==='fish'&&!introEntrance.active&&hook){
+    hook.elapsed+=dt;
+    var baseDuration=hook.kind==='human'?(hook.obj.id>=20?2.5:1.85):(1.10-save.up[0]*.08);
+    var duration=Math.max(.56,baseDuration*(1-gearPower('rod')*.035-gearPower('helper')*.012));
+    var o=hook.obj,p=clamp(hook.elapsed/duration,0,1);
+    hook.travelDuration=duration;
+    if(!hook.pulled&&p>.38){hook.pulled=true;vibrationPulse('pull')}
+    // The swallow impact fires only at actual success, not when a fish escapes.
+    if(hook.willEscape){
+     var approach=clamp(hook.elapsed/(duration*(hook.escapeAt||.88)),0,1)*.90;
+     var point=swallowPoint(hook.startX,hook.startY,mouthPos(time),approach);
+     o.x=point.x+Math.sin(time*32)*Math.max(0,approach-.64)*9;
+     o.y=point.y+Math.sin(time*41)*Math.max(0,approach-.64)*5;
+    }else{
+     var point=swallowPoint(hook.startX,hook.startY,mouthPos(time),p);
+     o.x=point.x;o.y=point.y;
+    }
+    bob.x=o.x;bob.y=o.y;
+  }
+  // 2) Ordinary fishing: bait is ALWAYS behind the fish, including a
+  // single fish or humanoid being reeled in. Keep the already-smooth angle
+  // and exact string-center attachment from drawRedLure/drawLine.
+  if(view==='fish'&&!introEntrance.active&&!feverFx){
+   if(hook)drawRedLure(time,bob.x,bob.y,64);
+   else drawBob();
+  }
+  // 3) Draw all ambient creatures IN FRONT of the ordinary lure. The
+  // hooked fish is rendered later, also in front of the lure.
   if(view==='fish'||view==='book'||view==='grow'||view==='shop'){
    fish.forEach(function(a){
     if(!a.feverCaptured&&(!hook||hook.obj!==a)){drawFish(a,time);drawFishRankTag(a)}
@@ -2453,10 +2487,6 @@ function tick(stamp){
     if(!a.feverCaptured&&(!hook||hook.obj!==a))humanIcon(a,time);
    });
   }
-  if(view==='fish'){castMotion(dt);updateJoystick(dt);checkBaitBrush();if(feverFx){
-   var currentReel=feverReelState(feverFx,time);
-   bob.x=currentReel.x;bob.y=currentReel.y;
-  }}
   // Feed the actual fishing state to the illustrated companion animation mixer.
   // This runs before rendering, so bites, lure moves and fever feel immediate.
   if(window.octoSidekicksObserve){
@@ -2481,30 +2511,13 @@ function tick(stamp){
    ctx.restore();
   }
   if(view==='fish'&&!introEntrance.active){
-   if(hook){
-    hook.elapsed+=dt;
-    var baseDuration=hook.kind==='human'?(hook.obj.id>=20?2.5:1.85):(1.10-save.up[0]*.08);
-    var duration=Math.max(.56,baseDuration*(1-gearPower('rod')*.035-gearPower('helper')*.012));
-    var o=hook.obj,p=clamp(hook.elapsed/duration,0,1);
-    hook.travelDuration=duration;
-    if(!hook.pulled&&p>.38){hook.pulled=true;vibrationPulse('pull')}
-    // The swallow impact fires only at actual success, not when a fish escapes.
-    if(hook.willEscape){
-     var approach=clamp(hook.elapsed/(duration*(hook.escapeAt||.88)),0,1)*.90;
-     var point=swallowPoint(hook.startX,hook.startY,mouthPos(time),approach);
-     o.x=point.x+Math.sin(time*32)*Math.max(0,approach-.64)*9;
-     o.y=point.y+Math.sin(time*41)*Math.max(0,approach-.64)*5;
-    }else{
-     var point=swallowPoint(hook.startX,hook.startY,mouthPos(time),p);
-     o.x=point.x;o.y=point.y;
-    }
-    bob.x=o.x;bob.y=o.y;
-    if(!save.fever.ready)drawRedLure(time,bob.x,bob.y,64);
+   // Creature is drawn after normal bait so hooked-fish struggle is clear.
+if(hook){
     drawHookSwallow(time);
     if(hook.willEscape&&hook.elapsed>=duration*hook.escapeAt)escapeHook();
     else if(hook.elapsed>=duration)success();
    }
-   drawLine();if(!hook)drawBob();
+   drawLine();
   }
  }
  if(view==='fish'&&gearPower('helper')>0){
