@@ -511,8 +511,8 @@ assert.equal(state.catches,currentCatchCount,'Human escape must not grant catche
 assert.equal(state.coins,currentCoins,'Human escape must not grant pearls');
 // The entire hook travels along one upward Bézier arc directly into the mouth.
 const mouth=game.getMouthPos(0),origin={x:830,y:510};
-assert.equal(mouth.x,470,'Reeled-in red bait must end 18px to the right');
-assert.equal(mouth.y,223,'Reeled-in red bait must end 14px higher');
+assert.equal(mouth.x,482,'Reeled-in red bait must end in the adjusted mouth cavity');
+assert.equal(mouth.y,214,'Reeled-in red bait must end at the raised mouth center');
 const first=game.path(origin.x,origin.y,mouth,.26);
 const middle=game.path(origin.x,origin.y,mouth,.54);
 const near=game.path(origin.x,origin.y,mouth,.88);
