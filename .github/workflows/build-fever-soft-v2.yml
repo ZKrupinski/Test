@@ -1,4 +1,5 @@
 name: Build Subtle Octo Fever Sprites V2
+# Rebuild source sprites after transparent-gutter validation correction.
 on:
   push:
     branches: [main]
