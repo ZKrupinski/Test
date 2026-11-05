@@ -1,0 +1,36 @@
+name: Build Fast Original-Art Intro Sprites
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-fast-intro-sprites.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: original-intro-sprites
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build two compressed high-quality intro-only sprite atlases
+        run: |
+          set -euo pipefail
+          python -m pip install -q Pillow
+          python human-fishing/scripts/build_fast_intro_sprites.py
+      - name: Commit startup assets to the game
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add human-fishing/assets/octopus/atlases/purple_swim_intro.webp human-fishing/assets/octopus/atlases/red_intro_swim.webp
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Add priority-loaded, original-art hero and red intro sprites"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
