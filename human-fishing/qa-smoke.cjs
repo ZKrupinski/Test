@@ -424,8 +424,14 @@ for(const [i,entity] of fxStart.caught.entries()){
  assert.equal(a.done,false);assert.equal(b.done,false);
  assert.equal(a.phase,'held');assert.equal(b.phase,'held');
  assert.equal(b.scale,a.scale,'Fish must not shrink into the bait');
- assert.ok(Math.abs((b.x-a.x)-(rb.x-ra.x))<1e-7);
- assert.ok(Math.abs((b.y-a.y)-(rb.y-ra.y))<1e-7,'All fish follow the same lift');
+ // Captured fish wriggle and spiral inward instead of riding rigid slots.
+ const sa=game.gripSlot(before,i),sb=game.gripSlot(lifted,i);
+ assert.ok(Math.hypot(sb.x,sb.y)<Math.hypot(sa.x,sa.y),
+  'Fish must move closer to the bait during the lift');
+ assert.ok(Math.abs((b.x-a.x)-(rb.x-ra.x))<18,
+  'Each fish may spiral but must still follow the rising lure');
+ assert.ok(Math.abs((b.y-a.y)-(rb.y-ra.y))<18,
+  'Each fish may struggle but must still follow the rising lure');
  const delivered=game.toss(entity,{...fxStart,elapsed:fxStart.reelStart+.82+.73},i,clock/1000);
  assert.ok(delivered.done,'Only main octopus swallows after group retrieval');
  assert.equal(delivered.x,game.getMouthPos(clock/1000).x);
