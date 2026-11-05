@@ -209,6 +209,16 @@ assert.match(script,/drawOcto\(now,aquariumKeeperPose\(now\)\)/,
  'Aquarium must play fish-from-bucket idle animation');
 assert.match(script,/if\(action==='swim'\)cleanDetachedPlayerPixels\(/,
  'Swimming bitmap frames must remove neighboring-frame tails');
+assert.match(script,/gazeScale=\.75;/,
+ 'Painted protagonist must keep one calibrated and UNIFORM scale for X/Y');
+assert.match(script,/140-200\*gazeScale,244-412\*gazeScale,400\*gazeScale,440\*gazeScale/,
+ 'Original character must retain consistent body proportions and planted foot anchor');
+assert.doesNotMatch(script,/gazeX=\.83,gazeY=\.65/,
+ 'Squashed octopus distortion must never return');
+assert.match(script,/purple_idle_original_pixel_16f\.webp/,
+ 'Default idle must use the original-character pixel sheet');
+assert.match(script,/purple_sinking_original_pixel_16f\.webp/,
+ 'Sinking pose must use the original-character pixel sheet');
 const redSidekick=fs.readFileSync('human-fishing/assets/octopus/octopus-sidekicks.js','utf8');
 assert.match(redSidekick,/cleanDetachedRedPixels\(data,sw,sh\)/,
  'Red cheerleader sprites must remove adjacent-frame bleed');
