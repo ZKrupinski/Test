@@ -47,7 +47,13 @@ for(const name of files){
 }
 assert.ok(player.includes('playerOctoPose(now)'));
 assert.ok(player.includes("action:'mouth_open'"),'New mouth-opening sequence must play on catch approach');
-assert.ok(player.includes("'gorge','snack','fail_alt'"),'Old facial actions must remain in random idle pool');
+const idleMix=player.slice(player.indexOf('function nextPlayerOctoIdle(){'),player.indexOf('function playerOctoPose(now){'));
+for(const action of ['idle_alt','excited','gorge','snack','fail_alt','victory','swim','toss']){
+ assert.ok(idleMix.includes("'"+action+"'"),'Missing illustrated idle action: '+action);
+}
+assert.ok(idleMix.includes('playerOctoIdleBag.pop()'),'Idle should be shuffle-bag driven instead of repeatedly picking the static pose');
+assert.ok(player.includes('var opening=clamp((ascent-.045)/.58'),'Main octopus should begin opening before the catch reaches the surface');
+assert.ok(player.includes("fishAction==='hooked'"),'Hooked fish should have continuous flailing frames');
 assert.ok(player.includes("action:'swallow_success'")||player.includes("startPlayerOctoReaction('swallow_success')"),'New success animation must be triggered');
 assert.ok(player.includes("startPlayerOctoReaction('swallow_failure')"),'New failure animation must be triggered');
 console.log('PASS: original red/purple companion atlases restored, player uses eight untouched final 16-frame sheets');
