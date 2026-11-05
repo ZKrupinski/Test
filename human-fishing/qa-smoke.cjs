@@ -147,12 +147,26 @@ assert.ok(game,'Test bridge missing');
 // Entrance must hold the FIRST cast until hero, rod and both friends have
 // traveled together from off-screen left. Fast-forward it for gameplay tests.
 assert.ok(game.getIntro().active,'Opening ensemble must start offscreen');
-assert.ok(game.getIntro().offset < -800,'Hero and rod must start off-screen left');
+assert.equal(game.getIntro().offset,-260,'The group must start visibly just left of its resting position');
 assert.equal(game.getCast().active,false,'Do not start casting during intro');
-game.advanceIntro(1.76);
+game.advanceIntro(.90);
+assert.ok(game.getIntro().active,'Entrance must still be underway at halfway');
+assert.ok(game.getIntro().offset > -260&&game.getIntro().offset < -60,
+ 'Characters must have visibly moved right during the entrance');
+game.advanceIntro(.93);
 assert.equal(game.getIntro().active,false,'Arrival must settle on the stage');
 assert.equal(game.getIntro().offset,0,'Characters must finish at their usual x positions');
 assert.ok(game.getCast().active,'First bait throw begins only after arrival');
+const runtimeTick=script.slice(script.lastIndexOf('function tick(stamp){'));
+const translate=runtimeTick.indexOf('ctx.translate(introEntrance.offset,0)');
+const sidekicks=runtimeTick.indexOf('window.drawOctopusSidekicks(ctx,time,octo)',translate);
+const hero=runtimeTick.indexOf('drawOcto(time);drawRod(time);drawHelpers(time)',sidekicks);
+const restore=runtimeTick.indexOf('ctx.restore()',hero);
+assert.ok(translate>=0&&sidekicks>translate&&hero>sidekicks&&restore>hero,
+ 'The FINAL active renderer must translate the hero, both friends and fishing rod together');
+assert.match(runtimeTick,/if\(view==='fish'&&!introEntrance\.active\)/,
+ 'No bait movement may start until the visible entrance finishes');
+
 
 assert.equal(game.species.length,240);
 
