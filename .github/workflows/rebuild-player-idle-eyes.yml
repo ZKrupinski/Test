@@ -28,7 +28,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add human-fishing/assets/octopus/atlases/purple_idle_eyes_synced.webp
+          git add human-fishing/assets/octopus/atlases/purple_idle_eyes_synced.webp human-fishing/assets/octopus/atlases/_qa_idle_eye_compare.jpg
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Align protagonist idle gaze without changing character design"
           git fetch origin main
