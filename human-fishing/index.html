@@ -66,6 +66,13 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 
 
 
+
+/* Named equipment-specific transparent PNG art previews. */
+.shop-icon.rod-bitmap-preview{width:95px;min-width:95px;height:74px;overflow:hidden;background:#103e4c;display:grid;place-items:center}
+.shop-icon.rod-bitmap-preview img{width:112%;height:118%;object-fit:contain;pointer-events:none}
+.loadout-rod-img{display:block;width:66px;max-width:100%;height:48px;object-fit:contain;pointer-events:none}
+@media(max-width:760px){.shop-icon.rod-bitmap-preview{width:76px;min-width:76px;height:58px}.loadout-rod-img{width:46px;height:36px}}
+
 /* Dedicated equipment, loadout and stat comparison UI */
 .loadout-slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin:10px 0 13px}
 .loadout-slot{min-width:0;display:flex;align-items:center;gap:8px;text-align:left;padding:10px 8px;background:#0d3645;border:1px solid #5e8c98;border-radius:12px;color:#e9f7f3}
@@ -1664,10 +1671,15 @@ function equipmentSummary(){
  return '<div class="loadout-heading"><h3>현재 장착 스탯</h3><small>장착 및 강화 시 즉시 업데이트 · ◈ '+save.coins.toLocaleString()+'</small></div>'+
  '<div class="loadout-stats">'+data.map(function(d){return '<div class="loadout-stat"><small>'+d[0]+'</small><strong>'+d[1]+'</strong></div>'}).join('')+'</div>';
 }
+function equipmentIconMarkup(cat,item){
+ if(cat==='rod')return '<div class="shop-icon rod-bitmap-preview" style="border-color:'+item.color+
+  '"><img draggable="false" loading="lazy" src="'+rodBitmapPath(item.id)+'" alt="'+escapeHtml(item.name)+'"></div>';
+ return '<div class="shop-icon" style="border-color:'+item.color+';color:'+item.color+'">'+gearIcons[cat]+'</div>';
+}
 function renderEquipment(){
  var slots='<div class="loadout-heading"><h3>장비 슬롯</h3><small>장비를 눌러 보유 장비 변경 및 강화</small></div><div class="loadout-slots">'+Object.keys(gearCatalog).map(function(cat){
   var g=selectedGear(cat);
-  return '<button type="button" data-gear-slot="'+cat+'" class="loadout-slot '+(equipmentCategory===cat?'selected':'')+'"><span class="loadout-icon">'+gearIcons[cat]+'</span><span><small>'+gearCategoryNames[cat]+'</small><strong>'+escapeHtml(g.name)+'</strong><small>Lv.'+gearLevel(cat,g.id)+'/10</small></span></button>';
+  return '<button type="button" data-gear-slot="'+cat+'" class="loadout-slot '+(equipmentCategory===cat?'selected':'')+'"><span class="loadout-icon">'+(cat==='rod'?'<img class="loadout-rod-img" src="'+rodBitmapPath(g.id)+'" alt="">':gearIcons[cat])+'</span><span><small>'+gearCategoryNames[cat]+'</small><strong>'+escapeHtml(g.name)+'</strong><small>Lv.'+gearLevel(cat,g.id)+'/10</small></span></button>';
  }).join('')+'</div>';
  var cat=equipmentCategory,current=selectedGear(cat);
  var owned=save.gearOwned[cat].map(function(id){return equipmentItem(cat,id)}).filter(Boolean).sort(function(a,b){return a.tier-b.tier});
@@ -1675,7 +1687,7 @@ function renderEquipment(){
   var lv=gearLevel(cat,item.id),equipped=current.id===item.id,max=lv===10,cost=gearPrice(cat,item);
   var next=max?[]:equipmentMetrics(cat,item,lv+1),now=equipmentMetrics(cat,item,lv);
   var delta=next.map(function(v,i){var d=+(v[1]-now[i][1]).toFixed(1);return d?(v[0]+' '+(d>0?'+':'')+d+v[2]):''}).filter(Boolean).join(' · ');
-  return '<article class="shop-card '+(equipped?'equipped':'')+'"><div class="shop-icon" style="border-color:'+item.color+';color:'+item.color+'">'+gearIcons[cat]+'</div><div class="shop-detail"><h3>'+escapeHtml(item.name)+'</h3>'+
+  return '<article class="shop-card '+(equipped?'equipped':'')+'">'+equipmentIconMarkup(cat,item)+'<div class="shop-detail"><h3>'+escapeHtml(item.name)+'</h3>'+
    '<span class="shop-badge">'+(equipped?'● 장착 중':'보유 장비')+'</span><span class="shop-badge">TIER '+(item.tier+1)+'</span><span class="shop-badge">LV '+lv+'/10</span>'+
    '<p>'+escapeHtml(item.desc)+'</p>'+equipmentMetricsHtml(cat,item,lv,equipped?null:current)+
    '<div class="shop-progress"><i style="width:'+(lv*10)+'%"></i></div>'+
@@ -1720,8 +1732,7 @@ function renderShop(){
  });
  var cards=items.map(function(item){
   var cat=shopCategory,owned=save.gearOwned[cat].includes(item.id),lv=gearLevel(cat,item.id),current=selectedGear(cat);
-  return '<article class="shop-card '+(current.id===item.id?'equipped':'')+'"><div class="shop-icon" style="border-color:'+item.color+';color:'+item.color+'">'+gearIcons[cat]+'</div>'+
-   '<div class="shop-detail"><h3>'+escapeHtml(item.name)+'</h3>'+
+  return '<article class="shop-card '+(current.id===item.id?'equipped':'')+'">'+equipmentIconMarkup(cat,item)+'<div class="shop-detail"><h3>'+escapeHtml(item.name)+'</h3>'+
    '<span class="shop-badge">'+(current.id===item.id?'● 장착 중':owned?'보유 중':'미보유')+'</span><span class="shop-badge">TIER '+(item.tier+1)+'</span><span class="shop-badge">LV '+lv+'/10</span>'+
    '<p>'+escapeHtml(item.desc)+'</p>'+equipmentMetricsHtml(cat,item,lv,owned?null:current)+
    '<div class="shop-buttons"><button type="button" data-shop-buy="'+item.id+'" '+(owned||save.coins<item.price?'disabled':'')+'>'+(owned?'보유 중 ✓':'◈ '+item.price.toLocaleString()+' 구매')+'</button></div></div></article>';
@@ -2299,8 +2310,34 @@ function drawOcto(now){
  }
  ctx.restore();
 }
+function rodBitmapPath(id){return './assets/rods/'+id+'.png?v=20261105-bitmap-rods1'}
+// Six transparent 5x PNGs; the physically connected fishing line remains vector.
+var rodBitmapSprites={};
+['cork','bamboo','marine','carbon','titan','abyss'].forEach(function(id){
+ if(typeof Image==='undefined')return;
+ var im=new Image();im.ready=false;im.decoding='async';
+ im.onload=function(){im.ready=true};im.onerror=function(){im.ready=false};
+ im.src=rodBitmapPath(id);rodBitmapSprites[id]=im;
+});
 function drawRod(now){
  var worldTip=rodTip(now),tip={x:worldTip.x,y:worldTip.y-PLAYER_STAGE_DROP},base={x:536,y:191},gear=selectedGear('rod'),lv=gearLevel('rod',gear.id);
+ var rodArt=rodBitmapSprites[gear.id];
+ if(rodArt&&rodArt.ready){
+  // PNG rest tip is exactly (640,141), moving with rodTip during casts.
+  var dx=tip.x-base.x,dy=tip.y-base.y;
+  var angle=Math.atan2(dy,dx)-Math.atan2(-50,104);
+  var scale=Math.hypot(dx,dy)/Math.hypot(104,-50);
+  ctx.save();ctx.translate(base.x,base.y);ctx.rotate(angle);ctx.scale(scale,scale);
+  ctx.imageSmoothingEnabled=true;
+  ctx.drawImage(rodArt,484-base.x,106-base.y,210,160);
+  ctx.restore();
+  // Foreground tentacle grips the painted rod and never obscures the fishing line.
+  ctx.save();ctx.lineCap='round';ctx.strokeStyle='#7f3a4b';ctx.lineWidth=23;
+  ctx.beginPath();ctx.moveTo(500,230);ctx.quadraticCurveTo(549,219,538,187);ctx.stroke();
+  ctx.strokeStyle='#e9a08d';ctx.lineWidth=16;ctx.stroke();ctx.fillStyle='#ffd0ae';
+  ctx.beginPath();ctx.ellipse(540,195,9,7,.4,0,Math.PI*2);ctx.fill();ctx.restore();
+  return;
+ }
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.shadowColor='#00121caa';ctx.shadowBlur=7;
  ctx.beginPath();ctx.moveTo(base.x,base.y);ctx.bezierCurveTo(mix(base.x,tip.x,.30),mix(base.y,tip.y,.20),mix(base.x,tip.x,.71),mix(base.y,tip.y,.65),tip.x,tip.y);
  ctx.strokeStyle='#111d28';ctx.lineWidth=12;ctx.stroke();ctx.shadowBlur=0;
