@@ -1790,6 +1790,16 @@ function success(){
 var introEntrance={active:true,elapsed:0,duration:1.8,offset:-260};
 function advanceIntroEntrance(dt){
  if(!introEntrance.active||view!=='fish')return;
+ // Preload the illustrated hero and the remaining red companion BEFORE
+ // the first visible movement. This prevents old/empty art flashing as
+ // network images become ready on slower phones.
+ introEntrance.loadingTime=(introEntrance.loadingTime||0)+dt;
+ if(typeof Image!=='undefined'&&introEntrance.loadingTime<4){
+  var heroIntroImage=playerOctoAtlas.swim;
+  var redInfo=window.octoSidekicksInfo&&window.octoSidekicksInfo()[0];
+  if(!heroIntroImage||!heroIntroImage.ready||
+    (redInfo&&!redInfo.atlasReady))return;
+ }
  introEntrance.elapsed=Math.min(introEntrance.duration,introEntrance.elapsed+dt);
  var u=clamp(introEntrance.elapsed/introEntrance.duration,0,1);
  // Start visibly just left of the resting pose (not 860px offscreen).
@@ -2248,12 +2258,10 @@ function drawOcto(now){
   ctx.drawImage(tile.image,dx-tile.pad*scale,dy-tile.pad*scale,
    tile.image.width*scale,tile.image.height*scale);
  }else{
-  ctx.drawImage(octo,0,0,280,253);
+  // No legacy vector/octopus-placeholder rendering while bitmap atlases load.
+  // The actual purple illustrated hero appears as soon as its sheet is ready.
  }
  ctx.restore();
- if(!tile&&!(illustrated&&illustrated.ready)){
-  ctx.save();ctx.translate(hit.x,hit.y);drawOctopusMouth(now);ctx.restore();
- }
 }
 function drawRod(now){
  var tip=rodTip(now),base={x:536,y:191},gear=selectedGear('rod'),lv=gearLevel('rod',gear.id);
