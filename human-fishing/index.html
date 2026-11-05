@@ -2051,7 +2051,7 @@ var playerReactionSources={
  mouth_open:'./assets/octopus/player/mouth_open_clean.png?v=20261105-clean-alpha-v1',
  // The previous 16-frame opening is retained only as an occasional IDLE emote.
  old_mouth_idle:'./assets/octopus/player/mouth_open_original_style.webp?v=20261105-old-idle',
- swallow_success:'./assets/octopus/atlases/purple_excited.webp?v=20261105-pixelperfect',
+ swallow_success:'./assets/octopus/player/swallow_success_connected.png?v=20261105-bridge-v1',
  swallow_failure:'./assets/octopus/player/swallow_failure_original_style.webp?v=20261105-pixelperfect'
 };
 var playerMouthCleanBounds=[
@@ -2115,8 +2115,10 @@ function playerOctoPose(now){
   var t=now-playerOctoReaction.start;
   if(t>=0&&t<playerOctoReaction.duration){
    var progress=t/playerOctoReaction.duration;
+   // Full 16-frame success: painted maximum gape, gradual mouth closure,
+   // subtle gulp and the ORIGINAL seven smiling frames 9-15.
    var frame=playerOctoReaction.type==='swallow_success'
-    ? Math.min(15,11+Math.floor(progress*5))
+    ? Math.min(15,Math.floor(progress*16))
     : Math.min(15,3+Math.floor(progress*13));
    return{action:playerOctoReaction.type,frame:frame};
   }
@@ -2200,6 +2202,15 @@ function drawOcto(now){
     dy=244-footY*naturalScale;
    ctx.drawImage(illustrated,sx,sy,sw,sh,dx,dy,
     sw*naturalScale,sh*naturalScale);
+  }else if(pose.action==='swallow_success'){
+   // The generated 4x4 sheet is composed from exact approved images.
+   // Each 416px tile has center=208, sole=360 in its OWN transparent cell.
+   // Draw with the exact same scale and center used by open frame 15, so
+   // the first successful swallow frame begins at the SAME screen pixels.
+   var bridgeScale=1.04;
+   ctx.drawImage(illustrated,sx,sy,sw,sh,
+    140-208*bridgeScale,244-360*bridgeScale,
+    sw*bridgeScale,sh*bridgeScale);
   }else{
    var feet=playerReactionFoot[pose.action]||[],
     foot=feet[pose.frame]||291,dy=-25+(291-foot)*(300/sh);
