@@ -38,6 +38,13 @@ assert.ok(passiveActions.has('idle'));
 assert.ok(passiveActions.has('bait'));
 assert.ok(passiveActions.has('idle_alt'));
 assert.equal(passiveActions.has('swim'),false);
+root.octoSidekicksSignal('entrance',120);
+const introFriends=step(120.2,states);
+assert.equal(introFriends[0].state,'entrance','Purple companion must travel with the hero');
+assert.equal(introFriends[1].state,'entrance','Red companion must travel with the hero');
+assert.equal(introFriends[0].action,'swim','Purple intro uses its approved motion alias');
+assert.equal(introFriends[1].action,'swim','Red intro uses the original swim row');
+assert.equal(step(122.5,states)[0].state,'idle','Companions must return to idle after entrance');
 const files=['purple_idle_v2.webp','purple_excited.webp','purple_toss.webp','purple_gorge.webp',
  'purple_snack.webp','purple_victory.webp','purple_fail_v2.webp','purple_swim.webp'];
 const player=fs.readFileSync('human-fishing/index.html','utf8');
@@ -57,11 +64,13 @@ assert.ok(player.includes("if(action==='idle_alt')frame=playerIdleGazeFrames"),
  'Only the baseline Idle should remap frame indices; other actions stay original');
 assert.ok(player.includes("action:'mouth_open'"),'New mouth-opening sequence must play on catch approach');
 const idleMix=player.slice(player.indexOf('function nextPlayerOctoIdle(){'),player.indexOf('function playerOctoPose(now){'));
-for(const action of ['old_mouth_idle','gorge','snack','fail_alt','excited','swim']){
+for(const action of ['old_mouth_idle','gorge','snack','fail_alt','excited']){
  assert.ok(idleMix.includes("'"+action+"'"),'Missing situational/occasional idle action: '+action);
 }
 assert.ok(player.includes("old_mouth_idle:'./assets/octopus/player/mouth_open_original_style.webp"),
  'Previous mouth opening is required as an idle-only emote');
+assert.doesNotMatch(idleMix.match(/var choices=\[[^\]]+\]/)?.[0]||'',/['"]swim['"]/,
+ 'Protagonist special Idle cannot include the swimming intro');
 assert.ok(idleMix.includes('playerOctoIdleWait')&&idleMix.includes('Math.random()'),
  'Regular calm idle must separate occasional emotional reactions');
 assert.ok(!idleMix.includes('playerOctoIdleBag.pop()'),
