@@ -198,9 +198,10 @@ function chooseZone(){var html='<div class="cards">'+habitats.map(function(h,i){
 $('navFish').onclick=function(){setMode('fish');chooseZone()};$('navHuman').onclick=function(){setMode('human')};$('navTank').onclick=function(){setMode('tank')};$('navBook').onclick=function(){setMode('book')};$('navGrow').onclick=function(){setMode('grow')};$('closePanel').onclick=function(){setMode('fish')};$('stageName').parentElement.style.cursor='pointer';$('stageName').parentElement.onclick=function(){if(view==='fish')chooseZone()};
 function circle(x,y,r,col){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=col;ctx.fill()}
 function rounded(x,y,w,h,r,fill){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=fill;ctx.fill()}
-function sea(under){var sky=ctx.createLinearGradient(0,0,0,230);sky.addColorStop(0,under?'#0e3c4e':'#8ac4c3');sky.addColorStop(1,under?'#286f7f':'#d4d6b2');ctx.fillStyle=sky;ctx.fillRect(0,0,W,269);circle(1035,82,38,under?'#82b3aa55':'#fff1b0');for(var i=0;i<9;i++){var x=(i*183+90)%1350;ctx.fillStyle=under?'#0a4a5b48':'#43868c47';ctx.beginPath();ctx.moveTo(x,263);ctx.lineTo(x+95,92+(i%3)*27);ctx.lineTo(x+210,263);ctx.fill()}
-var ocean=ctx.createLinearGradient(0,269,0,720);var palettes=[['#37a5b3','#0c536b','#092e4c'],['#2c92a0','#13516a','#073449'],['#6397a0','#2c626e','#112e45']];var pal=palettes[under?decor%3:zone%3];ocean.addColorStop(0,pal[0]);ocean.addColorStop(.55,pal[1]);ocean.addColorStop(1,pal[2]);ctx.fillStyle=ocean;ctx.fillRect(0,269,1280,451);ctx.strokeStyle='#b5f6e050';ctx.lineWidth=3;ctx.beginPath();for(var k=0;k<1280;k+=8){var y=269+Math.sin(k*.024+time*1.7)*3; k===0?ctx.moveTo(k,y):ctx.lineTo(k,y)}ctx.stroke();
-for(var j=0;j<12;j++){var yy=250+j*35;ctx.strokeStyle='rgba(197,255,246,'+(.016+(12-j)*.003)+')';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(120+Math.sin(time+j)*40,yy);ctx.quadraticCurveTo(580,yy+15,1110,yy);ctx.stroke()}
+var WATER_SURFACE_Y=293,PLAYER_STAGE_DROP=46;
+function sea(under){var sky=ctx.createLinearGradient(0,0,0,230);sky.addColorStop(0,under?'#0e3c4e':'#8ac4c3');sky.addColorStop(1,under?'#286f7f':'#d4d6b2');ctx.fillStyle=sky;ctx.fillRect(0,0,W,WATER_SURFACE_Y);circle(1035,82,38,under?'#82b3aa55':'#fff1b0');for(var i=0;i<9;i++){var x=(i*183+90)%1350;ctx.fillStyle=under?'#0a4a5b48':'#43868c47';ctx.beginPath();ctx.moveTo(x,WATER_SURFACE_Y-6);ctx.lineTo(x+95,92+(i%3)*27);ctx.lineTo(x+210,WATER_SURFACE_Y-6);ctx.fill()}
+var ocean=ctx.createLinearGradient(0,WATER_SURFACE_Y,0,720);var palettes=[['#37a5b3','#0c536b','#092e4c'],['#2c92a0','#13516a','#073449'],['#6397a0','#2c626e','#112e45']];var pal=palettes[under?decor%3:zone%3];ocean.addColorStop(0,pal[0]);ocean.addColorStop(.55,pal[1]);ocean.addColorStop(1,pal[2]);ctx.fillStyle=ocean;ctx.fillRect(0,WATER_SURFACE_Y,1280,720-WATER_SURFACE_Y);ctx.strokeStyle='#b5f6e050';ctx.lineWidth=3;ctx.beginPath();for(var k=0;k<1280;k+=8){var y=WATER_SURFACE_Y+Math.sin(k*.024+time*1.7)*3; k===0?ctx.moveTo(k,y):ctx.lineTo(k,y)}ctx.stroke();
+for(var j=0;j<12;j++){var yy=WATER_SURFACE_Y-19+j*35;ctx.strokeStyle='rgba(197,255,246,'+(.016+(12-j)*.003)+')';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(120+Math.sin(time+j)*40,yy);ctx.quadraticCurveTo(580,yy+15,1110,yy);ctx.stroke()}
 for(var c=0;c<16;c++){var cx=c*96-15;ctx.fillStyle=c%3?'#114f61':'#155e6b';ctx.beginPath();ctx.moveTo(cx,720);ctx.quadraticCurveTo(cx-45,680,cx,637+Math.sin(c)*14);ctx.quadraticCurveTo(cx+40,681,cx+75,720);ctx.fill()}
 for(var p=0;p<10;p++){var px=p*153+20,py=704;ctx.strokeStyle=p%2?'#7db8aa7a':'#548b8d8a';ctx.lineWidth=8;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(px,py);ctx.quadraticCurveTo(px-28,py-55,px+Math.sin(time*.7+p)*20,py-120-random()*0);ctx.stroke()}
 }
@@ -1830,14 +1831,14 @@ function castMotion(dt){
  }else if(u<1.4){
   var p=castEasing((u-.58)/.82);
   bob.x=mix(tip.x-16,640,p);
-  bob.y=mix(tip.y+13,272,p)-72*Math.sin(Math.PI*p);
+  bob.y=mix(tip.y+13,WATER_SURFACE_Y+3,p)-72*Math.sin(Math.PI*p);
  }else{
   if(!cast.landing){
-   cast.landing=true;ripple(640,272);beep('hit');spawnParticles(640,272,14,'water');
+   cast.landing=true;ripple(640,WATER_SURFACE_Y+3);beep('hit');spawnParticles(640,WATER_SURFACE_Y+3,14,'water');
   }
   var p=castEasing((u-1.4)/(cast.duration-1.4));
   bob.x=640+Math.sin((u-1.4)*2.5)*4*(1-p);
-  bob.y=272+(436-272)*p+Math.sin((u-1.4)*14)*4*(1-p);
+  bob.y=(WATER_SURFACE_Y+3)+(436-(WATER_SURFACE_Y+3))*p+Math.sin((u-1.4)*14)*4*(1-p);
   if(Math.floor(u*9)%3===0&&Math.random()<dt*25)
    particles.push({x:bob.x+rnd(-7,7),y:bob.y+rnd(-3,7),vx:rnd(-.3,.3),vy:rnd(-.7,-.2),life:.55,size:rnd(2,5),kind:'water'});
  }
@@ -1961,7 +1962,7 @@ function updateJoystick(dt){
 function rodTip(now){
  var rod=selectedGear('rod'),p=cast.active?cast.elapsed:10,casting=cast.active&&p<1.0;
  var swing=casting?Math.sin(Math.PI*clamp(p/1.0,0,1)):0;
- return{x:725+rod.tier*7+Math.sin(now*1.1)*3-36*swing,y:92-rod.tier*3+Math.sin(now*1.5)*2+35*swing};
+ return{x:725+rod.tier*7+Math.sin(now*1.1)*3-36*swing,y:92-rod.tier*3+Math.sin(now*1.5)*2+35*swing+PLAYER_STAGE_DROP};
 }
 // Original approved illustrated 4x4 / 16-frame sheets: no redraw or regeneration.
 // These eight sprites belong to the PLAYER octopus, not the red/purple spectators.
@@ -2264,7 +2265,7 @@ function drawOcto(now){
  ctx.restore();
 }
 function drawRod(now){
- var tip=rodTip(now),base={x:536,y:191},gear=selectedGear('rod'),lv=gearLevel('rod',gear.id);
+ var worldTip=rodTip(now),tip={x:worldTip.x,y:worldTip.y-PLAYER_STAGE_DROP},base={x:536,y:191},gear=selectedGear('rod'),lv=gearLevel('rod',gear.id);
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.shadowColor='#00121caa';ctx.shadowBlur=7;
  ctx.beginPath();ctx.moveTo(base.x,base.y);ctx.bezierCurveTo(593,171,670,127,tip.x,tip.y);
  ctx.strokeStyle='#111d28';ctx.lineWidth=12;ctx.stroke();ctx.shadowBlur=0;
@@ -2428,6 +2429,8 @@ function tick(stamp){
   // one group. The ocean, HUD, fish and fishing physics remain stationary.
   ctx.save();
   if(view==='fish'&&introEntrance.active)ctx.translate(introEntrance.offset,0);
+  // Shift hero, companion, rod and helpers together so no prop floats free.
+  ctx.translate(0,PLAYER_STAGE_DROP);
   if(window.drawOctopusSidekicks)window.drawOctopusSidekicks(ctx,time,octo);
   drawOcto(time);drawRod(time);drawHelpers(time);
   ctx.restore();
@@ -2482,7 +2485,7 @@ function tick(stamp){
 // Alpha 0.8 — giant octopus mouth and uninterrupted whole-creature suction.
 // Raster frames are prerendered into offscreen canvases; only the fishing LINE remains vector.
 var mouthFrames={},catchFx=null;
-function mouthPos(now){return{x:452,y:191+Math.sin(now*1.2)*3}}
+function mouthPos(now){return{x:452,y:191+PLAYER_STAGE_DROP+Math.sin(now*1.2)*3}}
 function mouthGape(){
  if(view!=='fish')return 0;
  if(catchFx){
@@ -2718,7 +2721,7 @@ function drawFishRankTag(f){
 // and occasional territorial contests; new arrivals enter from outside the view.
 var eco={zone:-1,humanZone:-1,t:0,fishTimer:0,humanTimer:0,next:0,school:0,contests:0};
 // Ecology 1.6: water-safe independent populations and anti-duplicate species.
-function ecoDepthMin(f){return 269+18+36*(f.size||1)}
+function ecoDepthMin(f){return WATER_SURFACE_Y+18+36*(f.size||1)}
 function ecoDepthMax(f){return 695-36*(f.size||1)}
 function ecoSafeDepth(f,y){return clamp(y,ecoDepthMin(f),ecoDepthMax(f))}
 function ecoPickSpeciesIndex(lo,hi){
@@ -3117,11 +3120,11 @@ function drawEscapeFx(dt){
   spawnParticles(m.x+fx.dir*17,m.y-8,36,'gold');
   ripple(m.x+fx.dir*17,m.y-8);beep('hit');
  }
- if(!fx.splash&&pose.y>=273&&fx.lastWasAboveWater!==false){
+ if(!fx.splash&&pose.y>=WATER_SURFACE_Y+4&&fx.lastWasAboveWater!==false){
   fx.splash=true;
-  ripple(pose.x,273);spawnParticles(pose.x,273,20,'water');
+  ripple(pose.x,WATER_SURFACE_Y+4);spawnParticles(pose.x,WATER_SURFACE_Y+4,20,'water');
  }
- fx.lastWasAboveWater=pose.y<273;
+ fx.lastWasAboveWater=pose.y<WATER_SURFACE_Y+4;
  ctx.save();ctx.translate(pose.x,pose.y);
  if(!fx.human&&(pose.stage==='struggle'||pose.stage==='slip')){
   var rush=Math.max(0,1-fx.elapsed/.74);
@@ -3333,12 +3336,12 @@ function activateOctoFever(){
 // Alpha 1.8: grouped catches stay held in half-curled bait tentacles underwater.
 function feverSurfaceTime(fx,now){
  var start=.42,end=Math.min(fx.duration-.16,start+1.02);
- if(fx.y<=271)return start;
+ if(fx.y<=WATER_SURFACE_Y+2)return start;
  var tip=rodTip(now),lo=0,hi=1;
  for(var i=0;i<15;i++){
   var mid=(lo+hi)*.5,s=mid*mid*(3-2*mid);
   var y=mix(fx.y,tip.y+12,s)-26*Math.sin(Math.PI*s);
-  if(y>271)lo=mid;else hi=mid;
+  if(y>WATER_SURFACE_Y+2)lo=mid;else hi=mid;
  }
  return start+(end-start)*hi;
 }
@@ -3360,7 +3363,7 @@ function feverReelState(fx,now){
  }
  return{
   progress:raw,folding:folding,frame:Math.max(0,Math.min(11,frame)),
-  surfaceAt:surfaceAt,underwater:y>271,holding:fx.elapsed>=start&&fx.elapsed<surfaceAt,
+  surfaceAt:surfaceAt,underwater:y>WATER_SURFACE_Y+2,holding:fx.elapsed>=start&&fx.elapsed<surfaceAt,
   leftSweep:leftSweep,tilt:-.21*Math.sin(Math.PI*smooth)-.055*smooth,
   x:mix(fx.x,tip.x-48,smooth)-leftSweep,y:y
  };
