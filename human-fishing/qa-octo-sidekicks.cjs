@@ -71,9 +71,9 @@ for(const action of ['old_mouth_idle','excited']){
 const idleChoices=idleMix.match(/var choices=\[([^\]]+)\]/)?.[1]||'';
 assert.doesNotMatch(idleChoices,/['"]fail_alt['"]/,
  'Disappointed expression must never appear in normal idle');
-assert.ok(player.includes('purple_idle_lookdown_16f.webp'),
- 'Original default idle needs the freshly painted cute downward-eye sprite');
-assert.ok(player.includes('purple_bait_sinking_16f.webp'),
+assert.ok(player.includes('purple_idle_original_pixel_16f.webp'),
+ 'Default idle must load the approved-original-pixel character with no redesign');
+assert.ok(player.includes('purple_sinking_original_pixel_16f.webp'),
  'The earlier bowed-head artwork must be reserved for sinking bait');
 assert.match(player,/gazeCol\*400,gazeRow\*440,400,440/,
  'The new independent 400x440 bitmap cells must not bleed into neighbors');
