@@ -13,7 +13,7 @@
  var ACTIONS=['idle','bait','open','eat','chew','fail','celebrate'];
  var RED_ROWS={idle:0,bait:2,open:3,eat:4,chew:5,fail:6,celebrate:7};
  var friends=[
-  {name:'빨간 문어',kind:'red',x:210,y:108,w:100,h:150,footY:242,seed:71}
+  {name:'빨간 문어',kind:'red',x:210,y:108,w:100,h:150,footY:259,seed:71} // same local sole baseline as player (259), group drops both by 46px
  ];
  var portraits={},purple={},red=null;
  // Cut tiles on whole source pixels, not fractional canvas sampling.
