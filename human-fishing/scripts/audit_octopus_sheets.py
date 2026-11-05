@@ -13,8 +13,8 @@ for name in NAMES:
     # Odd-size sources (e.g. 1254px) require integer boundaries per cell.
     frames=[]
     for i in range(16):
-        x0=round((i%4)*W/4);x1=round((i%4+1)*W/4)
-        y0=round((i//4)*H/4);y1=round((i//4+1)*H/4)
+        x0=int((i%4)*W/4+0.5);x1=int((i%4+1)*W/4+0.5)
+        y0=int((i//4)*H/4+0.5);y1=int((i//4+1)*H/4+0.5)
         cw,ch=x1-x0,y1-y0
         f=image.crop((x0,y0,x1,y1))
         a=f.getchannel("A").point(lambda x: 255 if x>=48 else 0)
