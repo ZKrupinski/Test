@@ -2470,23 +2470,12 @@ function tick(stamp){
     }
     bob.x=o.x;bob.y=o.y;
   }
-  // 2) Ordinary fishing: bait is ALWAYS behind the fish, including a
-  // single fish or humanoid being reeled in. Keep the already-smooth angle
-  // and exact string-center attachment from drawRedLure/drawLine.
-  if(view==='fish'&&!introEntrance.active&&!feverFx){
-   if(hook)drawRedLure(time,bob.x,bob.y,64);
-   else drawBob();
-  }
-  // 3) Draw all ambient creatures IN FRONT of the ordinary lure. The
-  // hooked fish is rendered later, also in front of the lure.
-  if(view==='fish'||view==='book'||view==='grow'||view==='shop'){
-   fish.forEach(function(a){
-    if(!a.feverCaptured&&(!hook||hook.obj!==a)){drawFish(a,time);drawFishRankTag(a)}
-   });
-   hum.forEach(function(a){
-    if(!a.feverCaptured&&(!hook||hook.obj!==a))humanIcon(a,time);
-   });
-  }
+  // Ordered canvas layers:
+  // 1. Protagonist, cheerleader and fishing ROD (background props)
+  // 2. Fishing LINE (always behind the illustrated bait)
+  // 3. Normal red bait octopus (in front of rod+line, behind creatures)
+  // 4. Ordinary and hooked fish (above normal bait)
+  // 5. OCTO FEVER giant octopus (drawFeverFx, above ALL fish).
   // Feed the actual fishing state to the illustrated companion animation mixer.
   // This runs before rendering, so bites, lure moves and fever feel immediate.
   if(window.octoSidekicksObserve){
@@ -2510,14 +2499,30 @@ function tick(stamp){
    drawOcto(time);drawRod(time);drawHelpers(time);
    ctx.restore();
   }
-  if(view==='fish'&&!introEntrance.active){
-   // Creature is drawn after normal bait so hooked-fish struggle is clear.
-if(hook){
-    drawHookSwallow(time);
-    if(hook.willEscape&&hook.elapsed>=duration*hook.escapeAt)escapeHook();
-    else if(hook.elapsed>=duration)success();
-   }
-   drawLine();
+  if(view==='fish'&&!introEntrance.active)drawLine();
+  // 2) Ordinary fishing: bait is ALWAYS behind the fish, including a
+  // single fish or humanoid being reeled in. Keep the already-smooth angle
+  // and exact string-center attachment from drawRedLure/drawLine.
+  if(view==='fish'&&!introEntrance.active&&!feverFx){
+   if(hook)drawRedLure(time,bob.x,bob.y,64);
+   else drawBob();
+  }
+  // 3) Draw all ambient creatures IN FRONT of the ordinary lure. The
+  // hooked fish is rendered later, also in front of the lure.
+  if(view==='fish'||view==='book'||view==='grow'||view==='shop'){
+   fish.forEach(function(a){
+    if(!a.feverCaptured&&(!hook||hook.obj!==a)){drawFish(a,time);drawFishRankTag(a)}
+   });
+   hum.forEach(function(a){
+    if(!a.feverCaptured&&(!hook||hook.obj!==a))humanIcon(a,time);
+   });
+  }
+  if(view==='fish'&&!introEntrance.active&&hook){
+   // A single reeled-in fish still covers the bait; the line is already
+   // beneath both because drawLine ran before drawing the lure.
+   drawHookSwallow(time);
+   if(hook.willEscape&&hook.elapsed>=duration*hook.escapeAt)escapeHook();
+   else if(hook.elapsed>=duration)success();
   }
  }
  if(view==='fish'&&gearPower('helper')>0){
