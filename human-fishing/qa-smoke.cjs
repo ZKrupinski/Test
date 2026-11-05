@@ -215,8 +215,10 @@ assert.match(script,/140-200\*gazeScale,244-412\*gazeScale,400\*gazeScale,440\*g
  'Original character must retain consistent body proportions and planted foot anchor');
 assert.doesNotMatch(script,/gazeX=\.83,gazeY=\.65/,
  'Squashed octopus distortion must never return');
-assert.match(script,/purple_idle_original_pixel_16f\.webp/,
- 'Default idle must use the original-character pixel sheet');
+assert.match(script,/var playerExcitedIdleFrames=\[6,7,8,9,10,11,12,13,12,11,10,9,8,7\]/,
+ 'Default idle uses the user-approved excited, mouth-open, raised-tentacle sequence');
+assert.match(script,/idle_alt:'purple_idle_v2\.webp'/,
+ 'Original old idle atlas remains available only to other contexts');
 assert.match(script,/purple_sinking_original_pixel_16f\.webp/,
  'Sinking pose must use the original-character pixel sheet');
 const redSidekick=fs.readFileSync('human-fishing/assets/octopus/octopus-sidekicks.js','utf8');
