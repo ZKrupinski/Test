@@ -148,6 +148,8 @@ assert.ok(game,'Test bridge missing');
 // traveled together from off-screen left. Fast-forward it for gameplay tests.
 assert.ok(game.getIntro().active,'Opening ensemble must start offscreen');
 assert.equal(game.getIntro().offset,-260,'The group must start visibly just left of its resting position');
+assert.match(script,/heroIntroImage\.ready/,'Opening should wait for illustrated character atlas');
+assert.match(script,/redInfo\.atlasReady/,'Opening should wait for remaining red cheerleader atlas');
 assert.equal(game.getCast().active,false,'Do not start casting during intro');
 game.advanceIntro(.90);
 assert.ok(game.getIntro().active,'Entrance must still be underway at halfway');
@@ -401,7 +403,13 @@ if(game.reel(game.getFeverFx(),clock/1000).underwater){
 }
 assert.ok(game.reel(game.getFeverFx(),clock/1000).tilt<0,'The lure should twist left in the recovery swing');
 assert.ok(game.mouthOpen()>.5,'Main octopus must open its mouth during multi-capture');
-assert.ok(Object.keys(game.mouthFrames()).length>0,'Mouth must use prerendered bitmap animation frames');
+assert.match(html,/mouth_open_clean\.png/,'Approved bitmap mouth sheet must power the main octopus');
+const finalPlayerDraw=script.slice(script.lastIndexOf('function drawOcto(now){'),
+ script.indexOf('function drawRod(now){',script.lastIndexOf('function drawOcto(now){')));
+assert.doesNotMatch(finalPlayerDraw,/ctx\.drawImage\(octo,/,
+ 'The old vector hero must never flash while sprite sheets load');
+assert.doesNotMatch(finalPlayerDraw,/drawOctopusMouth\(/,
+ 'The old vector mouth fallback must never render');
 const midFrame=game.getFeverFx().reelFrame,midY=bob.y;
 step(45); // Continue reel, show gradual closing and upward movement
 assert.ok(game.getFeverFx().reelFrame<midFrame,'Reeling must reduce tentacle spread over time');
