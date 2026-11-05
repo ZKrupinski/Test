@@ -11,8 +11,8 @@
  var ACTIONS=['idle','bait','open','eat','chew','fail','celebrate'];
  var RED_ROWS={idle:0,bait:2,open:3,eat:4,chew:5,fail:6,celebrate:7};
  var friends=[
-  {name:'보라 문어',kind:'purple',x:112,y:120,w:124,h:124,seed:17},
-  {name:'빨간 문어',kind:'red',x:206,y:124,w:124,h:124,seed:71}
+  {name:'보라 문어',kind:'purple',x:112,y:132,w:124,h:124,seed:17},
+  {name:'빨간 문어',kind:'red',x:210,y:108,w:100,h:150,seed:71}
  ];
  var portraits={},purple={},red=null;
  function load(url,done){
