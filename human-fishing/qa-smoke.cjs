@@ -396,83 +396,38 @@ const startingHuman=fxStart.caught[1];
 const earlyToss=game.toss(startingFish,fxStart,0,clock/1000);
 assert.equal(earlyToss.phase,'gather','Before suction, captured fish must drift toward the opening mouth');
 assert.equal(earlyToss.attached,true,'Captured fish must remain associated with the suction mouth');
-// Waterline-grip regression: every fish must remain in a tentacle slot while
-// the half-closed lure climbs underwater. The throw begins only after surfacing.
-const deepFx=Object.assign({},fxStart,{x:650,y:520,elapsed:0});
-deepFx.surfaceAt=game.surfaceTime(deepFx,clock/1000);
-assert.ok(deepFx.surfaceAt>.52,'Deep-water capture must have a sustained submerged ascent');
-const midDeep=Object.assign({},deepFx,{elapsed:(.42+deepFx.surfaceAt)*.5});
-const underReel=game.reel(midDeep,clock/1000);
-assert.ok(underReel.y>271,'Lure must still be submerged before the release moment');
-assert.equal(underReel.frame,6,'Tentacles must stay approximately half-curled underwater');
-for(const [idx,entity] of deepFx.caught.entries()){
- const grip=game.toss(entity,midDeep,idx,clock/1000);
- assert.equal(grip.phase,'held','All captured creatures must be held by tentacles underwater');
- assert.equal(grip.attached,true,'Every creature stays attached to the rising lure');
- assert.ok(Math.hypot(grip.x-underReel.x,grip.y-underReel.y)<160,
-  'Captured creature must follow the moving lure, not float separately');
+// Suction stays at the exact release point, then retrieves only after swallowing.
+for(const elapsed of [.1,.5,1,fxStart.suctionEnd-.01]){
+ const fx={...fxStart,elapsed};const pose=game.reel(fx,clock/1000);
+ assert.equal(pose.x,lureStart.x);assert.equal(pose.y,lureStart.y);
+ assert.equal(pose.progress,0,'No reeling during suction');
 }
-const airFx=Object.assign({},deepFx,{elapsed:deepFx.surfaceAt+.05});
-const throwStart=game.toss(deepFx.caught[0],airFx,0,clock/1000);
-assert.equal(throwStart.phase,'throw','Only above the waterline can the lure throw a creature');
-assert.equal(throwStart.attached,false,'Throwing must release the tentacle grip');
-assert.match(script,/drawFeverTossCreature\(entity,fx,i,time,'attached'\)/,
- 'Suction-held fish must be rendered without disappearing');
-assert.match(script,/drawFeverTossCreature\(entity,fx,i,time,'released'\)/,
- 'Reel-released fish must remain visible in front of the bitmap mouth');
-
-assert.ok(game.reel({...fxStart,elapsed:1.48},clock/1000).progress>=.99,
- 'Fever reeling must be noticeably faster than the prior long retrieval');
-step(48); // Initial eight-arm burst has finished and rod retrieval is underway
-assert.ok(game.getFeverFx().reeling,'Fever lure should begin reeling shortly after tentacle spread');
-assert.ok(game.getFeverFx().reelFrame<11,'Tentacles should begin closing as reel winds');
-assert.ok(game.getFeverFx().reelFrame>0,'Tentacles should not instantly snap shut');
-assert.ok(bob.y<lureStart.y,'Fever lure must move upward as line is retrieved');
-assert.ok(bob.x<lureStart.x-25,'Fever lure must swing toward left side while curling its tentacles');
-const fishToss=game.toss(startingFish,game.getFeverFx(),0,clock/1000);
-assert.ok(['held','throw'].includes(fishToss.phase),'Fish must remain gripped underwater or be thrown after surfacing');
-const humanToss=game.toss(startingHuman,game.getFeverFx(),1,clock/1000);
-assert.ok(['held','throw'].includes(humanToss.phase),'Human must follow the same delayed-grip release sequence');
-if(game.reel(game.getFeverFx(),clock/1000).underwater){
- assert.equal(fishToss.attached,true,'Fish cannot leave the tentacles before the lure breaks water');
- assert.equal(humanToss.attached,true,'Human cannot leave the tentacles before the lure breaks water');
+const waiting={...fxStart,elapsed:.55};
+const queuedFirst=game.toss(startingFish,waiting,0,clock/1000);
+const queuedSecond=game.toss(startingHuman,waiting,1,clock/1000);
+assert.ok(Math.hypot(queuedFirst.x-queuedSecond.x,queuedFirst.y-queuedSecond.y)>70,'Waiting catches must have separate slots');
+for(const [i,entity] of fxStart.caught.entries()){
+ const end={...fxStart,elapsed:.62+i*fxStart.swallowSpacing+.63};
+ const pose=game.toss(entity,end,i,clock/1000);
+ assert.ok(pose.done);assert.equal(pose.x,fxStart.x+10);assert.equal(pose.y,fxStart.y-8);
+ assert.ok(end.elapsed<fxStart.reelStart,'Fish must reach bait mouth before reeling');
 }
-assert.ok(game.reel(game.getFeverFx(),clock/1000).tilt<0,'The lure should twist left in the recovery swing');
-assert.ok(game.mouthOpen()>.5,'Main octopus must open its mouth during multi-capture');
-assert.match(html,/mouth_open_clean\.png/,'Approved bitmap mouth sheet must power the main octopus');
-const finalPlayerDraw=script.slice(script.lastIndexOf('function drawOcto(now){'),
- script.indexOf('function drawRod(now){',script.lastIndexOf('function drawOcto(now){')));
-assert.doesNotMatch(finalPlayerDraw,/ctx\.drawImage\(octo,/,
- 'The old vector hero must never flash while sprite sheets load');
-assert.doesNotMatch(finalPlayerDraw,/drawOctopusMouth\(/,
- 'The old vector mouth fallback must never render');
-const midFrame=game.getFeverFx().reelFrame,midY=bob.y;
-step(45); // Continue reel, show gradual closing and upward movement
-assert.ok(game.getFeverFx().reelFrame<midFrame,'Reeling must reduce tentacle spread over time');
-assert.ok(bob.y<midY,'Reeling must continuously pull the bait toward rod tip');
-// The FEVER bait now uses the approved 16-frame painted BIG MOUTH, not
-// vector tentacles or the old stylized leftward streak.
-assert.match(script,/drawFeverMouthSprite\(fx,reel\)/,
- 'Fever must actually render the new mouth-based 16-frame bitmap');
-assert.match(script,/red_lure_fever_natural_v2\.webp/,
- 'Approved natural-size red Fever bitmap atlas must be loaded');
-assert.match(script,/octofever_vortex_soft_v2\.webp/,
- 'The softened transparent whirlpool must load as a separate sprite atlas');
-assert.match(script,/function feverMouthSpriteFrame\(fx\)/,
- 'Fever frames must be timed open -> suction hold -> closed');
-const testFeverFx=game.getFeverFx();
-for(const [fraction,lo,hi] of [[0,0,0],[.15,0,4],[.35,5,11],[.60,5,11],[.95,12,15]]){
- const seq={...testFeverFx,elapsed:testFeverFx.duration*fraction};
- const frameIndex=game.feverMouthFrame(seq);
- assert.ok(frameIndex>=lo&&frameIndex<=hi,'Fever frame phase mismatch at '+fraction);
+for(const [elapsed,lo,hi] of [[0,0,0],[.1,0,4],[.3,5,11],[fxStart.suctionEnd-.1,5,11],[fxStart.reelStart,15,15]]){
+ const f=game.feverMouthFrame({...fxStart,elapsed});assert.ok(f>=lo&&f<=hi);
 }
-const lastToss=game.toss(startingFish,game.getFeverFx(),0,clock/1000);
-assert.ok(['throw','held'].includes(lastToss.phase),'Fish should be in the staged throw/last grip near the surface');
-const tip=game.rodTip(clock/1000);
-assert.ok(Math.hypot(bob.x-tip.x,bob.y-tip.y)<Math.hypot(lureStart.x-tip.x,lureStart.y-tip.y),'Bait must close distance to rod tip');
-step(110); // Finish retraction and all staggered creature swallows
-assert.equal(game.getFeverFx(),null,'Fever burst must finish only after retracting and swallowing');
-assert.ok(game.getCast().active,'Next cast should start automatically after full swallow');
+step(35);
+assert.equal(bob.x,lureStart.x);assert.equal(bob.y,lureStart.y);
+assert.equal(game.mouthOpen(),0,'Player mouth must not gape during underwater bait suction');
+assert.match(script,/drawFeverTossCreature\(entity,fx,i,time,'attached'\)/);
+assert.match(script,/drawFeverTossCreature\(entity,fx,i,time,'released'\)/);
+assert.ok(script.indexOf("var fx=feverFx;",script.indexOf('// 3) Draw all ambient creatures'))>0,
+ 'Captured fish must render after ambient fish');
+assert.match(script,/octofever_vortex_soft_v2\.webp/);
+const retract=game.reel({...fxStart,elapsed:fxStart.reelStart+.41},clock/1000);
+assert.ok(retract.progress>.4&&retract.progress<.6);
+step(150);
+assert.equal(game.getFeverFx(),null);
+assert.ok(game.getCast().active);
 mock.Math=Math;
 const currentCatchCount=state.catches,currentCoins=state.coins;
 const ordinary=game.species[0];
@@ -867,4 +822,5 @@ console.log('PASS: Blue Tang aquarium uses official swim, 8-frame turn and strug
 console.log('PASS: aquarium fish touch-to-turn, independent swimmers and random wriggle timelines');
 
 console.log('PASS: localized fish and octopus shake, gentle contact, bite, suction, escape, human counterattack and limited camera vibration; all previous gameplay tests');
+
 

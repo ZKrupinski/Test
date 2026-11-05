@@ -2183,10 +2183,7 @@ function playerOctoPose(now){
   var opening=clamp((ascent-.045)/.58,0,1);
   return{action:'mouth_open',frame:Math.min(15,Math.floor(opening*16))};
  }
- if(feverFx&&feverFx.caught.length){
-  var lift=clamp((feverFx.elapsed-.12)/.50,0,1);
-  return{action:'mouth_open',frame:Math.min(15,Math.floor(lift*16))};
- }
+
  if(octoGroggy>0)return{action:'fail_alt',frame:Math.floor(now*12*PLAYER_ANIM_RATE)%16};
  if(catchFx)return{action:'idle_alt',frame:Math.floor(now*10*PLAYER_ANIM_RATE)%16};
  if(cast.active&&cast.elapsed<1.75){
@@ -2453,6 +2450,7 @@ function tick(stamp){
   sea(false);coral(time);
   updateEcosystem(dt);
   if(view==='fish'){castMotion(dt);updateJoystick(dt);checkBaitBrush();if(feverFx){
+   feverFx.elapsed+=dt;
    var currentReel=feverReelState(feverFx,time);
    bob.x=currentReel.x;bob.y=currentReel.y;
   }}
@@ -2482,7 +2480,7 @@ function tick(stamp){
   // 2. Fishing LINE (always behind the illustrated bait)
   // 3. Normal red bait octopus (in front of rod+line, behind creatures)
   // 4. Ordinary and hooked fish (above normal bait)
-  // 5. OCTO FEVER giant octopus (drawFeverFx, above ALL fish).
+  // Fever bait and vortex share normal bait depth; captured fish render last.
   // Feed the actual fishing state to the illustrated companion animation mixer.
   // This runs before rendering, so bites, lure moves and fever feel immediate.
   if(window.octoSidekicksObserve){
@@ -2526,6 +2524,15 @@ function tick(stamp){
    hum.forEach(function(a){
     if(!a.feverCaptured&&(!hook||hook.obj!==a))humanIcon(a,time);
    });
+  }
+  if(view==='fish'&&!introEntrance.active&&feverFx){
+   var fx=feverFx;
+ fx.caught.forEach(function(entity,i){
+  drawFeverTossCreature(entity,fx,i,time,'attached');
+ });
+ fx.caught.forEach(function(entity,i){
+  drawFeverTossCreature(entity,fx,i,time,'released');
+ });
   }
   if(view==='fish'&&!introEntrance.active&&hook){
    // A single reeled-in fish still covers the bait; the line is already
@@ -2579,10 +2586,7 @@ function mouthGape(){
   return clamp(Math.min((p-.32)/.20,(1.12-p)/.14,1),0,1);
  }
  if(escapeFx)return escapeFx.elapsed<.60?clamp(1-(escapeFx.elapsed-.31)/.35,0,1):0;
- if(feverFx&&feverFx.caught.length){
-  var e=feverFx.elapsed,d=feverFx.duration;
-  return clamp(Math.min((e-.44)/.24,(d-e)/.34,1),0,1);
- }
+
  return 0;
 }
 function mouthFrame(frame){
@@ -3330,12 +3334,9 @@ if(typeof Image!=='undefined'){
  feverVortexArt.src='./assets/octopus/bait/octofever_vortex_soft_v2.webp?v=20261105-approved-soft-v2';
 }
 function feverMouthSpriteFrame(fx){
- var p=clamp(fx.elapsed/fx.duration,0,1);
- // Opening 0-4 -> extended massive suction with droplets 5-11 ->
- // closing 12-15. No giant tentacles or vector octopus artwork.
- if(p<.22)return Math.min(4,Math.floor(p/.22*5));
- if(p<.78)return 5+Math.min(6,Math.floor((p-.22)/.56*7));
- return 12+Math.min(3,Math.floor((p-.78)/.22*4));
+ if(fx.elapsed<.22)return Math.min(4,Math.floor(fx.elapsed/.22*5));
+ if(fx.elapsed<fx.suctionEnd)return 5+Math.floor((fx.elapsed-.22)*12)%7;
+ return 12+Math.min(3,Math.floor((fx.elapsed-fx.suctionEnd)/.28*4));
 }
 function drawFeverMouthSprite(fx,reel){
  var p=clamp(fx.elapsed/fx.duration,0,1);
@@ -3350,7 +3351,7 @@ function drawFeverMouthSprite(fx,reel){
  // Only its expanding MOUTH changes scale within the actual painted frames.
  var scale=.385+.015*Math.sin(Math.PI*clamp(p,0,1));
  // Crossfade first/last 9% into the normal bait pose to avoid a sudden pop.
- var fadeIn=clamp(p/.09,0,1),fadeOut=clamp((1-p)/.09,0,1);
+ var fadeIn=clamp(fx.elapsed/.06,0,1),fadeOut=clamp((fx.duration-fx.elapsed)/.12,0,1);
  var mixIn=Math.min(fadeIn,fadeOut);
  if(mixIn<1){
   ctx.save();ctx.globalAlpha=1-mixIn;
@@ -3372,10 +3373,10 @@ function drawFeverVortex(fx,reel){
  var p=clamp(fx.elapsed/fx.duration,0,1);
  // Only visible while the painted mouth is OPEN: fade on while it opens,
  // maintain a soft circular inward swirl, fade off before full closure.
- var appear=clamp((p-.17)/.16,0,1),disappear=clamp((.88-p)/.14,0,1);
- var opacity=.48*Math.min(appear,disappear);
+ var appear=clamp(fx.elapsed/.10,0,1),disappear=clamp((fx.suctionEnd-fx.elapsed)/.18,0,1);
+ var opacity=.95*Math.min(appear,disappear);
  if(opacity<=0)return false;
- var frame=Math.min(15,Math.floor(clamp((p-.16)/.73,0,.999)*16));
+ var frame=fx.elapsed<.22?Math.min(4,Math.floor(fx.elapsed/.22*5)):5+Math.floor((fx.elapsed-.22)*16)%8;
  var image=feverVortexArt,sw=image.naturalWidth/4,sh=image.naturalHeight/4;
  var dx=frame%4*sw,dy=Math.floor(frame/4)*sh;
  ctx.save();
@@ -3383,10 +3384,10 @@ function drawFeverVortex(fx,reel){
  ctx.translate(reel.x,reel.y);
  ctx.rotate(reel.tilt*.65);
  // The original bitmap mouth cavity is a little right-and-up of body center.
- // Soft source alpha is capped below 100/255, then multiplied by .48.
- // Effective opacity stays under 19%, keeping face and open mouth legible.
+ // Source alpha already caps at 98/255; retain that transparency without
+ // multiplying it down to an invisible haze. Keep the face legible.
  ctx.translate(10,-8);
- var d=148;
+ var d=260;
  ctx.drawImage(image,dx,dy,sw,sh,-d/2,-d/2,d,d);
  ctx.restore();
  return true;
@@ -3485,7 +3486,7 @@ drawBob=function(){
  drawRedLure(time,bob.x,bob.y,size); // Approved bitmap even while Fever is merely ready.
  ctx.restore();
 };
-// Alpha 0.8: eight-tentacle harvest followed by a full queue of creatures into the main octopus mouth.
+// Release in place: open bait mouth, gather separated catches, swallow, then reel.
 function activateOctoFever(){
  if(!save.fever.ready||feverFx||catchFx||view!=='fish')return;
  hideVirtualJoystick();
@@ -3520,91 +3521,57 @@ function activateOctoFever(){
  save.fever.ready=false;save.fever.count=0;save.fever.activations++;
  persist();updateStats();updateFeverHud();beep('catch');vibrationPulse('fever');
  spawnParticles(center.x,center.y,52,'gold');ripple(center.x,center.y);
- var swallowSpacing=.13;
+ var swallowSpacing=.20, suctionEnd=1.32+Math.max(0,targets.length-1)*.20;
  feverFx={
   x:center.x,y:center.y,radius:v.radius,tier:g.tier,color:g.color,
   caught:targets,resisted:resisted,coins:coins,elapsed:0,
-  duration:1.95+Math.max(0,targets.length-1)*swallowSpacing,
+  suctionEnd:suctionEnd,reelStart:suctionEnd+.32,
+  duration:suctionEnd+.32+.82,
   swallowSpacing:swallowSpacing,reelProgress:0,reelFrame:0,reeling:false
  };
  feverFx.surfaceAt=feverSurfaceTime(feverFx,time);
  $('hintTitle').textContent='🐙 피버! '+targets.length+'마리 입속으로 꿀꺽';
  $('hint').textContent='모든 포획 생물이 문어 입 안으로 들어간 뒤 다음 낚시로 이어집니다.';
 }
-// Rod retrieval and folding are one continuous movement. This also supplies
-// the bait position used by drawLine(), keeping the fishing line attached.
-// Alpha 1.8: grouped catches stay held in half-curled bait tentacles underwater.
+// Keep line attached to stationary suction bait, then retrieve the closed bait.
 function feverSurfaceTime(fx,now){
- var start=.42,end=Math.min(fx.duration-.16,start+1.02);
- if(fx.y<=WATER_SURFACE_Y+2)return start;
- var tip=rodTip(now),lo=0,hi=1;
- for(var i=0;i<15;i++){
-  var mid=(lo+hi)*.5,s=mid*mid*(3-2*mid);
-  var y=mix(fx.y,tip.y+12,s)-26*Math.sin(Math.PI*s);
-  if(y>WATER_SURFACE_Y+2)lo=mid;else hi=mid;
- }
- return start+(end-start)*hi;
+ return fx.reelStart+.82;
 }
 function feverReelState(fx,now){
- var start=.42,end=Math.min(fx.duration-.16,start+1.02);
- var raw=clamp((fx.elapsed-start)/(end-start),0,1);
+ var raw=clamp((fx.elapsed-fx.reelStart)/.82,0,1);
  var smooth=raw*raw*(3-2*raw),tip=rodTip(now);
- var leftSweep=116*Math.sin(Math.PI*smooth);
- var y=mix(fx.y,tip.y+12,smooth)-26*Math.sin(Math.PI*smooth);
- var surfaceAt=Number.isFinite(fx.surfaceAt)?fx.surfaceAt:feverSurfaceTime(fx,now);
- var folding=fx.elapsed>=.19,frame;
- if(fx.elapsed<.19)frame=Math.round(11*clamp(fx.elapsed/.19,0,1));
- else if(fx.elapsed<start)frame=Math.round(mix(11,6,clamp((fx.elapsed-.19)/(start-.19),0,1)));
- else if(fx.elapsed<surfaceAt)frame=6;
- else{
-  var finish=clamp((fx.elapsed-surfaceAt)/Math.max(.32,Math.min(.66,
-   .39+Math.max(0,fx.caught.length-2)*fx.swallowSpacing*.22)),0,1);
-  frame=Math.round(6*(1-finish*finish*(3-2*finish)));
- }
- return{
-  progress:raw,folding:folding,frame:Math.max(0,Math.min(11,frame)),
-  surfaceAt:surfaceAt,underwater:y>WATER_SURFACE_Y+2,holding:fx.elapsed>=start&&fx.elapsed<surfaceAt,
-  leftSweep:leftSweep,tilt:-.21*Math.sin(Math.PI*smooth)-.055*smooth,
-  x:mix(fx.x,tip.x-48,smooth)-leftSweep,y:y
- };
+ var x=mix(fx.x,tip.x-48,smooth),y=mix(fx.y,tip.y+12,smooth);
+ return{progress:raw,folding:raw>0,frame:Math.round(11*(1-smooth)),
+  surfaceAt:fx.surfaceAt,underwater:y>WATER_SURFACE_Y+2,
+  holding:fx.elapsed<fx.suctionEnd,leftSweep:0,tilt:-.12*Math.sin(Math.PI*smooth),x:x,y:y};
 }
 function feverGripSlot(fx,index){
- var count=fx.caught.length,ring=Math.floor(index/5),n=Math.min(5,count-ring*5);
- var angle=Math.PI*(.13+.74*((index%5)+.5)/n);
- var radius=clamp((fx.radius*2+92)*.22,66,100)+ring*29;
- return{x:Math.cos(angle)*radius,y:Math.sin(angle)*radius+ring*10,
-  scale:count>7?.68:count>4?.78:count>2?.86:.93};
+ // Spread waiting catches over rings; only one enters the mouth at a time.
+ var ring=Math.floor(index/6),n=Math.min(6,fx.caught.length-ring*6);
+ var angle=-Math.PI/2+(index%6)*Math.PI*2/n+ring*.45;
+ var radius=72+ring*52;
+ return{x:Math.cos(angle)*radius,y:Math.sin(angle)*radius,
+  scale:fx.caught.length>6?.65:.82};
 }
 function feverTossPoint(entity,fx,index,now){
- var reel=feverReelState(fx,now),slot=feverGripSlot(fx,index);
- var gather=clamp(fx.elapsed/.42,0,1),q=gather*gather*(3-2*gather);
- var hold={x:reel.x+slot.x,y:reel.y+slot.y};
- if(fx.elapsed<.42)return{
-  x:mix(entity.x,hold.x,q),y:mix(entity.y,hold.y,q),
-  rotation:Math.sin(time*8+index)*.06,scale:mix(1,slot.scale,q),
-  done:false,phase:'gather',attached:true
- };
- var releaseAt=reel.surfaceAt+index*fx.swallowSpacing;
- if(fx.elapsed<releaseAt)return{
-  x:hold.x+Math.sin(time*8+index)*2,y:hold.y+Math.sin(time*6+index)*2,
-  rotation:Math.sin(time*4+index)*.07,scale:slot.scale,
-  done:false,phase:'held',attached:true
- };
- var launch=feverReelState(Object.assign({},fx,{elapsed:releaseAt}),now);
- var sx=launch.x+slot.x,sy=launch.y+slot.y;
- var duration=.73,t=clamp((fx.elapsed-releaseAt)/duration,0,1),inv=1-t;
- var mouth=mouthPos(now),cx=(sx+mouth.x)*.5-22,cy=Math.min(sy,mouth.y)-57;
- return{
-  x:inv*inv*sx+2*inv*t*cx+t*t*mouth.x,
-  y:inv*inv*sy+2*inv*t*cy+t*t*mouth.y,
-  rotation:-.23-.43*Math.sin(Math.PI*t),
-  scale:slot.scale*(t<.77?1:Math.max(.02,1-(t-.77)/.23)),
-  done:t>=1,phase:'throw',attached:false
- };
+ var slot=feverGripSlot(fx,index),mouth={x:fx.x+10,y:fx.y-8};
+ var hold={x:clamp(mouth.x+slot.x,35,W-35),y:clamp(mouth.y+slot.y,WATER_SURFACE_Y+30,H-35)};
+ var gather=clamp(fx.elapsed/.50,0,1),q=gather*gather*(3-2*gather);
+ if(fx.elapsed<.50)return{x:mix(entity.x,hold.x,q),y:mix(entity.y,hold.y,q),
+  rotation:Math.sin(now*8+index)*.06,scale:mix(1,slot.scale,q),
+  done:false,phase:'gather',attached:true};
+ var enterAt=.62+index*fx.swallowSpacing;
+ if(fx.elapsed<enterAt)return{x:hold.x,y:hold.y,rotation:Math.sin(now*9+index)*.08,
+  scale:slot.scale,done:false,phase:'held',attached:true};
+ var t=clamp((fx.elapsed-enterAt)/.62,0,1),ease=t*t*(3-2*t);
+ return{x:mix(hold.x,mouth.x,ease),y:mix(hold.y,mouth.y,ease),
+  rotation:Math.sin(Math.PI*t)*.22,
+  scale:slot.scale*(t<.72?1:Math.max(.02,(1-t)/.28)),
+  done:t>=1,phase:'suction',attached:false};
 }
 function drawFeverTossCreature(entity,fx,index,now,layer){
  var pose=feverTossPoint(entity,fx,index,now);
- if(pose.phase==='throw'&&pose.scale<.16&&!entity.vibrationLanded){entity.vibrationLanded=true;vibrationPulse('swallow')}
+ if(pose.phase==='suction'&&pose.scale<.16&&!entity.vibrationLanded){entity.vibrationLanded=true;vibrationPulse('swallow')}
  if(pose.done||((layer==='attached')!==!!pose.attached))return;
  ctx.save();
  ctx.translate(pose.x,pose.y);ctx.rotate(pose.rotation);
@@ -3613,12 +3580,12 @@ function drawFeverTossCreature(entity,fx,index,now,layer){
   humanIcon({id:entity.id,x:0,y:0,phase:entity.phase||0,size:entity.size||1},now);
  }else{
   drawFish({sp:entity.sp,x:0,y:0,vx:entity.vx||1,size:entity.size||1.3,
-    phase:entity.phase||0,spriteAction:pose.phase==='throw'?'slip':'last_resist',
+    phase:entity.phase||0,spriteAction:pose.phase==='suction'?'slip':'last_resist',
     spriteFrame:Math.floor(fx.elapsed*17+index)%8},now);
  }
  ctx.restore();
- // The trail follows each creature toward the left, not the rod tip.
- if(pose.phase==='throw'&&pose.scale>.18&&Math.random()<.35){
+ // Each short trail follows the creature into the underwater bait mouth.
+ if(pose.phase==='suction'&&pose.scale>.18&&Math.random()<.35){
   particles.push({x:pose.x+11+rnd(-7,7),y:pose.y+rnd(-8,8),
    vx:rnd(3,7),vy:rnd(-2,1),life:.24,size:rnd(2,4),kind:'gold'});
  }
@@ -3642,7 +3609,7 @@ function feverFlingStreakSprite(){
 
 function drawFeverFx(dt){
  if(!feverFx)return;
- var fx=feverFx;fx.elapsed+=dt;
+ var fx=feverFx;
  var p=clamp(fx.elapsed/fx.duration,0,1);
  var reel=feverReelState(fx,time);
  fx.reelProgress=reel.progress;
@@ -3670,14 +3637,9 @@ function drawFeverFx(dt){
  ctx.restore();
  // Fever fish sit IN FRONT of the sprite in all subphases, just like a
  // single hooked fish during ordinary fishing; keep the suction trajectory.
- fx.caught.forEach(function(entity,i){
-  drawFeverTossCreature(entity,fx,i,time,'attached');
- });
- fx.caught.forEach(function(entity,i){
-  drawFeverTossCreature(entity,fx,i,time,'released');
- });
+
  if(fx.elapsed>=fx.duration){
-  if(fx.caught.length)startPlayerOctoReaction('swallow_success');
+  if(fx.caught.length)triggerRedLureReaction('gulp');
   feverFx=null;buildFish();buildHum();
   if(view==='fish')startCast();
  }
