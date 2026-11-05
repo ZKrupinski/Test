@@ -120,6 +120,7 @@ window.__hfTest={
  swallow:playCatchFx,
  getCast:function(){return cast},
  getIntro:function(){return introEntrance},
+ markIntroHeroReady:function(){playerOctoAtlas.swim={ready:true}},
  advanceIntro:advanceIntroEntrance,
  getHook:function(){return hook},
  catchNow:success,
@@ -149,9 +150,29 @@ assert.ok(game,'Test bridge missing');
 assert.ok(game.getIntro().active,'Opening ensemble must start offscreen');
 assert.equal(game.getIntro().offset,-260,'The group must start visibly just left of its resting position');
 assert.match(script,/heroIntroImage\.ready/,'Opening should wait for illustrated character atlas');
-assert.match(script,/redInfo\.atlasReady/,'Opening should wait for remaining red cheerleader atlas');
+assert.match(script,/redIntroReady/,'Opening must wait for the compact red cheerleader atlas');
+assert.match(html,/preload" as="image" fetchpriority="high" href="\.\/assets\/octopus\/atlases\/purple_swim_intro\.webp/,
+ 'Start screen must prioritize the illustrated hero instead of later emotes');
+assert.match(html,/preload" as="image" fetchpriority="high" href="\.\/assets\/octopus\/atlases\/red_intro_swim\.webp/,
+ 'Start screen must prioritize the matching red cheerleader');
+assert.doesNotMatch(script,/introEntrance\.loadingTime<4/,
+ 'The arbitrary four-second release must not show only one of the two characters');
 assert.equal(game.getCast().active,false,'Do not start casting during intro');
+// Simulate delayed image download: startup animation must NOT run with just
+// the red friend or just the main hero, regardless of elapsed real time.
+game.advanceIntro(5);
+assert.equal(game.getIntro().elapsed,0,'Cannot begin the hero entrance with missing art');
+assert.equal(game.getIntro().visualReady,false,'Both intro sprites must be ready');
+mock.window.octoSidekicksIntroReady=function(){return false};
+game.markIntroHeroReady();
+game.advanceIntro(4);
+assert.equal(game.getIntro().elapsed,0,'A lone purple hero must not appear before red cheerleader');
+mock.window.octoSidekicksIntroReady=function(){return true};
+let syncedEntranceSignal=0;
+mock.window.octoSidekicksSignal=function(kind){if(kind==='entrance')syncedEntranceSignal++};
 game.advanceIntro(.90);
+assert.equal(syncedEntranceSignal,1,'Red and hero must begin their entrance at the same moment');
+assert.equal(game.getIntro().visualReady,true,'Both sprites were ready before the opening');
 assert.ok(game.getIntro().active,'Entrance must still be underway at halfway');
 assert.ok(game.getIntro().offset > -260&&game.getIntro().offset < -60,
  'Characters must have visibly moved right during the entrance');
