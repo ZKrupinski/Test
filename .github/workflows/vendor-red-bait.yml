@@ -1,0 +1,44 @@
+name: Vendor Red Octopus Bait Sprite Sheets
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vendor-red-bait.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: vendor-red-bait-sprites
+  cancel-in-progress: false
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download the exact approved red octopus bait artwork
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd human-fishing/assets/octopus
+          mkdir -p bait
+          curl --retry 3 --retry-delay 2 -fLsS 'https://d2ol7oe51mr4n9.cloudfront.net/user_3KlCHKRIJO34SPkOC5UMUPo7vEp/4dd33208-2d3d-4f38-8847-fc752b3d50f7.webp' -o bait/red_lure_open.webp
+          curl --retry 3 --retry-delay 2 -fLsS 'https://d2ol7oe51mr4n9.cloudfront.net/user_3KlCHKRIJO34SPkOC5UMUPo7vEp/e438b50a-fdfd-4e67-8a1c-0b061d04fdc2.webp' -o bait/red_lure_gulp.webp
+          curl --retry 3 --retry-delay 2 -fLsS 'https://d2ol7oe51mr4n9.cloudfront.net/user_3KlCHKRIJO34SPkOC5UMUPo7vEp/cce4e16e-1c5f-42e6-91c5-8d2acd9827d5.webp' -o bait/red_lure_fail.webp
+          printf '%s\n' \
+            '30efd4b344e80b9ea9ebd53a3a0a27117b4479123014b7d68b02e5fa3f94e13f  bait/red_lure_open.webp' \
+            '5868fd1e54bdd8efbc3a7e912e3aad417aaede2bcedb4d3b32c2cd397fde9149  bait/red_lure_gulp.webp' \
+            '506607e3236e3be58b1a5935c1c8726480f65f17dbe9a226ddbf0b4d5da7927a  bait/red_lure_fail.webp' | sha256sum -c -
+      - name: Commit and publish the original approved red bait bitmaps
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add human-fishing/assets/octopus/bait
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Add red octopus animated bait sheets for fishing line tip"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
