@@ -1,0 +1,57 @@
+name: Build Original-Pixel Octopus Gaze Animation
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'human-fishing/scripts/build_original_pixel_gazes.py'
+      - '.github/workflows/build-original-octo-gazes.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: human-fishing-original-gaze-art
+  cancel-in-progress: false
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepare bitmap image processing
+        run: |
+          python -m pip install -q Pillow numpy opencv-python-headless
+      - name: Build from approved unchanged purple idle WebP
+        run: |
+          python human-fishing/scripts/build_original_pixel_gazes.py
+      - name: Verify original-derived transparent sheets
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          root=Path('human-fishing/assets/octopus/player')
+          for name in ('purple_idle_original_pixel_16f','purple_sinking_original_pixel_16f'):
+              with Image.open(root/(name+'.png')) as im:
+                  assert im.mode=='RGBA' and im.size==(1600,1760), (name,im.mode,im.size)
+                  assert im.getpixel((0,0))[3]==0
+                  assert im.getchannel('A').getextrema()[1]>240
+              with Image.open(root/(name+'.webp')) as im:
+                  assert im.size==(1600,1760),name
+              print('PASS original-pixel sprite',name)
+          PY
+      - name: Commit render-ready pixels and before/after QA image
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add human-fishing/assets/octopus/player/purple_idle_original_pixel_16f.png
+          git add human-fishing/assets/octopus/player/purple_idle_original_pixel_16f.webp
+          git add human-fishing/assets/octopus/player/purple_sinking_original_pixel_16f.png
+          git add human-fishing/assets/octopus/player/purple_sinking_original_pixel_16f.webp
+          git add human-fishing/assets/octopus/player/_qa_original_vs_new_gazes.png
+          if git diff --cached --quiet;then exit 0;fi
+          git commit -m "Publish 16-frame source-exact octopus gaze and sinking sprites"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
