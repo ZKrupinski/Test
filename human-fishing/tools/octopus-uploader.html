@@ -86,6 +86,14 @@ footer{color:#90b0bc;font-size:13px;line-height:1.75;margin:24px 0}
   <button id="upload" class="primary" type="button">선택한 스프라이트를 GitHub에 업로드</button>
   <div id="fileState" role="status" aria-live="polite">업로드 전 파일과 실제 애니메이션 프레임을 확인하세요.</div>
   <div class="mini-links"><a href="https://github.com/ZKrupinski/Test/actions" target="_blank" rel="noopener noreferrer">배포 진행 상황</a><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">토큰 발급</a></div>
+  <div style="border-top:1px solid #315661;margin-top:26px;padding-top:20px">
+   <h2>신규 16프레임 8종 일괄 업로드</h2>
+   <label for="batchFiles">제작된 8개 WebP 파일 한 번에 선택</label>
+   <input type="file" id="batchFiles" multiple accept=".webp,image/webp">
+   <p class="hint">파일명에 따라 8개 시트가 정확한 게임 슬롯에 자동 배치됩니다. 위에서 입력한 GitHub 토큰을 그대로 사용합니다.</p>
+   <button id="batchUpload" class="primary" type="button" style="margin-top:14px">8종 시트 일괄 업로드</button>
+   <div id="batchStatus" class="hint" role="status" aria-live="polite">선택한 각 파일을 검증한 뒤 순서대로 업로드합니다.</div>
+  </div>
  </section>
  <section class="panel">
   <div class="preview-head"><h2>2. 스프라이트 프레임 검수</h2><span class="pill" id="gridLabel">4 × 4 / 16프레임</span></div>
@@ -253,6 +261,56 @@ footer{color:#90b0bc;font-size:13px;line-height:1.75;margin:24px 0}
   }catch(error){setStatus('업로드 실패: '+(error.message||String(error)),'error')}
   finally{button.disabled=false;button.textContent='선택한 스프라이트를 GitHub에 업로드'}
  }
+ var batchSlots=['purple_idle_v2','purple_excited','purple_toss','purple_gorge',
+   'purple_snack','purple_victory','purple_fail_v2','purple_swim'];
+ async function batchUpload(){
+  var files=Array.from($('batchFiles').files||[]);
+  var token=$('token').value.trim();
+  var out=$('batchStatus'),button=$('batchUpload');
+  if(!token){out.textContent='먼저 위 GitHub 토큰을 입력하세요.';return}
+  if(files.length!==8){out.textContent='WebP 8개를 모두 선택해야 합니다. 현재 '+files.length+'개 선택됨.';return}
+  var keyed={};
+  for(var i=0;i<files.length;i++){
+   var file=files[i],stem=file.name.replace(/\.webp$/i,'');
+   if(!batchSlots.includes(stem)||!/.webp$/i.test(file.name)){
+    out.textContent='대상 외 파일: '+file.name+'. 배포 패키지의 원본 파일명을 유지하세요.';return;
+   }
+   if(keyed[stem]||file.size>25*1024*1024){
+    out.textContent='중복되거나 25MB 초과 파일: '+file.name;return;
+   }
+   keyed[stem]=file;
+  }
+  if(batchSlots.some(function(key){return !keyed[key]})){
+   out.textContent='8종 목록에서 빠진 파일이 있습니다.';return;
+  }
+  button.disabled=true;
+  button.textContent='업로드 중…';
+  try{
+   var headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json',
+     'X-GitHub-Api-Version':'2022-11-28'};
+   for(var index=0;index<batchSlots.length;index++){
+    var key=batchSlots[index],slot=slots[key],current=keyed[key];
+    out.textContent='['+(index+1)+'/8] '+current.name+' 업로드 중…';
+    var url='https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+BASE+slot.path;
+    var read=await fetch(url+'?ref='+BRANCH,{headers:headers,credentials:'omit',cache:'no-store'});
+    var sha=null;
+    if(read.ok)sha=(await read.json()).sha;
+    else if(read.status!==404){var error={};try{error=await read.json()}catch(e){}
+      throw apiError(read,error)}
+    var payload={message:'Apply Human Fishing illustrated octopus animation: '+key,
+      content:await encodeFile(current),branch:BRANCH};
+    if(sha)payload.sha=sha;
+    await request(url,{method:'PUT',credentials:'omit',
+      headers:Object.assign({'Content-Type':'application/json'},headers),
+      body:JSON.stringify(payload)});
+   }
+   out.textContent='8종 모두 GitHub 업로드 성공! 배포가 끝나면 게임에서 새 애니메이션으로 자동 전환됩니다.';
+  }catch(e){
+   out.textContent='전송 중단: '+(e.message||String(e))+
+     ' · 이미 성공한 파일은 저장되어 있으므로 같은 8개를 다시 선택해도 안전합니다.';
+  }finally{button.disabled=false;button.textContent='8종 시트 일괄 업로드'}
+ }
+ $('batchUpload').addEventListener('click',batchUpload);
  selected.addEventListener('change',function(){fileInput.value='';clearPreview();setSlot();setStatus('새 슬롯을 선택했습니다. 업로드할 이미지를 다시 선택하세요.');});
  fileInput.addEventListener('change',setFile);
  $('redRow').addEventListener('change',function(){lastFrame=-1});
