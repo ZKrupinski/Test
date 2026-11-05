@@ -2327,11 +2327,20 @@ function drawRod(now){
  ctx.restore();
 }
 function drawLine(){
- var tip=rodTip(time),end=hook?{x:hook.obj.x,y:hook.obj.y-18}:{x:bob.x,y:bob.y-37};
- var slack=hook?2:feverFx?Math.max(2,14*(1-(feverFx.reelProgress||0))):cast.active?23:drag?12:47;
+ var tip=rodTip(time),
+  // The illustrated bait is drawn around this exact center, including shake.
+  // Do not end the line 37px above the bait or 18px above a hooked fish.
+  end=lureLineAnchor(),
+  angle=updateLureHang(time,tip,end),
+  slack=hook?2:feverFx?Math.max(2,14*(1-(feverFx.reelProgress||0))):cast.active?23:drag?12:47;
+ // The last part of the rope approaches the bait from above at the same
+ // smoothed angle as the dangling body. Keep end.x/y exactly at bait center.
+ var lead=clamp((end.y-tip.y)*.17,37,75),
+  controlX=end.x-Math.sin(angle)*lead,
+  controlY=end.y-Math.cos(angle)*lead;
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
  ctx.beginPath();ctx.moveTo(tip.x,tip.y);
- ctx.bezierCurveTo(tip.x+22,tip.y+95+slack,mix(tip.x,end.x,.7),end.y+slack,end.x,end.y);
+ ctx.bezierCurveTo(tip.x+22,tip.y+95+slack,controlX,controlY,end.x,end.y);
  ctx.strokeStyle='#021823ad';ctx.lineWidth=3.1;ctx.stroke();
  ctx.strokeStyle=hook?'#ffefd1':'#d8f5f0df';ctx.lineWidth=1.55;ctx.stroke();
  ctx.restore();
@@ -3262,6 +3271,36 @@ function octoSprite(tier,frame,folding){
 // 3 independent 4x4 sheets (16 frames each), separate from the purple player
 // and the two cheering sidekicks. The original drawings are not regenerated.
 var redLureAtlas={},redLureReaction=null;
+// A softly damped pendulum for the actual octopus BAIT, not the player.
+// Keep physics independent of image changes; even a harsh joystick movement
+// cannot snap the sprite more than 0.8 radians/sec.
+var lureHangState={angle:0,lastTime:null,lastX:null,lastY:null};
+function lureLineAnchor(){
+ var shake=vibrationOffset('lure');
+ return{x:bob.x+shake.x,y:bob.y+shake.y};
+}
+function updateLureHang(now,tip,end){
+ var h=lureHangState;
+ if(h.lastTime===null){
+  h.lastTime=now;h.lastX=end.x;h.lastY=end.y;
+  return h.angle;
+ }
+ var dt=clamp(now-h.lastTime,0,.05);
+ if(dt<=0)return h.angle; // Repeated draw in one frame is identical.
+ var velocityX=clamp((end.x-h.lastX)/Math.max(.008,dt),-420,420);
+ // The line is the dominant influence. A small opposite inertial term makes
+ // the octopus trail during sudden lateral joystick motions, then settle.
+ var ropeAngle=Math.atan2((end.x-tip.x)*.72,
+  Math.max(125,end.y-tip.y+38));
+ var target=clamp(ropeAngle-velocityX*.00031,-.36,.36);
+ var difference=target-h.angle;
+ var easing=1-Math.exp(-5.4*dt);
+ var maxTurn=.80*dt;
+ h.angle+=clamp(difference*easing,-maxTurn,maxTurn);
+ h.angle=clamp(h.angle,-.36,.36);
+ h.lastTime=now;h.lastX=end.x;h.lastY=end.y;
+ return h.angle;
+}
 ['open','gulp','fail'].forEach(function(action){
  if(typeof Image==='undefined')return;
  var im=new Image();im.decoding='async';im.ready=false;
@@ -3295,9 +3334,16 @@ function drawRedLure(now,x,y,diameter){
  var cw=img.naturalWidth/4,ch=img.naturalHeight/4,
   sx=(pose.frame%4)*cw,sy=Math.floor(pose.frame/4)*ch,
   d=Math.max(48,diameter||76);
- var hit=vibrationOffset('lure');
- ctx.save();ctx.translate(x+hit.x,y+hit.y);
- ctx.drawImage(img,sx,sy,cw,ch,-d/2,-d*.68,d,d);
+ var hit=vibrationOffset('lure'),
+  anchor={x:x+hit.x,y:y+hit.y},
+  angle=updateLureHang(now,rodTip(now),anchor);
+ ctx.save();
+ ctx.translate(anchor.x,anchor.y);
+ ctx.rotate(angle);
+ // Source alpha bounds are centered at x=.50 and y=.53-.57 of the frame.
+ // Place the rope attach point INSIDE the body's visual midpoint, not above it.
+ // Rotate around that same point to mimic weight hanging from the line.
+ ctx.drawImage(img,sx,sy,cw,ch,-d/2,-d*.55,d,d);
  ctx.restore();return true;
 }
 // Bait uses the already existing rod gear and joystick dynamics unchanged.
