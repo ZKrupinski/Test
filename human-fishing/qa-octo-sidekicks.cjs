@@ -46,5 +46,8 @@ for(const name of files){
  assert.ok(!source.includes(name),'New player artwork leaked into original companion: '+name);
 }
 assert.ok(player.includes('playerOctoPose(now)'));
-assert.ok(player.includes("action:'gorge'"));
+assert.ok(player.includes("action:'mouth_open'"),'New mouth-opening sequence must play on catch approach');
+assert.ok(player.includes("'gorge','snack','fail_alt'"),'Old facial actions must remain in random idle pool');
+assert.ok(player.includes("action:'swallow_success'")||player.includes("startPlayerOctoReaction('swallow_success')"),'New success animation must be triggered');
+assert.ok(player.includes("startPlayerOctoReaction('swallow_failure')"),'New failure animation must be triggered');
 console.log('PASS: original red/purple companion atlases restored, player uses eight untouched final 16-frame sheets');
