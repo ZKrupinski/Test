@@ -1846,7 +1846,7 @@ function castMotion(dt){
    cast.landing=true;ripple(640,WATER_SURFACE_Y+3);beep('hit');spawnParticles(640,WATER_SURFACE_Y+3,14,'water');
   }
   var p=castEasing((u-1.4)/(cast.duration-1.4));
-  bob.x=640+Math.sin((u-1.4)*2.5)*4*(1-p);
+  bob.x=640; // Sink directly beneath the shortened rod tip.
   bob.y=(WATER_SURFACE_Y+3)+(436-(WATER_SURFACE_Y+3))*p+Math.sin((u-1.4)*14)*4*(1-p);
   if(Math.floor(u*9)%3===0&&Math.random()<dt*25)
    particles.push({x:bob.x+rnd(-7,7),y:bob.y+rnd(-3,7),vx:rnd(-.3,.3),vy:rnd(-.7,-.2),life:.55,size:rnd(2,5),kind:'water'});
@@ -1971,7 +1971,8 @@ function updateJoystick(dt){
 function rodTip(now){
  var rod=selectedGear('rod'),p=cast.active?cast.elapsed:10,casting=cast.active&&p<1.0;
  var swing=casting?Math.sin(Math.PI*clamp(p/1.0,0,1)):0;
- return{x:725+rod.tier*7+Math.sin(now*1.1)*3-36*swing,y:92-rod.tier*3+Math.sin(now*1.5)*2+35*swing+PLAYER_STAGE_DROP};
+ // About half the old shaft length; rest tip is directly above default bait x=640.
+ return{x:640-18*swing,y:141.5-rod.tier*1.5+Math.sin(now*1.5)+17.5*swing+PLAYER_STAGE_DROP};
 }
 // Original approved illustrated 4x4 / 16-frame sheets: no redraw or regeneration.
 // These eight sprites belong to the PLAYER octopus, not the red/purple spectators.
@@ -2301,7 +2302,7 @@ function drawOcto(now){
 function drawRod(now){
  var worldTip=rodTip(now),tip={x:worldTip.x,y:worldTip.y-PLAYER_STAGE_DROP},base={x:536,y:191},gear=selectedGear('rod'),lv=gearLevel('rod',gear.id);
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.shadowColor='#00121caa';ctx.shadowBlur=7;
- ctx.beginPath();ctx.moveTo(base.x,base.y);ctx.bezierCurveTo(593,171,670,127,tip.x,tip.y);
+ ctx.beginPath();ctx.moveTo(base.x,base.y);ctx.bezierCurveTo(mix(base.x,tip.x,.30),mix(base.y,tip.y,.20),mix(base.x,tip.x,.71),mix(base.y,tip.y,.65),tip.x,tip.y);
  ctx.strokeStyle='#111d28';ctx.lineWidth=12;ctx.stroke();ctx.shadowBlur=0;
  var g=ctx.createLinearGradient(base.x,base.y,tip.x,tip.y);
  g.addColorStop(0,gear.color);g.addColorStop(.68,lv>=5?'#e9d8ab':gear.color);g.addColorStop(1,'#e9f3e8');
@@ -2347,7 +2348,8 @@ function drawLine(){
   controlY=end.y-Math.cos(angle)*lead;
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
  ctx.beginPath();ctx.moveTo(tip.x,tip.y);
- ctx.bezierCurveTo(tip.x+22,tip.y+95+slack,controlX,controlY,end.x,end.y);
+ if(Math.abs(end.x-tip.x)<1&&!drag&&!hook&&!feverFx)controlX=end.x;
+ ctx.bezierCurveTo(tip.x+(end.x-tip.x)*.08,tip.y+95+slack,controlX,controlY,end.x,end.y);
  ctx.strokeStyle='#021823ad';ctx.lineWidth=3.1;ctx.stroke();
  ctx.strokeStyle=hook?'#ffefd1':'#d8f5f0df';ctx.lineWidth=1.55;ctx.stroke();
  ctx.restore();
@@ -3787,4 +3789,5 @@ updateStats();setMode('fish');
 requestAnimationFrame(tick);
 })();
 </script></body></html>
+
 
