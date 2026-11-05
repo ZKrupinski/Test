@@ -119,6 +119,8 @@ window.__hfTest={
  mouthFrames:function(){return mouthFrames},
  swallow:playCatchFx,
  getCast:function(){return cast},
+ getIntro:function(){return introEntrance},
+ advanceIntro:advanceIntroEntrance,
  getHook:function(){return hook},
  catchNow:success,
  setHook:function(h){hook=h},
@@ -142,6 +144,16 @@ window.__hfTest={
 vm.runInNewContext(instrumented,mock,{filename:'human-fishing.js',timeout:4000});
 const game=mock.window.__hfTest;
 assert.ok(game,'Test bridge missing');
+// Entrance must hold the FIRST cast until hero, rod and both friends have
+// traveled together from off-screen left. Fast-forward it for gameplay tests.
+assert.ok(game.getIntro().active,'Opening ensemble must start offscreen');
+assert.ok(game.getIntro().offset < -800,'Hero and rod must start off-screen left');
+assert.equal(game.getCast().active,false,'Do not start casting during intro');
+game.advanceIntro(1.76);
+assert.equal(game.getIntro().active,false,'Arrival must settle on the stage');
+assert.equal(game.getIntro().offset,0,'Characters must finish at their usual x positions');
+assert.ok(game.getCast().active,'First bait throw begins only after arrival');
+
 assert.equal(game.species.length,240);
 
 const fishClasses=new Set(),fishShapes=new Set(),signatureMotifs=new Set();
