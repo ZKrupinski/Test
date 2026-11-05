@@ -27,14 +27,18 @@ let framesChecked=0,bottomCorrections=0;
 for(const [action,frames] of Object.entries(meta)){
  assert.equal(frames.length,16,action+' must have 16 measured cells');
  for(let i=0;i<16;i++){
+  const sourceFrame=action==='idle_alt'?env.playerIdleGazeFrames[i]:i;
+  // Curated Idle intentionally reuses original source cells. Flush each
+  // source cache entry in this pixel-cut test so every viewport mapping
+  // independently demonstrates an integer, seamless crop.
+  delete env.playerOctoTiles[action+':'+sourceFrame];
   operations.length=0;
   const tile=env.playerOctoTile(action,i);
   assert.ok(tile&&tile.image,action+' '+i+' failed to create isolated tile');
   const draw=operations.find(o=>o.kind==='draw');
   assert.ok(draw,'source frame was not copied');
   const [src,x,y,w,h,dx,dy,dw,dh]=draw.args;
-  const frameIndex=action==='idle_alt'?env.playerIdleGazeFrames[i]:i;
-  const col=frameIndex%4,row=Math.floor(frameIndex/4);
+  const col=sourceFrame%4,row=Math.floor(sourceFrame/4);
   assert.equal(x,Math.round(col*1254/4));
   assert.equal(y,Math.round(row*1254/4));
   assert.equal(w,Math.round((col+1)*1254/4)-x);
