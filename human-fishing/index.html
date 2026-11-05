@@ -1936,7 +1936,7 @@ function rodTip(now){
 // Original approved illustrated 4x4 / 16-frame sheets: no redraw or regeneration.
 // These eight sprites belong to the PLAYER octopus, not the red/purple spectators.
 var playerOctoSources={
- idle_alt:'purple_idle_eyes_synced.webp', // eye-gaze aligned; original art untouched elsewhere
+ idle_alt:'purple_idle_v2.webp', // exact approved source: synchronized gaze via curated frames below
  excited:'purple_excited.webp',
  toss:'purple_toss.webp',
  gorge:'purple_gorge.webp',
@@ -1976,7 +1976,12 @@ Object.keys(playerOctoSources).forEach(function(action){
  img.src='./assets/octopus/atlases/'+playerOctoSources[action]+'?v=20261105-player-pixelaligned';
  playerOctoAtlas[action]=img;
 });
+// Curated, pixel-exact idle gaze poses: both pupils are aligned in these
+// original source frames. Avoid the cross-eyed 1,2,5,7,8,13,14,15 frames
+// without re-painting iris, eye highlights or costume details.
+var playerIdleGazeFrames=[0,3,4,3,0,0,6,6,9,10,11,12,11,10,9,6];
 function playerOctoTile(action,frame){
+ if(action==='idle_alt')frame=playerIdleGazeFrames[Math.max(0,Math.min(15,frame))];
  var key=action+':'+frame,hit=playerOctoTiles[key];
  if(hit)return hit;
  var img=playerOctoAtlas[action],info=playerOctoFrameMeta[action];
