@@ -6,7 +6,7 @@ are sampled from the approved ORIGINAL player sprite. No new character redraw.
 Only the original iris patches are translated in the unchanged eye sockets.
 """
 from pathlib import Path
-from PIL import Image, ImageFilter
+from PIL import Image
 import math, colorsys
 import numpy as np
 import cv2
@@ -54,66 +54,63 @@ print("Original iris centers:",centers,"crop:",(sw,sh))
 if not (133<=centers[0][0]<=190 and 202<=centers[1][0]<=257):
   raise ValueError(f"Unreliable iris centers: {centers}")
 
-raw=np.asarray(base)
-no_iris=np.asarray(base.convert("RGB")).copy()
-paint_mask=np.zeros((sh,sw),dtype=np.uint8)
-iris_masks=[]
+# Preserve source irises, eye white, eyelashes and eyelids as one original
+# raster. The former inpaint + overlay approach erased pupil interiors and
+# created doubled/misaligned eyes. Instead: smooth subpixel displacement of
+# ORIGINAL eye texture, with a Gaussian falloff that reaches zero outside
+# the eye whites. There is no removal or reconstruction of pupil pixels.
+source_rgba=np.asarray(base).copy()
+ys,xs=np.mgrid[0:sh,0:sw]
+eye_fields=[]
 for cx,cy in centers:
-  # Keep pupil ring + glint, avoid touching fixed eyelid/eyebrow artwork.
-  radius=16
-  soft=np.zeros((sh,sw),dtype=np.uint8)
-  cv2.ellipse(soft,(cx,cy),(radius,radius+1),0,0,360,255,-1)
-  inner=np.zeros((sh,sw),dtype=np.uint8)
-  cv2.ellipse(inner,(cx,cy),(radius-2,radius-1),0,0,360,255,-1)
-  paint_mask=cv2.bitwise_or(paint_mask,inner)
-  soft=cv2.GaussianBlur(soft,(5,5),1.2)
-  iris_masks.append(soft)
-cleaned=cv2.inpaint(no_iris,paint_mask,4,cv2.INPAINT_TELEA)
-# Put back the untouched original alpha; eye whites stay in the same eye sockets.
-base_rgb=Image.fromarray(cleaned,"RGB").convert("RGBA")
-base_rgb.putalpha(base.getchannel("A"))
+    radius_x=15.0; radius_y=13.0
+    field=np.exp(-.5*((xs-cx)/radius_x)**2-.5*((ys-cy)/radius_y)**2)
+    # Compact support: the eyelids/brows/face must be exactly source pixels.
+    field[field < .04]=0.
+    eye_fields.append(field.astype(np.float32))
+BASE_X=xs.astype(np.float32)
+BASE_Y=ys.astype(np.float32)
 
 def make_frame(dx,dy,bow=0):
-    # Dynamic eyes are copied from the SAME source artwork. Both irises share
-    # identical x/y movement; their outlines and original eye glints remain.
-    canvas=base_rgb.copy()
-    for (cx,cy),mask in zip(centers,iris_masks):
-        px0=max(0,cx-21);px1=min(sw,cx+22)
-        py0=max(0,cy-21);py1=min(sh,cy+22)
-        piece=base.crop((px0,py0,px1,py1))
-        selection=Image.fromarray(mask[py0:py1,px0:px1],"L")
-        piece.putalpha(Image.fromarray(
-            (np.array(piece.getchannel("A"),dtype=np.uint16)*
-             np.array(selection,dtype=np.uint16)//255).astype("uint8"),"L"))
-        canvas.alpha_composite(piece,(px0+int(dx),py0+int(dy)))
+    # Both irises get the same tiny displacement. No pupil extraction,
+    # inpainting, arbitrary circles, Photoshop-like iris redraw or shadows.
+    # A face remains entirely identical to the approved source elsewhere.
+    shift_x=np.zeros((sh,sw),np.float32)
+    shift_y=np.zeros((sh,sw),np.float32)
+    for field in eye_fields:
+        shift_x+=float(dx)*field
+        shift_y+=float(dy)*field
+    remap=cv2.remap(source_rgba,
+                    BASE_X-shift_x,BASE_Y-shift_y,
+                    interpolation=cv2.INTER_LINEAR,
+                    borderMode=cv2.BORDER_REPLICATE)
+    output=np.where(((shift_x!=0)|(shift_y!=0))[:,:,None],
+                    remap,source_rgba).astype(np.uint8)
+    canvas=Image.fromarray(output,"RGBA")
     frame=Image.new("RGBA",(CELL_W,CELL_H),(0,0,0,0))
-    # Keep real approved art's visual proportions and base foot position.
+    # Uniform scale: the original 313x313 illustration stays 1:1 in pixels
+    # in every state, at a stable transparent frame center/foot line.
     scaled=canvas.resize((360,360),Image.Resampling.LANCZOS)
-    left=round(200-((centers[0][0]+centers[1][0])*.5-44)*360/sw)
-    # Align original center measured from source art, not iris placement.
     left=round(200-156*360/sw)
     top=round(412-285*360/sh)
     frame.alpha_composite(scaled,(left,top))
     if bow>0:
-        # Very gentle full-body lean (<=2.3°) around the planted feet.
-        # Uses ONLY the same source pixels, no invented costume/shapes.
-        angle=2.3*bow
+        # Original pixels only: barely visible forward nod during bait sink.
+        angle=.9*bow
         frame=frame.rotate(angle,Image.Resampling.BICUBIC,center=(200,412))
-        # Subtle nod downwards without deforming the approved octopus.
-        moved=Image.new("RGBA",(CELL_W,CELL_H))
-        moved.alpha_composite(frame,(0,round(3*bow)))
-        frame=moved
     return frame
 
-# Calm scan: head fixed, friendly symmetrical eyelids, pupils subtly look
-# downward, to bottom-left, back center, then bottom-right (ping-pong).
-IDLE=[(0,1),(0,2),(-1,3),(-2,4),(-3,4),(-2,4),(-1,3),(0,2),
-      (0,2),(1,3),(2,4),(3,4),(2,4),(1,3),(0,2),(0,1)]
-# Bait sinks: both eyes follow downward; upper body bows gently toward water.
-SINK=[(0,1,0),(0,2,.05),(0,3,.12),(0,3,.20),
-      (-1,4,.34),(-1,5,.48),(-1,5,.62),(-1,6,.74),
-      (-1,6,.86),(0,6,.95),(0,6,1.00),(0,6,1.00),
-      (0,6,1.00),(0,6,1.00),(0,6,1.00),(0,6,1.00)]
+# Idle stays friendly, no head tilt and NO uneven eyelid transitions.
+# Move both existing pupils together by at most 2px horizontally and 2px
+# downward in the ORIGINAL 313px source. Loop turns back smoothly.
+IDLE=[(0,0),(0,1),(-1,1),(-2,2),(-2,2),(-1,1),(0,1),(0,0),
+      (0,0),(1,1),(2,2),(2,2),(1,1),(0,1),(0,0),(0,0)]
+# During bait descent the whole original character looks marginally lower;
+# the head bend is <1 degree so face details and silhouette cannot pop.
+SINK=[(0,0,0),(0,1,.06),(0,2,.14),(0,2,.25),
+      (-1,2,.34),(-1,2,.45),(-1,2,.54),(-1,2,.64),
+      (-1,2,.74),(0,2,.82),(0,2,.89),(0,2,.95),
+      (0,2,1),(0,2,1),(0,2,1),(0,2,1)]
 def export(name,sequence):
     sheet=Image.new("RGBA",(SHEET_W,SHEET_H),(0,0,0,0))
     for i,pose in enumerate(sequence):
