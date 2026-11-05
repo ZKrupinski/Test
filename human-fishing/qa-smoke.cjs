@@ -454,8 +454,10 @@ assert.ok(bob.y<midY,'Reeling must continuously pull the bait toward rod tip');
 // vector tentacles or the old stylized leftward streak.
 assert.match(script,/drawFeverMouthSprite\(fx,reel\)/,
  'Fever must actually render the new mouth-based 16-frame bitmap');
-assert.match(script,/red_lure_fever_mouth\.webp/,
- 'Approved giant-mouth bitmap atlas must be loaded');
+assert.match(script,/red_lure_fever_natural_v2\.webp/,
+ 'Approved natural-size red Fever bitmap atlas must be loaded');
+assert.match(script,/octofever_vortex_soft_v2\.webp/,
+ 'The softened transparent whirlpool must load as a separate sprite atlas');
 assert.match(script,/function feverMouthSpriteFrame\(fx\)/,
  'Fever frames must be timed open -> suction hold -> closed');
 const testFeverFx=game.getFeverFx();
