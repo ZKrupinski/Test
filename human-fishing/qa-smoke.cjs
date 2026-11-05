@@ -115,6 +115,7 @@ window.__hfTest={
  rodTip:rodTip,
  getCatchFx:function(){return catchFx},
  path:swallowPoint,
+ getMouthPos:mouthPos,
  mouthOpen:mouthGape,
  mouthFrames:function(){return mouthFrames},
  swallow:playCatchFx,
@@ -193,8 +194,10 @@ assert.match(script,/WATER_SURFACE_Y=293,PLAYER_STAGE_DROP=46/,
  'The waterline must move down 24px while the hero has 46px headroom');
 assert.match(runtimeTick,/ctx\.translate\(0,PLAYER_STAGE_DROP\)/,
  'Final active renderer must shift the main octopus, rod and red cheerleader together');
-assert.match(script,/function mouthPos\(now\)\{return\{x:452,y:191\+PLAYER_STAGE_DROP/,
- 'Catch/swallow mouth targeting must follow the lowered hero');
+assert.match(script,/CATCH_MOUTH_X=470,CATCH_MOUTH_LOCAL_Y=177/,
+ 'The new open-mouth catch target must move 18px right and 14px up');
+assert.equal(game.getMouthPos(0).x,470,'Bait target X must sit inside the open mouth');
+assert.equal(game.getMouthPos(0).y,223,'Bait target Y must sit inside the open mouth after player drop');
 assert.match(script,/worldTip=rodTip\(now\),tip=\{x:worldTip\.x,y:worldTip\.y-PLAYER_STAGE_DROP\}/,
  'Rod tip physics must match the translated rod artwork');
 const redSidekick=fs.readFileSync('human-fishing/assets/octopus/octopus-sidekicks.js','utf8');
@@ -512,7 +515,9 @@ assert.ok(game.getCast().active,'Next cast must resume after the octopus recover
 assert.equal(state.catches,currentCatchCount,'Human escape must not grant catches');
 assert.equal(state.coins,currentCoins,'Human escape must not grant pearls');
 // The entire hook travels along one upward Bézier arc directly into the mouth.
-const mouth={x:452,y:191},origin={x:830,y:510};
+const mouth=game.getMouthPos(0),origin={x:830,y:510};
+assert.equal(mouth.x,470,'Reeled-in red bait must end 18px to the right');
+assert.equal(mouth.y,223,'Reeled-in red bait must end 14px higher');
 const first=game.path(origin.x,origin.y,mouth,.26);
 const middle=game.path(origin.x,origin.y,mouth,.54);
 const near=game.path(origin.x,origin.y,mouth,.88);
@@ -521,6 +526,12 @@ assert.ok(first.y<origin.y,'Fish should immediately rise after hooking');
 assert.ok(middle.y<first.y,'Hook trajectory must continue rising with no surface pause');
 assert.ok(near.y<269,'Approaching fish must pass the waterline without stopping');
 assert.ok(Math.abs(finish.x-mouth.x)<.001&&Math.abs(finish.y-mouth.y)<.001,'Path must end in the octopus mouth');
+assert.match(runtimeTick,/var point=swallowPoint\(hook\.startX,hook\.startY,mouthPos\(time\),p\)/,
+ 'Hook motion must aim at the updated animated mouth, not a stale coordinate');
+assert.match(runtimeTick,/bob\.x=o\.x;bob\.y=o\.y/,
+ 'The red bait must follow the reeled-in fish along that same mouth trajectory');
+assert.match(runtimeTick,/drawBaitAbovePlayer\(time\)/,
+ 'Bait must remain layered above protagonist and fishing line until swallowing');
 assert.match(script,/if\(!fx\.swallowed\)drawSwallowCreature/,'Reward animation must not replay a second flight');
 game.switchView('fish');game.getCast().active=false;
 const actual={sp:ordinary,x:origin.x,y:origin.y,vx:.3,size:1,phase:0};
