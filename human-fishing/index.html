@@ -2019,10 +2019,16 @@ function playerOctoTile(action,frame){
 // The old gorge/snack/fail_alt stay available for randomized idle playback.
 var playerReactionArt={},playerOctoReaction=null,playerOctoIdleState=null;
 var playerReactionSources={
- mouth_open:'./assets/octopus/player/mouth_open_original_style.webp?v=20261105-pixelperfect',
+ mouth_open:'./assets/octopus/player/mouth_open_clean.png?v=20261105-clean-alpha-v1',
  swallow_success:'./assets/octopus/atlases/purple_excited.webp?v=20261105-pixelperfect',
  swallow_failure:'./assets/octopus/player/swallow_failure_original_style.webp?v=20261105-pixelperfect'
 };
+var playerMouthCleanBounds=[
+ [59,11,315,250],[60,10,314,249],[60,10,313,249],[60,8,313,249],
+ [60,8,313,247],[60,7,313,246],[60,7,313,244],[59,6,312,244],
+ [59,6,313,244],[58,7,316,246],[57,6,322,246],[51,6,324,246],
+ [48,7,330,248],[42,7,332,248],[41,8,332,248],[38,8,331,248]
+];
 var playerReactionFoot={
  mouth_open:[291,291,291,291,291,291,291,291,291,291,291,291,291,291,291,291],
  swallow_success:[292,293,293,292,292,292,291,289,288,289,287,283,288,290,291,291],
@@ -2130,9 +2136,21 @@ function drawOcto(now){
    sx=Math.round(col*iw/4),sy=Math.round(row*ih/4),
    sw=Math.round((col+1)*iw/4)-sx,sh=Math.round((row+1)*ih/4)-sy;
   // Keep the feet at the same canvas height across all three actions.
-  var feet=playerReactionFoot[pose.action]||[],
-   foot=feet[pose.frame]||291,dy=-25+(291-foot)*(300/sh);
-  ctx.drawImage(illustrated,sx,sy,sw,sh,-10,dy,300,300);
+  if(pose.action==='mouth_open'){
+   // The approved original is 1536x1024, so each cell is WIDE (384x256).
+   // Do not force the frame into 300x300: preserve the drawn proportions
+   // and anchor the character's real footline consistently between frames.
+   var box=playerMouthCleanBounds[pose.frame],
+    center=(box[0]+box[2])*.5,footY=box[3]-1,
+    naturalScale=1.04,dx=140-center*naturalScale,
+    dy=244-footY*naturalScale;
+   ctx.drawImage(illustrated,sx,sy,sw,sh,dx,dy,
+    sw*naturalScale,sh*naturalScale);
+  }else{
+   var feet=playerReactionFoot[pose.action]||[],
+    foot=feet[pose.frame]||291,dy=-25+(291-foot)*(300/sh);
+   ctx.drawImage(illustrated,sx,sy,sw,sh,-10,dy,300,300);
+  }
   // The approved failure sheet begins at a worried pose rather than max gape.
   // Dissolve only the first 0.12s from the identical final opening pose.
   if(pose.action==='swallow_failure'&&playerOctoReaction){
@@ -2144,7 +2162,13 @@ function drawOcto(now){
      osw=Math.round((oc+1)*ow/4)-ox,
      osh=Math.round((orr+1)*oh/4)-oy;
     ctx.globalAlpha=1-fade;
-    ctx.drawImage(opener,ox,oy,osw,osh,-10,-25,300,300);
+    // First failure frame blends the approved maximum-gape (frame 15)
+    // at its original 384:256 ratio, rather than distorting to a square.
+    var maxBox=playerMouthCleanBounds[15],mouthScale=1.04;
+    ctx.drawImage(opener,ox,oy,osw,osh,
+     140-(maxBox[0]+maxBox[2])*.5*mouthScale,
+     244-(maxBox[3]-1)*mouthScale,
+     osw*mouthScale,osh*mouthScale);
     ctx.globalAlpha=1;
    }
   }
