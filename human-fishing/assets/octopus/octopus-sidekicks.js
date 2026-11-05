@@ -74,124 +74,203 @@
   img.ready=false;img.src=url;
   return img;
  }
+
+ // Eight new 16-frame character illustrations use dedicated game slots.
+ // Files are optional until published with the sprite uploader; every action
+ // has an existing approved bitmap fallback and never becomes invisible.
+ var OPTIONAL={
+  idle_alt:'purple_idle_v2.webp',
+  excited:'purple_excited.webp',
+  toss:'purple_toss.webp',
+  gorge:'purple_gorge.webp',
+  snack:'purple_snack.webp',
+  victory:'purple_victory.webp',
+  fail_alt:'purple_fail_v2.webp',
+  swim:'purple_swim.webp'
+ };
+ var ALIAS={idle_alt:'idle',excited:'open',toss:'bait',gorge:'eat',
+   snack:'chew',victory:'celebrate',fail_alt:'fail',swim:'celebrate'};
+ var RED_ACTION={idle_alt:'idle',excited:'open',toss:'bait',gorge:'eat',
+   snack:'chew',victory:'celebrate',fail_alt:'fail',swim:'swim'};
+ RED_ROWS.swim=1;
+ var extra={},assetsVersion='v=20261105-16frame';
  ACTIONS.forEach(function(name){
-  purple[name]=load(ATLAS+'purple_'+name+'.webp?v=2',4,4);
+  purple[name]=load(ATLAS+'purple_'+name+'.webp?'+assetsVersion,4,4);
  });
- red=load(ATLAS+'red_all.webp?v=2',12,8);
+ Object.keys(OPTIONAL).forEach(function(name){
+  extra[name]=load(ATLAS+OPTIONAL[name]+'?'+assetsVersion,4,4);
+ });
+ red=load(ATLAS+'red_all.webp?'+assetsVersion,12,8);
+ var passive={lure:false,near:false,hook:false,fever:false,casting:false,view:'fish'};
  friends.forEach(function(f){
   portraits[f.kind]=load(BASE+f.kind+'_companion.webp');
-  f.current=null;f.previous=null;f.idleStart=0;f.idleEnd=0;
-  f.reactStart=-100;f.reactEnd=-100;f.reactType=null;
-  f.rng=f.seed;
+  f.randomSeed=f.seed>>>0;
+  f.bags={};f.last={};f.current=null;f.seg=null;f.seq=null;
+  f.seqStart=-1;f.seqEnd=-1;f.idleEnd=0;f.lastNear=-100;
+  f.priority=0;f.state='idle';f.debugAction='idle';f.debugFrame=0;
  });
  function rnd(f){
-  f.rng=(Math.imul(f.rng,1664525)+1013904223)>>>0;
-  return f.rng/4294967296;
+  f.randomSeed=(Math.imul(f.randomSeed,1664525)+1013904223)>>>0;
+  return f.randomSeed/4294967296;
  }
- // Use EVERY approved action except swimming as randomly selected idles.
- // Restrict eating/failure sheets to quiet frames while idle; their strongest
- // reaction frames play only during the matching game event.
- var RELAXED={
-  idle:null,
-  bait:null,
-  open:[0,1,2,3,4,5,6,10,11,12,13,14,15],
-  eat:[0,1,2,3,9,10,11,12,13,14,15],
-  chew:[0,1,2,3,4,10,11,12,13,14,15],
-  fail:[0,1,2,3,9,10,11,12,13,14,15],
-  celebrate:[0,1,2,3,4,10,11,12,13,14,15]
- };
- function idleFrames(action,n){
-  var list=RELAXED[action];if(!list)return null;
-  return list.filter(function(i){return i<n});
- }
- function chooseIdle(f,now){
-  var bag=['idle','idle','bait','open','eat','chew','fail','celebrate'];
-  var choice=bag[Math.floor(rnd(f)*bag.length)];
-  if(choice===f.previous)choice=bag[(bag.indexOf(choice)+1+Math.floor(rnd(f)*3))%bag.length];
-  f.previous=choice;f.current=choice;f.idleStart=now;
-  f.idleEnd=now+1.55+rnd(f)*1.25;
- }
- function reactionSegment(f,now){
-  var age=now-f.reactStart;
-  if(age<0 || age>=f.reactEnd-f.reactStart)return null;
-  var segments=f.reactType==='eat'?
-   [{key:'open',duration:.48},{key:'eat',duration:.70},
-    {key:'chew',duration:.74},{key:'celebrate',duration:.56}]:
-   [{key:'fail',duration:1.34}];
-  for(var i=0;i<segments.length;i++){
-   var s=segments[i];
-   if(age<s.duration)return{key:s.key,progress:age/s.duration};
-   age-=s.duration;
+ // Every action in a category plays before repeats; consecutive duplicate
+ // actions are avoided even at a shuffle-bag boundary.
+ function take(f,kind,items){
+  var bag=f.bags[kind];
+  if(!bag||!bag.length){
+   bag=items.slice();
+   for(var i=bag.length-1;i>0;i--){
+    var j=Math.floor(rnd(f)*(i+1)),tmp=bag[i];bag[i]=bag[j];bag[j]=tmp;
+   }
+   if(bag.length>1&&bag[bag.length-1]===f.last[kind]){
+    var swap=bag[0];bag[0]=bag[bag.length-1];bag[bag.length-1]=swap;
+   }
+   f.bags[kind]=bag;
   }
-  return null;
+  var choice=bag.pop();f.last[kind]=choice;return choice;
  }
- function frameFor(f,now,action,segment){
-  var count=f.kind==='purple'?16:12;
-  if(segment)return Math.min(count-1,Math.floor(Math.min(1,segment.progress)*count));
-  var frames=idleFrames(action,count),rate=f.kind==='purple'?10.6:8.6;
-  var k=Math.max(0,Math.floor((now-f.idleStart)*rate));
-  return frames?frames[k%frames.length]:k%count;
+ function chooseEnding(f){
+  return take(f,'success',['victory','celebrate','toss','excited']);
  }
- function drawSprite(ctx,f,action,frame){
-  var image=f.kind==='purple'?purple[action]:red;
-  if(!image || !image.ready){
-   image=f.kind==='purple'?purple.idle:red;
-   action='idle';frame=0;
+ function chooseEat(f){
+  return take(f,'eat',['gorge','eat']);
+ }
+ function chooseChew(f){
+  return take(f,'chew',['snack','chew']);
+ }
+ function begin(f,state,steps,now,priority){
+  f.state=state;f.seq=steps;f.seqStart=now;f.priority=priority;
+  f.seqEnd=now+steps.reduce(function(sum,x){return sum+x.seconds},0);
+ }
+ function stepsOf(f,type,detail){
+  if(type==='cast')return [{name:take(f,'cast',['toss','bait']),seconds:1.28}];
+  if(type==='bite')return [{name:take(f,'surprise',['excited','open']),seconds:.62},
+    {name:'open',seconds:.56}];
+  if(type==='near')return [{name:take(f,'near',['excited','open']),seconds:.76}];
+  if(type==='miss')return [{name:'fail',seconds:.85}];
+  if(type==='fail')return [{name:'excited',seconds:.35},
+    {name:take(f,'fail',['fail_alt','fail']),seconds:1.4}];
+  if(type==='fever')return [{name:'swim',seconds:.78},
+    {name:'excited',seconds:.65},{name:chooseEnding(f),seconds:.88}];
+  if(type==='catch')return [
+   {name:'open',seconds:.50},
+   {name:chooseEat(f),seconds:.89},
+   {name:chooseChew(f),seconds:.75},
+   {name:detail&&detail.rare?'victory':chooseEnding(f),seconds:.82}
+  ];
+  return [];
+ }
+ function signal(type,now,detail){
+  if(!Number.isFinite(now))return;
+  var priority={cast:2,near:1,bite:4,miss:4,fever:6,catch:7,fail:8}[type]||1;
+  friends.forEach(function(f,i){
+   // The two companions are offset by a few frames instead of being clones.
+   if(f.seq&&now<f.seqEnd&&priority<f.priority)return;
+   if(type==='near'&&now-f.lastNear<4.2)return;
+   if(type==='near')f.lastNear=now;
+   var steps=stepsOf(f,type,detail);
+   if(steps.length)begin(f,type,steps,now+i*.055,priority);
+  });
+ }
+ function observe(s,now){
+  if(!s||!Number.isFinite(now))return;
+  var next={
+   lure:!!s.lure,near:!!s.near,hook:!!s.hook,fever:!!s.fever,
+   casting:!!s.casting,view:s.view||'fish'
+  };
+  if(next.view==='fish'){
+   if(next.fever&&!passive.fever)signal('fever',now);
+   else if(next.hook&&!passive.hook)signal('bite',now);
+   else if(next.casting&&!passive.casting)signal('cast',now);
+   else if(next.near&&!passive.near&&!next.hook)signal('near',now);
+  }
+  passive=next;
+ }
+ function idleSteps(f,now){
+  var mode='idle',list;
+  if(passive.view!=='fish'){list=['idle','idle_alt','bait'];mode='idle'}
+  else if(passive.lure){list=['bait','toss','bait'];mode='lure'}
+  else if(passive.near){list=['idle','excited','open'];mode='watch'}
+  else{list=['idle','idle_alt','bait'];mode='idle'}
+  var picked=take(f,mode,list);
+  // Do not use the special reaction sequences as idle.
+  begin(f,mode,[{name:picked,seconds:1.25+rnd(f)*.65}],now,0);
+ }
+ function segmentAt(f,now){
+  if(!f.seq||now>=f.seqEnd){
+   idleSteps(f,now);
+  }
+  var elapsed=Math.max(0,now-f.seqStart);
+  for(var i=0;i<f.seq.length;i++){
+   var x=f.seq[i];
+   if(elapsed<x.seconds||i===f.seq.length-1){
+    return{name:x.name,progress:Math.max(0,Math.min(.999,elapsed/x.seconds)),
+      special:f.priority>0,state:f.state};
+   }
+   elapsed-=x.seconds;
+  }
+  return{name:'idle',progress:0,special:false,state:'idle'};
+ }
+ function resolveImage(f,action){
+  if(f.kind==='red')return {image:red,actual:RED_ACTION[action]||action};
+  var optional=extra[action];
+  if(optional&&optional.ready)return{image:optional,actual:action};
+  var alias=ALIAS[action]||action;
+  return{image:purple[alias],actual:alias};
+ }
+ function renderTile(ctx,f,action,frame){
+  var found=resolveImage(f,action),image=found.image,actual=found.actual;
+  if(!image||!image.ready){
+   image=f.kind==='red'?red:purple.idle;actual='idle';frame=0;
   }
   if(image&&image.ready){
    var p=image.packed;
    if(p){
-    var sx=(f.kind==='purple'?frame%4:frame)*p.unitW;
-    var sy=(f.kind==='purple'?Math.floor(frame/4):RED_ROWS[action])*p.unitH;
+    var sx=(f.kind==='red'?frame:frame%4)*p.unitW;
+    var row=f.kind==='red'?RED_ROWS[actual]:Math.floor(frame/4);
+    var sy=row*p.unitH;
     var scaleX=f.w/p.baseW,scaleY=f.h/p.baseH;
-    // Use the same absolute foot baseline across every atlas and every frame.
     ctx.drawImage(p.image,sx,sy,p.unitW,p.unitH,
       f.x-p.pad*scaleX,f.footY-(p.pad+p.anchor)*scaleY,
       p.unitW*scaleX,p.unitH*scaleY);
+   }else if(f.kind==='purple'){
+    var cw=image.naturalWidth/4,ch=image.naturalHeight/4;
+    ctx.drawImage(image,(frame%4)*cw,Math.floor(frame/4)*ch,cw,ch,f.x,f.y,f.w,f.h);
    }else{
-    // Compatible fallback when the device cannot preprocess canvas pixels.
-    if(f.kind==='purple'){
-     var cw=image.naturalWidth/4,ch=image.naturalHeight/4;
-     ctx.drawImage(image,(frame%4)*cw,Math.floor(frame/4)*ch,cw,ch,
-       f.x,f.y,f.w,f.h);
-    }else{
-     var rw=image.naturalWidth/12,rh=image.naturalHeight/8;
-     ctx.drawImage(image,frame*rw,RED_ROWS[action]*rh,rw,rh,
-       f.x,f.y,f.w,f.h);
-    }
+    var rw=image.naturalWidth/12,rh=image.naturalHeight/8;
+    ctx.drawImage(image,frame*rw,(RED_ROWS[actual]||0)*rh,rw,rh,f.x,f.y,f.w,f.h);
    }
   }else{
-   var portrait=portraits[f.kind];
-   if(portrait&&portrait.ready)ctx.drawImage(portrait,f.x,f.y,f.w,f.h);
+   var photo=portraits[f.kind];
+   if(photo&&photo.ready)ctx.drawImage(photo,f.x,f.y,f.w,f.h);
   }
+  f.debugActual=actual;f.debugSource=image&&image.ready?'sprite':'portrait';
  }
  function draw(ctx,now){
   friends.forEach(function(f){
-   var special=reactionSegment(f,now);
-   if(!special && (!f.current || now>=f.idleEnd))chooseIdle(f,now);
-   var action=special?special.key:f.current;
-   var frame=frameFor(f,now,action,special);
-   drawSprite(ctx,f,action,frame);
-   f.debugAction=action;f.debugFrame=frame;f.debugSpecial=!!special;
-  });
- }
- function react(type,now){
-  if(!Number.isFinite(now))return;
-  friends.forEach(function(f){
-   f.reactType=type;
-   f.reactStart=now;
-   f.reactEnd=now+(type==='eat'?2.48:1.34);
-   f.idleEnd=now;
+   var current=segmentAt(f,now),count=f.kind==='red'?12:16;
+   var frame=Math.min(count-1,Math.floor(current.progress*count));
+   // Actual frame number, never a CSS transform of a still portrait.
+   renderTile(ctx,f,current.name,frame);
+   f.debugAction=current.name;f.debugFrame=frame;
+   f.debugSpecial=current.special;f.debugState=current.state;
   });
  }
  window.drawOctopusSidekicks=draw;
- window.octoSidekicksEat=function(now){react('eat',now)};
- window.octoSidekicksFail=function(now){react('fail',now)};
+ window.octoSidekicksSignal=signal;
+ window.octoSidekicksObserve=observe;
+ // Backwards compatibility with older released HTML.
+ window.octoSidekicksEat=function(now){signal('catch',now)};
+ window.octoSidekicksCatch=function(now,detail){signal('catch',now,detail)};
+ window.octoSidekicksFail=function(now){signal('fail',now)};
  window.octoSidekicksInfo=function(){return friends.map(function(f){
   return {name:f.name,kind:f.kind,x:f.x,y:f.y,w:f.w,h:f.h,
-   action:f.debugAction||'idle',frame:f.debugFrame||0,
-   reacting:!!f.debugSpecial,atlasReady:f.kind==='red'?
-     !!(red&&red.ready):ACTIONS.filter(function(a){return purple[a]&&purple[a].ready}).length,
+   state:f.debugState,action:f.debugAction,frame:f.debugFrame,
+   actual:f.debugActual,source:f.debugSource,
+   reacting:!!f.debugSpecial,
+   atlasReady:f.kind==='red'?!!(red&&red.ready):
+      ACTIONS.filter(function(a){return purple[a]&&purple[a].ready}).length,
+   extraReady:Object.keys(extra).filter(function(a){return extra[a]&&extra[a].ready}).length,
    atlasTotal:f.kind==='red'?1:7};
  })};
 })();
