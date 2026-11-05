@@ -32,6 +32,26 @@ assert "playerMouthCleanBounds" in html
 assert "naturalScale=1.04" in html
 assert "atlases/purple_excited.webp" in html
 assert "player/swallow_failure_original_style.webp" in html
-assert "11+Math.floor(progress*5)" in html
+assert "swallow_success_connected.png" in html
+assert "Math.floor(progress*16)" in html
+assert "140-208*bridgeScale" in html
 assert "3+Math.floor(progress*13)" in html
-print("PASS: exact user-approved 16-frame mouth with clean alpha PNG and no distorted frame proportions")
+
+# Confirm first displayed success frame is the exact last open frame.
+# Confirm smiling frames 9-15 are unchanged illustrations in the new atlas.
+from PIL import ImageChops
+bridge=Image.open(root/"player/swallow_success_connected.png").convert("RGBA")
+assert bridge.size==(1664,1664)
+from importlib.util import spec_from_file_location,module_from_spec
+spec=spec_from_file_location("bridge_builder",root.parent/"scripts/build_swallow_success_connected.py")
+mod=module_from_spec(spec);spec.loader.exec_module(mod)
+start=mod.tile(bridge,0)
+assert ImageChops.difference(start,mod.place(mod.tile(im,15))).getbbox() is None, "Opening -> swallow handshake jumps"
+original=Image.open(success).convert("RGBA")
+for index in range(9,16):
+    target=mod.place(mod.tile(original,index))
+    actual=mod.tile(bridge,index)
+    assert ImageChops.difference(target,actual).getbbox() is None,("Original smile changed",index)
+assert mod.TAKE[:6]==[("open",15),("open",14),("open",12),("open",10),("open",7),("open",4)]
+assert all(mod.TAKE[i]==("success",i) for i in range(9,16))
+print("PASS: original clean 16-frame mouth; connected swallow closes the mouth before gulp; original smiling frames 9-15 preserved pixel-for-pixel")
