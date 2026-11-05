@@ -112,6 +112,7 @@ window.__hfTest={
  toss:feverTossPoint,
  flingSprite:feverFlingStreakSprite,
  getReelSprites:function(){return feverSprites},
+ feverMouthFrame:feverMouthSpriteFrame,
  rodTip:rodTip,
  getCatchFx:function(){return catchFx},
  path:swallowPoint,
@@ -387,14 +388,14 @@ game.switchView('fish');game.activate();
 assert.equal(game.getFeverFx().caught.length,2,'Fever must capture multiple fish and elite humans when rolls succeed');
 assert.equal(state.fever.ready,false,'Activation must consume stored fever');
 assert.equal(state.fever.count,0,'Fever gauge must reset');
-assert.ok(game.getFeverFx(),'Octopus arm burst must start');
+assert.ok(game.getFeverFx(),'Octo Fever mouth suction must start');
 const lureStart={x:bob.x,y:bob.y};
 const fxStart=game.getFeverFx();
 const startingFish=fxStart.caught[0];
 const startingHuman=fxStart.caught[1];
 const earlyToss=game.toss(startingFish,fxStart,0,clock/1000);
-assert.equal(earlyToss.phase,'gather','Before the flick, captured fish must be drawn into the tentacles');
-assert.equal(earlyToss.attached,true,'Gathered fish must render behind the tentacles');
+assert.equal(earlyToss.phase,'gather','Before suction, captured fish must drift toward the opening mouth');
+assert.equal(earlyToss.attached,true,'Captured fish must remain associated with the suction mouth');
 // Waterline-grip regression: every fish must remain in a tentacle slot while
 // the half-closed lure climbs underwater. The throw begins only after surfacing.
 const deepFx=Object.assign({},fxStart,{x:650,y:520,elapsed:0});
@@ -416,9 +417,9 @@ const throwStart=game.toss(deepFx.caught[0],airFx,0,clock/1000);
 assert.equal(throwStart.phase,'throw','Only above the waterline can the lure throw a creature');
 assert.equal(throwStart.attached,false,'Throwing must release the tentacle grip');
 assert.match(script,/drawFeverTossCreature\(entity,fx,i,time,'attached'\)/,
- 'Attached creatures must render before the tentacle artwork');
+ 'Suction-held fish must be rendered without disappearing');
 assert.match(script,/drawFeverTossCreature\(entity,fx,i,time,'released'\)/,
- 'Released creatures must render above the tentacles');
+ 'Reel-released fish must remain visible in front of the bitmap mouth');
 
 assert.ok(game.reel({...fxStart,elapsed:1.48},clock/1000).progress>=.99,
  'Fever reeling must be noticeably faster than the prior long retrieval');
@@ -449,8 +450,20 @@ const midFrame=game.getFeverFx().reelFrame,midY=bob.y;
 step(45); // Continue reel, show gradual closing and upward movement
 assert.ok(game.getFeverFx().reelFrame<midFrame,'Reeling must reduce tentacle spread over time');
 assert.ok(bob.y<midY,'Reeling must continuously pull the bait toward rod tip');
-assert.ok(Object.keys(game.getReelSprites()).some(k=>k.startsWith('fold-')),'Curling tentacle bitmap frames must render');
-assert.ok(game.flingSprite(),'Leftward throwing motion streak must be cached as bitmap art');
+// The FEVER bait now uses the approved 16-frame painted BIG MOUTH, not
+// vector tentacles or the old stylized leftward streak.
+assert.match(script,/drawFeverMouthSprite\(fx,reel\)/,
+ 'Fever must actually render the new mouth-based 16-frame bitmap');
+assert.match(script,/red_lure_fever_mouth\.webp/,
+ 'Approved giant-mouth bitmap atlas must be loaded');
+assert.match(script,/function feverMouthSpriteFrame\(fx\)/,
+ 'Fever frames must be timed open -> suction hold -> closed');
+const testFeverFx=game.getFeverFx();
+for(const [fraction,lo,hi] of [[0,0,0],[.15,0,4],[.35,5,11],[.60,5,11],[.95,12,15]]){
+ const seq={...testFeverFx,elapsed:testFeverFx.duration*fraction};
+ const frameIndex=game.feverMouthFrame(seq);
+ assert.ok(frameIndex>=lo&&frameIndex<=hi,'Fever frame phase mismatch at '+fraction);
+}
 const lastToss=game.toss(startingFish,game.getFeverFx(),0,clock/1000);
 assert.ok(['throw','held'].includes(lastToss.phase),'Fish should be in the staged throw/last grip near the surface');
 const tip=game.rodTip(clock/1000);
