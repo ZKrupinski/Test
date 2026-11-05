@@ -1739,6 +1739,7 @@ function success(){
  if(human&&save.humanPlaced.length===0)save.humanPlaced.push(id);
  if(!human&&save.placed.length===0)save.placed.push(id);
  persist();updateStats();beep('catch');spawnParticles(645,290,extra?50:32,'gold');
+ triggerRedLureReaction('gulp');
  playCatchFx(o,human,name,reward,extra,fresh);
  if(window.octoSidekicksCatch)window.octoSidekicksCatch(time,{rare:!!(fresh||extra||human||(o.sp&&['EPIC','LEGEND','MYTHIC'].indexOf(o.sp.rarity)>=0))});
  hook=null;
@@ -2057,7 +2058,7 @@ function drawRod(now){
  ctx.restore();
 }
 function drawLine(){
- var tip=rodTip(time),end=hook?{x:hook.obj.x,y:hook.obj.y+18}:bob;
+ var tip=rodTip(time),end=hook?{x:hook.obj.x,y:hook.obj.y-18}:{x:bob.x,y:bob.y-37};
  var slack=hook?2:feverFx?Math.max(2,14*(1-(feverFx.reelProgress||0))):cast.active?23:drag?12:47;
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
  ctx.beginPath();ctx.moveTo(tip.x,tip.y);
@@ -2208,6 +2209,7 @@ function tick(stamp){
      o.x=point.x;o.y=point.y;
     }
     bob.x=o.x;bob.y=o.y;
+    if(!save.fever.ready)drawRedLure(time,bob.x,bob.y,64);
     drawHookSwallow(time);
     if(hook.willEscape&&hook.elapsed>=duration*hook.escapeAt)escapeHook();
     else if(hook.elapsed>=duration)success();
@@ -2742,6 +2744,7 @@ function escapeHook(){
  o.feverCaptured=true;
  hook=null;hideVirtualJoystick();
  var tip=rodTip(time);bob.x=tip.x-9;bob.y=tip.y+19;
+ triggerRedLureReaction('fail');
  vibrationPulse('escape');
  if(window.octoSidekicksFail)window.octoSidekicksFail(time);
  beep('hit');spawnParticles(escapeFx.x,escapeFx.y,13,'water');
@@ -2944,15 +2947,68 @@ function octoSprite(tier,frame,folding){
  if(tier===5){g.fillStyle='#ffeeb0';g.beginPath();g.moveTo(x-24,y-45);g.lineTo(x-21,y-69);g.lineTo(x-8,y-54);g.lineTo(x,y-73);g.lineTo(x+12,y-53);g.lineTo(x+24,y-68);g.lineTo(x+27,y-45);g.fill()}
  feverSprites[key]=cvs;return cvs;
 }
+// The illustrated RED octopus is the small BAIT at the fishing-line tip.
+// 3 independent 4x4 sheets (16 frames each), separate from the purple player
+// and the two cheering sidekicks. The original drawings are not regenerated.
+var redLureAtlas={},redLureReaction=null;
+['open','gulp','fail'].forEach(function(action){
+ if(typeof Image==='undefined')return;
+ var im=new Image();im.decoding='async';im.ready=false;
+ im.onload=function(){im.ready=true};
+ im.onerror=function(){im.ready=false};
+ im.src='./assets/octopus/bait/red_lure_'+action+'.webp?v=20261105-animated-bait';
+ redLureAtlas[action]=im;
+});
+function triggerRedLureReaction(action){
+ if(action!=='gulp'&&action!=='fail')return;
+ redLureReaction={action:action,start:time,duration:action==='gulp'?.75:1.05};
+}
+function redLurePose(now){
+ if(redLureReaction){
+  var elapsed=now-redLureReaction.start;
+  if(elapsed>=0&&elapsed<redLureReaction.duration)
+   return{action:redLureReaction.action,frame:Math.min(15,Math.floor(elapsed/redLureReaction.duration*16))};
+  if(elapsed>=redLureReaction.duration)redLureReaction=null;
+ }
+ if(hook&&hook.travelDuration){
+  var p=clamp(hook.elapsed/(hook.travelDuration*(hook.willEscape?hook.escapeAt||.88:1)),0,1);
+  return{action:'open',frame:Math.min(15,Math.floor(p*16))};
+ }
+ // Keep the normal lure's mouth small until it reaches a fish, so the animation
+ // is readable instead of continuously gaping.
+ return{action:'open',frame:Math.min(3,Math.max(0,Math.floor((Math.sin(now*2.5)+1)*1.6)))};
+}
+function drawRedLure(now,x,y,diameter){
+ var pose=redLurePose(now),img=redLureAtlas[pose.action];
+ if(!img||!img.ready)return false;
+ var cw=img.naturalWidth/4,ch=img.naturalHeight/4,
+  sx=(pose.frame%4)*cw,sy=Math.floor(pose.frame/4)*ch,
+  d=Math.max(48,diameter||76);
+ var hit=vibrationOffset('lure');
+ ctx.save();ctx.translate(x+hit.x,y+hit.y);
+ ctx.drawImage(img,sx,sy,cw,ch,-d/2,-d*.68,d,d);
+ ctx.restore();return true;
+}
+// Bait uses the already existing rod gear and joystick dynamics unchanged.
+var priorRedLureDrawBob=drawBob;
+drawBob=function(){
+ if(feverFx)return;
+ var lure=selectedGear('bait'),diam=73+lure.tier*2;
+ if(!drawRedLure(time,bob.x,bob.y,diam))priorRedLureDrawBob();
+};
 var priorBobForFever=drawBob;
 drawBob=function(){
  if(feverFx)return;
  if(!save.fever.ready){priorBobForFever();return}
- var g=selectedGear('octopus'),v=octoStats(g.tier,gearLevel('octopus',g.id)),size=v.size;
+ // Fever-ready glow doesn't replace the RED bait until Fever actually starts.
+ var g=selectedGear('octopus'),v=octoStats(g.tier,gearLevel('octopus',g.id)),
+  size=Math.max(75,Math.min(94,v.size));
  ctx.save();
- ctx.shadowColor=g.color;ctx.shadowBlur=15;
- var hit=vibrationOffset('lure');
- ctx.drawImage(octoSprite(g.tier,0),bob.x-size/2+hit.x,bob.y-size/2+hit.y,size,size);
+ ctx.shadowColor=g.color;ctx.shadowBlur=16;
+ if(!drawRedLure(time,bob.x,bob.y,size)){
+  var hit=vibrationOffset('lure');
+  ctx.drawImage(octoSprite(g.tier,0),bob.x-size/2+hit.x,bob.y-size/2+hit.y,size,size);
+ }
  ctx.restore();
 };
 // Alpha 0.8: eight-tentacle harvest followed by a full queue of creatures into the main octopus mouth.
