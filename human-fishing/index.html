@@ -4,6 +4,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#092a39">
 <title>인간낚시 · HUMAN FISHING α 2.4</title>
+<!-- Load only the two startup animations at HIGH priority; all other sprites
+     are deferred until the synchronized 1.8-second entrance has begun. -->
+<link rel="preload" as="image" fetchpriority="high" href="./assets/octopus/atlases/purple_swim_intro.webp?v=20261105-fast-intro1">
+<link rel="preload" as="image" fetchpriority="high" href="./assets/octopus/atlases/red_intro_swim.webp?v=20261105-fast-intro1">
 <style>
 :root{color-scheme:dark;--gold:#f5cb81;--aqua:#8ee4e2;--ink:#092b39;--panel:#072633ee}
 *{box-sizing:border-box}body{margin:0;background:#061923;color:#effffb;font:15px/1.45 system-ui,"Pretendard","Malgun Gothic",sans-serif;overflow-x:hidden}
@@ -1788,18 +1792,23 @@ function success(){
 // One-time character entrance on the first game launch. The hero, rod and
 // the two cheering octopuses share the SAME horizontal offset. No camera
 // movement, fishing collisions or lure trajectories are modified.
-var introEntrance={active:true,elapsed:0,duration:1.8,offset:-260};
+var introEntrance={active:true,elapsed:0,duration:1.8,offset:-260,visualReady:false};
 function advanceIntroEntrance(dt){
  if(!introEntrance.active||view!=='fish')return;
- // Preload the illustrated hero and the remaining red companion BEFORE
- // the first visible movement. This prevents old/empty art flashing as
- // network images become ready on slower phones.
- introEntrance.loadingTime=(introEntrance.loadingTime||0)+dt;
- if(typeof Image!=='undefined'&&introEntrance.loadingTime<4){
+ // Wait for BOTH compact 16f/12f startup sheets, with no arbitrary 4-second
+ // bypass. Neither character (nor the fishing rod) is drawn before both
+ // illustrated assets can appear on the very same frame.
+ if(!introEntrance.visualReady){
   var heroIntroImage=playerOctoAtlas.swim;
-  var redInfo=window.octoSidekicksInfo&&window.octoSidekicksInfo()[0];
-  if(!heroIntroImage||!heroIntroImage.ready||
-    (redInfo&&!redInfo.atlasReady))return;
+  var redIntroReady=window.octoSidekicksIntroReady&&window.octoSidekicksIntroReady();
+  if(!heroIntroImage||!heroIntroImage.ready||!redIntroReady)return;
+  introEntrance.visualReady=true;
+  introEntrance.elapsed=0;
+  // Starting the cheering animation at boot caused the red friend to finish
+  // before the hero had loaded. Both now START at the same simulation time.
+  if(window.octoSidekicksSignal)window.octoSidekicksSignal('entrance',time);
+  if(window.octoSidekicksStartFullLoad)window.octoSidekicksStartFullLoad();
+  loadRemainingPlayerAtlases();
  }
  introEntrance.elapsed=Math.min(introEntrance.duration,introEntrance.elapsed+dt);
  var u=clamp(introEntrance.elapsed/introEntrance.duration,0,1);
@@ -1981,6 +1990,22 @@ var playerOctoSources={
 // These are playback metadata only: all original WebP images remain untouched.
 var playerOctoFrameMeta={"idle_alt":[[13,8,308,284,283],[13,5,304,284,283],[15,4,307,283,281],[15,9,308,284,283],[16,11,309,282,281],[17,13,311,282,281],[18,16,311,282,281],[18,10,308,282,281],[17,11,307,283,282],[12,11,302,283,282],[12,10,303,285,284],[10,6,304,284,283],[13,9,305,291,290],[13,12,308,288,287],[14,15,307,284,283],[13,15,305,285,283]],"excited":[[24,17,291,292,291],[26,16,290,293,292],[28,16,289,294,292],[35,16,289,292,291],[40,16,290,292,291],[40,15,290,292,291],[29,11,292,291,290],[28,10,291,289,288],[24,11,295,288,287],[24,6,297,289,288],[22,5,299,287,286],[15,3,301,283,281],[18,7,305,288,287],[19,7,298,290,289],[24,9,297,291,290],[21,9,294,291,290]],"toss":[[12,40,302,294,293],[12,39,301,294,293],[13,39,302,294,293],[13,38,301,294,293],[13,35,302,294,293],[14,36,301,294,293],[14,36,302,294,293],[10,18,302,294,293],[12,16,305,294,293],[10,28,301,294,292],[10,38,302,294,293],[9,44,301,294,292],[10,45,302,294,292],[10,44,301,294,292],[13,42,302,294,292],[16,40,301,294,292]],"gorge":[[12,6,295,274,273],[11,5,294,274,273],[12,5,290,273,272],[11,5,290,314,313],[11,4,292,313,312],[11,3,295,274,273],[10,1,295,277,275],[9,0,301,278,276],[11,0,298,277,276],[12,0,289,276,275],[13,3,290,276,275],[12,5,292,276,275],[12,9,294,275,274],[13,8,292,274,273],[13,5,295,274,273],[12,5,297,274,273]],"snack":[[10,12,306,298,297],[9,13,301,298,297],[10,15,298,298,297],[9,16,297,298,297],[10,15,298,297,296],[10,16,297,297,296],[10,15,298,297,296],[9,15,297,297,296],[10,17,297,298,297],[9,17,297,298,297],[10,15,297,298,297],[10,12,297,298,297],[11,15,297,297,296],[10,14,297,297,296],[10,15,297,297,296],[9,11,297,297,296]],"victory":[[39,27,289,291,290],[40,26,287,290,289],[36,26,277,290,289],[29,17,284,314,313],[32,16,296,313,312],[30,8,293,280,279],[27,1,291,276,275],[20,0,289,265,264],[25,0,291,264,263],[26,1,288,281,280],[25,17,286,294,292],[20,32,279,294,293],[25,31,287,298,297],[27,34,283,298,297],[28,38,285,298,297],[28,39,286,298,297]],"fail_alt":[[24,12,297,294,293],[21,12,296,295,293],[21,13,293,295,294],[23,15,293,294,292],[23,17,292,294,293],[23,18,292,294,293],[19,24,294,295,293],[16,34,296,294,293],[15,39,298,295,294],[14,48,299,295,294],[15,50,298,295,294],[13,48,300,295,294],[15,37,300,297,296],[16,29,297,297,296],[17,24,296,299,297],[19,23,294,300,298]],"swim":[[34,51,271,282,280],[21,51,313,283,281],[0,49,314,283,281],[0,44,274,270,269],[10,42,314,265,264],[0,39,313,259,257],[0,40,314,261,260],[0,46,296,267,266],[14,49,290,281,280],[14,48,287,281,280],[15,43,281,279,278],[15,40,270,277,276],[16,41,267,281,280],[23,46,268,279,277],[27,49,274,282,280],[32,50,272,282,280]]};
 var playerOctoAtlas={},playerOctoTiles={},playerOctoTileAge=[];
+var deferredPlayerImages=[],playerMainSpritesQueued=false;
+function loadRemainingPlayerAtlases(){
+ if(playerMainSpritesQueued)return;
+ playerMainSpritesQueued=true;
+ // The remaining actions are not on the critical path for the opening.
+ deferredPlayerImages.sort(function(a,b){
+  function rank(name){return name==='idle_alt'?0:name==='toss'?1:
+   name==='mouth_open'?2:name==='swallow_success'?3:10}
+  return rank(a.action)-rank(b.action);
+ });
+ deferredPlayerImages.forEach(function(job){
+  job.image.fetchPriority=job.action==='idle_alt'?'auto':'low';
+  job.image.src=job.url;
+ });
+ deferredPlayerImages.length=0;
+}
 function playerOctoMedian(xs){
  if(!xs.length)return 275;
  var arr=xs.slice().sort(function(a,b){return a-b}),mid=Math.floor(arr.length/2);
@@ -2004,8 +2029,16 @@ Object.keys(playerOctoSources).forEach(function(action){
  var img=new Image();img.decoding='async';img.ready=false;
  img.onload=function(){img.ready=true};
  img.onerror=function(){img.ready=false};
- img.src='./assets/octopus/atlases/'+playerOctoSources[action]+'?v=20261105-player-pixelaligned';
  playerOctoAtlas[action]=img;
+ if(action==='swim'){
+  // The original 16-frame art is re-encoded at its exact original dimensions,
+  // so the protagonist can enter promptly without fetching seven idle sheets.
+  img.fetchPriority='high';
+  img.src='./assets/octopus/atlases/purple_swim_intro.webp?v=20261105-fast-intro1';
+ }else{
+  deferredPlayerImages.push({action:action,image:img,
+   url:'./assets/octopus/atlases/'+playerOctoSources[action]+'?v=20261105-player-pixelaligned'});
+ }
 });
 // Curated, pixel-exact idle gaze poses: both pupils are aligned in these
 // original source frames. Avoid the cross-eyed 1,2,5,7,8,13,14,15 frames
@@ -2082,8 +2115,9 @@ Object.keys(playerReactionSources).forEach(function(key){
  var image=new Image();image.ready=false;image.decoding='async';
  image.onload=function(){image.ready=true};
  image.onerror=function(){image.ready=false};
- image.src=playerReactionSources[key];
  playerReactionArt[key]=image;
+ // Later mouth, gulp and fail sheets can safely load while entrance plays.
+ deferredPlayerImages.push({action:key,image:image,url:playerReactionSources[key]});
 });
 function startPlayerOctoReaction(type){
  if(type!=='swallow_success'&&type!=='swallow_failure')return;
@@ -2427,13 +2461,16 @@ function tick(stamp){
   }
   // Final runtime renderer: shift protagonist, rod and BOTH companions as
   // one group. The ocean, HUD, fish and fishing physics remain stationary.
-  ctx.save();
-  if(view==='fish'&&introEntrance.active)ctx.translate(introEntrance.offset,0);
-  // Shift hero, companion, rod and helpers together so no prop floats free.
-  ctx.translate(0,PLAYER_STAGE_DROP);
-  if(window.drawOctopusSidekicks)window.drawOctopusSidekicks(ctx,time,octo);
-  drawOcto(time);drawRod(time);drawHelpers(time);
-  ctx.restore();
+  // Both characters begin together. Avoid a lone red companion or bare rod
+  // before the hero's 16-frame swim sprite has finished downloading.
+  if(view!=='fish'||!introEntrance.active||introEntrance.visualReady){
+   ctx.save();
+   if(view==='fish'&&introEntrance.active)ctx.translate(introEntrance.offset,0);
+   ctx.translate(0,PLAYER_STAGE_DROP);
+   if(window.drawOctopusSidekicks)window.drawOctopusSidekicks(ctx,time,octo);
+   drawOcto(time);drawRod(time);drawHelpers(time);
+   ctx.restore();
+  }
   if(view==='fish'&&!introEntrance.active){
    if(hook){
     hook.elapsed+=dt;
@@ -3613,9 +3650,8 @@ if(blueTangShowcase){
   }
 }
 updateStats();setMode('fish');
-// Start the companion arrival at the same instant as the hero's swim sheet.
-// The first bait throw is deferred by startCast() until the group settles.
-if(window.octoSidekicksSignal)window.octoSidekicksSignal('entrance',time);
+// The entrance is signaled only after BOTH sprites are decoded in
+// advanceIntroEntrance(). Starting the red friend at boot desynchronized it.
 requestAnimationFrame(tick);
 })();
 </script></body></html>
