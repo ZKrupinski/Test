@@ -407,11 +407,20 @@ const queuedFirst=game.toss(startingFish,waiting,0,clock/1000);
 const queuedSecond=game.toss(startingHuman,waiting,1,clock/1000);
 assert.ok(Math.hypot(queuedFirst.x-queuedSecond.x,queuedFirst.y-queuedSecond.y)>70,'Waiting catches must have separate slots');
 for(const [i,entity] of fxStart.caught.entries()){
- const end={...fxStart,elapsed:.62+i*fxStart.swallowSpacing+.63};
- const pose=game.toss(entity,end,i,clock/1000);
- assert.ok(pose.done);assert.equal(pose.x,fxStart.x+10);assert.equal(pose.y,fxStart.y-8);
- assert.ok(end.elapsed<fxStart.reelStart,'Fish must reach bait mouth before reeling');
+ const before={...fxStart,elapsed:fxStart.reelStart};
+ const lifted={...fxStart,elapsed:fxStart.reelStart+.41};
+ const a=game.toss(entity,before,i,clock/1000),b=game.toss(entity,lifted,i,clock/1000);
+ const ra=game.reel(before,clock/1000),rb=game.reel(lifted,clock/1000);
+ assert.equal(a.done,false);assert.equal(b.done,false);
+ assert.equal(a.phase,'held');assert.equal(b.phase,'held');
+ assert.equal(b.scale,a.scale,'Fish must not shrink into the bait');
+ assert.ok(Math.abs((b.x-a.x)-(rb.x-ra.x))<1e-7);
+ assert.ok(Math.abs((b.y-a.y)-(rb.y-ra.y))<1e-7,'All fish follow the same lift');
+ const delivered=game.toss(entity,{...fxStart,elapsed:fxStart.reelStart+.82+.73},i,clock/1000);
+ assert.ok(delivered.done,'Only main octopus swallows after group retrieval');
+ assert.equal(delivered.x,game.getMouthPos(clock/1000).x);
 }
+assert.match(script,/var d=fx.radius\*2\/\.55/,'Visible whirlpool must scale to gameplay capture radius');
 for(const [elapsed,lo,hi] of [[0,0,0],[.1,0,4],[.3,5,11],[fxStart.suctionEnd-.1,5,11],[fxStart.reelStart,15,15]]){
  const f=game.feverMouthFrame({...fxStart,elapsed});assert.ok(f>=lo&&f<=hi);
 }
@@ -425,7 +434,7 @@ assert.ok(script.indexOf("var fx=feverFx;",script.indexOf('// 3) Draw all ambien
 assert.match(script,/octofever_vortex_soft_v2\.webp/);
 const retract=game.reel({...fxStart,elapsed:fxStart.reelStart+.41},clock/1000);
 assert.ok(retract.progress>.4&&retract.progress<.6);
-step(150);
+step(165);
 assert.equal(game.getFeverFx(),null);
 assert.ok(game.getCast().active);
 mock.Math=Math;
@@ -822,5 +831,6 @@ console.log('PASS: Blue Tang aquarium uses official swim, 8-frame turn and strug
 console.log('PASS: aquarium fish touch-to-turn, independent swimmers and random wriggle timelines');
 
 console.log('PASS: localized fish and octopus shake, gentle contact, bite, suction, escape, human counterattack and limited camera vibration; all previous gameplay tests');
+
 
 
