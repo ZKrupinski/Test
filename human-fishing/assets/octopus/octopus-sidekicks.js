@@ -2,6 +2,8 @@
  * Uses the ACTUAL approved transparent sprite-sheet frames, never artificial
  * wiggle/scale/rotation effects. Walking/swimming sheet is excluded.
  * Red source: 8 action rows x 12 columns (1254x1254).
+ * Integer-pixel frame extraction + 3px transparent gutters prevent frame bleed.
+ * All actions share the exact same visible foot baseline (y=242).
  * Purple source: 7 atlases of 4x4 frames (640x640).
  */
 (function(){
@@ -11,22 +13,71 @@
  var ACTIONS=['idle','bait','open','eat','chew','fail','celebrate'];
  var RED_ROWS={idle:0,bait:2,open:3,eat:4,chew:5,fail:6,celebrate:7};
  var friends=[
-  {name:'보라 문어',kind:'purple',x:112,y:132,w:124,h:124,seed:17},
-  {name:'빨간 문어',kind:'red',x:210,y:108,w:100,h:150,seed:71}
+  {name:'보라 문어',kind:'purple',x:112,y:132,w:124,h:124,footY:242,seed:17},
+  {name:'빨간 문어',kind:'red',x:210,y:108,w:100,h:150,footY:242,seed:71}
  ];
  var portraits={},purple={},red=null;
- function load(url,done){
+ // Cut tiles on whole source pixels, not fractional canvas sampling.
+ // Every frame gets its own 3px transparent gutter and a consistent foot line.
+ function packAtlas(img,columns,rows){
+  var w=img.naturalWidth,h=img.naturalHeight;
+  if(!w||!h||typeof document==='undefined')return null;
+  var baseW=Math.ceil(w/columns),baseH=Math.ceil(h/rows),pad=3;
+  var anchor=Math.round(baseH*.92),tiles=[],minFoot=baseH;
+  var source=document.createElement('canvas');source.width=w;source.height=h;
+  var sc=source.getContext('2d',{willReadFrequently:true});
+  if(!sc)return null;
+  sc.drawImage(img,0,0);
+  for(var r=0;r<rows;r++)for(var c=0;c<columns;c++){
+   var x0=Math.round(c*w/columns),x1=Math.round((c+1)*w/columns);
+   var y0=Math.round(r*h/rows),y1=Math.round((r+1)*h/rows);
+   var sw=x1-x0,sh=y1-y0,data=sc.getImageData(x0,y0,sw,sh);
+   var foot=-1,required=Math.max(3,Math.ceil(sw*.027));
+   for(var y=sh-1;y>=0;y--){
+    var solid=0;
+    for(var x=0;x<sw;x++){
+     if(data.data[(y*sw+x)*4+3]>64)solid++;
+     if(solid>=required)break;
+    }
+    if(solid>=required){foot=y;break}
+   }
+   if(foot<0)foot=Math.round(sh*.83);
+   minFoot=Math.min(minFoot,foot);
+   tiles.push({data:data,foot:foot,col:c,row:r});
+  }
+  var unitW=baseW+pad*2,unitH=baseH+(anchor-minFoot)+pad*2;
+  var atlas=document.createElement('canvas');
+  atlas.width=unitW*columns;atlas.height=unitH*rows;
+  var ac=atlas.getContext('2d');
+  if(!ac)return null;
+  tiles.forEach(function(tile){
+   // putImageData copies pixels exactly without blending neighbor cells.
+   // The extra transparent height retains every bottom pixel after alignment.
+   ac.putImageData(tile.data,tile.col*unitW+pad,
+     tile.row*unitH+pad+anchor-tile.foot);
+  });
+  source.width=1;source.height=1;
+  return {image:atlas,cols:columns,rows:rows,unitW:unitW,unitH:unitH,
+   pad:pad,anchor:anchor,baseW:w/columns,baseH:h/rows};
+ }
+ function load(url,columns,rows){
   var img=new Image();
   img.decoding='async';
-  img.onload=function(){img.ready=true;if(done)done(true)};
-  img.onerror=function(){img.ready=false;if(done)done(false)};
+  img.onload=function(){
+   img.ready=true;
+   if(columns&&rows){
+    try{img.packed=packAtlas(img,columns,rows)}
+    catch(error){img.packed=null;console.warn('Octopus atlas fallback',error)}
+   }
+  };
+  img.onerror=function(){img.ready=false};
   img.ready=false;img.src=url;
   return img;
  }
  ACTIONS.forEach(function(name){
-  purple[name]=load(ATLAS+'purple_'+name+'.webp?v=1');
+  purple[name]=load(ATLAS+'purple_'+name+'.webp?v=2',4,4);
  });
- red=load(ATLAS+'red_all.webp?v=1');
+ red=load(ATLAS+'red_all.webp?v=2',12,8);
  friends.forEach(function(f){
   portraits[f.kind]=load(BASE+f.kind+'_companion.webp');
   f.current=null;f.previous=null;f.idleStart=0;f.idleEnd=0;
@@ -87,19 +138,31 @@
    image=f.kind==='purple'?purple.idle:red;
    action='idle';frame=0;
   }
-  if(image && image.ready){
-   ctx.save();
-   if(f.kind==='purple'){
-    var cw=image.naturalWidth/4,ch=image.naturalHeight/4;
-    ctx.drawImage(image,(frame%4)*cw,Math.floor(frame/4)*ch,cw,ch,f.x,f.y,f.w,f.h);
+  if(image&&image.ready){
+   var p=image.packed;
+   if(p){
+    var sx=(f.kind==='purple'?frame%4:frame)*p.unitW;
+    var sy=(f.kind==='purple'?Math.floor(frame/4):RED_ROWS[action])*p.unitH;
+    var scaleX=f.w/p.baseW,scaleY=f.h/p.baseH;
+    // Use the same absolute foot baseline across every atlas and every frame.
+    ctx.drawImage(p.image,sx,sy,p.unitW,p.unitH,
+      f.x-p.pad*scaleX,f.footY-(p.pad+p.anchor)*scaleY,
+      p.unitW*scaleX,p.unitH*scaleY);
    }else{
-    var rw=image.naturalWidth/12,rh=image.naturalHeight/8;
-    ctx.drawImage(image,frame*rw,RED_ROWS[action]*rh,rw,rh,f.x,f.y,f.w,f.h);
+    // Compatible fallback when the device cannot preprocess canvas pixels.
+    if(f.kind==='purple'){
+     var cw=image.naturalWidth/4,ch=image.naturalHeight/4;
+     ctx.drawImage(image,(frame%4)*cw,Math.floor(frame/4)*ch,cw,ch,
+       f.x,f.y,f.w,f.h);
+    }else{
+     var rw=image.naturalWidth/12,rh=image.naturalHeight/8;
+     ctx.drawImage(image,frame*rw,RED_ROWS[action]*rh,rw,rh,
+       f.x,f.y,f.w,f.h);
+    }
    }
-   ctx.restore();
   }else{
    var portrait=portraits[f.kind];
-   if(portrait && portrait.ready)ctx.drawImage(portrait,f.x,f.y,f.w,f.h);
+   if(portrait&&portrait.ready)ctx.drawImage(portrait,f.x,f.y,f.w,f.h);
   }
  }
  function draw(ctx,now){
