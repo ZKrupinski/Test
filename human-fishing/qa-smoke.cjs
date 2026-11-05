@@ -168,6 +168,17 @@ assert.ok(translate>=0&&sidekicks>translate&&hero>sidekicks&&restore>hero,
  'The FINAL active renderer must translate the hero, both friends and fishing rod together');
 assert.match(runtimeTick,/if\(view==='fish'&&!introEntrance\.active\)/,
  'No bait movement may start until the visible entrance finishes');
+assert.match(script,/WATER_SURFACE_Y=293,PLAYER_STAGE_DROP=46/,
+ 'The waterline must move down 24px while the hero has 46px headroom');
+assert.match(runtimeTick,/ctx\.translate\(0,PLAYER_STAGE_DROP\)/,
+ 'Final active renderer must shift the main octopus, rod and red cheerleader together');
+assert.match(script,/function mouthPos\(now\)\{return\{x:452,y:191\+PLAYER_STAGE_DROP/,
+ 'Catch/swallow mouth targeting must follow the lowered hero');
+assert.match(script,/worldTip=rodTip\(now\),tip=\{x:worldTip\.x,y:worldTip\.y-PLAYER_STAGE_DROP\}/,
+ 'Rod tip physics must match the translated rod artwork');
+const redSidekick=fs.readFileSync('human-fishing/assets/octopus/octopus-sidekicks.js','utf8');
+assert.match(redSidekick,/kind:'red'[^\n]*footY:259/,
+ 'Red cheerleader must share the hero\'s footline before the group shift');
 
 
 assert.equal(game.species.length,240);
@@ -448,7 +459,9 @@ assert.equal(game.getHook(),null,'Resistant hooked fish must escape and clear th
 assert.equal(game.getEscape().kind,'fish','Fish failure must use a visible escape animation');
 step(23);
 assert.ok(['slip','struggle'].includes(game.getEscape().stage),'Fish should thrash near the octopus mouth');
-step(34);
+// With the lowered surface, the escaping fish needs a few extra frames
+// to reach the *new* waterline before its splash is expected.
+step(38);
 assert.equal(game.getEscape().stage,'dive','Fish must slip down and dive back into the water');
 assert.ok(game.getEscape().splash,'Water splash should occur as the fish re-enters the water');
 step(100);
