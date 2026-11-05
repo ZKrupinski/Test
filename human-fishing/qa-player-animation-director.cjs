@@ -54,7 +54,7 @@ env.hook.elapsed=.76;
 assert.equal(pose(303).frame,15,'Main mouth must be fully open early on ascent');
 env.hook=null;
 env.feverFx={caught:[{sp:{}}],elapsed:.75};
-assert.equal(pose(304).action,'mouth_open','Fever reel must hold the mouth open');
+assert.equal(pose(304).action,'idle_alt','Only underwater bait opens during Fever suction; player remains idle');
 env.feverFx=null;
 env.playerOctoReaction={type:'swallow_success',start:305,duration:.86};
 assert.equal(pose(305).action,'swallow_success','The successful catch must override idle');
@@ -71,3 +71,4 @@ assert.match(src,/if\(introEntrance\.active\)\{/,'Entrance state must override i
 assert.match(src,/function advanceIntroEntrance\(dt\)/,'Entrance progression is required');
 assert.match(src,/if\(introEntrance\.active\)return;/,'First cast must wait for the entrance');
 console.log('PASS: normal idle dominates; occasional non-consecutive original emotes; cast, joystick, brush, reel, fever, success, failure and 9% slower playback');
+

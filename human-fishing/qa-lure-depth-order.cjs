@@ -35,11 +35,11 @@ assert.doesNotMatch(active.slice(bait+1),/drawOcto\(time\)/,
  'Purple protagonist must NEVER be redrawn on top of red bait');
 const feverCode=source.slice(source.lastIndexOf('function drawFeverFx(dt){'));
 const spritePaint=feverCode.indexOf('drawFeverMouthSprite(fx,reel);');
-const held=feverCode.indexOf("drawFeverTossCreature(entity,fx,i,time,'attached')");
-const launched=feverCode.indexOf("drawFeverTossCreature(entity,fx,i,time,'released')");
-assert.ok(spritePaint>=0&&held>spritePaint&&launched>spritePaint,
+const held=active.indexOf("drawFeverTossCreature(entity,fx,i,time,'attached')");
+const launched=active.indexOf("drawFeverTossCreature(entity,fx,i,time,'released')");
+assert.ok(spritePaint>=0&&held>ambient&&held>fever&&launched>held,
  'Fever bitmap must stay behind all held and released creatures even when reeling');
-assert.equal(feverCode.split("drawFeverTossCreature(entity,fx,i,time,'released')").length-1,1,
+assert.equal(active.split("drawFeverTossCreature(entity,fx,i,time,'released')").length-1,1,
  'Fever launched fish must be drawn once in front of its bait');
 assert.doesNotMatch(feverCode,/drawImage\(octoSprite\(|feverFlingStreakSprite\(/,
  'Old vector tentacle-burst artwork may not return in the Fever renderer');
@@ -47,18 +47,16 @@ assert.ok(source.includes('red_lure_fever_natural_v2.webp'),
  'Fever must use the new natural-size illustrated red bait atlas');
 assert.ok(source.includes('octofever_vortex_soft_v2.webp'),
  'Fever must load a separate soft circular suction atlas');
-assert.ok(source.includes('var opacity=.48*Math.min(appear,disappear);'),
- 'Vortex overlay must stay translucent to preserve mouth readability');
+assert.ok(source.includes('var opacity=.95*Math.min(appear,disappear);'),
+ 'Keep already-translucent bitmap visible without double-dimming');
 assert.ok(source.includes('var scale=.385+.015*Math.sin'),
  'Fever character must match normal bait scale');
 assert.match(source,/function feverMouthSpriteFrame\(fx\)/,
  'Fever mouth must explicitly sequence opening, suction hold and closure');
-assert.match(source,/if\(p<\.22\).*Math\.floor\(p\/\.22\*5\)/,
- 'Fever initial frames must OPEN the mouth');
-assert.match(source,/if\(p<\.78\).*Math\.floor\(\(p-\.22\)\/\.56\*7\)/,
- 'Fever middle frames must HOLD mouth open with suction bubbles');
-assert.match(source,/return 12\+Math\.min\(3,Math\.floor\(\(p-\.78\)\/\.22\*4\)\)/,
- 'Fever ending frames must CLOSE the mouth');
+assert.ok(source.includes('if(fx.elapsed<.22)return Math.min(4'), 'Open immediately at release');
+assert.ok(source.includes('if(fx.elapsed<fx.suctionEnd)return 5+'), 'Hold until final catch enters bait');
+assert.ok(source.includes('(fx.elapsed-fx.suctionEnd)/.28*4'), 'Close before retrieving bait');
 assert.equal(active.split('drawFeverFx(dt);').length-1,1,
  'Fever must not render a second foreground copy after fish');
 console.log('PASS: rod < line < BOTH ordinary/FEVER bitmap bait < fish; original giant-mouth 16f suction and closure; no vector tentacles.');
+
