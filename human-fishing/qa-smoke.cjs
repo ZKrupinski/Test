@@ -320,24 +320,24 @@ assert.equal(stick.classList.contains('visible'),false,'Joystick should be locke
 pointer('pointerup',1060,350);
 // After water entry (at ~1.4s), allow input well before the full 3.25s descent.
 step(46); // 1.72 seconds total
-const before={...lastTranslate};
+const beforeX=game.getBob().x;
 pointer('pointerdown',1070,360); // far away from lure (~640, 295), should still work
 assert.equal(stick.classList.contains('visible'),true,'Any underwater touch should open the joystick');
 assert.equal(element('virtualKnob').style.left,'50%','Knob should start centered');
 step(2);
-assert.ok(lastTranslate.x<750,'Touching distant water must not teleport the lure');
+assert.ok(game.getBob().x<750,'Touching distant water must not teleport the lure');
 // Releasing an unmoved stick should not catch.
 pointer('pointerup',1070,360);
 assert.equal(stick.classList.contains('visible'),false,'Joystick should close on touch release');
-const still={...lastTranslate};
+const stillX=game.getBob().x;
 step(2);
-assert.ok(Math.abs(lastTranslate.x-still.x)<25,'Tap-only gesture should leave bait in place');
+assert.ok(Math.abs(game.getBob().x-stillX)<25,'Tap-only gesture should leave bait in place');
 // Control from arbitrary screen position and move bait while held.
 pointer('pointerdown',1120,360);
 pointer('pointermove',1190,360);
 step(18);
-assert.ok(lastTranslate.x>before.x+24,'Rightward joystick tilt must move the lure');
-assert.ok(lastTranslate.x<900,'Joystick must move relative to bait, never teleport to touch position');
+assert.ok(game.getBob().x>beforeX+24,'Rightward joystick tilt must move the lure');
+assert.ok(game.getBob().x<900,'Joystick must move relative to bait, never teleport to touch position');
 assert.equal(stick.classList.contains('visible'),true,'Joystick must remain visible during drag');
 pointer('pointerup',1190,360);
 assert.equal(stick.classList.contains('visible'),false,'Joystick must hide on release');
