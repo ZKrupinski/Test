@@ -1,46 +1,37 @@
 #!/usr/bin/env python3
-"""Verify that the THREE ACTUAL player responses use the exact approved pixels.
-The opening sheet may re-time frames but never repaint the explorer octopus.
-The two supplied finished sheets are used byte-for-byte.
+"""Validate the exact, user-approved 4x4 mouth art after only alpha cleanup.
+Approved success/failure 16-frame atlases must remain byte-for-byte unchanged.
 """
-from PIL import Image, ImageChops
+from PIL import Image
 from pathlib import Path
 import hashlib
-
 root=Path("human-fishing/assets/octopus")
-source=root/"atlases/purple_excited.webp"
+success=root/"atlases/purple_excited.webp"
 failure=root/"player/swallow_failure_original_style.webp"
-mouth=root/"player/mouth_open_original_style.webp"
+mouth=root/"player/mouth_open_clean.png"
 def checksum(p):
     return hashlib.sha256(p.read_bytes()).hexdigest()
-assert checksum(source)=="5ad5ba5d5568be2d4360b2bbc70706c8904ee98bfd3d0fb2d1918d5172bdea7b", "approved success painting was changed"
-assert checksum(failure)=="8e4628eb275df4498dfd2226b1db8f998092e17efd464b9f3cb05ba919fd16e7", "user-approved failure upload was changed"
-raw=Image.open(source).convert("RGBA")
-made=Image.open(mouth).convert("RGBA")
-assert raw.size==(1254,1254)
-assert made.size==(1256,1256)
-sequence=[0,0,1,1,2,3,4,5,6,7,8,9,10,11,11,11]
-def flatten(im):
-    bg=Image.new("RGBA",im.size,(35,40,51,255))
-    bg.alpha_composite(im)
-    return bg.convert("RGB")
-for n,i in enumerate(sequence):
-    x0=int((i%4)*raw.width/4+.5);x1=int(((i%4)+1)*raw.width/4+.5)
-    y0=int((i//4)*raw.height/4+.5);y1=int(((i//4)+1)*raw.height/4+.5)
-    f=raw.crop((x0,y0,x1,y1))
-    box=f.getchannel("A").point(lambda x:255 if x>=52 else 0).getbbox()
-    assert box
-    expected=Image.new("RGBA",(314,314),(0,0,0,0))
-    expected.alpha_composite(f,((314-f.width)//2,291-box[3]))
-    actual=made.crop(((n%4)*314,(n//4)*314,
-                      (n%4+1)*314,(n//4+1)*314))
-    assert actual.getchannel("A").getbbox(),("empty",n)
-    assert ImageChops.difference(expected.getchannel("A"),actual.getchannel("A")).getbbox() is None,("alpha changed",n)
-    assert ImageChops.difference(flatten(expected),flatten(actual)).getbbox() is None,("style/pixels changed",n)
+assert checksum(success)=="5ad5ba5d5568be2d4360b2bbc70706c8904ee98bfd3d0fb2d1918d5172bdea7b"
+assert checksum(failure)=="8e4628eb275df4498dfd2226b1db8f998092e17efd464b9f3cb05ba919fd16e7"
+assert checksum(mouth)=="8ea4ec0311a3ffc58c5b5a19677245465f0a7a13c6c0c4e837bec82348a3855a", "source art was altered or uncleaned"
+im=Image.open(mouth).convert("RGBA")
+assert im.size==(1536,1024)
+a=im.getchannel("A")
+assert a.getextrema()==(0,255)
+for frame in range(16):
+    x=frame%4*384;y=frame//4*256
+    cell=a.crop((x,y,x+384,y+256))
+    assert cell.getbbox(),("empty",frame)
+    assert max(cell.crop((0,0,384,1)).getdata())==0,("top border spill",frame)
+    assert max(cell.crop((0,255,384,256)).getdata())==0,("bottom border spill",frame)
+    assert max(cell.crop((0,0,1,256)).getdata())==0,("left border spill",frame)
+    assert max(cell.crop((383,0,384,256)).getdata())==0,("right border spill",frame)
 html=Path("human-fishing/index.html").read_text()
-assert "player/mouth_open_original_style.webp" in html
+assert "player/mouth_open_clean.png" in html
+assert "playerMouthCleanBounds" in html
+assert "naturalScale=1.04" in html
 assert "atlases/purple_excited.webp" in html
 assert "player/swallow_failure_original_style.webp" in html
-assert "11+Math.floor(progress*5)" in html,"success must enter at shared open frame"
-assert "3+Math.floor(progress*13)" in html,"failure should start from startled pose"
-print("PASS: opening is original-art pixels throughout all 16 frames; exact approved success/failure images and source continuity")
+assert "11+Math.floor(progress*5)" in html
+assert "3+Math.floor(progress*13)" in html
+print("PASS: exact user-approved 16-frame mouth with clean alpha PNG and no distorted frame proportions")
