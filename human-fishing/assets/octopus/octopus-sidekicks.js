@@ -83,7 +83,17 @@
  RED_ROWS.swim=1;
  var assetsVersion='v=20261105-sidekicks-restore';
  // Purple companion retired: do not load its unused sprite sheets.
- red=load(ATLAS+'red_all.webp?'+assetsVersion,12,8);
+ // Compact 12-frame RED entrance: prioritizes only its original swimming row.
+ // Full 96-frame red sprite atlas is loaded AFTER both intro characters show.
+ var redIntro=load(ATLAS+'red_intro_swim.webp?v=20261105-fast-intro1',12,1);
+ var redFullQueued=false;
+ function startRedFullLoad(){
+  if(redFullQueued)return;
+  redFullQueued=true;
+  red=load(ATLAS+'red_all.webp?'+assetsVersion,12,8);
+  if(red)red.fetchPriority='low';
+ }
+
  var passive={lure:false,near:false,hook:false,fever:false,casting:false,view:'fish'};
  friends.forEach(function(f){
   portraits[f.kind]=load(BASE+f.kind+'_companion.webp');
@@ -205,6 +215,24 @@
   return{image:purple[alias],actual:alias};
  }
  function renderTile(ctx,f,action,frame){
+  // Before the large red atlas is ready, render the original red's swim row.
+  // This prevents a missing companion while the game downloads other art.
+  if(f.kind==='red'&&redIntro&&redIntro.ready&&
+     (f.state==='entrance'||!red||!red.ready)){
+   var mini=redIntro.packed;
+   if(mini){
+    var scaledX=f.w/mini.baseW,scaledY=f.h/mini.baseH;
+    ctx.drawImage(mini.image,Math.min(11,frame)*mini.unitW,0,
+     mini.unitW,mini.unitH,
+     f.x-mini.pad*scaledX,f.footY-(mini.pad+mini.anchor)*scaledY,
+     mini.unitW*scaledX,mini.unitH*scaledY);
+   }else{
+    var cw=redIntro.naturalWidth/12,ch=redIntro.naturalHeight;
+    ctx.drawImage(redIntro,Math.min(11,frame)*cw,0,cw,ch,
+     f.x,f.footY-f.h,f.w,f.h);
+   }
+   f.debugActual='swim';f.debugSource='sprite';return;
+  }
   var found=resolveImage(f,action),image=found.image,actual=found.actual;
   if(!image||!image.ready){
    image=f.kind==='red'?red:purple.idle;actual='idle';frame=0;
@@ -243,6 +271,9 @@
   });
  }
  window.drawOctopusSidekicks=draw;
+ // Only start the introduction when these bitmap sprites are already decoded.
+ window.octoSidekicksIntroReady=function(){return !!(redIntro&&redIntro.ready)};
+ window.octoSidekicksStartFullLoad=startRedFullLoad;
  window.octoSidekicksSignal=signal;
  window.octoSidekicksObserve=observe;
  // Backwards compatibility with older released HTML.
@@ -254,7 +285,7 @@
    state:f.debugState,action:f.debugAction,frame:f.debugFrame,
    actual:f.debugActual,source:f.debugSource,
    reacting:!!f.debugSpecial,
-   atlasReady:f.kind==='red'?!!(red&&red.ready):
+   atlasReady:f.kind==='red'?!!((red&&red.ready)||(redIntro&&redIntro.ready)):
       ACTIONS.filter(function(a){return purple[a]&&purple[a].ready}).length,
    extraReady:0,
    atlasTotal:f.kind==='red'?1:7};
