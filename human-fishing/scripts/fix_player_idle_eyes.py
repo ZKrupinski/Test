@@ -71,6 +71,22 @@ OUT.parent.mkdir(parents=True,exist_ok=True)
 Image.fromarray(im,'RGBA').save(OUT,'WEBP',lossless=True,method=5)
 assert Image.open(OUT).size==(1254,1254)
 assert np.array_equal(im[:,:,3],original[:,:,3])
+# Visual QA strip: original eye regions vs corrected, frames 0–15.
+# Purely a review asset; game sprite above remains full resolution.
+from PIL import ImageDraw
+thumb=Image.new("RGB",(4*520,4*190),(33,41,51))
+pen=ImageDraw.Draw(thumb)
+for n in range(16):
+ x0=int((n%4)*W/4+.5);x1=int(((n%4)+1)*W/4+.5)
+ y0=int((n//4)*H/4+.5);y1=int(((n//4)+1)*H/4+.5)
+ for side,source in enumerate((original,im)):
+  piece=Image.fromarray(source[y0:y1,x0:x1],"RGBA").crop((118,75,252,161))
+  bg=Image.new("RGBA",piece.size,(35,42,53,255));bg.alpha_composite(piece)
+  resized=bg.convert("RGB").resize((246,158),Image.Resampling.LANCZOS)
+  thumb.paste(resized,((n%4)*520+side*256,(n//4)*190+20))
+ pen.text(((n%4)*520+7,(n//4)*190+3),f"Frame {n+1}: BEFORE / AFTER",fill=(245,244,222))
+thumb.save("human-fishing/assets/octopus/atlases/_qa_idle_eye_compare.jpg",quality=66,optimize=True)
+
 print('source_sha256',hashlib.sha256(SRC.read_bytes()).hexdigest())
 print('output_sha256',hashlib.sha256(OUT.read_bytes()).hexdigest())
 print('frames',metrics)
