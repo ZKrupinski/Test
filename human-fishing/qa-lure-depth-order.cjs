@@ -43,7 +43,12 @@ assert.equal(feverCode.split("drawFeverTossCreature(entity,fx,i,time,'released')
  'Fever launched fish must be drawn once in front of its bait');
 assert.doesNotMatch(feverCode,/drawImage\(octoSprite\(|feverFlingStreakSprite\(/,
  'Old vector tentacle-burst artwork may not return in the Fever renderer');
-assert.match(source,/red_lure_fever_mouth\.webp/,'Fever must load user-approved 16f bitmap');
+assert.match(source,/red_lure_fever_natural_v2\\.webp/,'Fever must use the new normal-size 16f painted bait');
+assert.match(source,/octofever_vortex_soft_v2\\.webp/,'A separate softened circular vortex atlas must be loaded');
+assert.match(source,/var opacity=\\.48\\*Math\\.min\\(appear,disappear\\)/,
+ 'Vortex overlay must use low opacity so it does not hide the octopus');
+assert.match(source,/var scale=\\.385\\+\\.015\\*Math\\.sin/,
+ 'Fever body must scale to match the ordinary ~84px lure');
 assert.match(source,/function feverMouthSpriteFrame\(fx\)/,
  'Fever mouth must explicitly sequence opening, suction hold and closure');
 assert.match(source,/if\(p<\.22\).*Math\.floor\(p\/\.22\*5\)/,
