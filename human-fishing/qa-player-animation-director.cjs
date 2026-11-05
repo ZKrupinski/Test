@@ -12,6 +12,7 @@ fakeMath.random=function(){seed=(seed*1664525+1013904223)>>>0;return seed/429496
 const env={
  Math:fakeMath,view:'fish',time:0,hook:null,feverFx:null,octoGroggy:0,
  catchFx:null,cast:{active:false,elapsed:0},joystick:{active:false,engaged:false},
+ introEntrance:{active:false,elapsed:0,duration:1.75,offset:0},
  playerOctoReaction:null,playerOctoIdleState:null,save:{up:[0]},
  gearPower:()=>0,clamp:(v,min,max)=>Math.max(min,Math.min(max,v))
 };
@@ -36,11 +37,13 @@ for(let i=0;i<3500;i++){
 }
 assert.ok(nonIdleFrames>110,'Occasional expressions must still appear');
 assert.ok(nonIdleFrames<1100,'Idle should occupy a majority of ordinary time');
+assert.doesNotMatch(src.match(/var choices=\[[^\]]+\]/)?.[0]||'',/['"]swim['"]/,
+ 'Swimming sheet is reserved exclusively for the entrance');
 env.cast={active:true,elapsed:.70};
 assert.equal(pose(300).action,'toss','Only the rod cast triggers the throw animation');
 env.cast={active:false,elapsed:0};
 env.joystick={active:true,engaged:true};
-assert.equal(pose(301).action,'swim','Moving the bait should move the protagonist');
+assert.equal(pose(301).action,'excited','Moving the bait should alert the protagonist, not replay swim');
 env.joystick={active:false,engaged:false};
 env.playerOctoCue('excited',.9);
 assert.equal(pose(301).action,'excited','Bait brush/touch must trigger an excited reaction');
@@ -61,4 +64,10 @@ assert.match(src,/playerOctoCue\('excited',\.9\/PLAYER_ANIM_RATE\)/,
  'Bait brush must signal the protagonist');
 assert.match(src,/old_mouth_idle:'\.\/assets\/octopus\/player\/mouth_open_original_style\.webp/,
  'Old open-mouth sprite must remain loaded for passive emotes');
+env.playerOctoReaction=null;env.introEntrance={active:true,elapsed:.7,duration:1.75};
+assert.equal(pose(310).action,'swim','The hero swims only during the first entrance');
+env.introEntrance.active=false;
+assert.match(src,/if\(introEntrance\.active\)\{/,'Entrance state must override idle');
+assert.match(src,/function advanceIntroEntrance\(dt\)/,'Entrance progression is required');
+assert.match(src,/if\(introEntrance\.active\)return;/,'First cast must wait for the entrance');
 console.log('PASS: normal idle dominates; occasional non-consecutive original emotes; cast, joystick, brush, reel, fever, success, failure and 9% slower playback');
