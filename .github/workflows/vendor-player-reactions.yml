@@ -1,0 +1,44 @@
+name: Vendor Purple Player Reaction Sprite Atlases
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vendor-player-reactions.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: vendor-player-reactions
+  cancel-in-progress: false
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fetch approved purple player reaction atlases and verify bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p human-fishing/assets/octopus/player
+          cd human-fishing/assets/octopus/player
+          curl --retry 3 --retry-delay 2 -fLsS 'https://d2ol7oe51mr4n9.cloudfront.net/user_3KlCHKRIJO34SPkOC5UMUPo7vEp/37201091-0494-4b1e-8361-e3673de1e186.webp' -o mouth_open.webp
+          curl --retry 3 --retry-delay 2 -fLsS 'https://d2ol7oe51mr4n9.cloudfront.net/user_3KlCHKRIJO34SPkOC5UMUPo7vEp/9f41de1e-7009-4177-b8ed-9bccf0aae834.webp' -o swallow_success.webp
+          curl --retry 3 --retry-delay 2 -fLsS 'https://d2ol7oe51mr4n9.cloudfront.net/user_3KlCHKRIJO34SPkOC5UMUPo7vEp/d168feaa-4b12-4a93-9b23-6dd63a39681a.webp' -o swallow_failure.webp
+          printf '%s\n' \
+            'c5844f447e6ef7ddfb9fa84e4de5491f41ca5fb448fad5cc9422f6162866edb2  mouth_open.webp' \
+            'c676a0c39020263a32508e612760e9601fd61c4cb47687aaecc686581e5f8470  swallow_success.webp' \
+            '79bc05cc700c60c68a0d16def662e6186a81b68920bfa7c7533cb3d6566a8630  swallow_failure.webp' | sha256sum -c -
+      - name: Commit game-ready files to main
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add human-fishing/assets/octopus/player
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Add three illustrated 16-frame purple player reaction atlases"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
