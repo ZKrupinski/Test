@@ -17,7 +17,7 @@ OUT=ROOT/"assets/octopus/player"
 OUT.mkdir(parents=True,exist_ok=True)
 SHEET_W,SHEET_H=1600,1760
 CELL_W,CELL_H=400,440
-SRC_FRAME=2  # original row 0 column 2: BOTH eyes open, cheerful original face
+SRC_FRAME=0  # ACTUAL FIRST FRAME of the approved purple_idle_v2 original; NEVER use the rejected intermediate generation
 FRAME_SRC=Image.open(ORIG).convert("RGBA")
 iw,ih=FRAME_SRC.size
 x0=round((SRC_FRAME%4)*iw/4);x1=round((SRC_FRAME%4+1)*iw/4)
@@ -72,62 +72,75 @@ BASE_X=xs.astype(np.float32)
 BASE_Y=ys.astype(np.float32)
 
 def make_frame(dx,dy,bow=0,phase=0):
-    # Start from exact approved source RGBA for every frame.
-    # The 2D remap displaces existing pixels only; never paint new shapes.
-    # Eye movement has become clearly readable at gameplay size, while both
-    # eyes share one direction and the fixed original eyelids stay intact.
+    # FULL BODY frame animation regenerated from the approved atlas's REAL
+    # FIRST FRAME (not the rejected intermediate eye-down sheet).
+    # All features stay composed of pixels from that exact original image.
+    t=phase*math.tau
     motion_x=np.zeros((sh,sw),np.float32)
     motion_y=np.zeros((sh,sw),np.float32)
+
+    # The WHOLE octopus is now animated, not merely re-painted pupils.
+    # Body breathing: 3.7 source px in the upper head/chest, tapering to
+    # zero around planted lower suction cups to prevent the feet jumping.
+    head=np.exp(-.5*(((BASE_X-161)/115)**2+((BASE_Y-120)/86)**2)).astype(np.float32)
+    chest=np.exp(-.5*(((BASE_X-154)/100)**2+((BASE_Y-208)/74)**2)).astype(np.float32)
+    motion_y+=(-4.2*math.sin(t))*head
+    motion_y+=(1.8*math.sin(t+.55))*chest
+    motion_x+=(2.4*math.sin(t+.65))*head
+
+    # Three distinct tentacle clusters sway and curl on offset cycles.
+    # This gives a visible waving motion across the full sprite silhouette
+    # while the original satchel and hat markings remain recognizable.
+    left=np.exp(-.5*(((BASE_X-57)/50)**2+((BASE_Y-229)/53)**2)).astype(np.float32)
+    right=np.exp(-.5*(((BASE_X-267)/46)**2+((BASE_Y-218)/55)**2)).astype(np.float32)
+    front=np.exp(-.5*(((BASE_X-155)/68)**2+((BASE_Y-266)/31)**2)).astype(np.float32)
+    motion_x+=(9.4*math.sin(t+.10))*left
+    motion_y+=(3.7*math.cos(t+.25))*left
+    motion_x+=(8.3*math.sin(t+2.20))*right
+    motion_y+=(4.1*math.sin(t+1.60))*right
+    motion_x+=(3.9*math.cos(t*2-.30))*front
+    motion_y+=(2.4*math.sin(t*2-.50))*front
+
+    # Fixed EARLY body/face design. Both pupils track together below center;
+    # no independent eyelid animation, no eyebrow deformation or redrawing.
     for field in eye_fields:
         motion_x+=float(dx)*field
         motion_y+=float(dy)*field
 
-    # Original-art secondary idle movement:
-    # tiny natural head/body breath, plus opposing elastic tentacle sways.
-    # These localized Gaussian fields vanish before the planted foot line.
-    breathe=math.sin(phase*math.tau)
-    head_field=np.exp(-.5*(((BASE_X-162)/119)**2+((BASE_Y-119)/94)**2)).astype(np.float32)
-    motion_y+=(-2.6*breathe)*head_field
-    left_field=np.exp(-.5*(((BASE_X-56)/47)**2+((BASE_Y-228)/39)**2)).astype(np.float32)
-    right_field=np.exp(-.5*(((BASE_X-266)/40)**2+((BASE_Y-220)/42)**2)).astype(np.float32)
-    front_field=np.exp(-.5*(((BASE_X-152)/78)**2+((BASE_Y-263)/25)**2)).astype(np.float32)
-    motion_x+=(5.3*math.sin(phase*math.tau+.25))*left_field
-    motion_x+=(5.8*math.sin(phase*math.tau+2.05))*right_field
-    motion_y+=(2.5*math.sin(phase*math.tau*2-.6))*front_field
-
-    # Small expressive movement of the ORIGINAL eyes, never black circles,
-    # recoloring, pupil extraction or misplaced white highlights.
-    remap=cv2.remap(source_rgba,
-                    BASE_X-motion_x,BASE_Y-motion_y,
-                    interpolation=cv2.INTER_LINEAR,
-                    borderMode=cv2.BORDER_REPLICATE)
-    output=remap.astype(np.uint8)
-    # Unmoved pixels retain their exact RGBA values.
-    unchanged=(np.abs(motion_x)<1e-5)&(np.abs(motion_y)<1e-5)
-    output[unchanged]=source_rgba[unchanged]
-    canvas=Image.fromarray(output,"RGBA")
-    frame=Image.new("RGBA",(CELL_W,CELL_H),(0,0,0,0))
-    scaled=canvas.resize((360,360),Image.Resampling.LANCZOS)
-    left=round(200-156*360/sw)
-    top=round(412-285*360/sh)
-    frame.alpha_composite(scaled,(left,top))
+    # During the separate water descent only, the upper body leans and
+    # looks down as the lure drops. Existing body art is not redesigned.
     if bow>0:
-        # Only the bait-descending pose bends 1.6 degrees maximum.
-        frame=frame.rotate(1.6*bow,Image.Resampling.BICUBIC,center=(200,412))
+        motion_y+=(4.5*bow)*head
+        motion_x+=(1.9*bow)*chest
+
+    warped=cv2.remap(source_rgba,
+                     BASE_X-motion_x,BASE_Y-motion_y,
+                     interpolation=cv2.INTER_LINEAR,
+                     borderMode=cv2.BORDER_CONSTANT,
+                     borderValue=(0,0,0,0))
+    image=Image.fromarray(warped.astype(np.uint8),"RGBA")
+    frame=Image.new("RGBA",(CELL_W,CELL_H),(0,0,0,0))
+    # Uniform scale and identical foot anchor, never separate X/Y scales.
+    scaled=image.resize((360,360),Image.Resampling.LANCZOS)
+    left_px=round(200-156*360/sw)
+    top_px=round(412-285*360/sh)
+    frame.alpha_composite(scaled,(left_px,top_px))
+    if bow>0:
+        frame=frame.rotate(1.25*bow,Image.Resampling.BICUBIC,center=(200,412))
     return frame
 
-# Smile stays friendly. Head does NOT bow during Idle; eyes clearly search
-# down-left, then down-right. Pupil travel peaks at ~5 px on the GAME canvas.
-# The body breathes and tentacles sway in counterphase across all 16 frames.
-IDLE=[(0,1,0),(-2,2,0),(-4,3,0),(-6,4,0),
-      (-6,4,0),(-4,3,0),(-2,2,0),(0,1,0),
-      (0,1,0),(2,2,0),(4,3,0),(6,4,0),
-      (6,4,0),(4,3,0),(2,2,0),(0,1,0)]
-# Cast sinking: watch the lure move downward and gently bend toward the water.
-SINK=[(0,1,0),(0,2,.06),(0,3,.14),(0,4,.22),
-      (-1,5,.31),(-1,6,.42),(-1,7,.53),(-1,7,.63),
-      (0,7,.73),(0,7,.82),(0,7,.90),(0,7,.96),
-      (0,7,1),(0,7,1),(0,7,1),(0,7,1)]
+# Reconstructed 16-frame full-body ORIGINAL idle: gentle bounce, breathing,
+# alternating tentacle sways and downward left/right eye scan.
+IDLE=[(0,0,0),(-1,1,0),(-2,2,0),(-3,3,0),
+      (-3,3,0),(-2,2,0),(-1,1,0),(0,0,0),
+      (0,0,0),(1,1,0),(2,2,0),(3,3,0),
+      (3,3,0),(2,2,0),(1,1,0),(0,0,0)]
+# Separate 16-frame full-body sinking action from the same original
+# FIRST frame. Progressively tracks the lure downward without adding props.
+SINK=[(0,0,0),(0,1,.06),(0,2,.12),(0,2,.24),
+      (-1,3,.34),(-2,3,.46),(-2,4,.58),(-1,4,.70),
+      (0,4,.80),(1,4,.88),(1,4,.94),(0,4,1),
+      (0,4,1),(0,4,1),(0,4,1),(0,4,1)]
 def export(name,sequence):
     sheet=Image.new("RGBA",(SHEET_W,SHEET_H),(0,0,0,0))
     for i,pose in enumerate(sequence):
@@ -142,6 +155,7 @@ def export(name,sequence):
     return sheet
 idle=export("purple_idle_original_pixel_16f",IDLE)
 sink=export("purple_sinking_original_pixel_16f",SINK)
+# Visual QA: true approved frame-0 source versus newly animated whole-body frames.
 # Visual QA: actual original sample next to regenerated first/last poses.
 preview=Image.new("RGBA",(400*4,440),(0,0,0,0))
 orig=Image.new("RGBA",(400,440))
