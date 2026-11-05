@@ -38,7 +38,7 @@ assert.ok(passiveActions.has('idle'));
 assert.ok(passiveActions.has('bait'));
 assert.ok(passiveActions.has('idle_alt'));
 assert.equal(passiveActions.has('swim'),false);
-const files=['purple_idle_eyes_synced.webp','purple_excited.webp','purple_toss.webp','purple_gorge.webp',
+const files=['purple_idle_v2.webp','purple_excited.webp','purple_toss.webp','purple_gorge.webp',
  'purple_snack.webp','purple_victory.webp','purple_fail_v2.webp','purple_swim.webp'];
 const player=fs.readFileSync('human-fishing/index.html','utf8');
 for(const name of files){
@@ -46,7 +46,15 @@ for(const name of files){
  assert.ok(!source.includes(name),'New player artwork leaked into original companion: '+name);
 }
 assert.ok(player.includes('playerOctoPose(now)'));
-assert.ok(player.includes("idle_alt:'purple_idle_eyes_synced.webp'"),'Main octopus must use corrected eye-aligned idle art');
+assert.ok(player.includes("idle_alt:'purple_idle_v2.webp'"),'Main octopus must preserve user-approved original Idle artwork');
+const cur=player.match(/var playerIdleGazeFrames=\[([^\]]+)\]/);
+assert.ok(cur,'Aligned gaze frame loop must be explicitly curated');
+const allowed=new Set([0,3,4,6,9,10,11,12]);
+const curated=cur[1].split(',').map(Number);
+assert.equal(curated.length,16,'The curated Idle must still play sixteen frames');
+assert.ok(curated.every(f=>allowed.has(f)),'Curated Idle should never play a divergent-pupil frame');
+assert.ok(player.includes("if(action==='idle_alt')frame=playerIdleGazeFrames"),
+ 'Only the baseline Idle should remap frame indices; other actions stay original');
 assert.ok(player.includes("action:'mouth_open'"),'New mouth-opening sequence must play on catch approach');
 const idleMix=player.slice(player.indexOf('function nextPlayerOctoIdle(){'),player.indexOf('function playerOctoPose(now){'));
 for(const action of ['old_mouth_idle','gorge','snack','fail_alt','excited','swim']){
