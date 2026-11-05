@@ -75,31 +75,15 @@
   return img;
  }
 
- // Eight new 16-frame character illustrations use dedicated game slots.
- // Files are optional until published with the sprite uploader; every action
- // has an existing approved bitmap fallback and never becomes invisible.
- var OPTIONAL={
-  idle_alt:'purple_idle_v2.webp',
-  excited:'purple_excited.webp',
-  toss:'purple_toss.webp',
-  gorge:'purple_gorge.webp',
-  snack:'purple_snack.webp',
-  victory:'purple_victory.webp',
-  fail_alt:'purple_fail_v2.webp',
-  swim:'purple_swim.webp'
- };
+ // Companions retain their original seven purple and eight-row red atlases.
+ // New 16-frame hero artwork is intentionally NOT routed through this module.
  var ALIAS={idle_alt:'idle',excited:'open',toss:'bait',gorge:'eat',
    snack:'chew',victory:'celebrate',fail_alt:'fail',swim:'celebrate'};
  var RED_ACTION={idle_alt:'idle',excited:'open',toss:'bait',gorge:'eat',
    snack:'chew',victory:'celebrate',fail_alt:'fail',swim:'swim'};
  RED_ROWS.swim=1;
- var extra={},assetsVersion='v=20261105-16frame';
- ACTIONS.forEach(function(name){
-  purple[name]=load(ATLAS+'purple_'+name+'.webp?'+assetsVersion,4,4);
- });
- Object.keys(OPTIONAL).forEach(function(name){
-  extra[name]=load(ATLAS+OPTIONAL[name]+'?'+assetsVersion,4,4);
- });
+ var assetsVersion='v=20261105-sidekicks-restore';
+ ACTIONS.forEach(function(name){purple[name]=load(ATLAS+'purple_'+name+'.webp?'+assetsVersion,4,4)});
  red=load(ATLAS+'red_all.webp?'+assetsVersion,12,8);
  var passive={lure:false,near:false,hook:false,fever:false,casting:false,view:'fish'};
  friends.forEach(function(f){
@@ -213,8 +197,6 @@
  }
  function resolveImage(f,action){
   if(f.kind==='red')return {image:red,actual:RED_ACTION[action]||action};
-  var optional=extra[action];
-  if(optional&&optional.ready)return{image:optional,actual:action};
   var alias=ALIAS[action]||action;
   return{image:purple[alias],actual:alias};
  }
@@ -270,7 +252,7 @@
    reacting:!!f.debugSpecial,
    atlasReady:f.kind==='red'?!!(red&&red.ready):
       ACTIONS.filter(function(a){return purple[a]&&purple[a].ready}).length,
-   extraReady:Object.keys(extra).filter(function(a){return extra[a]&&extra[a].ready}).length,
+   extraReady:0,
    atlasTotal:f.kind==='red'?1:7};
  })};
 })();
