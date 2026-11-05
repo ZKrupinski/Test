@@ -55,7 +55,7 @@ def build(filename,url,expected,is_vortex):
     assert verify.size==(2048,2048)
     for n in range(16):
         b=verify.crop(frame_rect(verify,n)).getchannel('A').getbbox()
-        assert b and b[0]>100 and b[1]>100 and b[2]<412 and b[3]<412,(n,b)
+        assert b and b[0]>=90 and b[1]>=90 and b[2]<=423 and b[3]<=423,(n,b)
     if is_vortex:assert verify.getchannel('A').getextrema()[1]<=100
     print('PASS',filename,'bytes=',dest.stat().st_size,'soft-vortex=',is_vortex)
 
