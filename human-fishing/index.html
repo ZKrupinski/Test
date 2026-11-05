@@ -1899,6 +1899,7 @@ var playerOctoSources={
 };
 var playerOctoAtlas={};
 Object.keys(playerOctoSources).forEach(function(action){
+ if(typeof Image==='undefined')return; // Node regression tests use canvas-only stubs.
  var img=new Image();img.decoding='async';img.ready=false;
  img.onload=function(){img.ready=true};
  img.onerror=function(){img.ready=false};
