@@ -2010,6 +2010,27 @@ function startPlayerOctoReaction(type){
  // random idle replays the old expressions.
  playerOctoIdleState=null;
 }
+var playerOctoIdleBag=[],playerOctoLastIdle='';
+function nextPlayerOctoIdle(){
+ if(!playerOctoIdleBag.length){
+  playerOctoIdleBag=['idle_alt','excited','gorge','snack',
+   'fail_alt','victory','swim','toss'];
+  // Shuffle-bag prevents back-to-back reruns and guarantees all eight
+  // existing authored poses appear each cycle, rather than mostly Idle.
+  for(var i=playerOctoIdleBag.length-1;i>0;i--){
+   var j=Math.floor(Math.random()*(i+1));
+   var swap=playerOctoIdleBag[i];playerOctoIdleBag[i]=playerOctoIdleBag[j];
+   playerOctoIdleBag[j]=swap;
+  }
+  if(playerOctoIdleBag[playerOctoIdleBag.length-1]===playerOctoLastIdle){
+   var k=0,tmp=playerOctoIdleBag[k];
+   playerOctoIdleBag[k]=playerOctoIdleBag[playerOctoIdleBag.length-1];
+   playerOctoIdleBag[playerOctoIdleBag.length-1]=tmp;
+  }
+ }
+ var next=playerOctoIdleBag.pop();
+ playerOctoLastIdle=next;return next;
+}
 function playerOctoPose(now){
  if(playerOctoReaction){
   var t=now-playerOctoReaction.start;
@@ -2028,29 +2049,38 @@ function playerOctoPose(now){
    playerOctoIdleState={action:'idle_alt',start:now,until:now+1.45};
   }
  }
- if(hook&&hook.travelDuration){
-  // Frame 15 is identical to frame 0 in both follow-up animations.
-  // Normalize the approach to the escape timing as well as successful catch.
-  var target=hook.willEscape?hook.escapeAt||.88:1;
-  var approach=clamp(hook.elapsed/(hook.travelDuration*target),0,1);
-  return{action:'mouth_open',frame:Math.min(15,Math.floor(approach*16))};
+ if(hook){
+  // PLAYER opens her mouth as the rod begins reeling, not only on the last
+  // frame near the lips. Complete the gape by ~63% of the ascent and hold it
+  // for the fish's entire struggle so the 16-frame artwork is clearly visible.
+  var base=hook.kind==='human'?(hook.obj.id>=20?2.5:1.85):(1.10-save.up[0]*.08);
+  var duration=hook.travelDuration||Math.max(.56,
+   base*(1-gearPower('rod')*.035-gearPower('helper')*.012));
+  var target=hook.willEscape?(hook.escapeAt||.88):1;
+  var ascent=clamp((hook.elapsed||0)/Math.max(.10,duration*target),0,1);
+  var opening=clamp((ascent-.045)/.58,0,1);
+  return{action:'mouth_open',frame:Math.min(15,Math.floor(opening*16))};
  }
  if(feverFx&&feverFx.caught.length){
-  var open=mouthGape();
-  if(open>.012)return{action:'mouth_open',frame:Math.max(0,Math.min(15,Math.round(open*15)))};
+  // During a multi-catch the rising rod and the waiting PLAYER share the
+  // same anticipation: finish opening early and hold for the last creature.
+  var lift=clamp((feverFx.elapsed-.12)/.50,0,1);
+  return{action:'mouth_open',frame:Math.min(15,Math.floor(lift*16))};
  }
  if(octoGroggy>0)return{action:'fail_alt',frame:Math.floor(now*12)%16};
  if(catchFx)return{action:'idle_alt',frame:Math.floor(now*10)%16};
  if(cast.active&&cast.elapsed<1)return{action:'toss',frame:Math.min(15,Math.max(0,Math.floor(cast.elapsed*16)))};
- if(view==='human')return{action:'swim',frame:Math.floor(now*10)%16};
- // Original existing open, eat and failure sheets remain subtle idle variations.
+ // Eight authored actions now form a non-repeating shuffle bag. The old
+ // gorge/snack/fail sprites remain idle reactions as requested; excitement,
+ // celebration, swimming and a small cast flourish fill the gaps.
  if(!playerOctoIdleState||now>=playerOctoIdleState.until){
-  var pool=['idle_alt','idle_alt','idle_alt','idle_alt','gorge','snack','fail_alt'];
-  var pick=pool[Math.floor(Math.random()*pool.length)];
-  if(playerOctoIdleState&&pick===playerOctoIdleState.action&&pick!=='idle_alt')pick='idle_alt';
-  playerOctoIdleState={action:pick,start:now,until:now+(pick==='idle_alt'?1.6:1.2)};
+  var pick=nextPlayerOctoIdle();
+  var seconds=pick==='idle_alt'?.80:pick==='gorge'||pick==='victory'?1.05:
+   pick==='fail_alt'?1.10:pick==='swim'?1.25:pick==='snack'?.95:.90;
+  playerOctoIdleState={action:pick,start:now,until:now+seconds};
  }
- var phase=(now-playerOctoIdleState.start)/(playerOctoIdleState.until-playerOctoIdleState.start);
+ var phase=clamp((now-playerOctoIdleState.start)/
+  Math.max(.01,playerOctoIdleState.until-playerOctoIdleState.start),0,.999);
  return{action:playerOctoIdleState.action,frame:Math.min(15,Math.floor(phase*16))};
 }
 function drawOcto(now){
@@ -3285,6 +3315,7 @@ function drawFeverFx(dt){
   drawFeverTossCreature(entity,fx,i,time,'released');
  });
  if(fx.elapsed>=fx.duration){
+  if(fx.caught.length)startPlayerOctoReaction('swallow_success');
   feverFx=null;buildFish();buildHum();
   if(view==='fish')startCast();
  }
