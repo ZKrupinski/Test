@@ -1254,13 +1254,14 @@ function aquariumTapFish(event){
 }
 // Barrel-and-fish idle motion stays exclusively in the aquarium.
 function aquariumKeeperPose(now){
- var cycle=((now%10.8)+10.8)%10.8;
- var action=cycle<2.3?'gorge':cycle<4.8?'snack':'idle_alt';
+ // Only this tank exhibit may use the original rod + barrel + eating poses.
+ var cycle=((now%12.8)+12.8)%12.8;
+ var action=cycle<2.6?'toss':cycle<5.2?'gorge':cycle<7.8?'snack':'idle_alt';
  var img=playerOctoAtlas[action];
  if(!img||!img.ready)action='idle_alt';
- var phase=action==='gorge'?cycle:cycle-2.3;
+ var phase=action==='toss'?cycle:action==='gorge'?cycle-2.6:cycle-5.2;
  var frame=action==='idle_alt'?Math.floor(now*8)%16:
-  Math.min(15,Math.floor(phase/2.5*16));
+  Math.min(15,Math.floor(phase/2.6*16));
  return{action:action,frame:frame};
 }
 function drawAquariumKeeper(now){
@@ -2147,8 +2148,8 @@ function playerOctoTile(action,frame){
  }
  return tile;
 }
-// Separate newly illustrated 16-frame player sequences. Existing 'gorge',
-// 'snack' and 'fail_alt' remain in the random idle pool below, untouched.
+// Separate newly illustrated 16-frame player sequences. 'gorge', 'snack'
+// and 'toss' are kept solely as aquarium display animations.
 // These actions reuse the exact original explorer-painting pixels.
 // The mouth-open atlas re-times original purple_excited frames, not a redraw.
 // Success: user's approved purple_excited; failure: user's exact uploaded bitmap.
@@ -2254,8 +2255,10 @@ function playerOctoPose(now){
  if(octoGroggy>0)return{action:'fail_alt',frame:Math.floor(now*12*PLAYER_ANIM_RATE)%16};
  if(catchFx)return{action:'idle_alt',frame:Math.floor(now*10*PLAYER_ANIM_RATE)%16};
  if(cast.active&&cast.elapsed<1.75){
-  // A proper casting pose only during a rod throw, not as a random idle.
-  return{action:'toss',frame:Math.min(15,Math.floor(cast.elapsed*9.7*PLAYER_ANIM_RATE))};
+  // The original TOSS sheet already includes a barrel and another rod.
+  // NEVER show it in gameplay: the painted equipment rod is drawn separately.
+  // Use the original excited octopus frames for a clear, clean casting pose.
+  return{action:'excited',frame:Math.min(15,Math.floor(cast.elapsed*9.7*PLAYER_ANIM_RATE))};
  }
  if(view==='fish'&&playerOctoCueState){
   if(now<playerOctoCueState.until){
@@ -2288,8 +2291,14 @@ function playerOctoPose(now){
  return{action:playerOctoIdleState.action,frame:Math.min(15,Math.floor(phase*16))};
 }
 function drawOcto(now,poseOverride){
- var hit=vibrationOffset('octo'),pose=poseOverride||playerOctoPose(now),
-  illustrated=playerReactionArt[pose.action],
+ var hit=vibrationOffset('octo'),pose=poseOverride||playerOctoPose(now);
+ // Final render-time protection. Even stale state, event callbacks or a
+ // future animation selector cannot display the bucket/extra rod artworks
+ // outside the aquarium. They remain available for the aquarium only.
+ if(view!=='tank'&&(pose.action==='toss'||pose.action==='gorge'||pose.action==='snack')){
+  pose={action:'excited',frame:pose.frame};
+ }
+ var illustrated=playerReactionArt[pose.action],
   tile=illustrated&&illustrated.ready?null:playerOctoTile(pose.action,pose.frame);
  ctx.save();
  ctx.translate(295+hit.x+(octoGroggy>0?Math.sin(now*48)*3.5:0),
