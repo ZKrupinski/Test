@@ -65,9 +65,15 @@ assert.ok(player.includes("if(action==='idle_alt')frame=playerIdleGazeFrames"),
  'Only the baseline Idle should remap frame indices; other actions stay original');
 assert.ok(player.includes("action:'mouth_open'"),'New mouth-opening sequence must play on catch approach');
 const idleMix=player.slice(player.indexOf('function nextPlayerOctoIdle(){'),player.indexOf('function playerOctoPose(now){'));
-for(const action of ['old_mouth_idle','gorge','snack','fail_alt','excited']){
- assert.ok(idleMix.includes("'"+action+"'"),'Missing situational/occasional idle action: '+action);
+for(const action of ['old_mouth_idle','fail_alt','excited']){
+ assert.ok(idleMix.includes("'"+action+"'"),'Missing regular/occasional fishing idle action: '+action);
 }
+const idleChoices=idleMix.match(/var choices=\[([^\]]+)\]/)?.[1]||'';
+assert.doesNotMatch(idleChoices,/['"](?:gorge|snack)['"]/,
+ 'Main character bucket-eating idle animations must be aquarium-only');
+assert.ok(player.includes("function aquariumKeeperPose(now){")&&
+ player.includes("drawOcto(now,aquariumKeeperPose(now))"),
+ 'Both user-approved barrel/fish idle poses must appear in the aquarium');
 assert.ok(player.includes("old_mouth_idle:'./assets/octopus/player/mouth_open_original_style.webp"),
  'Previous mouth opening is required as an idle-only emote');
 assert.doesNotMatch(idleMix.match(/var choices=\[[^\]]+\]/)?.[0]||'',/['"]swim['"]/,
