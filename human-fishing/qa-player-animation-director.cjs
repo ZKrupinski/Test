@@ -40,7 +40,12 @@ assert.ok(nonIdleFrames<1100,'Idle should occupy a majority of ordinary time');
 assert.doesNotMatch(src.match(/var choices=\[[^\]]+\]/)?.[0]||'',/['"]swim['"]/,
  'Swimming sheet is reserved exclusively for the entrance');
 env.cast={active:true,elapsed:.70};
-assert.equal(pose(300).action,'toss','Only the rod cast triggers the throw animation');
+assert.equal(pose(300).action,'excited',
+ 'Fishing cast must use clean protagonist artwork without the painted extra rod or fish bucket');
+assert.match(src,/if\(view!=='tank'&&\(pose\.action==='toss'\|\|pose\.action==='gorge'\|\|pose\.action==='snack'\)\)/,
+ 'Final protagonist renderer must block the barrel and duplicate-rod sprites outside aquarium');
+assert.match(src,/var action=cycle<2\.6\?'toss':cycle<5\.2\?'gorge':cycle<7\.8\?'snack':'idle_alt'/,
+ 'The original painted rod and bucket animations must remain playable in aquarium');
 env.cast={active:false,elapsed:0};
 env.joystick={active:true,engaged:true};
 assert.equal(pose(301).action,'excited','Moving the bait should alert the protagonist, not replay swim');
