@@ -129,7 +129,7 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 
 </div>
 <script src="./blue-tang-raster.js?v=2.11"></script>
-<script src="./assets/octopus/octopus-sidekicks.js?v=6"></script>
+<script src="./assets/octopus/octopus-sidekicks.js?v=7"></script>
 <script>
 (function(){
 'use strict';
@@ -977,6 +977,7 @@ function release(){
   $('hint').textContent=found.kind==='human'?'엘리트는 격렬하게 저항하지만 자동으로 끌려옵니다.':'낚싯줄이 당겨지며 자동으로 올라옵니다.';
   spawnParticles(bob.x,bob.y,found.kind==='human'?24:12,'water');
  }else{
+  if(window.octoSidekicksSignal)window.octoSidekicksSignal('miss',time);
   announce('💧','앗, 놓쳤다!','물고기 또는 헤엄치는 인간 가까이 놓으세요.');
   $('hintTitle').textContent='찌를 다시 드래그해보세요';spawnParticles(bob.x,bob.y,8,'water');
  }
@@ -1730,7 +1731,7 @@ function success(){
  if(!human&&save.placed.length===0)save.placed.push(id);
  persist();updateStats();beep('catch');spawnParticles(645,290,extra?50:32,'gold');
  playCatchFx(o,human,name,reward,extra,fresh);
- if(window.octoSidekicksEat)window.octoSidekicksEat(time);
+ if(window.octoSidekicksCatch)window.octoSidekicksCatch(time,{rare:!!(fresh||extra||human||(o.sp&&['EPIC','LEGEND','MYTHIC'].indexOf(o.sp.rarity)>=0))});
  hook=null;
  // Keep every non-caught animal and its movement state across casts.
  if(human)hum=hum.filter(function(h){return h!==o});
@@ -1739,6 +1740,7 @@ function success(){
  $('hint').textContent='미끼가 잠겨 멈추면, 미끼를 직접 잡아 드래그하세요.';
 }
 function startCast(){
+ if(window.octoSidekicksSignal)window.octoSidekicksSignal('cast',time);
  hideVirtualJoystick();cast.active=true;cast.elapsed=0;cast.landing=false;drag=false;dragPointer=null;dragQualified=false;
  bob.x=rodTip(time).x-10;bob.y=rodTip(time).y+18;
  $('hintTitle').textContent='낚싯대를 휘둘러 찌를 던지는 중…';
@@ -2039,6 +2041,17 @@ function tick(stamp){
    var currentReel=feverReelState(feverFx,time);
    bob.x=currentReel.x;bob.y=currentReel.y;
   }}
+  // Feed the actual fishing state to the illustrated companion animation mixer.
+  // This runs before rendering, so bites, lure moves and fever feel immediate.
+  if(window.octoSidekicksObserve){
+   var lureActive=view==='fish'&&!cast.active&&!hook&&!feverFx&&
+     !!(drag||dragQualified||(joystick.active&&joystick.engaged));
+   var fishNear=view==='fish'&&!cast.active&&!hook&&!feverFx&&
+     fish.some(function(f){return !f.feverCaptured&&
+       Math.abs(f.x-bob.x)<140&&Math.abs(f.y-bob.y)<95});
+   window.octoSidekicksObserve({view:view,casting:!!cast.active,
+     lure:lureActive,hook:!!hook,near:fishNear,fever:!!feverFx},time);
+  }
   if(window.drawOctopusSidekicks)window.drawOctopusSidekicks(ctx,time,octo);
   drawOcto(time);drawRod(time);drawHelpers(time);
   if(view==='fish'){
