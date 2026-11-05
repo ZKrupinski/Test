@@ -1,0 +1,42 @@
+name: Upload Approved Transparent Hero Mouth Sheet
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vendor-approved-mouth-transparent.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: vendor-approved-mouth-transparent
+  cancel-in-progress: false
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Import exactly the approved 4x4 source sprite
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p human-fishing/assets/octopus/player
+          curl --retry 4 --retry-delay 2 -fLsS 'https://d2ol7oe51mr4n9.cloudfront.net/user_3KlCHKRIJO34SPkOC5UMUPo7vEp/6121e398-9691-41e7-8955-c9108da7c702.png' -o human-fishing/assets/octopus/player/user_mouth_open_raw.png
+          printf '%s\n' '4d976c3710ca5161ef234e58473634873e86f546f2135943b8ce9df3df26126e  human-fishing/assets/octopus/player/user_mouth_open_raw.png' | sha256sum -c -
+      - name: Clean external RGB fringe and inspect frame margins
+        run: |
+          python -m pip install -q Pillow numpy scipy
+          python human-fishing/scripts/clean_approved_mouth_alpha.py
+      - name: Commit cleaned lossless transparent PNG without replacing authored sprite content
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add human-fishing/assets/octopus/player/mouth_open_clean.png
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Install user-approved mouth-open 16-frame sprite with cleaned transparent alpha"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
