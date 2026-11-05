@@ -1519,9 +1519,14 @@ function tick(stamp){
     humanIcon(a,time);
    });
   }
+  // Preserve layering and relative placement: companions behind protagonist,
+  // fishing rod in front. Entire group slides from the left together.
+  ctx.save();
+  if(introEntrance.active&&view==='fish')ctx.translate(introEntrance.offset,0);
   if(window.drawOctopusSidekicks)window.drawOctopusSidekicks(ctx,time,octo);
   drawOcto(time);drawRod(time);drawHelpers(time);
-  if(view==='fish'){
+  ctx.restore();
+  if(view==='fish'&&!introEntrance.active){
    if(hook){
     hook.elapsed+=dt;
     var rawDuration=hook.kind==='human'?(hook.obj.id>=20?2.5:1.85):(1.10-save.up[0]*.08);
@@ -1783,7 +1788,24 @@ function success(){
  $('hintTitle').textContent='잡은 생물이 문어 입속으로 들어가는 중';
  $('hint').textContent='미끼가 잠겨 멈추면, 미끼를 직접 잡아 드래그하세요.';
 }
+// One-time character entrance on the first game launch. The hero, rod and
+// the two cheering octopuses share the SAME horizontal offset. No camera
+// movement, fishing collisions or lure trajectories are modified.
+var introEntrance={active:true,elapsed:0,duration:1.75,offset:-860};
+function advanceIntroEntrance(dt){
+ if(!introEntrance.active||view!=='fish')return;
+ introEntrance.elapsed=Math.min(introEntrance.duration,introEntrance.elapsed+dt);
+ var u=clamp(introEntrance.elapsed/introEntrance.duration,0,1);
+ // Smooth from fully off-screen left; tiny overshoot settles at the normal spot.
+ introEntrance.offset=-860*Math.pow(1-u,3)+9*Math.sin(Math.PI*u)*u;
+ if(u>=1){
+  introEntrance.active=false;introEntrance.offset=0;
+  playerOctoIdleState=null;
+  startCast(); // First actual bait throw begins only AFTER everyone arrives.
+ }
+}
 function startCast(){
+ if(introEntrance.active)return; // No rod cast before the arrival is complete.
  playerOctoCueState=null;playerOctoIdleState=null;
  if(window.octoSidekicksSignal)window.octoSidekicksSignal('cast',time);
  hideVirtualJoystick();cast.active=true;cast.elapsed=0;cast.landing=false;drag=false;dragPointer=null;dragQualified=false;
@@ -1843,7 +1865,7 @@ function onBaitPointerDown(e){
  if(view==='tank'){aquariumTapFish(e);return;}
  // Keep the natural air-cast. Once the bait has touched water (u >= 1.4),
  // any canvas touch is the origin of a virtual joystick, NOT a teleport.
- if(view!=='fish'||hook||feverFx||catchFx||escapeFx||octoGroggy>0||joystick.active||cast.active&&!cast.landing)return;
+ if(view!=='fish'||introEntrance.active||hook||feverFx||catchFx||escapeFx||octoGroggy>0||joystick.active||cast.active&&!cast.landing)return;
  var p=resizePointer(e);
  if(cast.active&&cast.landing){
    cast.active=false; // interrupt sinking at its CURRENT depth without snapping to y=436
@@ -2073,19 +2095,24 @@ function playerOctoIdleWait(now){
 function nextPlayerOctoIdle(){
  // Previous mouth-open, older eating/failure and other expressive
  // original sprite sheets are *occasional* idle emotes, not catch actions.
- var choices=['old_mouth_idle','gorge','snack','fail_alt','excited','swim'];
+ var choices=['old_mouth_idle','gorge','snack','fail_alt','excited'];
  var eligible=choices.filter(function(a){return a!==playerOctoLastIdle});
  var pick=eligible[Math.floor(Math.random()*eligible.length)];
  playerOctoLastIdle=pick;
  return pick;
 }
 function playerOctoCue(action,duration){
- if(action!=='excited'&&action!=='swim')return;
+ if(action!=='excited')return;
  playerOctoCueState={action:action,start:time,until:time+duration};
  // Return to a comfortable idle hold after the short reactive pose.
  playerOctoIdleState=playerOctoIdleWait(time+duration);
 }
 function playerOctoPose(now){
+ if(introEntrance.active){
+  // SWIM is the character introduction only, with the fishing rod visible.
+  var p=clamp(introEntrance.elapsed/introEntrance.duration,0,1);
+  return{action:'swim',frame:Math.min(15,Math.floor(p*16))};
+ }
  if(playerOctoReaction){
   var t=now-playerOctoReaction.start;
   if(t>=0&&t<playerOctoReaction.duration){
@@ -2130,8 +2157,8 @@ function playerOctoPose(now){
   playerOctoCueState=null;
  }
  if(view==='fish'&&joystick.active&&joystick.engaged){
-  // Moving the line's bait makes the protagonist work the rod.
-  return{action:'swim',frame:Math.floor(now*10*PLAYER_ANIM_RATE)%16};
+  // Rod control gets a watchful expression, not an unrelated swim cycle.
+  return{action:'excited',frame:Math.floor(now*10*PLAYER_ANIM_RATE)%16};
  }
  if(!playerOctoIdleState)playerOctoIdleState=playerOctoIdleWait(now);
  if(now>=playerOctoIdleState.until){
@@ -2139,7 +2166,7 @@ function playerOctoPose(now){
    playerOctoIdleState=playerOctoIdleWait(now);
   }else{
    var emote=nextPlayerOctoIdle(),seconds=emote==='old_mouth_idle'?1.5:
-    emote==='swim'?1.65:emote==='gorge'||emote==='fail_alt'?1.55:1.35;
+    emote==='gorge'||emote==='fail_alt'?1.55:1.35;
    playerOctoIdleState={action:emote,start:now,
     until:now+seconds/PLAYER_ANIM_RATE};
   }
@@ -2347,6 +2374,7 @@ function checkBaitBrush(){
 }
 function tick(stamp){
  var dt=Math.min((stamp-last)/1000,.045);last=stamp;time+=dt;ctx.clearRect(0,0,W,H);
+ if(view==='fish')advanceIntroEntrance(dt);
  var cameraVibration=vibrationOffset('screen');ctx.save();
  if(cameraVibration.x||cameraVibration.y){
   ctx.translate(W/2,H/2);ctx.scale(1.016,1.016);
@@ -3559,6 +3587,10 @@ if(blueTangShowcase){
     qa.appendChild(qaLabel);qa.appendChild(qaSelect);document.body.appendChild(qa);
   }
 }
-updateStats();setMode('fish');requestAnimationFrame(tick);
+updateStats();setMode('fish');
+// Start the companion arrival at the same instant as the hero's swim sheet.
+// The first bait throw is deferred by startCast() until the group settles.
+if(window.octoSidekicksSignal)window.octoSidekicksSignal('entrance',time);
+requestAnimationFrame(tick);
 })();
 </script></body></html>
