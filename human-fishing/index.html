@@ -2321,8 +2321,7 @@ var rodBitmapSprites={};
 });
 function drawRod(now){
  // Approved chunky, hand-painted transparent PNG rods. No vector rod fallback.
- var worldTip=rodTip(now);
- var tip={x:worldTip.x,y:worldTip.y-PLAYER_STAGE_DROP};
+ var worldTip=rodTip(now),tip={x:worldTip.x,y:worldTip.y-PLAYER_STAGE_DROP};
  var base={x:536,y:191},gear=selectedGear('rod');
  var rodArt=rodBitmapSprites[gear.id];
  if(!rodArt||!rodArt.ready)return;
