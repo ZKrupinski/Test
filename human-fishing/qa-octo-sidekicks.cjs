@@ -55,41 +55,29 @@ for(const name of files){
 }
 assert.ok(player.includes('playerOctoPose(now)'));
 assert.ok(player.includes("idle_alt:'purple_idle_v2.webp'"),'Main octopus must preserve user-approved original Idle artwork');
-const cur=player.match(/var playerIdleGazeFrames=\[([^\]]+)\]/);
-assert.ok(cur,'Aligned gaze frame loop must be explicitly curated');
-const allowed=new Set([0,3,4,6,9,10,11,12]);
-const curated=cur[1].split(',').map(Number);
-assert.equal(curated.length,16,'The curated Idle must still play sixteen frames');
-assert.ok(curated.every(f=>allowed.has(f)),'Curated Idle should never play a divergent-pupil frame');
-assert.ok(player.includes("if(action==='idle_alt')frame=playerIdleGazeFrames"),
- 'Only the baseline Idle should remap frame indices; other actions stay original');
-assert.ok(player.includes("action:'mouth_open'"),'New mouth-opening sequence must play on catch approach');
-const idleMix=player.slice(player.indexOf('function nextPlayerOctoIdle(){'),player.indexOf('function playerOctoPose(now){'));
-for(const action of ['old_mouth_idle','excited']){
- assert.ok(idleMix.includes("'"+action+"'"),'Missing regular/occasional fishing idle action: '+action);
-}
-const idleChoices=idleMix.match(/var choices=\[([^\]]+)\]/)?.[1]||'';
-assert.doesNotMatch(idleChoices,/['"]fail_alt['"]/,
- 'Disappointed expression must never appear in normal idle');
-assert.ok(player.includes('purple_idle_original_pixel_16f.webp'),
- 'Default idle must load the approved-original-pixel character with no redesign');
+assert.match(player,/var playerExcitedIdleFrames=\[6,7,8,9,10,11,12,13,12,11,10,9,8,7\]/,
+ 'Only the existing open-mouth, lifted-tentacle frames from the screenshot must loop in normal idle');
+assert.match(player,/return\{action:'excited',frame:playerExcitedIdleFrame\(now\)\}/,
+ 'Default play must render the approved excited sprite directly');
+assert.doesNotMatch(player,/\['idle_alt','purple_idle_original_pixel_16f\.webp'/,
+ 'Rejected heavy-lidded reconstructed Idle must not load for fishing gameplay');
+assert.ok(player.includes("action:'mouth_open'"),'Original catch-mouth animation must still override idle');
+const idleMix=player.slice(player.indexOf('function nextPlayerOctoIdle(){'),
+ player.indexOf('function playerOctoPose(now){'));
+assert.match(idleMix,/return'excited';/,'Only approved excited idle is selected');
+assert.doesNotMatch(idleMix,/var choices=\[|['"]fail_alt['"]|['"]gorge['"]|['"]snack['"]/,
+ 'No random disappointment, fish bucket, or alternate Idle may override the screenshot');
 assert.ok(player.includes('purple_sinking_original_pixel_16f.webp'),
  'The earlier bowed-head artwork must be reserved for sinking bait');
 assert.match(player,/gazeCol\*400,gazeRow\*440,400,440/,
  'The new independent 400x440 bitmap cells must not bleed into neighbors');
-assert.doesNotMatch(idleChoices,/['"](?:gorge|snack)['"]/,
- 'Main character bucket-eating idle animations must be aquarium-only');
 assert.ok(player.includes("function aquariumKeeperPose(now){")&&
  player.includes("drawOcto(now,aquariumKeeperPose(now))"),
  'Both user-approved barrel/fish idle poses must appear in the aquarium');
 assert.ok(player.includes("old_mouth_idle:'./assets/octopus/player/mouth_open_original_style.webp"),
- 'Previous mouth opening is required as an idle-only emote');
-assert.doesNotMatch(idleMix.match(/var choices=\[[^\]]+\]/)?.[0]||'',/['"]swim['"]/,
- 'Protagonist special Idle cannot include the swimming intro');
-assert.ok(idleMix.includes('playerOctoIdleWait')&&idleMix.includes('Math.random()'),
- 'Regular calm idle must separate occasional emotional reactions');
-assert.ok(!idleMix.includes('playerOctoIdleBag.pop()'),
- 'A forced parade of all idle animations must never run');
+ 'Legacy mouth-opening source is kept for event or aquarium use, not default idle');
+assert.doesNotMatch(idleMix,/Math\.random\(|playerOctoIdleBag\.pop\(/,
+ 'Approved idle animation must not cycle through old random emotes');
 assert.ok(player.includes("PLAYER_ANIM_RATE=.91"),'Main octopus animation needs slightly slower playback');
 assert.ok(player.includes('var opening=clamp((ascent-.045)/.58'),'Main octopus should begin opening before the catch reaches the surface');
 assert.ok(player.includes("fishAction==='hooked'"),'Hooked fish should have continuous flailing frames');
