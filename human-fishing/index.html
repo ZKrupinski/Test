@@ -2332,13 +2332,15 @@ function drawOcto(now,poseOverride){
  ctx.translate(295+hit.x+(octoGroggy>0?Math.sin(now*48)*3.5:0),
    15+hit.y+Math.sin(now*1.2)*3);
  if(paintedReady){
-  // Exact opaque-cell 400x440 bitmap crop, never sample adjacent frames.
-  // Use stable screen center and foot line with a slightly chubbier silhouette.
+  // Preserve the approved original sprite's proportions. Each 400x440
+  // transparent cell contains an original 313px character scaled to 360px.
+  // The uniform 0.75 factor restores the original ~255x238 screen silhouette.
+  // Keep center x=140 and feet y=244 throughout idle and bait descent.
   var gazeFrame=Math.max(0,Math.min(15,pose.frame|0)),
    gazeCol=gazeFrame%4,gazeRow=Math.floor(gazeFrame/4),
-   gazeX=.83,gazeY=.65;
+   gazeScale=.75;
   ctx.drawImage(painted,gazeCol*400,gazeRow*440,400,440,
-   140-200*gazeX,244-412*gazeY,400*gazeX,440*gazeY);
+   140-200*gazeScale,244-412*gazeScale,400*gazeScale,440*gazeScale);
  }else if(illustrated&&illustrated.ready){
   // Pixel-accurate integer atlas boundaries (1254px originals have half-pixel cells).
   var col=pose.frame%4,row=Math.floor(pose.frame/4),
