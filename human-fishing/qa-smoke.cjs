@@ -195,13 +195,23 @@ assert.match(script,/WATER_SURFACE_Y=293,PLAYER_STAGE_DROP=46/,
  'The waterline must move down 24px while the hero has 46px headroom');
 assert.match(runtimeTick,/ctx\.translate\(0,PLAYER_STAGE_DROP\)/,
  'Final active renderer must shift the main octopus, rod and red cheerleader together');
-assert.match(script,/CATCH_MOUTH_X=470,CATCH_MOUTH_LOCAL_Y=177/,
- 'The new open-mouth catch target must move 18px right and 14px up');
-assert.equal(game.getMouthPos(0).x,470,'Bait target X must sit inside the open mouth');
-assert.equal(game.getMouthPos(0).y,223,'Bait target Y must sit inside the open mouth after player drop');
+assert.match(script,/CATCH_MOUTH_X=482,CATCH_MOUTH_LOCAL_Y=168/,
+ 'The open-mouth catch target must track the slightly higher, more rightward cavity');
+assert.equal(game.getMouthPos(0).x,482,'Bait target X must sit inside the open mouth');
+assert.equal(game.getMouthPos(0).y,214,'Bait target Y must sit inside the open mouth after player drop');
 assert.match(script,/worldTip=rodTip\(now\),tip=\{x:worldTip\.x,y:worldTip\.y-PLAYER_STAGE_DROP\}/,
  'Rod tip physics must match the translated rod artwork');
+const idleBlock=script.slice(script.indexOf('function nextPlayerOctoIdle(){'),
+ script.indexOf('function playerOctoCue(',script.indexOf('function nextPlayerOctoIdle(){')));
+assert.doesNotMatch(idleBlock,/['"]gorge['"]|['"]snack['"]/,
+ 'Fish-bucket idle may play in aquarium only');
+assert.match(script,/drawOcto\(now,aquariumKeeperPose\(now\)\)/,
+ 'Aquarium must play fish-from-bucket idle animation');
+assert.match(script,/if\(action==='swim'\)cleanDetachedPlayerPixels\(/,
+ 'Swimming bitmap frames must remove neighboring-frame tails');
 const redSidekick=fs.readFileSync('human-fishing/assets/octopus/octopus-sidekicks.js','utf8');
+assert.match(redSidekick,/cleanDetachedRedPixels\(data,sw,sh\)/,
+ 'Red cheerleader sprites must remove adjacent-frame bleed');
 assert.match(redSidekick,/kind:'red'[^\n]*footY:259/,
  'Red cheerleader must share the hero\'s footline before the group shift');
 
