@@ -1,0 +1,35 @@
+name: Build Subtle Octo Fever Sprites V2
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/build-fever-soft-v2.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: build-fever-soft-v2
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepare transparent red octopus and softened vortex 16-frame atlases
+        run: |
+          set -euo pipefail
+          python -m pip install -q Pillow
+          python human-fishing/scripts/build_fever_soft_v2.py
+      - name: Commit exact pixel assets to GitHub
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add human-fishing/assets/octopus/bait/red_lure_fever_natural_v2.webp human-fishing/assets/octopus/bait/octofever_vortex_soft_v2.webp
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Publish approved natural-size Octo Fever and softened vortex bitmaps"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
