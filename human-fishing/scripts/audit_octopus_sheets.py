@@ -10,11 +10,13 @@ NAMES = ["purple_idle_v2.webp","purple_excited.webp","purple_toss.webp",
 for name in NAMES:
     image = Image.open(ROOT / name).convert("RGBA")
     W,H = image.size
-    assert W % 4 == 0 and H % 4 == 0, (name, image.size)
-    cw,ch=W//4,H//4
+    # Odd-size sources (e.g. 1254px) require integer boundaries per cell.
     frames=[]
     for i in range(16):
-        f=image.crop(((i%4)*cw,(i//4)*ch,(i%4+1)*cw,(i//4+1)*ch))
+        x0=round((i%4)*W/4);x1=round((i%4+1)*W/4)
+        y0=round((i//4)*H/4);y1=round((i//4+1)*H/4)
+        cw,ch=x1-x0,y1-y0
+        f=image.crop((x0,y0,x1,y1))
         a=f.getchannel("A").point(lambda x: 255 if x>=48 else 0)
         box=a.getbbox()
         if not box: raise RuntimeError(f"{name} frame {i} is empty")
@@ -30,7 +32,7 @@ for name in NAMES:
     heights=[f["height"] for f in frames]
     feet=[f["foot"] for f in frames]
     touch=[f["frame"] for f in frames if f["edge"]]
-    stats=dict(name=name,source=[W,H],tile=[cw,ch],
+    stats=dict(name=name,source=[W,H],tile=[round(W/4,2),round(H/4,2)],
        width_range=[min(widths),max(widths)],
        height_range=[min(heights),max(heights)],
        foot_range=[min(feet),max(feet)],
