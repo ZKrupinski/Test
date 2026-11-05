@@ -39,3 +39,7 @@ jobs:
         run: node human-fishing/qa-smoke.cjs
       - name: Verify context-driven 16-frame companion animation states
         run: node human-fishing/qa-octo-sidekicks.cjs
+      - name: Inspect original player octopus frame bounds and foot baselines
+        run: |
+          python -m pip install -q Pillow
+          python human-fishing/scripts/audit_octopus_sheets.py
