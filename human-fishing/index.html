@@ -2326,6 +2326,13 @@ function drawRod(now){
  ctx.beginPath();ctx.ellipse(540,195,9,7,.4,0,Math.PI*2);ctx.fill();
  ctx.restore();
 }
+// Dedicated depth layer for the small red fishing BAIT. Never draw it inside
+// drawOcto() or the rod group: it must be IN FRONT of the purple protagonist.
+// Fever has its own topmost pass and intentionally skips this normal bait pass.
+function drawBaitAbovePlayer(now){
+ if(hook)return drawRedLure(now,bob.x,bob.y,64);
+ return drawBob();
+}
 function drawLine(){
  var tip=rodTip(time),
   // The illustrated bait is drawn around this exact center, including shake.
@@ -2500,12 +2507,12 @@ function tick(stamp){
    ctx.restore();
   }
   if(view==='fish'&&!introEntrance.active)drawLine();
-  // 2) Ordinary fishing: bait is ALWAYS behind the fish, including a
-  // single fish or humanoid being reeled in. Keep the already-smooth angle
-  // and exact string-center attachment from drawRedLure/drawLine.
+  // Explicit foreground-over-PLAYER bait layer (do not merge with the
+  // protagonist/rod draw group). This must stay AFTER the last drawOcto,
+  // drawRod and drawLine call but BEFORE swimming and singly hooked fish.
+  // Thus normal: player < rod/line < red bait < fish.
   if(view==='fish'&&!introEntrance.active&&!feverFx){
-   if(hook)drawRedLure(time,bob.x,bob.y,64);
-   else drawBob();
+   drawBaitAbovePlayer(time);
   }
   // 3) Draw all ambient creatures IN FRONT of the ordinary lure. The
   // hooked fish is rendered later, also in front of the lure.
