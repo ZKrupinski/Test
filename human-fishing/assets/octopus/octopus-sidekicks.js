@@ -1,10 +1,10 @@
-/* HUMAN FISHING: small cheering companion octopuses.
+/* HUMAN FISHING: single red cheering companion octopus.
  * Uses the ACTUAL approved transparent sprite-sheet frames, never artificial
  * wiggle/scale/rotation effects. Walking/swimming sheet is excluded.
  * Red source: 8 action rows x 12 columns (1254x1254).
  * Integer-pixel frame extraction + 3px transparent gutters prevent frame bleed.
  * All actions share the exact same visible foot baseline (y=242).
- * Purple source: 7 atlases of 4x4 frames (640x640).
+ * Purple cheering companion is retired; hero purple art remains separate.
  */
 (function(){
  'use strict';
@@ -13,7 +13,6 @@
  var ACTIONS=['idle','bait','open','eat','chew','fail','celebrate'];
  var RED_ROWS={idle:0,bait:2,open:3,eat:4,chew:5,fail:6,celebrate:7};
  var friends=[
-  {name:'보라 문어',kind:'purple',x:112,y:132,w:124,h:124,footY:242,seed:17},
   {name:'빨간 문어',kind:'red',x:210,y:108,w:100,h:150,footY:242,seed:71}
  ];
  var portraits={},purple={},red=null;
@@ -75,15 +74,15 @@
   return img;
  }
 
- // Companions retain their original seven purple and eight-row red atlases.
- // New 16-frame hero artwork is intentionally NOT routed through this module.
+ // Only the original red cheering companion remains. No purple companion
+ // assets are loaded; the separate purple PLAYER art is untouched.
  var ALIAS={idle_alt:'idle',excited:'open',toss:'bait',gorge:'eat',
    snack:'chew',victory:'celebrate',fail_alt:'fail',swim:'celebrate'};
  var RED_ACTION={idle_alt:'idle',excited:'open',toss:'bait',gorge:'eat',
    snack:'chew',victory:'celebrate',fail_alt:'fail',swim:'swim'};
  RED_ROWS.swim=1;
  var assetsVersion='v=20261105-sidekicks-restore';
- ACTIONS.forEach(function(name){purple[name]=load(ATLAS+'purple_'+name+'.webp?'+assetsVersion,4,4)});
+ // Purple companion retired: do not load its unused sprite sheets.
  red=load(ATLAS+'red_all.webp?'+assetsVersion,12,8);
  var passive={lure:false,near:false,hook:false,fever:false,casting:false,view:'fish'};
  friends.forEach(function(f){
