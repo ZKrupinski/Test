@@ -1519,14 +1519,10 @@ function tick(stamp){
     humanIcon(a,time);
    });
   }
-  // Preserve layering and relative placement: companions behind protagonist,
-  // fishing rod in front. Entire group slides from the left together.
-  ctx.save();
-  if(introEntrance.active&&view==='fish')ctx.translate(introEntrance.offset,0);
+  // Historical tick definition. The final renderer below owns the entrance.
   if(window.drawOctopusSidekicks)window.drawOctopusSidekicks(ctx,time,octo);
   drawOcto(time);drawRod(time);drawHelpers(time);
-  ctx.restore();
-  if(view==='fish'&&!introEntrance.active){
+  if(view==='fish'){
    if(hook){
     hook.elapsed+=dt;
     var rawDuration=hook.kind==='human'?(hook.obj.id>=20?2.5:1.85):(1.10-save.up[0]*.08);
@@ -1791,13 +1787,15 @@ function success(){
 // One-time character entrance on the first game launch. The hero, rod and
 // the two cheering octopuses share the SAME horizontal offset. No camera
 // movement, fishing collisions or lure trajectories are modified.
-var introEntrance={active:true,elapsed:0,duration:1.75,offset:-860};
+var introEntrance={active:true,elapsed:0,duration:1.8,offset:-260};
 function advanceIntroEntrance(dt){
  if(!introEntrance.active||view!=='fish')return;
  introEntrance.elapsed=Math.min(introEntrance.duration,introEntrance.elapsed+dt);
  var u=clamp(introEntrance.elapsed/introEntrance.duration,0,1);
- // Smooth from fully off-screen left; tiny overshoot settles at the normal spot.
- introEntrance.offset=-860*Math.pow(1-u,3)+9*Math.sin(Math.PI*u)*u;
+ // Start visibly just left of the resting pose (not 860px offscreen).
+ // Smooth ease-in-out makes the entrance readable at normal game size.
+ var ease=u*u*(3-2*u);
+ introEntrance.offset=-260*(1-ease)+6*Math.sin(Math.PI*u)*u;
  if(u>=1){
   introEntrance.active=false;introEntrance.offset=0;
   playerOctoIdleState=null;
@@ -2407,9 +2405,14 @@ function tick(stamp){
    window.octoSidekicksObserve({view:view,casting:!!cast.active,
      lure:lureActive,hook:!!hook,near:fishNear,fever:!!feverFx},time);
   }
+  // Final runtime renderer: shift protagonist, rod and BOTH companions as
+  // one group. The ocean, HUD, fish and fishing physics remain stationary.
+  ctx.save();
+  if(view==='fish'&&introEntrance.active)ctx.translate(introEntrance.offset,0);
   if(window.drawOctopusSidekicks)window.drawOctopusSidekicks(ctx,time,octo);
   drawOcto(time);drawRod(time);drawHelpers(time);
-  if(view==='fish'){
+  ctx.restore();
+  if(view==='fish'&&!introEntrance.active){
    if(hook){
     hook.elapsed+=dt;
     var baseDuration=hook.kind==='human'?(hook.obj.id>=20?2.5:1.85):(1.10-save.up[0]*.08);
