@@ -1784,6 +1784,7 @@ function success(){
  $('hint').textContent='미끼가 잠겨 멈추면, 미끼를 직접 잡아 드래그하세요.';
 }
 function startCast(){
+ playerOctoCueState=null;playerOctoIdleState=null;
  if(window.octoSidekicksSignal)window.octoSidekicksSignal('cast',time);
  hideVirtualJoystick();cast.active=true;cast.elapsed=0;cast.landing=false;drag=false;dragPointer=null;dragQualified=false;
  bob.x=rodTip(time).x-10;bob.y=rodTip(time).y+18;
@@ -1870,7 +1871,10 @@ function onBaitPointerUp(e){
  var moved=joystick.engaged;
  hideVirtualJoystick();
  e.preventDefault();
- if(moved&&view==='fish'&&!cast.active&&!hook)release();
+ if(moved&&view==='fish'&&!cast.active&&!hook){
+  playerOctoCue('excited',.72/PLAYER_ANIM_RATE);
+  release();
+ }
 }
 function onBaitPointerCancel(e){
  if(!joystick.active||joystick.id!==e.pointerId)return;
@@ -2020,6 +2024,8 @@ function playerOctoTile(action,frame){
 var playerReactionArt={},playerOctoReaction=null,playerOctoIdleState=null;
 var playerReactionSources={
  mouth_open:'./assets/octopus/player/mouth_open_clean.png?v=20261105-clean-alpha-v1',
+ // The previous 16-frame opening is retained only as an occasional IDLE emote.
+ old_mouth_idle:'./assets/octopus/player/mouth_open_original_style.webp?v=20261105-old-idle',
  swallow_success:'./assets/octopus/atlases/purple_excited.webp?v=20261105-pixelperfect',
  swallow_failure:'./assets/octopus/player/swallow_failure_original_style.webp?v=20261105-pixelperfect'
 };
@@ -2031,6 +2037,7 @@ var playerMouthCleanBounds=[
 ];
 var playerReactionFoot={
  mouth_open:[291,291,291,291,291,291,291,291,291,291,291,291,291,291,291,291],
+ old_mouth_idle:[291,291,291,291,291,291,291,291,291,291,291,291,291,291,291,291],
  swallow_success:[292,293,293,292,292,292,291,289,288,289,287,283,288,290,291,291],
  swallow_failure:[294,294,295,294,294,294,295,294,295,295,295,295,297,297,299,299]
 };
@@ -2044,40 +2051,40 @@ Object.keys(playerReactionSources).forEach(function(key){
 });
 function startPlayerOctoReaction(type){
  if(type!=='swallow_success'&&type!=='swallow_failure')return;
- playerOctoReaction={type:type,start:time,duration:type==='swallow_success'?.78:1.06};
+ // Ease the illustration frames by ~9%, not the actual fishing physics.
+ playerOctoReaction={type:type,start:time,duration:type==='swallow_success'?.86:1.16};
  // After completing a reaction, the normal idle needs to be seen before any
  // random idle replays the old expressions.
  playerOctoIdleState=null;
 }
-var playerOctoIdleBag=[],playerOctoLastIdle='';
+// Player animation director. A calm Idle is the resting/default state.
+// Special poses are caused by meaningful fishing inputs/events. Passive
+// reactions interrupt the resting idle only occasionally, never in a parade.
+var playerOctoLastIdle='idle_alt',playerOctoCueState=null;
+var PLAYER_ANIM_RATE=.91; // 9% slower animation playback (not fishing physics)
+function playerOctoIdleWait(now){
+ return{action:'idle_alt',start:now,until:now+3.8+Math.random()*3.0};
+}
 function nextPlayerOctoIdle(){
- if(!playerOctoIdleBag.length){
-  playerOctoIdleBag=['idle_alt','excited','gorge','snack',
-   'fail_alt','victory','swim','toss'];
-  // Shuffle-bag prevents back-to-back reruns and guarantees all eight
-  // existing authored poses appear each cycle, rather than mostly Idle.
-  for(var i=playerOctoIdleBag.length-1;i>0;i--){
-   var j=Math.floor(Math.random()*(i+1));
-   var swap=playerOctoIdleBag[i];playerOctoIdleBag[i]=playerOctoIdleBag[j];
-   playerOctoIdleBag[j]=swap;
-  }
-  if(playerOctoIdleBag[playerOctoIdleBag.length-1]===playerOctoLastIdle){
-   var k=0,tmp=playerOctoIdleBag[k];
-   playerOctoIdleBag[k]=playerOctoIdleBag[playerOctoIdleBag.length-1];
-   playerOctoIdleBag[playerOctoIdleBag.length-1]=tmp;
-  }
- }
- var next=playerOctoIdleBag.pop();
- playerOctoLastIdle=next;return next;
+ // Previous mouth-open, older eating/failure and other expressive
+ // original sprite sheets are *occasional* idle emotes, not catch actions.
+ var choices=['old_mouth_idle','gorge','snack','fail_alt','excited','swim'];
+ var eligible=choices.filter(function(a){return a!==playerOctoLastIdle});
+ var pick=eligible[Math.floor(Math.random()*eligible.length)];
+ playerOctoLastIdle=pick;
+ return pick;
+}
+function playerOctoCue(action,duration){
+ if(action!=='excited'&&action!=='swim')return;
+ playerOctoCueState={action:action,start:time,until:time+duration};
+ // Return to a comfortable idle hold after the short reactive pose.
+ playerOctoIdleState=playerOctoIdleWait(time+duration);
 }
 function playerOctoPose(now){
  if(playerOctoReaction){
   var t=now-playerOctoReaction.start;
   if(t>=0&&t<playerOctoReaction.duration){
    var progress=t/playerOctoReaction.duration;
-   // The opening ends on source excitement-frame 11. Success resumes at
-   // that EXACT frame instead of jumping back to the source's idle pose.
-   // The supplied failure begins at its startled frame 3 and finishes idle.
    var frame=playerOctoReaction.type==='swallow_success'
     ? Math.min(15,11+Math.floor(progress*5))
     : Math.min(15,3+Math.floor(progress*13));
@@ -2085,13 +2092,12 @@ function playerOctoPose(now){
   }
   if(t>=playerOctoReaction.duration){
    playerOctoReaction=null;
-   playerOctoIdleState={action:'idle_alt',start:now,until:now+1.45};
+   playerOctoIdleState=playerOctoIdleWait(now);
   }
  }
  if(hook){
-  // PLAYER opens her mouth as the rod begins reeling, not only on the last
-  // frame near the lips. Complete the gape by ~63% of the ascent and hold it
-  // for the fish's entire struggle so the 16-frame artwork is clearly visible.
+  // On reeling, the MAIN octopus begins opening immediately, reaches full
+  // gape by ~63% of ascent and holds while the fish struggles near her mouth.
   var base=hook.kind==='human'?(hook.obj.id>=20?2.5:1.85):(1.10-save.up[0]*.08);
   var duration=hook.travelDuration||Math.max(.56,
    base*(1-gearPower('rod')*.035-gearPower('helper')*.012));
@@ -2101,22 +2107,40 @@ function playerOctoPose(now){
   return{action:'mouth_open',frame:Math.min(15,Math.floor(opening*16))};
  }
  if(feverFx&&feverFx.caught.length){
-  // During a multi-catch the rising rod and the waiting PLAYER share the
-  // same anticipation: finish opening early and hold for the last creature.
   var lift=clamp((feverFx.elapsed-.12)/.50,0,1);
   return{action:'mouth_open',frame:Math.min(15,Math.floor(lift*16))};
  }
- if(octoGroggy>0)return{action:'fail_alt',frame:Math.floor(now*12)%16};
- if(catchFx)return{action:'idle_alt',frame:Math.floor(now*10)%16};
- if(cast.active&&cast.elapsed<1)return{action:'toss',frame:Math.min(15,Math.max(0,Math.floor(cast.elapsed*16)))};
- // Eight authored actions now form a non-repeating shuffle bag. The old
- // gorge/snack/fail sprites remain idle reactions as requested; excitement,
- // celebration, swimming and a small cast flourish fill the gaps.
- if(!playerOctoIdleState||now>=playerOctoIdleState.until){
-  var pick=nextPlayerOctoIdle();
-  var seconds=pick==='idle_alt'?.80:pick==='gorge'||pick==='victory'?1.05:
-   pick==='fail_alt'?1.10:pick==='swim'?1.25:pick==='snack'?.95:.90;
-  playerOctoIdleState={action:pick,start:now,until:now+seconds};
+ if(octoGroggy>0)return{action:'fail_alt',frame:Math.floor(now*12*PLAYER_ANIM_RATE)%16};
+ if(catchFx)return{action:'idle_alt',frame:Math.floor(now*10*PLAYER_ANIM_RATE)%16};
+ if(cast.active&&cast.elapsed<1.75){
+  // A proper casting pose only during a rod throw, not as a random idle.
+  return{action:'toss',frame:Math.min(15,Math.floor(cast.elapsed*9.7*PLAYER_ANIM_RATE))};
+ }
+ if(view==='fish'&&playerOctoCueState){
+  if(now<playerOctoCueState.until){
+   var elapsed=now-playerOctoCueState.start;
+   return{action:playerOctoCueState.action,
+    frame:Math.floor(elapsed*12*PLAYER_ANIM_RATE)%16};
+  }
+  playerOctoCueState=null;
+ }
+ if(view==='fish'&&joystick.active&&joystick.engaged){
+  // Moving the line's bait makes the protagonist work the rod.
+  return{action:'swim',frame:Math.floor(now*10*PLAYER_ANIM_RATE)%16};
+ }
+ if(!playerOctoIdleState)playerOctoIdleState=playerOctoIdleWait(now);
+ if(now>=playerOctoIdleState.until){
+  if(playerOctoIdleState.action!=='idle_alt'||Math.random()<.24){
+   playerOctoIdleState=playerOctoIdleWait(now);
+  }else{
+   var emote=nextPlayerOctoIdle(),seconds=emote==='old_mouth_idle'?1.5:
+    emote==='swim'?1.65:emote==='gorge'||emote==='fail_alt'?1.55:1.35;
+   playerOctoIdleState={action:emote,start:now,
+    until:now+seconds/PLAYER_ANIM_RATE};
+  }
+ }
+ if(playerOctoIdleState.action==='idle_alt'){
+  return{action:'idle_alt',frame:Math.floor(now*10*PLAYER_ANIM_RATE)%16};
  }
  var phase=clamp((now-playerOctoIdleState.start)/
   Math.max(.01,playerOctoIdleState.until-playerOctoIdleState.start),0,.999);
@@ -2310,6 +2334,7 @@ function checkBaitBrush(){
   var touching=dx*dx+dy*dy<=1;
   if(touching&&!f.brushTouching&&(time-(f.lastBrushAt||-5)>.55)){
    f.lastBrushAt=time;vibrationPulse('brush');
+   playerOctoCue('excited',.9/PLAYER_ANIM_RATE);
    f.shakeUntil=time+.14;f.shakePower=1.5;
   }
   f.brushTouching=touching;
