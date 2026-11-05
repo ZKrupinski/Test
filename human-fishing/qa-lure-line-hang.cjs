@@ -63,7 +63,8 @@ assert.equal(env.drawRedLure(3,env.bob.x,env.bob.y,76),true);
 assert.deepEqual(recorded.translate,[env.bob.x+2.4,env.bob.y-1.5],
  'Bait bitmap rotation pivot must equal the string endpoint');
 assert.equal(recorded.rotate,env.lureHangState.angle,'The bait uses its eased pendulum angle');
-assert.equal(recorded.blit[5],-76*.55,'The bait illustration must be centered vertically on the string');
+assert.equal(recorded.blit[5],-76/2,'Horizontal bait center must equal the string endpoint');
+assert.equal(recorded.blit[6],-76*.55,'The bait visual center must equal the string endpoint vertically');
 // Final active line renderer may not refer to the obsolete fish/head offset.
 const lineBegin=source.lastIndexOf('function drawLine(){');
 const lineEnd=source.indexOf('function drawBob(){',lineBegin);
