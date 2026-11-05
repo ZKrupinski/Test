@@ -1481,11 +1481,6 @@ function drawRod(now){
  ctx.fillStyle='#f5d8aa';ctx.beginPath();ctx.arc(312,199,5,0,Math.PI*2);ctx.fill();
  ctx.lineWidth=3;ctx.strokeStyle='#d8a96d';ctx.beginPath();ctx.moveTo(321,202);ctx.lineTo(334,219);ctx.stroke();
  ctx.fillStyle='#daba86';ctx.beginPath();ctx.arc(334,219,5,0,Math.PI*2);ctx.fill();
- // Tentacle crosses the handle, clearly gripping the fishing rod
- ctx.lineCap='round';ctx.strokeStyle='#833b49';ctx.lineWidth=21;
- ctx.beginPath();ctx.moveTo(248,220);ctx.quadraticCurveTo(286,215,278,188);ctx.stroke();
- ctx.strokeStyle='#f3a18c';ctx.lineWidth=15;ctx.stroke();
- ctx.fillStyle='#ffcfaa';ctx.beginPath();ctx.ellipse(275,194,8,6,.5,0,Math.PI*2);ctx.fill();
  ctx.restore();
 }
 function drawLine(){
@@ -2335,13 +2330,6 @@ function drawRod(now){
  ctx.translate(base.x,base.y);ctx.rotate(angle);ctx.scale(scale,scale);
  ctx.imageSmoothingEnabled=true;
  ctx.drawImage(rodArt,484-base.x,106-base.y,210,160);
- ctx.restore();
- // Player's tentacle still grips every rod in front of the bitmap.
- ctx.save();ctx.lineCap='round';
- ctx.strokeStyle='#7f3a4b';ctx.lineWidth=23;
- ctx.beginPath();ctx.moveTo(500,230);ctx.quadraticCurveTo(549,219,538,187);ctx.stroke();
- ctx.strokeStyle='#e9a08d';ctx.lineWidth=16;ctx.stroke();
- ctx.fillStyle='#ffd0ae';ctx.beginPath();ctx.ellipse(540,195,9,7,.4,0,Math.PI*2);ctx.fill();
  ctx.restore();
 }
 // Dedicated depth layer for the small red fishing BAIT. Never draw it inside
