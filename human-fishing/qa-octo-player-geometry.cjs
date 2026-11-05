@@ -20,6 +20,11 @@ const env={
  }}
 };
 vm.runInNewContext(html.slice(begin,end),env,{filename:'player-octopus-geometry.js'});
+// Production now downloads only the small swim atlas before the entrance;
+// the rest become available as the entrance begins. Simulate that phase before
+// checking every old original frame's integer crop geometry.
+assert.ok(env.playerOctoAtlas.swim.ready,'The illustrated intro must load first');
+env.loadRemainingPlayerAtlases();
 const meta=env.playerOctoFrameMeta;
 assert.equal(Object.keys(meta).length,8);
 assert.equal(Object.keys(env.playerOctoSources).length,8);
