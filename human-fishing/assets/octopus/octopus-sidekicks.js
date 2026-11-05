@@ -12,7 +12,7 @@
  var RED_ROWS={idle:0,bait:2,open:3,eat:4,chew:5,fail:6,celebrate:7};
  var friends=[
   {name:'보라 문어',kind:'purple',x:112,y:120,w:124,h:124,seed:17},
-  {name:'빨간 문어',kind:'red',x:206,y:80,w:110,h:164,seed:71}
+  {name:'빨간 문어',kind:'red',x:206,y:124,w:124,h:124,seed:71}
  ];
  var portraits={},purple={},red=null;
  function load(url,done){
