@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>HUMAN FISHING | Octopus Sprite Uploader</title>
+<meta name="description" content="인간낚시 보라·빨간 문어 애니메이션 시트를 검수하고 GitHub 게임 리소스에 직접 교체 업로드하는 전용 도구.">
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;background:#071b25;color:#eff8fa}
+*{box-sizing:border-box}body{margin:0;padding:clamp(14px,3.4vw,42px);background:radial-gradient(ellipse 80% 55% at 65% -10%,#24506399,transparent),#071b25;min-height:100svh}
+main{max-width:1120px;margin:auto}header{padding:20px 0 28px;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+h1{font-size:clamp(24px,3.2vw,39px);letter-spacing:-.04em;margin:3px 0 0}h2{font-size:18px;letter-spacing:-.03em;margin:0 0 18px}
+.eyebrow{font-weight:900;letter-spacing:.18em;color:#8be6ea;font-size:12px}.sub{color:#a3bfca;font-size:14px;line-height:1.65}
+a{color:#86e9ec;text-underline-offset:4px}.layout{display:grid;grid-template-columns:minmax(300px,1fr) minmax(280px,1.08fr);gap:18px}
+.panel{border:1px solid #325868;border-radius:19px;background:#102e39f2;padding:clamp(19px,2.4vw,28px);box-shadow:0 14px 38px #0004}
+label{display:block;font-size:14px;color:#c9e0e6;font-weight:750;margin-bottom:9px}
+fieldset{border:0;padding:0;margin:0 0 22px}input,select,button{font:inherit}
+select,input[type=password],input[type=file]{width:100%;min-height:50px;border:1px solid #487685;border-radius:11px;color:#f1ffff;background:#0a2430;padding:12px;outline-offset:3px}
+input[type=file]{padding:13px 9px;cursor:pointer}input:focus-visible,select:focus-visible{outline:2px solid #f2c37a}
+button{border:0;border-radius:12px;padding:15px 18px;cursor:pointer;font-weight:900}
+button.primary{background:linear-gradient(#ffdda2,#ddab57);color:#1d2930;width:100%;min-height:60px;font-size:17px}
+button:disabled{opacity:.52;cursor:wait}.small{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;font-size:12px;color:#9db9c3;margin-top:8px}
+.hint{color:#a8c4cf;font-size:13px;line-height:1.65;margin:8px 0 0}
+.preview-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.preview-head h2{margin:0}.pill{font-size:12px;padding:5px 11px;border:1px solid #4b7787;border-radius:99px;color:#bdd9df}
+.checker{border:1px solid #3c6977;border-radius:15px;overflow:hidden;min-height:260px;background-color:#17333a;background-image:linear-gradient(45deg,#32525a 25%,transparent 25%),linear-gradient(-45deg,#32525a 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#32525a 75%),linear-gradient(-45deg,transparent 75%,#32525a 75%);background-size:28px 28px;background-position:0 0,0 14px,14px -14px,-14px 0}
+#frame{display:block;width:100%;height:280px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.meta>div{border-radius:10px;background:#071e29;padding:11px 12px;font-size:12px;color:#8faebb}.meta strong{display:block;color:#ecfafb;font-size:15px;margin-top:5px;word-break:break-all}
+#rowWrap{display:none;margin-top:19px}#fileState{border-radius:10px;padding:12px 14px;margin:16px 0;background:#0b2330;color:#bed5df;line-height:1.6;font-size:13px;overflow-wrap:anywhere}
+#fileState.error{background:#482728;color:#ffd6ce}#fileState.success{background:#123f34;color:#a6f9d3}
+footer{color:#90b0bc;font-size:13px;line-height:1.75;margin:24px 0}
+.mini-links{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;font-size:13px}
+.notice{background:#1c3842;border-left:3px solid #ffc777;padding:14px 16px;margin-bottom:16px;border-radius:8px;color:#daeaf0;font-size:13px;line-height:1.65}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.panel{padding:18px}#frame{height:260px}}
+</style>
+</head>
+<body>
+<main>
+<header>
+ <div><div class="eyebrow">REBELTREE · HUMAN FISHING</div><h1>문어 애니메이션 업로더</h1><p class="sub">전용 이미지 슬롯 선택 → 실제 프레임 미리보기 → GitHub 게임 리소스 교체</p></div>
+ <a href="../index.html">게임으로 돌아가기</a>
+</header>
+<div class="notice"><strong>보안:</strong> 업로드는 브라우저에서 GitHub 공식 API로 직접 전송합니다. 토큰은 저장하거나 외부 서버로 보내지 않으며, 새로고침하면 사라집니다. 저장소 <strong>ZKrupinski/Test</strong>에만 쓰기 권한이 있는 Fine-grained personal access token(Contents: Read and write)을 사용하세요.</div>
+<div class="layout">
+ <section class="panel">
+  <h2>1. 이미지 교체</h2>
+  <fieldset><label for="slot">업로드할 리소스 슬롯</label>
+   <select id="slot">
+    <optgroup label="보라 문어 · 실제 4×4 애니메이션 시트">
+     <option value="purple_idle">대기 Idle</option>
+     <option value="purple_bait">미끼 조작</option>
+     <option value="purple_open">입 벌리기</option>
+     <option value="purple_eat">먹기</option>
+     <option value="purple_chew">씹기·삼키기</option>
+     <option value="purple_fail">낚시 실패</option>
+     <option value="purple_celebrate">성공·축하</option>
+    </optgroup>
+    <optgroup label="빨간 문어 · 실제 12열 × 8행 시트">
+     <option value="red_all">빨간 문어 전체 동작 시트</option>
+    </optgroup>
+    <optgroup label="기본 정지 초상화 · 오류 대비용">
+     <option value="purple_companion">보라 문어 초상화</option>
+     <option value="red_companion">빨간 문어 초상화</option>
+    </optgroup>
+   </select>
+   <div class="small"><span id="targetPath"></span><a id="currentFile" target="_blank" rel="noopener noreferrer">현재 파일 열기</a></div>
+  </fieldset>
+  <fieldset><label for="file">교체할 이미지 선택 (PNG 또는 WebP)</label>
+   <input id="file" type="file" accept=".png,.webp,image/png,image/webp">
+   <p class="hint">PNG를 선택하면 투명도를 유지한 고품질 WebP로 변환합니다. 시트의 프레임 배열은 변경하지 않습니다. 수영·달리기 시트는 게임의 랜덤 Idle에서 사용하지 않습니다.</p>
+  </fieldset>
+  <fieldset><label for="token">GitHub 업로드 토큰</label>
+   <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
+   <p class="hint">토큰은 페이지나 저장소에 기록하지 않습니다. 이 도구는 승인된 10개 이미지 경로에만 파일을 업로드합니다.</p>
+  </fieldset>
+  <button id="upload" class="primary" type="button">선택한 스프라이트를 GitHub에 업로드</button>
+  <div id="fileState" role="status" aria-live="polite">업로드 전 파일과 실제 애니메이션 프레임을 확인하세요.</div>
+  <div class="mini-links"><a href="https://github.com/ZKrupinski/Test/actions" target="_blank" rel="noopener noreferrer">배포 진행 상황</a><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">토큰 발급</a></div>
+ </section>
+ <section class="panel">
+  <div class="preview-head"><h2>2. 스프라이트 프레임 검수</h2><span class="pill" id="gridLabel">4 × 4 / 16프레임</span></div>
+  <div class="checker"><canvas id="frame" width="600" height="460" aria-label="실제 시트 프레임 재생 미리보기"></canvas></div>
+  <div class="meta">
+   <div>미리보기 프레임<strong id="frameNumber">—</strong></div>
+   <div>이미지 크기<strong id="dimensions">파일 미선택</strong></div>
+   <div>저장 형식<strong id="format">WebP</strong></div>
+   <div>파일 용량<strong id="bytes">—</strong></div>
+  </div>
+  <div id="rowWrap"><label for="redRow">빨간 문어의 확인할 동작 행</label>
+   <select id="redRow"><option value="0">0 · 기본 Idle</option><option value="1">1 · 수영 (Idle 랜덤에서 제외)</option><option value="2">2 · 미끼 조작</option><option value="3">3 · 입 벌리기</option><option value="4">4 · 먹기</option><option value="5">5 · 씹기</option><option value="6">6 · 실패</option><option value="7">7 · 축하</option></select>
+  </div>
+  <p class="hint" id="quality">업로드할 시트의 각 프레임이 제대로 나뉘는지 확인하세요. 가로/세로 비율은 원본 프레임 기준으로 유지됩니다.</p>
+ </section>
+</div>
+<footer>저장 경로는 <strong>human-fishing/assets/octopus/</strong> 아래로 제한됩니다. 업로드 완료 후 GitHub Pages 배포에 따라 실제 게임에 적용됩니다. 토큰이 없는 방문자는 업로드할 수 없습니다.</footer>
+</main>
+<script>
+(function(){
+ 'use strict';
+ var OWNER='ZKrupinski',REPO='Test',BRANCH='main',BASE='human-fishing/assets/octopus/';
+ var slots={
+  purple_idle:{path:'atlases/purple_idle.webp',cols:4,rows:4},
+  purple_bait:{path:'atlases/purple_bait.webp',cols:4,rows:4},
+  purple_open:{path:'atlases/purple_open.webp',cols:4,rows:4},
+  purple_eat:{path:'atlases/purple_eat.webp',cols:4,rows:4},
+  purple_chew:{path:'atlases/purple_chew.webp',cols:4,rows:4},
+  purple_fail:{path:'atlases/purple_fail.webp',cols:4,rows:4},
+  purple_celebrate:{path:'atlases/purple_celebrate.webp',cols:4,rows:4},
+  red_all:{path:'atlases/red_all.webp',cols:12,rows:8},
+  purple_companion:{path:'purple_companion.webp',cols:1,rows:1},
+  red_companion:{path:'red_companion.webp',cols:1,rows:1}
+ };
+ var $=function(id){return document.getElementById(id)};
+ var selected=$('slot'),fileInput=$('file'),status=$('fileState');
+ var previewImage=null,objectUrl=null,lastFrame=-1,uploaded=false;
+ var ctx=$('frame').getContext('2d');
+ function getSlot(){return slots[selected.value]}
+ function setStatus(message,type){status.className=type||'';status.textContent=message}
+ function setSlot(){
+  var s=getSlot();$('targetPath').textContent=BASE+s.path;
+  $('gridLabel').textContent=s.cols+' × '+s.rows+' / '+(s.cols*s.rows)+'프레임';
+  $('rowWrap').style.display=selected.value==='red_all'?'block':'none';
+  $('currentFile').href='https://github.com/'+OWNER+'/'+REPO+'/blob/'+BRANCH+'/'+BASE+s.path;
+  lastFrame=-1;render(performance.now());
+ }
+ function clearPreview(){
+  previewImage=null;
+  if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl=null}
+  $('frameNumber').textContent='—';$('dimensions').textContent='파일 미선택';$('bytes').textContent='—';
+  $('format').textContent='WebP';$('quality').textContent='업로드할 시트의 각 프레임이 제대로 나뉘는지 확인하세요.';
+ }
+ function setFile(){
+  clearPreview();uploaded=false;
+  var f=fileInput.files&&fileInput.files[0];if(!f){setStatus('파일을 선택하세요.');return}
+  if(!/image\/(png|webp)/.test(f.type)&&!/\.png$|\.webp$/i.test(f.name)){
+   setStatus('PNG나 WebP 이미지만 선택할 수 있습니다.','error');return;
+  }
+  if(f.size>25*1024*1024){setStatus('파일은 25MB 이하여야 합니다.','error');return}
+  objectUrl=URL.createObjectURL(f);
+  var img=new Image();img.onload=function(){
+   if(objectUrl&&img.src===objectUrl){
+    previewImage=img;$('dimensions').textContent=img.naturalWidth+' × '+img.naturalHeight;
+    $('bytes').textContent=(f.size/1024).toFixed(1)+' KB';
+    $('format').textContent=f.type==='image/png'||/\.png$/i.test(f.name)?'PNG → WebP':'WebP 원본';
+    var s=getSlot();
+    var odd=img.naturalWidth<s.cols*40||img.naturalHeight<s.rows*40;
+    $('quality').textContent=odd?'프레임당 해상도가 낮습니다. 다른 원본을 확인하세요.':'원본 셀 크기 '+(img.naturalWidth/s.cols).toFixed(1)+' × '+(img.naturalHeight/s.rows).toFixed(1)+' px · 프레임을 원래 비율로 미리 재생합니다.';
+    setStatus('미리보기 준비 완료. 프레임과 업로드 대상 경로를 확인하세요.');
+   }
+  };img.onerror=function(){setStatus('이미지를 읽을 수 없습니다.','error')};img.src=objectUrl;
+ }
+ function render(t){
+  var canvas=$('frame'),w=canvas.width,h=canvas.height;
+  ctx.clearRect(0,0,w,h);
+  if(!previewImage||!previewImage.complete){
+   ctx.fillStyle='#b1ccd4';ctx.textAlign='center';ctx.font='bold 23px sans-serif';ctx.fillText('이미지를 선택하면',w/2,h/2-15);ctx.fillText('실제 시트 프레임을 재생합니다',w/2,h/2+23);
+  }else{
+   var s=getSlot(),cols=s.cols,rows=s.rows;
+   var row=selected.value==='red_all'?Number($('redRow').value):0;
+   var count=selected.value==='red_all'?12:cols*rows;
+   var frame=Math.floor(t/(selected.value==='red_all'?105:95))%count;
+   var sx=(selected.value==='red_all'?frame:frame%cols)*previewImage.naturalWidth/cols;
+   var sy=(selected.value==='red_all'?row:Math.floor(frame/cols))*previewImage.naturalHeight/rows;
+   var sw=previewImage.naturalWidth/cols,sh=previewImage.naturalHeight/rows;
+   var scale=Math.min(w*.68/sw,h*.83/sh),dw=sw*scale,dh=sh*scale;
+   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+   ctx.drawImage(previewImage,sx,sy,sw,sh,(w-dw)/2,(h-dh)/2,dw,dh);
+   $('frameNumber').textContent=(frame+1)+' / '+count;
+  }
+  requestAnimationFrame(render);
+ }
+ function encodeFile(blob){
+  return new Promise(function(resolve,reject){
+   var reader=new FileReader();
+   reader.onload=function(){resolve(String(reader.result).split(',')[1])};
+   reader.onerror=function(){reject(new Error('파일 인코딩 오류'))};
+   reader.readAsDataURL(blob);
+  });
+ }
+ function asWebp(file){
+  if(file.type==='image/webp'||/\.webp$/i.test(file.name))return Promise.resolve(file);
+  return new Promise(function(resolve,reject){
+   var image=new Image(),url=URL.createObjectURL(file);
+   image.onload=function(){
+    URL.revokeObjectURL(url);
+    var c=document.createElement('canvas');c.width=image.naturalWidth;c.height=image.naturalHeight;
+    c.getContext('2d').drawImage(image,0,0);
+    c.toBlob(function(blob){
+     if(blob&&blob.type==='image/webp')resolve(blob);
+     else reject(new Error('이 브라우저는 투명 WebP 변환을 지원하지 않습니다. WebP 파일을 직접 선택하세요.'));
+    },'image/webp',.97);
+   };
+   image.onerror=function(){URL.revokeObjectURL(url);reject(new Error('PNG 이미지를 열지 못했습니다.'))};
+   image.src=url;
+  });
+ }
+ function apiError(res,body){
+  var message=body&&body.message?body.message:'HTTP '+res.status;
+  if(res.status===401)message='토큰이 유효하지 않습니다. 다시 확인하세요.';
+  if(res.status===403)message='저장소 Contents 쓰기 권한이 없거나 API 요청이 제한됐습니다.';
+  if(res.status===409)message='다른 수정과 충돌했습니다. 다시 업로드를 눌러 최신 SHA를 가져오세요.';
+  if(res.status===422)message='파일 업로드가 거부됐습니다. 저장소 권한이나 파일 형식을 확인하세요.';
+  return new Error(message);
+ }
+ async function request(url,options){
+  var res=await fetch(url,options),body;
+  try{body=await res.json()}catch(e){body={}}
+  if(!res.ok)throw apiError(res,body);
+  return body;
+ }
+ async function upload(){
+  var input=fileInput.files&&fileInput.files[0],token=$('token').value.trim(),slot=getSlot();
+  if(!input){setStatus('업로드할 이미지가 없습니다.','error');return}
+  if(!previewImage){setStatus('이미지 미리보기가 준비되지 않았습니다.','error');return}
+  if(!token){setStatus('GitHub 업로드 토큰을 입력하세요.','error');return}
+  if(uploaded){setStatus('이 파일은 방금 업로드했습니다. 새로 업로드하려면 다시 버튼을 누를 수 있습니다.')}
+  var button=$('upload');button.disabled=true;button.textContent='GitHub 업로드 중…';
+  try{
+   var file=await asWebp(input),content=await encodeFile(file);
+   var api='https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+BASE+slot.path;
+   var headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
+   setStatus('현재 파일 버전을 확인하는 중…');
+   var get=await fetch(api+'?ref='+BRANCH,{headers:headers,credentials:'omit',cache:'no-store'});
+   var sha=null;
+   if(get.ok){sha=(await get.json()).sha}
+   else if(get.status!==404){var err={};try{err=await get.json()}catch(e){}throw apiError(get,err)}
+   setStatus('이미지 '+(file.size/1024).toFixed(1)+' KB를 GitHub에 업로드하는 중…');
+   var payload={message:'Update Human Fishing octopus asset: '+slot.path,content:content,branch:BRANCH};
+   if(sha)payload.sha=sha;
+   var result=await request(api,{method:'PUT',headers:Object.assign({'Content-Type':'application/json'},headers),body:JSON.stringify(payload),credentials:'omit'});
+   var revision=result.commit&&result.commit.sha?result.commit.sha.slice(0,8):'new';
+   uploaded=true;
+   setStatus('업로드 성공! 커밋 '+revision+' · GitHub Pages 배포가 완료되면 게임에 반영됩니다.','success');
+   $('currentFile').href=result.content&&result.content.html_url?result.content.html_url:$('currentFile').href;
+  }catch(error){setStatus('업로드 실패: '+(error.message||String(error)),'error')}
+  finally{button.disabled=false;button.textContent='선택한 스프라이트를 GitHub에 업로드'}
+ }
+ selected.addEventListener('change',function(){setSlot();setFile()});
+ fileInput.addEventListener('change',setFile);
+ $('redRow').addEventListener('change',function(){lastFrame=-1});
+ $('upload').addEventListener('click',upload);
+ window.addEventListener('pagehide',function(){if(objectUrl)URL.revokeObjectURL(objectUrl);$('token').value=''});
+ setSlot();requestAnimationFrame(render);
+})();
+</script>
+</body>
+</html>
