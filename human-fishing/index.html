@@ -3586,6 +3586,12 @@ function activateOctoFever(){
    targets.push({x:h.x,y:h.y,id:h.id,human:true,size:h.size||1,vx:h.vx,phase:h.phase,quantity:1});
   }else resisted++;
  });
+ // Preserve the creatures' clockwise order around the bait. This avoids
+ // crossing paths and accidental overlap as the vortex assigns new slots.
+ targets.sort(function(a,b){
+  return Math.atan2(a.y-center.y,a.x-center.x)-
+   Math.atan2(b.y-center.y,b.x-center.x);
+ });
  save.fever.ready=false;save.fever.count=0;save.fever.activations++;
  persist();updateStats();updateFeverHud();beep('catch');vibrationPulse('fever');
  spawnParticles(center.x,center.y,52,'gold');ripple(center.x,center.y);
