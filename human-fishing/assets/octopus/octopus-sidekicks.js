@@ -18,6 +18,43 @@
  var portraits={},purple={},red=null;
  // Cut tiles on whole source pixels, not fractional canvas sampling.
  // Every frame gets its own 3px transparent gutter and a consistent foot line.
+
+ // Actual source sheet sometimes contains a piece of the NEIGHBOR frame's
+ // tail at a tile edge. Keep the largest connected red octopus silhouette
+ // and its two-pixel translucent fringe, not foreign separated artwork.
+ function cleanDetachedRedPixels(data,w,h){
+  if(!data||!data.data||data.data.length!==w*h*4)return;
+  var rgba=data.data,total=w*h,labels=new Int32Array(total),
+   queue=new Int32Array(total),group=0,largest=0,primary=0;
+  for(var start=0;start<total;start++){
+   if(labels[start]||rgba[start*4+3]<48)continue;
+   var head=0,tail=1,area=0;queue[0]=start;labels[start]=++group;
+   while(head<tail){
+    var p=queue[head++],px=p%w,py=(p-px)/w;
+    for(var yy=Math.max(0,py-1);yy<=Math.min(h-1,py+1);yy++)
+     for(var xx=Math.max(0,px-1);xx<=Math.min(w-1,px+1);xx++){
+      var k=yy*w+xx;
+      if(!labels[k]&&rgba[k*4+3]>=48){labels[k]=group;queue[tail++]=k}
+     }
+    area++;
+   }
+   if(area>largest){largest=area;primary=group}
+  }
+  if(!primary)return;
+  for(var index=0;index<total;index++){
+   if(!rgba[index*4+3]||labels[index]===primary)continue;
+   var xi=index%w,yi=(index-xi)/w,near=false;
+   for(var dy=-2;dy<=2&&!near;dy++){
+    var y=yi+dy;if(y<0||y>=h)continue;
+    for(var dx=-2;dx<=2;dx++){
+     var x=xi+dx;
+     if(x>=0&&x<w&&labels[y*w+x]===primary){near=true;break}
+    }
+   }
+   if(!near)rgba[index*4+3]=0;
+  }
+ }
+
  function packAtlas(img,columns,rows){
   var w=img.naturalWidth,h=img.naturalHeight;
   if(!w||!h||typeof document==='undefined')return null;
@@ -31,6 +68,7 @@
    var x0=Math.round(c*w/columns),x1=Math.round((c+1)*w/columns);
    var y0=Math.round(r*h/rows),y1=Math.round((r+1)*h/rows);
    var sw=x1-x0,sh=y1-y0,data=sc.getImageData(x0,y0,sw,sh);
+   cleanDetachedRedPixels(data,sw,sh);
    var foot=-1,required=Math.max(3,Math.ceil(sw*.027));
    for(var y=sh-1;y>=0;y--){
     var solid=0;
@@ -81,11 +119,11 @@
  var RED_ACTION={idle_alt:'idle',excited:'open',toss:'bait',gorge:'eat',
    snack:'chew',victory:'celebrate',fail_alt:'fail',swim:'swim'};
  RED_ROWS.swim=1;
- var assetsVersion='v=20261105-sidekicks-restore';
+ var assetsVersion='v=20261105-sidekicks-clean2';
  // Purple companion retired: do not load its unused sprite sheets.
  // Compact 12-frame RED entrance: prioritizes only its original swimming row.
  // Full 96-frame red sprite atlas is loaded AFTER both intro characters show.
- var redIntro=load(ATLAS+'red_intro_swim.webp?v=20261105-fast-intro1',12,1);
+ var redIntro=load(ATLAS+'red_intro_swim.webp?v=20261105-clean2',12,1);
  var redFullQueued=false;
  function startRedFullLoad(){
   if(redFullQueued)return;
