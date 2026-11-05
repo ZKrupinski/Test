@@ -16,10 +16,12 @@ const ctx={drawImage(){},save(){},restore(){},translate(){},rotate(){},scale(){}
 function step(t,state){if(state)root.octoSidekicksObserve(state,t);root.drawOctopusSidekicks(ctx,t);return root.octoSidekicksInfo()}
 const states={view:'fish',lure:false,near:false,hook:false,fever:false,casting:false};
 let s=step(0,states);
-assert.equal(s.length,2);
+assert.equal(s.length,1,'Purple cheerleader removed, only the red companion stays');
+assert.equal(s[0].name,'빨간 문어');
 assert.equal(s[0].state,'idle');
-assert.equal(s[0].x,112);
-assert.equal(s[1].footY,undefined); // foot is applied internally to both sprites
+assert.equal(s[0].x,210);
+assert.ok(!source.includes("name:'보라 문어'"),'Purple companion must not be instantiated');
+assert.ok(!source.includes("purple[name]=load("),'Do not preload retired purple companion sheets');
 s=step(2,{...states,casting:true});assert.equal(s[0].state,'cast');
 s=step(4,{...states,hook:true});assert.equal(s[0].state,'bite');
 root.octoSidekicksCatch(6,{rare:true});
@@ -40,10 +42,9 @@ assert.ok(passiveActions.has('idle_alt'));
 assert.equal(passiveActions.has('swim'),false);
 root.octoSidekicksSignal('entrance',120);
 const introFriends=step(120.2,states);
-assert.equal(introFriends[0].state,'entrance','Purple companion must travel with the hero');
-assert.equal(introFriends[1].state,'entrance','Red companion must travel with the hero');
-assert.equal(introFriends[0].action,'swim','Purple intro uses its approved motion alias');
-assert.equal(introFriends[1].action,'swim','Red intro uses the original swim row');
+assert.equal(introFriends.length,1,'Only one red companion can join the intro');
+assert.equal(introFriends[0].state,'entrance','Red companion must travel with the hero');
+assert.equal(introFriends[0].action,'swim','Red companion uses its original swim row');
 assert.equal(step(122.5,states)[0].state,'idle','Companions must return to idle after entrance');
 const files=['purple_idle_v2.webp','purple_excited.webp','purple_toss.webp','purple_gorge.webp',
  'purple_snack.webp','purple_victory.webp','purple_fail_v2.webp','purple_swim.webp'];
@@ -80,4 +81,4 @@ assert.ok(player.includes('var opening=clamp((ascent-.045)/.58'),'Main octopus s
 assert.ok(player.includes("fishAction==='hooked'"),'Hooked fish should have continuous flailing frames');
 assert.ok(player.includes("action:'swallow_success'")||player.includes("startPlayerOctoReaction('swallow_success')"),'New success animation must be triggered');
 assert.ok(player.includes("startPlayerOctoReaction('swallow_failure')"),'New failure animation must be triggered');
-console.log('PASS: original red/purple companion atlases restored, player uses eight untouched final 16-frame sheets');
+console.log('PASS: purple cheering companion removed, red cheerleader retained, all approved purple PLAYER art unchanged');
