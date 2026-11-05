@@ -24,14 +24,14 @@ button:disabled{opacity:.52;cursor:wait}.small{display:flex;gap:8px;justify-cont
 .preview-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
 .preview-head h2{margin:0}.pill{font-size:12px;padding:5px 11px;border:1px solid #4b7787;border-radius:99px;color:#bdd9df}
 .checker{border:1px solid #3c6977;border-radius:15px;overflow:hidden;min-height:260px;background-color:#17333a;background-image:linear-gradient(45deg,#32525a 25%,transparent 25%),linear-gradient(-45deg,#32525a 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#32525a 75%),linear-gradient(-45deg,transparent 75%,#32525a 75%);background-size:28px 28px;background-position:0 0,0 14px,14px -14px,-14px 0}
-#frame{display:block;width:100%;height:280px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+#frame{display:block;width:100%;height:auto;aspect-ratio:600 / 460}.meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
 .meta>div{border-radius:10px;background:#071e29;padding:11px 12px;font-size:12px;color:#8faebb}.meta strong{display:block;color:#ecfafb;font-size:15px;margin-top:5px;word-break:break-all}
 #rowWrap{display:none;margin-top:19px}#fileState{border-radius:10px;padding:12px 14px;margin:16px 0;background:#0b2330;color:#bed5df;line-height:1.6;font-size:13px;overflow-wrap:anywhere}
 #fileState.error{background:#482728;color:#ffd6ce}#fileState.success{background:#123f34;color:#a6f9d3}
 footer{color:#90b0bc;font-size:13px;line-height:1.75;margin:24px 0}
 .mini-links{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;font-size:13px}
 .notice{background:#1c3842;border-left:3px solid #ffc777;padding:14px 16px;margin-bottom:16px;border-radius:8px;color:#daeaf0;font-size:13px;line-height:1.65}
-@media(max-width:760px){.layout{grid-template-columns:1fr}.panel{padding:18px}#frame{height:260px}}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.panel{padding:18px}}
 </style>
 </head>
 <body>
@@ -121,7 +121,7 @@ footer{color:#90b0bc;font-size:13px;line-height:1.75;margin:24px 0}
   $('gridLabel').textContent=s.cols+' × '+s.rows+' / '+(s.cols*s.rows)+'프레임';
   $('rowWrap').style.display=selected.value==='red_all'?'block':'none';
   $('currentFile').href='https://github.com/'+OWNER+'/'+REPO+'/blob/'+BRANCH+'/'+BASE+s.path;
-  lastFrame=-1;render(performance.now());
+  lastFrame=-1;
  }
  function clearPreview(){
   previewImage=null;
@@ -235,7 +235,7 @@ footer{color:#90b0bc;font-size:13px;line-height:1.75;margin:24px 0}
   }catch(error){setStatus('업로드 실패: '+(error.message||String(error)),'error')}
   finally{button.disabled=false;button.textContent='선택한 스프라이트를 GitHub에 업로드'}
  }
- selected.addEventListener('change',function(){setSlot();setFile()});
+ selected.addEventListener('change',function(){fileInput.value='';clearPreview();setSlot();setStatus('새 슬롯을 선택했습니다. 업로드할 이미지를 다시 선택하세요.');});
  fileInput.addEventListener('change',setFile);
  $('redRow').addEventListener('change',function(){lastFrame=-1});
  $('upload').addEventListener('click',upload);
