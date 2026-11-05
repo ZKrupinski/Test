@@ -55,18 +55,18 @@ for(const name of files){
 }
 assert.ok(player.includes('playerOctoPose(now)'));
 assert.ok(player.includes("idle_alt:'purple_idle_v2.webp'"),'Main octopus must preserve user-approved original Idle artwork');
-assert.match(player,/\['idle_alt','purple_selected_idle_16f\.webp','selected_idle'\]/,
- 'Approved user-selected bitmap must be the main default Idle');
-assert.match(player,/return\{action:'idle_alt',frame:Math\.floor\(now\*8\*PLAYER_ANIM_RATE\)%16\}/,
- 'Default play must loop the selected sprite rather than alternate animation');
+assert.match(player,/var playerExcitedIdleFrames=\[6,7,8,9,10,11,12,13,12,11,10,9,8,7\]/,
+ 'Only the existing open-mouth, lifted-tentacle frames from the screenshot must loop in normal idle');
+assert.match(player,/return\{action:'excited',frame:playerExcitedIdleFrame\(now\)\}/,
+ 'Default play must render the approved excited sprite directly');
 assert.doesNotMatch(player,/\['idle_alt','purple_idle_original_pixel_16f\.webp'/,
  'Rejected heavy-lidded reconstructed Idle must not load for fishing gameplay');
 assert.ok(player.includes("action:'mouth_open'"),'Original catch-mouth animation must still override idle');
 const idleMix=player.slice(player.indexOf('function nextPlayerOctoIdle(){'),
  player.indexOf('function playerOctoPose(now){'));
-assert.match(idleMix,/return'idle_alt';/,'Only user-approved illustrated idle is selected');
+assert.match(idleMix,/return'excited';/,'Only approved excited idle is selected');
 assert.doesNotMatch(idleMix,/var choices=\[|['"]fail_alt['"]|['"]gorge['"]|['"]snack['"]/,
- 'No random disappointment, fish bucket, or alternate Idle may override the selected animation');
+ 'No random disappointment, fish bucket, or alternate Idle may override the screenshot');
 assert.ok(player.includes('purple_sinking_original_pixel_16f.webp'),
  'The earlier bowed-head artwork must be reserved for sinking bait');
 assert.match(player,/gazeCol\*400,gazeRow\*440,400,440/,

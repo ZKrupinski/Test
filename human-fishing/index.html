@@ -2022,7 +2022,6 @@ var deferredPlayerImages=[],playerMainSpritesQueued=false;
 // Use a 400x440 cell and stable 200,412 foot anchor for both animations.
 var playerGazeArt={};
 [
- ['idle_alt','purple_selected_idle_16f.webp','selected_idle'],
  ['bait_sinking','purple_sinking_original_pixel_16f.webp','bait_sinking']
 ].forEach(function(spec){
  if(typeof Image==='undefined')return;
@@ -2032,7 +2031,7 @@ var playerGazeArt={};
  playerGazeArt[spec[0]]=image;
  deferredPlayerImages.push({
   action:spec[2],image:image,
-  url:'./assets/octopus/player/'+spec[1]+(spec[0]==='idle_alt'?'?v=20261105-user-selected-idle-v1':'?v=20261105-original-frame0-full-motion-v5')
+  url:'./assets/octopus/player/'+spec[1]+'?v=20261105-original-frame0-full-motion-v5'
  });
 });
 
@@ -2041,13 +2040,13 @@ function loadRemainingPlayerAtlases(){
  playerMainSpritesQueued=true;
  // The remaining actions are not on the critical path for the opening.
  deferredPlayerImages.sort(function(a,b){
-  function rank(name){return name==='selected_idle'?0:name==='excited'?1:name==='bait_sinking'?2:
-   name==='mouth_open'?3:name==='swallow_success'?4:
-   name==='idle_alt'?5:10}
+  function rank(name){return name==='excited'?0:name==='bait_sinking'?1:
+   name==='mouth_open'?2:name==='swallow_success'?3:
+   name==='idle_alt'?4:10}
   return rank(a.action)-rank(b.action);
  });
  deferredPlayerImages.forEach(function(job){
-  job.image.fetchPriority=job.action==='selected_idle'?'high':(job.action==='excited'||job.action==='bait_sinking')?'auto':'low';
+  job.image.fetchPriority=(job.action==='excited'||job.action==='bait_sinking')?'auto':'low';
   job.image.src=job.url;
  });
  deferredPlayerImages.length=0;
@@ -2229,12 +2228,12 @@ function playerExcitedIdleFrame(now){
  return playerExcitedIdleFrames[index];
 }
 function playerOctoIdleWait(now){
- return{action:'idle_alt',start:now,until:Infinity};
+ return{action:'excited',start:now,until:Infinity};
 }
 function nextPlayerOctoIdle(){
- // The 16-frame user-selected bitmap is the ONLY normal fishing idle.
- // Event-only excitement, failure, cast, and aquarium animations are separate.
- return'idle_alt';
+ // No idle roulette: disappointment, duplicate rods and painted eyes remain
+ // out of regular fishing gameplay.
+ return'excited';
 }
 function playerOctoCue(action,duration){
  if(action!=='excited')return;
@@ -2280,7 +2279,7 @@ function playerOctoPose(now){
   return{action:'mouth_open',frame:Math.min(15,Math.floor((feverFx.elapsed-feverFx.reelStart-.4)/.4*16))};
  }
  if(octoGroggy>0)return{action:'fail_alt',frame:Math.floor(now*12*PLAYER_ANIM_RATE)%16};
- if(catchFx)return{action:'idle_alt',frame:Math.floor(now*8*PLAYER_ANIM_RATE)%16};
+ if(catchFx)return{action:'excited',frame:playerExcitedIdleFrame(now)};
  if(cast.active){
   // Once the bait touches water, the red octopus sinks in a straight line.
   // The new painted down-looking sheet watches the bait until the sink ends;
@@ -2304,9 +2303,9 @@ function playerOctoPose(now){
   // Rod control gets a watchful expression, not an unrelated swim cycle.
   return{action:'excited',frame:Math.floor(now*10*PLAYER_ANIM_RATE)%16};
  }
- // Normal fishing idle: loop the exact user-selected full-body bitmap sheet.
- // Other expressions are event reactions only, never part of idle roulette.
- return{action:'idle_alt',frame:Math.floor(now*8*PLAYER_ANIM_RATE)%16};
+ // Normal fishing idle: use the screenshot-matched existing full-body
+ // 'excited' animation only. Captures, casts, fever and failure override it.
+ return{action:'excited',frame:playerExcitedIdleFrame(now)};
 }
 function drawOcto(now,poseOverride){
  var hit=vibrationOffset('octo'),pose=poseOverride||playerOctoPose(now);
@@ -2324,8 +2323,9 @@ function drawOcto(now,poseOverride){
  ctx.translate(295+hit.x+(octoGroggy>0?Math.sin(now*48)*3.5:0),
    15+hit.y+Math.sin(now*1.2)*3);
  if(paintedReady){
-  // 400x440 transparent cells contain the USER-SELECTED painted character.
-  // Preserve natural X/Y aspect ratio with the original uniform 0.75 scale.
+  // Preserve the approved original sprite's proportions. Each 400x440
+  // transparent cell contains an original 313px character scaled to 360px.
+  // The uniform 0.75 factor restores the original ~255x238 screen silhouette.
   // Keep center x=140 and feet y=244 throughout idle and bait descent.
   var gazeFrame=Math.max(0,Math.min(15,pose.frame|0)),
    gazeCol=gazeFrame%4,gazeRow=Math.floor(gazeFrame/4),

@@ -20,17 +20,16 @@ vm.createContext(env);
 vm.runInContext(src.slice(a,b),env,{filename:'player-pose-director.js'});
 function pose(t){env.time=t;return env.playerOctoPose(t)}
 assert.equal(env.PLAYER_ANIM_RATE,.91,'Rate change must be subtle');
-assert.equal(pose(0).action,'idle_alt',
- 'The exact newly selected 16-frame bitmap is the ONLY passive fishing idle');
-assert.equal(pose(3).action,'idle_alt','Selected Idle must keep looping');
-assert.match(src,/\['idle_alt','purple_selected_idle_16f\.webp','selected_idle'\]/,
- 'Idle must use the approved 16-frame image, not an older eye-warped atlas');
-assert.match(src,/return\{action:'idle_alt',frame:Math\.floor\(now\*8\*PLAYER_ANIM_RATE\)%16\}/,
- 'Idle must loop 16 complete and adjacent-frame-isolated bitmap cells');
+assert.equal(pose(0).action,'excited',
+ 'The screenshot-matched excited bitmap is the ONLY fishing default idle');
+assert.equal(pose(3).action,'excited','Default body animation must keep looping');
+const expectedFrames=[6,7,8,9,10,11,12,13,12,11,10,9,8,7];
+assert.match(src,/var playerExcitedIdleFrames=\[6,7,8,9,10,11,12,13,12,11,10,9,8,7\]/,
+ 'Use only approved expressive middle frames, ping-pong without a sharp pop');
 for(let i=0;i<3500;i++){
  const t=i*.08,p=pose(t);
- assert.equal(p.action,'idle_alt','No alternate expression may override selected bitmap idle');
- assert.ok(p.frame>=0&&p.frame<16,'Idle source always indexes one of 16 isolated cells');
+ assert.equal(p.action,'excited','No heavy-lidded eye, disappointment, or random idle');
+ assert.ok(expectedFrames.includes(p.frame),'The resting pose must use the approved excited frames');
 }
 assert.doesNotMatch(src,/var choices=\['old_mouth_idle','excited'\]/,
  'No old random idle roulette should silently replace the screenshot pose');
@@ -48,22 +47,22 @@ const sinking=pose(300.1);
 assert.equal(sinking.action,'bait_sinking',
  'New bowed-head sprite must appear ONLY while the lure is actually sinking underwater');
 assert.ok(sinking.frame>0&&sinking.frame<16,'Water sinking uses the full painted 16-frame sequence');
-assert.match(src,/function nextPlayerOctoIdle\(\)\{[^}]*return'idle_alt';/s,
- 'The only passive idle choice is the new user-selected bitmap');
+assert.match(src,/function nextPlayerOctoIdle\(\)\{[^}]*return'excited';/s,
+ 'The only permitted idle choice is the screenshot-approved excited action');
 env.cast={active:false,elapsed:0};
 env.joystick={active:true,engaged:true};
 assert.equal(pose(301).action,'excited','Moving the bait should alert the protagonist, not replay swim');
 env.joystick={active:false,engaged:false};
 env.playerOctoCue('excited',.9);
 assert.equal(pose(301).action,'excited','Bait brush/touch must trigger an excited reaction');
-assert.equal(pose(302).action,'idle_alt','A brief input reaction must return to selected idle');
+assert.equal(pose(302).action,'excited','A brief input reaction must return to approved idle');
 env.hook={kind:'fish',obj:{sp:{},x:100},elapsed:.05,travelDuration:1.0,willEscape:false};
 assert.equal(pose(303).action,'mouth_open','Reeling needs the approved new mouth sprite');
 env.hook.elapsed=.76;
 assert.equal(pose(303).frame,15,'Main mouth must be fully open early on ascent');
 env.hook=null;
 env.feverFx={caught:[{sp:{}}],elapsed:.75};
-assert.equal(pose(304).action,'idle_alt','Fever suction leaves the protagonist in selected idle until reeling');
+assert.equal(pose(304).action,'excited','Fever suction leaves the protagonist in approved idle until reeling');
 env.feverFx=null;
 env.playerOctoReaction={type:'swallow_success',start:305,duration:.86};
 assert.equal(pose(305).action,'swallow_success','The successful catch must override idle');
@@ -79,5 +78,5 @@ env.introEntrance.active=false;
 assert.match(src,/if\(introEntrance\.active\)\{/,'Entrance state must override idle');
 assert.match(src,/function advanceIntroEntrance\(dt\)/,'Entrance progression is required');
 assert.match(src,/if\(introEntrance\.active\)return;/,'First cast must wait for the entrance');
-console.log('PASS: 16-frame user-selected bitmap idle continuously; event casts, joystick, brush, reel, fever, success, failure preserved');
+console.log('PASS: screenshot-matched excited idle continuously; all casts, joystick, brush, reel, fever, success, failure and 9% slower playback');
 
