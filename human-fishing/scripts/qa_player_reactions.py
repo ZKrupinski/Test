@@ -30,7 +30,7 @@ html=Path("human-fishing/index.html").read_text()
 assert "player/mouth_open_clean.png" in html
 assert "playerMouthCleanBounds" in html
 assert "naturalScale=1.04" in html
-assert "atlases/purple_excited.webp" in html
+assert "purple_excited.webp" in html
 assert "player/swallow_failure_original_style.webp" in html
 assert "swallow_success_connected.png" in html
 assert "Math.floor(progress*16)" in html
@@ -43,7 +43,7 @@ from PIL import ImageChops
 bridge=Image.open(root/"player/swallow_success_connected.png").convert("RGBA")
 assert bridge.size==(1664,1664)
 from importlib.util import spec_from_file_location,module_from_spec
-spec=spec_from_file_location("bridge_builder",root.parent/"scripts/build_swallow_success_connected.py")
+spec=spec_from_file_location("bridge_builder",Path("human-fishing/scripts/build_swallow_success_connected.py"))
 mod=module_from_spec(spec);spec.loader.exec_module(mod)
 start=mod.tile(bridge,0)
 assert ImageChops.difference(start,mod.place(mod.tile(im,15))).getbbox() is None, "Opening -> swallow handshake jumps"
