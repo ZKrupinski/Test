@@ -28,8 +28,10 @@ assert.doesNotMatch(active.slice(line),/drawBob\(\)/,
   'Draw line without a second foreground bait draw');
 const feverCode=source.slice(source.lastIndexOf('function drawFeverFx(dt){'));
 const held=feverCode.indexOf("drawFeverTossCreature(entity,fx,i,time,'attached')");
+const launched=feverCode.indexOf("drawFeverTossCreature(entity,fx,i,time,'released')");
 const feverImage=feverCode.indexOf('ctx.drawImage(octoSprite(fx.tier,reel.frame,reel.folding)');
-assert.ok(held>=0&&feverImage>held,'During OCTO FEVER the animated bait must cover held fish');
-assert.match(feverCode,/drawFeverTossCreature\(entity,fx,i,time,'released'\)/,
- 'Fever must keep attached and released fish animations visible');
+assert.ok(held>=0&&launched>held&&feverImage>launched,
+ 'During OCTO FEVER the octopus must be ABOVE held AND lifted/released fish');
+assert.equal(feverCode.split("drawFeverTossCreature(entity,fx,i,time,'released')").length-1,1,
+ 'Fever launched fish must be drawn once, behind the octopus');
 console.log('PASS: normal/red bait behind all swimming and reeled fish; Fever bait foreground, no duplicate foreground lure.');
