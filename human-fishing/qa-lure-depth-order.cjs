@@ -15,15 +15,15 @@ const hero=where('drawOcto(time);drawRod(time);drawHelpers(time);');
 const ambient=where('fish.forEach(function(a){');
 const human=where('hum.forEach(function(a){');
 const hookedFish=where('drawHookSwallow(time);');
-const fever=where('drawFeverFx(dt);');
-assert.ok(stateUpdate<hero&&hero<=rod&&rod<line&&line<ordinaryBack&&ordinaryBack<bait,
- 'Purple protagonist and rod/line MUST be rendered UNDER the red bait');
+const fever=where("if(view==='fish'&&!introEntrance.active&&feverFx)drawFeverFx(dt);");
+assert.ok(stateUpdate<hero&&hero<=rod&&rod<line&&line<fever&&fever<ordinaryBack&&ordinaryBack<bait,
+ 'Both normal and FEVER bait MUST render above the rod/line, beneath fish');
 assert.match(source,/function drawBaitAbovePlayer\(now\)\{\s*if\(hook\)return drawRedLure\(now,bob\.x,bob\.y,64\);\s*return drawBob\(\);\s*\}/,
  'Normal and individually reeled bait must use the same foreground-over-player pass');
 assert.ok(bait<ambient&&ambient<human&&human<hookedFish,
  'Normal red bait must stay ABOVE line but BEHIND ambient and singly reeled fish');
-assert.ok(fever>hookedFish&&fever>ambient,
- 'Fever renders on top of all caught and wild creatures');
+assert.ok(fever<ambient&&fever<human&&fever<hookedFish,
+ 'Fever now follows the SAME layer as normal bait, beneath all swimming and reeled fish');
 assert.equal(active.split('drawLine();').length-1,1,'Fishing line cannot be drawn over the bait again');
 assert.equal(active.split('drawBaitAbovePlayer(time);').length-1,1,
  'Dedicated foreground-over-player bait pass must run exactly once');
@@ -34,11 +34,24 @@ assert.doesNotMatch(active.slice(bait+1),/drawLine\(\)/,
 assert.doesNotMatch(active.slice(bait+1),/drawOcto\(time\)/,
  'Purple protagonist must NEVER be redrawn on top of red bait');
 const feverCode=source.slice(source.lastIndexOf('function drawFeverFx(dt){'));
+const spritePaint=feverCode.indexOf('drawFeverMouthSprite(fx,reel);');
 const held=feverCode.indexOf("drawFeverTossCreature(entity,fx,i,time,'attached')");
 const launched=feverCode.indexOf("drawFeverTossCreature(entity,fx,i,time,'released')");
-const feverImage=feverCode.indexOf('ctx.drawImage(octoSprite(fx.tier,reel.frame,reel.folding)');
-assert.ok(held>=0&&launched>held&&feverImage>launched,
- 'During OCTO FEVER the octopus must be ABOVE held AND lifted/released fish');
+assert.ok(spritePaint>=0&&held>spritePaint&&launched>spritePaint,
+ 'Fever bitmap must stay behind all held and released creatures even when reeling');
 assert.equal(feverCode.split("drawFeverTossCreature(entity,fx,i,time,'released')").length-1,1,
- 'Fever launched fish must be drawn once, behind the octopus');
-console.log('PASS: rod < string < normal red bait < fish; Fever bait above all fish during ascent; no duplicate line/lure.');
+ 'Fever launched fish must be drawn once in front of its bait');
+assert.doesNotMatch(feverCode,/drawImage\(octoSprite\(|feverFlingStreakSprite\(/,
+ 'Old vector tentacle-burst artwork may not return in the Fever renderer');
+assert.match(source,/red_lure_fever_mouth\.webp/,'Fever must load user-approved 16f bitmap');
+assert.match(source,/function feverMouthSpriteFrame\(fx\)/,
+ 'Fever mouth must explicitly sequence opening, suction hold and closure');
+assert.match(source,/if\(p<\.22\).*Math\.floor\(p\/\.22\*5\)/,
+ 'Fever initial frames must OPEN the mouth');
+assert.match(source,/if\(p<\.78\).*Math\.floor\(\(p-\.22\)\/\.56\*7\)/,
+ 'Fever middle frames must HOLD mouth open with suction bubbles');
+assert.match(source,/return 12\+Math\.min\(3,Math\.floor\(\(p-\.78\)\/\.22\*4\)\)/,
+ 'Fever ending frames must CLOSE the mouth');
+assert.equal(active.split('drawFeverFx(dt);').length-1,1,
+ 'Fever must not render a second foreground copy after fish');
+console.log('PASS: rod < line < BOTH ordinary/FEVER bitmap bait < fish; original giant-mouth 16f suction and closure; no vector tentacles.');
