@@ -127,6 +127,11 @@
   f.seqEnd=now+steps.reduce(function(sum,x){return sum+x.seconds},0);
  }
  function stepsOf(f,type,detail){
+  // First launch: travel with the protagonist instead of popping in place.
+  // Purple 'swim' maps to its original cheerful action; red uses its
+  // existing swimming row, no character artwork is changed.
+  if(type==='entrance')return [{name:'swim',seconds:1.78},
+   {name:'idle_alt',seconds:.30}];
   if(type==='cast')return [{name:take(f,'cast',['toss','bait']),seconds:1.28}];
   if(type==='bite')return [{name:take(f,'surprise',['excited','open']),seconds:.62},
     {name:'open',seconds:.56}];
@@ -146,7 +151,7 @@
  }
  function signal(type,now,detail){
   if(!Number.isFinite(now))return;
-  var priority={cast:2,near:1,bite:4,miss:4,fever:6,catch:7,fail:8}[type]||1;
+  var priority={entrance:9,cast:2,near:1,bite:4,miss:4,fever:6,catch:7,fail:8}[type]||1;
   friends.forEach(function(f,i){
    // The two companions are offset by a few frames instead of being clones.
    if(f.seq&&now<f.seqEnd&&priority<f.priority)return;
