@@ -907,9 +907,42 @@ function drawFish(a,now,alpha){
   var nearBait=0;
   if(view==='fish'&&!cast.active&&!hook&&!feverFx&&!escapeFx&&!catchFx)
    nearBait=Math.hypot(a.x-bob.x,a.y-bob.y);
+  // Species with dedicated sprites (e.g. Blue Tang) use their actual
+  // hooked/lift/last_resist/slip/reentry/flee frames, never a generic idle.
   if(player.draw(ctx,a,now,alpha,nearBait))return;
  }
-var sp=a.sp;if(!sp)return;var sprite=fishSprite(sp),sz=.5*(a.size||fishVisualProfile(sp).baseScale);if(alpha!==undefined)ctx.globalAlpha=alpha;ctx.save();ctx.translate(a.x,a.y+Math.sin(now*2+a.phase)*Math.min(3,1.8+sz));if(a.shakeUntil>now){var fade=clamp((a.shakeUntil-now)/.14,0,1),strength=(a.shakePower||1.4)*fade;ctx.translate(Math.sin(now*63+a.phase)*strength,Math.cos(now*83+a.phase)*strength*.6);ctx.rotate(Math.sin(now*46+a.phase)*strength*.023)}if(a.vx>0)ctx.scale(-1,1);ctx.drawImage(sprite,-sprite.width*.5*sz,-sprite.height*.5*sz,sprite.width*sz,sprite.height*sz);ctx.restore();ctx.globalAlpha=1}
+ var sp=a.sp;if(!sp)return;
+ var sprite=fishSprite(sp),sz=.5*(a.size||fishVisualProfile(sp).baseScale),
+  phase=a.phase||0,action=a.spriteAction||'',
+  struggling=action==='bite'||action==='hooked'||action==='last_resist'||action==='slip',
+  escaping=action==='reentry'||action==='flee';
+ if(alpha!==undefined)ctx.globalAlpha=alpha;
+ ctx.save();
+ ctx.translate(a.x,a.y+Math.sin(now*2+phase)*Math.min(3,1.8+sz));
+ if(a.shakeUntil>now){
+  var fade=clamp((a.shakeUntil-now)/.14,0,1),strength=(a.shakePower||1.4)*fade;
+  ctx.translate(Math.sin(now*63+phase)*strength,Math.cos(now*83+phase)*strength*.6);
+  ctx.rotate(Math.sin(now*46+phase)*strength*.023);
+ }
+ if(struggling){
+  // Bitmap fallback for fish without bespoke 8-frame struggle animations:
+  // a visibly irregular flail with no replacement/alteration of original art.
+  var rate=action==='last_resist'?48:action==='slip'?38:31,
+   wriggle=Math.sin(now*rate+phase*1.7),
+   kick=Math.cos(now*(rate*.77)+phase*2.1);
+  ctx.translate(wriggle*(action==='last_resist'?5:3),kick*2.2);
+  ctx.rotate(wriggle*(action==='last_resist'?.20:.145));
+  ctx.scale(1+kick*.065,1-kick*.040);
+ }else if(escaping){
+  var burst=Math.sin(now*(action==='flee'?32:25)+phase*1.8);
+  ctx.rotate(burst*(action==='flee'?.082:.13));
+  ctx.scale(1+burst*.043,1-burst*.025);
+ }
+ if(a.vx>0)ctx.scale(-1,1);
+ ctx.drawImage(sprite,-sprite.width*.5*sz,-sprite.height*.5*sz,
+  sprite.width*sz,sprite.height*sz);
+ ctx.restore();ctx.globalAlpha=1;
+}
 function drawOcto(now){ctx.save();ctx.translate(102,448+Math.sin(now*1.2)*8);ctx.drawImage(octo,0,0,260,236);ctx.restore()}
 function drawLine(){var anchor={x:352,y:548+Math.sin(time*1.2)*5},end=hook?{x:hook.obj.x,y:hook.obj.y}:bob;ctx.lineCap='round';ctx.lineJoin='round';var sag=drag?55:hook?0:105;ctx.beginPath();ctx.moveTo(anchor.x,anchor.y);ctx.bezierCurveTo(anchor.x+170,anchor.y-210+sag,end.x-130,end.y+sag,end.x,end.y);ctx.strokeStyle='#053945b8';ctx.lineWidth=5;ctx.stroke();ctx.strokeStyle='#f7e8c8';ctx.lineWidth=2.4;ctx.stroke();ctx.beginPath();ctx.moveTo(end.x-6,end.y-3);ctx.lineTo(end.x+7,end.y+8);ctx.strokeStyle='#fff7dc';ctx.lineWidth=2;ctx.stroke()}
 function drawBob(){var x=bob.x,y=bob.y;circle(x,y,28,drag?'#fff6be2c':'#ffeaad15');ctx.strokeStyle=drag?'#f4e49daa':'#efffff33';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y,27+Math.sin(time*4)*3,11,0,0,7);ctx.stroke();ctx.fillStyle='#ffe9ba';ctx.beginPath();ctx.ellipse(x,y,11,18,0,0,7);ctx.fill();ctx.fillStyle='#ed736d';ctx.beginPath();ctx.ellipse(x,y-5,11,11,0,Math.PI,Math.PI*2);ctx.fill();ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.stroke();circle(x-3,y-7,2,'#ffffff')}
@@ -2418,7 +2451,7 @@ function drawSwallowCreature(entity,elapsed,delay,travel,mouth){
  var p=clamp((elapsed-delay)/travel,0,1);
  if(p>=1||elapsed<delay)return false;
  var point=swallowPoint(entity.x,entity.y,mouth,p),x=point.x,y=point.y;
- var scale=p<.79?1:Math.max(.02,1-(p-.79)/.21);
+ var scale=p<.89?1:Math.max(.02,1-(p-.89)/.11);
  ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);
  if(entity.vibration){var shake=entity.vibration;ctx.translate(Math.sin(time*48+(entity.phase||0))*shake,Math.cos(time*63+(entity.phase||0))*shake*.55);ctx.rotate(Math.sin(time*36+(entity.phase||0))*shake*.021)}
  if(entity.human){
@@ -2426,10 +2459,17 @@ function drawSwallowCreature(entity,elapsed,delay,travel,mouth){
   humanIcon({id:entity.id,x:0,y:0,phase:entity.phase||0,size:1},time);
  }else if(entity.sp){
   ctx.rotate((mouth.x<entity.x?-.32:.24)*Math.sin(Math.PI*p));
-  var fishAction=p<.14?'bite':p<.51?'hooked':p<.85?'lift':'last_resist';
-   var fishProgress=fishAction==='bite'?p/.14:fishAction==='hooked'?(p-.14)/.37:fishAction==='lift'?(p-.51)/.34:(p-.85)/.15;
-   drawFish({sp:entity.sp,x:0,y:0,vx:entity.vx||1,size:entity.size||1.35,
-     phase:entity.phase||0,spriteAction:fishAction,spriteFrame:Math.min(7,Math.floor(Math.max(0,fishProgress)*8))},time);
+  // Maintain a clear sequence: bite -> violent hook struggle -> lift ->
+  // final frantic resistance before the mouth, including fish without a
+  // dedicated sprite provider.
+  var fishAction=p<.12?'bite':p<.50?'hooked':p<.72?'lift':'last_resist';
+  var fishProgress=fishAction==='bite'?p/.12:fishAction==='hooked'?(p-.12)/.38:
+   fishAction==='lift'?(p-.50)/.22:(p-.72)/.28;
+  var looping=fishAction==='hooked'||fishAction==='last_resist',
+   fishFrame=looping?Math.floor(time*(fishAction==='last_resist'?24:19)+(entity.phase||0)*2)%8:
+    Math.min(7,Math.floor(Math.max(0,fishProgress)*8));
+  drawFish({sp:entity.sp,x:0,y:0,vx:entity.vx||1,size:entity.size||1.35,
+   phase:entity.phase||0,spriteAction:fishAction,spriteFrame:fishFrame},time);
  }
  ctx.restore();
  if(p>.16&&p<.89&&Math.random()<.24){
@@ -2442,7 +2482,7 @@ function drawHookSwallow(now){
  if(!hook||!hook.travelDuration)return;
  var o=hook.obj;
  var entity={x:hook.startX,y:hook.startY,human:hook.kind==='human',
-  vibration:hook.kind==='fish'?(2.0+3*clamp(hook.elapsed/(hook.travelDuration||1),0,1)):1.7,
+  vibration:hook.kind==='fish'?(3.2+4.6*clamp(hook.elapsed/(hook.travelDuration||1),0,1)):1.7,
   id:hook.kind==='human'?o.id:0,sp:hook.kind==='fish'?o.sp:null,
   size:o.size||1.35,vx:o.vx||1,phase:o.phase||0};
  var approach=hook.willEscape?clamp(hook.elapsed/(hook.travelDuration*(hook.escapeAt||.88)),0,1)*.90:clamp(hook.elapsed/hook.travelDuration,0,1);
@@ -2843,7 +2883,7 @@ function escapeHook(){
   name:human?'인간 엘리트':o.sp.name,
   x:o.x,y:o.y,dir:dir,vx:o.vx||dir,size:o.size||1.2,phase:o.phase||0,
   elapsed:0,stage:'struggle',impact:false,splash:false,lastX:o.x,lastY:o.y,
-  duration:human?3.0:2.35
+  duration:human?3.0:2.75
  };
  o.feverCaptured=true;
  hook=null;hideVirtualJoystick();
@@ -2859,41 +2899,58 @@ function escapeHook(){
 function escapePose(fx,t){
  var x=fx.x,y=fx.y,d=fx.dir;
  function smooth(v){v=clamp(v,0,1);return v*v*(3-2*v)}
+ if(!fx.human){
+  // Failure does not instantly teleport a fish underwater. It fights free
+  // for several clearly readable tail kicks, slips, pivots and only then
+  // re-enters the water to accelerate away.
+  if(t<.42)return{stage:'struggle',
+   x:x+Math.sin(t*50+(fx.phase||0))*19,
+   y:y+Math.sin(t*35+(fx.phase||0))*8,
+   rot:Math.sin(t*44+(fx.phase||0))*.36};
+  if(t<.74){
+   var slip=smooth((t-.42)/.32);
+   return{stage:'slip',
+    x:x+d*112*slip+Math.sin(t*46)*9*(1-slip),
+    y:y+58*slip-18*Math.sin(Math.PI*slip),
+    rot:d*slip*.74+Math.sin(t*44)*.20*(1-slip)};
+  }
+  if(t<1.19){
+   var dive=smooth((t-.74)/.45);
+   return{stage:'dive',x:x+d*(112+240*dive),
+    y:mix(y+58,365,dive)-24*Math.sin(Math.PI*dive),
+    rot:d*(.74-1.0*dive)};
+  }
+  var run=t-1.19;
+  return{stage:'flee',x:x+d*(352+990*run+175*run*run),
+   y:365+Math.sin(run*18+(fx.phase||0))*8+Math.min(34,run*26),
+   rot:d*-.075};
+ }
+ // Human elites retain their original aerial counterattack and recovery.
  if(t<.29)return{stage:'struggle',x:x+Math.sin(t*64)*12,
   y:y+Math.sin(t*40)*6,rot:Math.sin(t*51)*.38};
  var slip=smooth((t-.29)/.29);
  if(t<.58)return{stage:'slip',x:x+d*108*slip,
   y:y+75*slip-16*Math.sin(Math.PI*slip),rot:d*slip*.85};
- if(fx.human){
-  if(t<.86){
-   var attack=smooth((t-.58)/.28),m=mouthPos(time);
-   return{stage:'strike',x:mix(x+d*108,m.x+d*25,attack),
-    y:mix(y+75,m.y-6,attack)-16*Math.sin(Math.PI*attack),
-    rot:d*(.75-1.25*attack)};
-  }
-  if(t<1.13){
-   var recoil=smooth((t-.86)/.27);
-   return{stage:'recoil',x:mix(x+d*23,x+d*150,recoil),
-    y:mix(mouthPos(time).y-7,y+105,recoil)-22*Math.sin(Math.PI*recoil),
-    rot:d*(-.5+1.35*recoil)};
-  }
-  if(t<1.53){
-   var dive=smooth((t-1.13)/.40);
-   return{stage:'dive',x:x+d*(150+180*dive),
-    y:mix(y+105,358,dive),rot:d*(.85-1.35*dive)};
-  }
-  var run=t-1.53;
-  return{stage:'flee',x:x+d*(330+930*run+130*run*run),
-   y:358+Math.sin(run*9)*6+Math.min(35,run*28),rot:d*-.08};
+ if(t<.86){
+  var attack=smooth((t-.58)/.28),m=mouthPos(time);
+  return{stage:'strike',x:mix(x+d*108,m.x+d*25,attack),
+   y:mix(y+75,m.y-6,attack)-16*Math.sin(Math.PI*attack),
+   rot:d*(.75-1.25*attack)};
  }
- if(t<1.01){
-  var dive=smooth((t-.58)/.43);
-  return{stage:'dive',x:x+d*(108+210*dive),
-   y:mix(y+75,365,dive),rot:d*(.85-1.15*dive)};
+ if(t<1.13){
+  var recoil=smooth((t-.86)/.27);
+  return{stage:'recoil',x:mix(x+d*23,x+d*150,recoil),
+   y:mix(mouthPos(time).y-7,y+105,recoil)-22*Math.sin(Math.PI*recoil),
+   rot:d*(-.5+1.35*recoil)};
  }
- var run=t-1.01;
- return{stage:'flee',x:x+d*(318+970*run+165*run*run),
-  y:365+Math.sin(run*12)*7+Math.min(32,run*24),rot:d*-.07};
+ if(t<1.53){
+  var drop=smooth((t-1.13)/.40);
+  return{stage:'dive',x:x+d*(150+180*drop),
+   y:mix(y+105,358,drop),rot:d*(.85-1.35*drop)};
+ }
+ var humanRun=t-1.53;
+ return{stage:'flee',x:x+d*(330+930*humanRun+130*humanRun*humanRun),
+  y:358+Math.sin(humanRun*9)*6+Math.min(35,humanRun*28),rot:d*-.08};
 }
 // Align the escaping fish's head with its actual travel velocity.
 // The fish bitmap faces LEFT by default; drawFish flips it when vx > 0.
@@ -2906,13 +2963,13 @@ function escapeFishHeading(fx,t){
  travelAngle=clamp(travelAngle,-1.2,1.2);
  if(current.stage==='struggle')return current.rot;
  if(current.stage==='slip'){
-  var blend=clamp((t-.29)/.29,0,1);
+  var blend=clamp((t-.42)/.32,0,1);
   return mix(current.rot,travelAngle,blend);
  }
  if(current.stage==='dive')return travelAngle+Math.sin(t*30)*.035;
  // After reentry the body smoothly levels with the high-speed swimming path.
- var smooth=clamp((t-1.01)/.13,0,1);
- var finalAngle=fx.dir*Math.atan2(365-(fx.y+75),210);
+ var smooth=clamp((t-1.19)/.16,0,1);
+ var finalAngle=fx.dir*Math.atan2(365-(fx.y+58),240);
  return mix(finalAngle,travelAngle,smooth)+Math.sin(t*27)*.018;
 }
 function groggyStar(frame){
@@ -2962,7 +3019,10 @@ function drawEscapeFx(dt){
  }
  fx.lastWasAboveWater=pose.y<273;
  ctx.save();ctx.translate(pose.x,pose.y);
- if(!fx.human&&(pose.stage==='struggle'||pose.stage==='slip')){var rush=Math.max(0,1-fx.elapsed/.58);ctx.translate(Math.sin(fx.elapsed*77)*5*rush,Math.cos(fx.elapsed*92)*3*rush)}
+ if(!fx.human&&(pose.stage==='struggle'||pose.stage==='slip')){
+  var rush=Math.max(0,1-fx.elapsed/.74);
+  ctx.translate(Math.sin(fx.elapsed*79)*7*rush,Math.cos(fx.elapsed*94)*4*rush);
+ }
  ctx.rotate(fx.human?pose.rot:escapeFishHeading(fx,fx.elapsed));
  if(fx.human){
   ctx.scale(1.08,1.08);
@@ -2977,11 +3037,13 @@ function drawEscapeFx(dt){
  }else{
   ctx.scale(1.2,1.2);
   if(pose.stage==='struggle'||pose.stage==='slip')
-   ctx.rotate(Math.sin(fx.elapsed*48)*.11);
+   ctx.rotate(Math.sin(fx.elapsed*52)*.17);
   var escapeMotion=pose.stage==='flee'?'flee':pose.stage==='dive'?'reentry':
       pose.stage==='slip'?'slip':'last_resist';
    drawFish({sp:fx.sp,x:0,y:0,vx:fx.dir,size:fx.size||1.2,phase:fx.phase,
-     spriteAction:escapeMotion,spriteFrame:Math.floor(fx.elapsed*18)%8},time);
+     spriteAction:escapeMotion,
+     spriteFrame:Math.floor(fx.elapsed*
+      (pose.stage==='struggle'?25:pose.stage==='flee'?22:20))%8},time);
  }
  ctx.restore();
  if(fx.impact&&fx.elapsed<1.13){
