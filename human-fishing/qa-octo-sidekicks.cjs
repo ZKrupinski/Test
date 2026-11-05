@@ -65,10 +65,18 @@ assert.ok(player.includes("if(action==='idle_alt')frame=playerIdleGazeFrames"),
  'Only the baseline Idle should remap frame indices; other actions stay original');
 assert.ok(player.includes("action:'mouth_open'"),'New mouth-opening sequence must play on catch approach');
 const idleMix=player.slice(player.indexOf('function nextPlayerOctoIdle(){'),player.indexOf('function playerOctoPose(now){'));
-for(const action of ['old_mouth_idle','fail_alt','excited']){
+for(const action of ['old_mouth_idle','excited']){
  assert.ok(idleMix.includes("'"+action+"'"),'Missing regular/occasional fishing idle action: '+action);
 }
 const idleChoices=idleMix.match(/var choices=\[([^\]]+)\]/)?.[1]||'';
+assert.doesNotMatch(idleChoices,/['"]fail_alt['"]/,
+ 'Disappointed expression must never appear in normal idle');
+assert.ok(player.includes('purple_idle_lookdown_16f.webp'),
+ 'Original default idle needs the freshly painted cute downward-eye sprite');
+assert.ok(player.includes('purple_bait_sinking_16f.webp'),
+ 'The earlier bowed-head artwork must be reserved for sinking bait');
+assert.match(player,/gazeCol\*400,gazeRow\*440,400,440/,
+ 'The new independent 400x440 bitmap cells must not bleed into neighbors');
 assert.doesNotMatch(idleChoices,/['"](?:gorge|snack)['"]/,
  'Main character bucket-eating idle animations must be aquarium-only');
 assert.ok(player.includes("function aquariumKeeperPose(now){")&&
