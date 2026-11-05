@@ -18,9 +18,9 @@ ROOT=Path("human-fishing/assets/octopus")
 OPEN=ROOT/"player/mouth_open_clean.png"
 SUCCESS=ROOT/"atlases/purple_excited.webp"
 DEST=ROOT/"player/swallow_success_connected.png"
-CELL=384
-FOOT=353
-CENTER=192
+CELL=416
+FOOT=360
+CENTER=208
 # Six closing poses, followed by the previous original smiling animation.
 TAKE=[("open",15),("open",14),("open",12),("open",10),
       ("open",7),("open",4),
@@ -87,7 +87,7 @@ def build():
     DEST.parent.mkdir(exist_ok=True,parents=True)
     new.save(DEST,optimize=True)
     reopened=Image.open(DEST).convert("RGBA")
-    assert reopened.size==(1536,1536)
+    assert reopened.size==(1664,1664)
     assert reopened.getchannel("A").getextrema()==(0,255)
     # Ensure all cells have exterior transparent margins and do not bleed.
     for i in range(16):
