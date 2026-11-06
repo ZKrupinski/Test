@@ -341,16 +341,39 @@ function fishMouthOverlapsLure(f,point,now){
  var dy=(point.y-mouth.y)/(mouth.ry+radius);
  return dx*dx+dy*dy<=1;
 }
+// Unlike the former 215px-wide guaranteed chain reaction, a wrong-body
+// release scares a small random cluster. Roughly 30% of misses use an even
+// smaller surprise radius; none exceeds 150px.
+function missScareRadius(roll){
+ var u=clamp(Number(roll)||0,0,1);
+ return u<.30?62+u/.30*38:110+(u-.30)/.70*40;
+}
+function missScareScreenLimits(f){
+ // The image and size used by the actual fish renderer determine how
+ // close its center may approach the edge without clipping the sprite.
+ var image=fishSprite(f.sp),scale=.5*(f.size||fishVisualProfile(f.sp).baseScale)*
+  (image&&(image._hfScale||1)||1);
+ var halfWidth=image&&image.width?image.width*scale*.5:35*(f.size||1);
+ var margin=clamp(halfWidth+18,45,185);
+ return{left:margin,right:W-margin};
+}
 function scareFishOnMiss(point){
- // Release over the fish's body/tail (but outside its mouth) sends the
- // whole nearby group into fast flight, not just the touched individual.
- var radius=215,scared=0;
+ // The hit fish always bolts, while only nearby neighbours join.
+ // Each wrong-body release gets one independent random-sized panic area.
+ var radius=missScareRadius(Math.random()),scared=0;
  fish.forEach(function(f){
   if(!f||f.feverCaptured||f===(hook&&hook.obj))return;
+  // Do not drag incoming offscreen spawns into the scene.
+  if(f.x<0||f.x>W)return;
   var dx=f.x-point.x,dy=f.y-point.y,dist=Math.hypot(dx,dy);
   if(dist>radius)return;
   var dir=Math.abs(dx)>8?(dx>0?1:-1):
    ((f.vx||f.dir||1)<0?-1:1);
+  var bounds=missScareScreenLimits(f);
+  // A fish already at an edge must dart inward, not shoot offscreen.
+  if(f.x>bounds.right-100)dir=-1;
+  else if(f.x<bounds.left+100)dir=1;
+  f.missScareStayVisible=true;
   f.fearX=point.x;f.fearY=point.y;
   // Holding a signed direction prevents trapped fish from changing
   // direction mid-flight when they pass through the release position.
@@ -3292,6 +3315,21 @@ function updateEcosystem(dt){
    f.panicUntil=Math.max(f.panicUntil,eco.t+.45);
    f.fearX=bob.x;f.fearY=bob.y;
   }
+  if(f.missScareStayVisible){
+   var inside=missScareScreenLimits(f);
+   // Turn early enough for the fast flee velocity to decelerate BEFORE
+   // the original bitmap's full body reaches the screen boundary.
+   var turnBuffer=Math.max(85,Math.min(145,Math.abs(f.vx||0)*.36));
+   if(f.x>=inside.right-turnBuffer&&(f.fleeDir||f.dir)>0){
+    f.fleeDir=-1;f.dir=-1;
+    f.fleeBurstUntil=Math.min(f.fleeBurstUntil||0,eco.t+.32);
+    f.panicUntil=Math.min(f.panicUntil||0,eco.t+.45);
+   }else if(f.x<=inside.left+turnBuffer&&(f.fleeDir||f.dir)<0){
+    f.fleeDir=1;f.dir=1;
+    f.fleeBurstUntil=Math.min(f.fleeBurstUntil||0,eco.t+.32);
+    f.panicUntil=Math.min(f.panicUntil||0,eco.t+.45);
+   }
+  }
   if(f.panicUntil>eco.t){
    var dx=f.x-f.fearX,dy=f.y-f.fearY,dist=Math.hypot(dx,dy)||1;
    var burst=f.fleeBurstUntil>eco.t;
@@ -3333,7 +3371,8 @@ function updateEcosystem(dt){
   if(f.y>bottom-16)wantY-=Math.max(12,(f.y-(bottom-16))*1.8);
   if(f.nextTurn<eco.t){
    f.nextTurn=eco.t+rnd(7,19);
-   if(!f.schoolId&&Math.random()<(style==='wander'?.33:style==='hover'?.29:.16))
+   if(!f.schoolId&&f.fleeBurstUntil<=eco.t&&
+      Math.random()<(style==='wander'?.33:style==='hover'?.29:.16))
     f.dir*=-1;
    f.homeY=ecoSafeDepth(f,f.homeY+rnd(-58,58));
   }
@@ -3346,11 +3385,23 @@ function updateEcosystem(dt){
   f.vy=mix(f.vy,clamp(wantY,fleeingFast?-100:-40,fleeingFast?100:40),
    Math.min(1,steer*(fleeingFast?1:.85)));
   f.x+=f.vx*dt;f.y+=f.vy*dt;
+  if(f.missScareStayVisible){
+   var contained=missScareScreenLimits(f);
+   // Safety clamp is a last resort: early reversal above normally
+   // prevents reaching it. Keep miss-affected fish alive in the scene.
+   if(f.x>contained.right){
+    f.x=contained.right;f.dir=-1;f.fleeDir=-1;
+    f.vx=-Math.max(8,Math.abs(f.vx)*.28);
+   }else if(f.x<contained.left){
+    f.x=contained.left;f.dir=1;f.fleeDir=1;
+    f.vx=Math.max(8,Math.abs(f.vx)*.28);
+   }
+  }
   if(f.y<top){f.y=top;f.vy=Math.max(0,f.vy*.28)}
   if(f.y>bottom){f.y=bottom;f.vy=Math.min(0,f.vy*.28)}
   f.phase+=dt*(state==='flee'?2.2:state==='hunt'||state==='fight'?1.6:.65);
   f.behavior=state;
-  if(f.x< -185||f.x>W+185)fish.splice(i,1);
+  if(!f.missScareStayVisible&&(f.x< -185||f.x>W+185))fish.splice(i,1);
  }
  for(var h=hum.length-1;h>=0;h--){
   var person=hum[h];
