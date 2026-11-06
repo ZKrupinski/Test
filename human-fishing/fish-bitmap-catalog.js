@@ -33,7 +33,13 @@
   if(!enabled||!/^F\d{3}$/.test(id))return null;
   if(!Object.prototype.hasOwnProperty.call(loaded,id)){
    var img=new Image();img.decoding='async';loaded[id]=null;created[id]=img;
-   img.onload=function(){img._hfScale=Math.min(224/img.naturalWidth,144/img.naturalHeight);loaded[id]=img;};
+   img.onload=function(){
+    // All 304 individual PNG fish face right; old procedural fish face left.
+    // Rendering uses this source orientation to mirror only when required.
+    img._hfFacingRight=true;
+    img._hfScale=Math.min(224/img.naturalWidth,144/img.naturalHeight);
+    loaded[id]=img;
+   };
    img.onerror=function(){loaded[id]=false;};
    img.src='./assets/fish/individual/'+id+'.png?v=20261106-fish304';
   }
