@@ -894,7 +894,12 @@ assert.equal(game.getHook(),null,'Hook must finish at the mouth and release the 
 assert.ok(game.getCatchFx()?.swallowed,'Reward state must mark creature as already swallowed');
 step(35);
 assert.equal(game.getCatchFx(),null,'Brief glint must finish without a replayed swallow');
-assert.ok(game.getCast().active,'Next cast must resume after swallowing');
+assert.ok(game.getRecovery().active,
+ 'Lure must continue dangling and falling through the full approved reaction');
+assert.equal(game.getCast().active,false,'Do not abruptly recast before the reaction ends');
+step(45);
+assert.ok(game.getCast().active,
+ 'After finishing the reaction, the line must retract the bait and trigger the next throw');
 // The ecosystem never destroys/re-rolls surviving fish on a catch, failed
 // catch, wave completion, gear refresh, or successive cast.
 game.switchView('fish');
