@@ -2694,31 +2694,62 @@ function drawHelpers(now){
  }
 }
 // Alpha 2.2 — separately decaying camera, octopus and lure vibration layers.
-var vibrations={screen:[],octo:[],lure:[],lastBrush:-5,lastSwallow:-5};
+// The web Vibration API has no amplitude control: longer or shorter pulses
+// express strong impacts, gentle confirmations and fading resistance.
+var vibrations={screen:[],octo:[],lure:[],lastBrush:-5,lastWeakspot:-5,lastSwallow:-5};
 var vibrationPresets={
- brush:{screen:.18,octo:0,lure:1.15,duration:.085,haptic:8},
- bite:{screen:1.8,octo:1.0,lure:2.4,duration:.20,haptic:28},
- pull:{screen:.55,octo:.65,lure:0,duration:.12,haptic:0},
- swallow:{screen:3.7,octo:4.5,lure:0,duration:.29,haptic:42},
- escape:{screen:4.7,octo:5.7,lure:2.0,duration:.36,haptic:65},
- counter:{screen:5.6,octo:6.4,lure:0,duration:.40,haptic:75},
- fever:{screen:3.0,octo:2.8,lure:3.4,duration:.27,haptic:40}
+ brush:{screen:.18,octo:0,lure:1.15,duration:.085},
+ weakspot:{screen:0,octo:0,lure:1.45,duration:.13},
+ bite:{screen:2.0,octo:1.0,lure:2.8,duration:.20},
+ pull:{screen:.55,octo:.65,lure:0,duration:.12},
+ swallow:{screen:3.7,octo:4.5,lure:0,duration:.29},
+ escape:{screen:4.7,octo:5.7,lure:2.0,duration:.36},
+ counter:{screen:5.6,octo:6.4,lure:0,duration:.40},
+ fever:{screen:3.0,octo:2.8,lure:3.4,duration:.27}
 };
+var deviceHapticPatterns={
+ brush:[8],weakspot:[12],bite:[92,25,48],
+ // Strong landing at the octopus's mouth, then soft swallowing pulses.
+ swallow:[102,62,17,54,12,58,9],
+ // Failure: intense at first, then progressively shorter pulses.
+ escape:[115,27,76,40,43,56,14],
+ counter:[95,32,63,45,19],fever:[55]
+};
+var deviceHapticPriority={brush:1,weakspot:1,bite:4,pull:2,swallow:6,escape:6,counter:5,fever:4};
+var deviceHaptics={until:-10,priority:0,lastReel:-10};
+function deviceVibrate(pattern,priority){
+ if(typeof navigator==='undefined'||typeof navigator.vibrate!=='function')return false;
+ if(time<deviceHaptics.until&&(priority||0)<deviceHaptics.priority)return false;
+ try{
+  if(navigator.vibrate(pattern)===false)return false;
+  var ms=Array.isArray(pattern)?pattern.reduce(function(a,b){return a+b},0):pattern;
+  deviceHaptics.until=time+Math.max(0,ms)/1000;
+  deviceHaptics.priority=priority||0;
+  return true;
+ }catch(e){return false}
+}
+function updateReelHaptics(h,progress){
+ if(!h||view!=='fish')return;
+ var p=clamp(progress,0,1);
+ // Protect the intense initial bite; pulse during lift with a fading rhythm.
+ if(p<.075||time-deviceHaptics.lastReel<.13+.065*p)return;
+ deviceHaptics.lastReel=time;
+ deviceVibrate(Math.round(40-29*Math.pow(p,.85)),deviceHapticPriority.pull);
+}
 function vibrationPulse(kind){
  var p=vibrationPresets[kind];if(!p)return false;
  if(kind==='brush'&&time-vibrations.lastBrush<.18)return false;
+ if(kind==='weakspot'&&time-vibrations.lastWeakspot<.26)return false;
  if(kind==='swallow'&&time-vibrations.lastSwallow<.15)return false;
  if(kind==='brush')vibrations.lastBrush=time;
+ if(kind==='weakspot')vibrations.lastWeakspot=time;
  if(kind==='swallow')vibrations.lastSwallow=time;
  for(var k of ['screen','octo','lure']){
   if(!p[k])continue;
-  var items=vibrations[k];
-  if(items.length>=5)items.shift();
+  var items=vibrations[k];if(items.length>=5)items.shift();
   items.push({start:time,duration:p.duration,power:p[k],phase:Math.random()*Math.PI*2});
  }
- if(p.haptic&&typeof navigator!=='undefined'&&typeof navigator.vibrate==='function'){
-  try{navigator.vibrate(p.haptic)}catch(e){}
- }
+ if(deviceHapticPatterns[kind])deviceVibrate(deviceHapticPatterns[kind],deviceHapticPriority[kind]);
  return true;
 }
 function vibrationOffset(layer){
@@ -2740,12 +2771,27 @@ function checkBaitBrush(){
   var rx=15+36*(f.size||1),ry=12+21*(f.size||1);
   var dx=(f.x-bob.x)/rx,dy=(f.y-bob.y)/ry;
   var touching=dx*dx+dy*dy<=1;
-  if(touching&&!f.brushTouching&&(time-(f.lastBrushAt||-5)>.55)){
+  if(touching&&!fishMouthOverlapsLure(f,bob,time)&&!f.brushTouching&&
+     time-(f.lastBrushAt||-5)>.55){
    f.lastBrushAt=time;vibrationPulse('brush');
    playerOctoCue('excited',.9/PLAYER_ANIM_RATE);
    f.shakeUntil=time+.14;f.shakePower=1.5;
   }
   f.brushTouching=touching;
+ }
+}
+// The weakspot uses the identical mouth ellipse as the actual fishing catch.
+// A finger can start in the lower half and then keep moving in any direction.
+function checkBaitWeakspot(){
+ if(view!=='fish'||!joystick.active||cast.active||hook||feverFx||
+    escapeFx||catchFx||time-vibrations.lastWeakspot<.26)return;
+ for(var i=0;i<fish.length;i++){
+  var f=fish[i];if(!f||f.feverCaptured||isFishFleeing(f))continue;
+  if(!fishMouthOverlapsLure(f,bob,time))continue;
+  if(vibrationPulse('weakspot')){
+   f.shakeUntil=time+.135;f.shakePower=1.3;
+  }
+  return;
  }
 }
 function tick(stamp){
@@ -2760,7 +2806,7 @@ function tick(stamp){
  else{
   sea(false);coral(time);
   updateEcosystem(dt);
-  if(view==='fish'){castMotion(dt);updateJoystick(dt);checkBaitBrush();if(feverFx){
+  if(view==='fish'){castMotion(dt);updateJoystick(dt);checkBaitBrush();checkBaitWeakspot();if(feverFx){
    feverFx.elapsed+=dt;
    var currentReel=feverReelState(feverFx,time);
    bob.x=currentReel.x;bob.y=currentReel.y;
@@ -2773,6 +2819,7 @@ function tick(stamp){
     var duration=Math.max(.56,baseDuration*(1-gearPower('rod')*.035-gearPower('helper')*.012));
     var o=hook.obj,p=clamp(hook.elapsed/duration,0,1);
     hook.travelDuration=duration;
+    updateReelHaptics(hook,hook.willEscape?clamp(p/(hook.escapeAt||.88),0,1):p);
     if(!hook.pulled&&p>.38){hook.pulled=true;vibrationPulse('pull')}
     // The swallow impact fires only at actual success, not when a fish escapes.
     if(hook.willEscape){
