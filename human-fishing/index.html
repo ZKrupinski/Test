@@ -252,7 +252,7 @@ nav{flex-wrap:nowrap}
 </style></head><body><div class="wrap">
 <header inert><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 2.3</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navGear">🎒 장비</button><button id="navShop">🛒 상점</button></nav></header>
-<div class="stage" id="stage" inert><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 어디든 터치해 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
+<div class="stage" id="stage" inert><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 아래쪽 절반을 터치해 누른 위치 중심의 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
 <div class="hud top"><div class="tag" style="display:none" aria-hidden="true"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins" style="margin-left:auto">◈ 0　🐟 0/240</div></div>
 <div id="feverHud" class="fever-hud"><div class="fever-top"><span>🐙 OCTO FEVER</span><span id="feverNum">0 / 6</span></div><div class="fever-meter"><i id="feverFill"></i></div><div id="feverDetail" class="fever-detail">물고기 포획으로 충전</div></div>
 <div class="center-banner" id="banner"><div class="emoji" id="bannerIcon">🐟</div><strong id="bannerTitle">첫 포획!</strong><p id="bannerSub">새로운 물고기 발견</p></div>
@@ -1854,7 +1854,7 @@ function startCast(){
  hideVirtualJoystick();rodRecoil.at=-100;cast.active=true;cast.elapsed=0;cast.landing=false;drag=false;dragPointer=null;dragQualified=false;
  bob.x=rodTip(time).x-10;bob.y=rodTip(time).y+18;
  $('hintTitle').textContent='낚싯대를 휘둘러 찌를 던지는 중…';
- $('hint').textContent='수면에 닿은 미끼가 천천히 가라앉습니다. 물속으로 들어온 순간 화면 어디든 터치하면 조이스틱으로 움직일 수 있어요.';
+ $('hint').textContent='수면에 닿은 미끼가 천천히 가라앉습니다. 물속에 들어오면 화면 아래쪽 절반을 터치해 조이스틱으로 움직이세요.';
 }
 function castEasing(p){p=clamp(p,0,1);return p*p*(3-2*p)}
 function castMotion(dt){
@@ -1878,7 +1878,7 @@ function castMotion(dt){
  }
  if(u>=cast.duration){
   cast.active=false;bob.x=640;bob.y=436;
-  $('hintTitle').textContent='화면 아무 데나 터치하면 가상 조이스틱이 나타나요';
+  $('hintTitle').textContent='화면 아래쪽 절반을 터치하면 가상 조이스틱이 나타나요';
   $('hint').textContent='스틱을 밀어 이동하고 손을 떼면 가까운 생물 포획!';
  }
 }
@@ -1907,13 +1907,18 @@ function moveVirtualJoystick(p){
 function onBaitPointerDown(e){
  if(view==='tank'){aquariumTapFish(e);return;}
  // Keep the natural air-cast. Once the bait has touched water (u >= 1.4),
- // any canvas touch is the origin of a virtual joystick, NOT a teleport.
+ // a touch in the LOWER half starts a virtual joystick at that position, NOT a teleport.
  if(view!=='fish'||introEntrance.active||hook||feverFx||catchFx||escapeFx||octoGroggy>0||joystick.active||cast.active&&!cast.landing)return;
  var p=resizePointer(e);
+ // Touch/pen gestures only begin in the bottom half of the 16:9 game view.
+ // Do not interrupt sinking or create a stick from a touch above this boundary.
+ // Once started, moving the finger anywhere remains valid for all directions.
+ // Mouse behavior remains unchanged for desktop play.
+ if((e.pointerType==='touch'||e.pointerType==='pen')&&p.y<H*.5)return;
  if(cast.active&&cast.landing){
    cast.active=false; // interrupt sinking at its CURRENT depth without snapping to y=436
    $('hintTitle').textContent='가상 조이스틱으로 미끼 조작 중';
-   $('hint').textContent='어느 위치에서든 밀어서 이동 · 놓으면 포획 판정';
+   $('hint').textContent='터치한 위치를 중심으로 상하좌우 이동 · 놓으면 포획 판정';
  }
  joystick.active=true;joystick.id=e.pointerId;joystick.x=p.x;joystick.y=p.y;
  joystick.dx=0;joystick.dy=0;joystick.engaged=false;joystick.traveled=0;
