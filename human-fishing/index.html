@@ -1401,6 +1401,7 @@ function drawingTank(now){
       (sprite.spriteAction==='hooked'?73:64))%8;
    }else delete sprite.spriteFrame;
    drawFish(sprite,now);
+   drawFishRankTag(a);
    return;
   }
   // Fallback for fish that do not have dedicated turn/struggle sprite
@@ -1431,6 +1432,7 @@ function drawingTank(now){
   delete a.sprite.spriteFrame;
   drawFish(a.sprite,now);
   ctx.restore();
+  drawFishRankTag(a);
  });
  save.humanPlaced.forEach(function(id,i){
   var humanId=Number(id),sx=235+(i%4)*239+Math.sin(now*.6+i)*14;
@@ -3026,38 +3028,67 @@ function buildRaritySparkleAtlas(rarity){
  var colors=palette[rarity];if(!colors)return null;
  var sheet=document.createElement('canvas');sheet.width=256;sheet.height=64;
  var g=sheet.getContext('2d');
- // All drawing occurs once during asset creation; gameplay renders only
- // the finished 64x64 RGBA sprite cells with drawImage.
+ // One isolated sparkle per transparent 64px frame. No pre-grouped stars:
+ // each instance is placed and timed independently around a fish.
  for(var frame=0;frame<4;frame++){
-  var cx=frame*64+32,cy=32,scale=[.65,1,.82,.42][frame];
-  for(var j=0;j<5;j++){
-   var angle=j*Math.PI*2/5+.2,px=cx+Math.cos(angle)*20,
-    py=cy+Math.sin(angle)*15,rad=(j===0?13:7)*scale;
-   g.save();g.translate(px,py);g.rotate(angle*.38);
-   var halo=g.createRadialGradient(0,0,0,0,0,rad*1.7);
-   halo.addColorStop(0,colors[1]);halo.addColorStop(.24,colors[0]+'db');
-   halo.addColorStop(1,colors[0]+'00');
-   g.fillStyle=halo;g.beginPath();g.arc(0,0,rad*1.7,0,Math.PI*2);g.fill();
-   g.fillStyle=colors[1];g.beginPath();g.moveTo(0,-rad);
-   g.quadraticCurveTo(rad*.19,-rad*.16,rad*.54,0);
-   g.quadraticCurveTo(rad*.17,rad*.17,0,rad);
-   g.quadraticCurveTo(-rad*.17,rad*.17,-rad*.54,0);
-   g.quadraticCurveTo(-rad*.19,-rad*.16,0,-rad);g.fill();
-   g.restore();
-  }
+  var radius=[4.5,9,12,6][frame],cx=frame*64+32,cy=32;
+  g.save();g.translate(cx,cy);
+  var halo=g.createRadialGradient(0,0,0,0,0,radius*1.65);
+  halo.addColorStop(0,colors[1]);halo.addColorStop(.21,colors[0]+'b9');
+  halo.addColorStop(.62,colors[0]+'36');halo.addColorStop(1,colors[0]+'00');
+  g.fillStyle=halo;g.beginPath();g.arc(0,0,radius*1.65,0,Math.PI*2);g.fill();
+  // Tapered, sharp four-point diamond, baked once into an RGBA canvas atlas.
+  g.fillStyle=colors[1];g.beginPath();g.moveTo(0,-radius);
+  g.quadraticCurveTo(radius*.16,-radius*.15,radius*.56,0);
+  g.quadraticCurveTo(radius*.16,radius*.13,0,radius);
+  g.quadraticCurveTo(-radius*.16,radius*.13,-radius*.56,0);
+  g.quadraticCurveTo(-radius*.16,-radius*.15,0,-radius);g.fill();
+  g.restore();
  }
  return sheet;
 }
+// Read-only positions for deterministic, sparse twinkles on ANY fish bitmap.
+// Independent instances keep the same offset during their lifetime, never
+// form a five-star blob above the head and never require per-frame vectors.
+function raritySparklesFor(f,now){
+ var sp=f&&f.sp,rarity=sp&&sp.rarity;
+ if(!rarity||rarity==='COMMON'||rarity==='UNCOMMON')return [];
+ var sprite=fishSprite(sp);if(!sprite)return [];
+ var scale=.5*(f.size||fishVisualProfile(sp).baseScale)*(sprite._hfScale||1);
+ var width=sprite.width*scale,height=sprite.height*scale;
+ var id=parseInt(sp.id.slice(1),10)||1;
+ var salt=id*17+(f.ecoId||0)*31+(f.phase||0)*19;
+ var count=rarity==='RARE'?3:rarity==='EPIC'?4:5;
+ var places=[[-.35,-.20],[.33,.10],[-.04,-.37],[.12,.32],[-.43,.15]];
+ var result=[];
+ for(var i=0;i<count;i++){
+  var h1=Math.sin(salt*1.43+i*43.71)*43758.5453;
+  var h2=Math.sin(salt*3.17+i*18.33)*19287.117;
+  var u=h1-Math.floor(h1),v=h2-Math.floor(h2);
+  var period=1.75+i*.29+u*.51;
+  var moment=(((now+v*period+i*.53)%period)+period)%period;
+  var duration=period*(rarity==='MYTHIC'?.24:.19);
+  if(moment>=duration)continue;
+  var t=moment/duration,opacity=Math.sin(Math.PI*t);
+  if(opacity<.06)continue;
+  var size=clamp(12+Math.sqrt(Math.max(1,width))*u*1.1,12,30);
+  result.push({
+   x:f.x+(places[i][0]+(u-.5)*.18)*width,
+   y:f.y+(places[i][1]+(v-.5)*.18)*height,
+   size:size,alpha:opacity*.85,frame:Math.min(3,Math.floor(t*4))
+  });
+ }
+ return result;
+}
 function drawFishRankTag(f){
- var sp=f.sp,rarity=sp&&sp.rarity;
- if(!rarity||rarity==='COMMON'||rarity==='UNCOMMON')return;
- var sheet=raritySparkleAtlases[rarity];if(!sheet)return;
- var frame=Math.floor(time*8+(f.phase||0)*1.7)%4;
- var y=f.y-24-(f.size||1)*16;
- ctx.save();
- ctx.globalAlpha=.88;
- ctx.drawImage(sheet,frame*64,0,64,64,f.x-37,y-30,74,74);
- ctx.restore();
+ var sheet=raritySparkleAtlases[f.sp&&f.sp.rarity];if(!sheet)return;
+ var lights=raritySparklesFor(f,time);
+ for(var i=0;i<lights.length;i++){
+  var p=lights[i],sz=p.size;
+  ctx.save();ctx.globalAlpha=p.alpha;
+  ctx.drawImage(sheet,p.frame*64,0,64,64,p.x-sz/2,p.y-sz/2,sz,sz);
+  ctx.restore();
+ }
 }
 // ALPHA 1.5 — continuous reef ecosystem. No re-roll/rebuild per cast.
 // Fish have stable identities, schools, wandering routes, predator/prey behavior
@@ -3359,11 +3390,12 @@ var escapeFx=null,octoGroggy=0,pendingEscapeRestart=false,feverFx=null,feverSpri
 var groggyStars={};
 function escapeHook(){
  if(!hook||escapeFx)return;
- var o=hook.obj,human=hook.kind==='human',dir=o.x>=mouthPos(time).x?1:-1;
+ var o=hook.obj,human=hook.kind==='human',mouth=mouthPos(time);
+ var dir=o.x>=mouth.x?1:-1;
  escapeFx={
   kind:human?'human':'fish',human:human,id:human?o.id:0,sp:human?null:o.sp,
   name:human?'인간 엘리트':o.sp.name,
-  x:o.x,y:o.y,dir:dir,vx:o.vx||dir,size:o.size||1.2,phase:o.phase||0,
+  x:human?o.x:mouth.x,y:human?o.y:mouth.y,dir:dir,vx:o.vx||dir,size:o.size||1.2,phase:o.phase||0,
   elapsed:0,stage:'struggle',impact:false,splash:false,lastX:o.x,lastY:o.y,
   duration:human?3.0:2.75
  };
@@ -3385,27 +3417,34 @@ function escapePose(fx,t){
   // Failure does not instantly teleport a fish underwater. It fights free
   // for several clearly readable tail kicks, slips, pivots and only then
   // re-enters the water to accelerate away.
-  if(t<.42)return{stage:'struggle',
-   x:x+Math.sin(t*50+(fx.phase||0))*19,
-   y:y+Math.sin(t*35+(fx.phase||0))*8,
-   rot:Math.sin(t*44+(fx.phase||0))*.36};
+  if(t<.42){
+   // At first only the head is inside the mouth; the body visibly slips
+   // free while kicking, growing from the mouth opening to full sprite size.
+   var emerge=smooth(t/.42);
+   return{stage:'struggle',
+    x:x+d*(5+37*emerge)+Math.sin(t*50+(fx.phase||0))*9*emerge,
+    y:y+16*emerge+Math.sin(t*35+(fx.phase||0))*5*emerge,
+    rot:Math.sin(t*44+(fx.phase||0))*.38,
+    scale:.34+.66*emerge};
+  }
   if(t<.74){
    var slip=smooth((t-.42)/.32);
    return{stage:'slip',
-    x:x+d*112*slip+Math.sin(t*46)*9*(1-slip),
-    y:y+58*slip-18*Math.sin(Math.PI*slip),
-    rot:d*slip*.74+Math.sin(t*44)*.20*(1-slip)};
+    x:x+d*(42+110*slip)+Math.sin(t*46)*8*(1-slip),
+    y:y+16+57*slip-18*Math.sin(Math.PI*slip),
+    rot:d*slip*.74+Math.sin(t*44)*.22*(1-slip),
+    scale:1};
   }
   if(t<1.19){
    var dive=smooth((t-.74)/.45);
-   return{stage:'dive',x:x+d*(112+240*dive),
-    y:mix(y+58,365,dive)-24*Math.sin(Math.PI*dive),
-    rot:d*(.74-1.0*dive)};
+   return{stage:'dive',x:x+d*(152+240*dive),
+    y:mix(y+73,365,dive)-24*Math.sin(Math.PI*dive),
+    rot:d*(.74-1.0*dive),scale:1};
   }
   var run=t-1.19;
-  return{stage:'flee',x:x+d*(352+990*run+175*run*run),
+  return{stage:'flee',x:x+d*(392+990*run+175*run*run),
    y:365+Math.sin(run*18+(fx.phase||0))*8+Math.min(34,run*26),
-   rot:d*-.075};
+   rot:d*-.075,scale:1};
  }
  // Human elites retain their original aerial counterattack and recovery.
  if(t<.29)return{stage:'struggle',x:x+Math.sin(t*64)*12,
@@ -3451,7 +3490,7 @@ function escapeFishHeading(fx,t){
  if(current.stage==='dive')return travelAngle+Math.sin(t*30)*.035;
  // After reentry the body smoothly levels with the high-speed swimming path.
  var smooth=clamp((t-1.19)/.16,0,1);
- var finalAngle=fx.dir*Math.atan2(365-(fx.y+58),240);
+ var finalAngle=fx.dir*Math.atan2(365-(fx.y+73),240);
  return mix(finalAngle,travelAngle,smooth)+Math.sin(t*27)*.018;
 }
 function groggyStar(frame){
@@ -3517,7 +3556,8 @@ function drawEscapeFx(dt){
    }
   }
  }else{
-  ctx.scale(1.2,1.2);
+  // The escape is rendered in the foreground over the open mouth.
+  ctx.scale(1.2*(pose.scale||1),1.2*(pose.scale||1));
   if(pose.stage==='struggle'||pose.stage==='slip')
    ctx.rotate(Math.sin(fx.elapsed*52)*.17);
   var escapeMotion=pose.stage==='flee'?'flee':pose.stage==='dive'?'reentry':
