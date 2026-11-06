@@ -3885,6 +3885,11 @@ drawBob=function(){
  drawRedLure(time,bob.x,bob.y,size); // Approved bitmap even while Fever is merely ready.
  ctx.restore();
 };
+// Rare animals are pulled up by the Fever vortex even if they resist
+// being swallowed. Catch rewards still require a successful probability roll.
+function feverLiftResistantFish(sp){
+ return !!sp&&['RARE','EPIC','LEGEND','MYTHIC'].indexOf(sp.rarity)>=0;
+}
 // Release in place: open bait mouth, gather separated catches, swallow, then reel.
 function activateOctoFever(){
  if(!save.fever.ready||feverFx||catchFx||view!=='fish')return;
@@ -3893,19 +3898,26 @@ function activateOctoFever(){
  var targets=[],resisted=0,coins=0,net=gearPower('net');
  var center={x:bob.x,y:bob.y};
  fish.filter(function(f){return !f.feverCaptured&&Math.hypot(f.x-center.x,f.y-center.y)<=v.radius}).forEach(function(f){
-  var chance=catchProbability(f.sp,false,true);
-  if(Math.random()<chance){
-   var n=1+(net>0&&Math.random()<Math.min(.7,net*.035)?1:0);
-   // OCTO FEVER must never award owned fish in aquarium sale mode either.
+  var chance=catchProbability(f.sp,false,true),captured=Math.random()<chance;
+  if(!captured)resisted++;
+  // Common fish keep their existing success gate. RARE+ fish ALWAYS
+  // join the visible pull-up, then visibly break away at the player's mouth
+  // if their resistance roll fails. No unpaid fish enters the inventory.
+  if(!captured&&!feverLiftResistantFish(f.sp))return;
+  var n=captured?1+(net>0&&Math.random()<Math.min(.7,net*.035)?1:0):1;
+  if(captured){
+   // Aquarium catches pay money only; unsuccessful pulls pay nothing.
    if(!aquariumFishingActive)save.owned[f.sp.id]=(save.owned[f.sp.id]||0)+n;
    var reward=aquariumFishingActive?aquariumUnitSalePrice(f.sp)*n:
     Math.floor((14+f.sp.index*5+save.up[2]*4)*(1+net*.025));
    save.coins+=reward;save.catches+=n;coins+=reward;
    if(!aquariumFishingActive&&save.placed.length===0)save.placed.push(f.sp.id);
-   f.feverCaptured=true;
-   // The individual species sprite remains whole until it reaches the octopus mouth.
-   targets.push({x:f.x,y:f.y,sp:f.sp,size:f.size,vx:f.vx,phase:f.phase,quantity:n,human:false});
-  }else resisted++;
+  }
+  f.feverCaptured=true;
+  // The approved fish PNG is used both for ascent and the resistance escape.
+  targets.push({x:f.x,y:f.y,sp:f.sp,size:f.size,vx:f.vx,phase:f.phase,
+   quantity:n,human:false,willEscape:!captured,
+   escapeDir:f.x>=center.x?1:-1});
  });
  // Human elites are exceptionally rare, and harder to hook than rare fish.
  // Boss humans remain immune to AOE harvesting, preserving their individual-boss status.
@@ -3933,11 +3945,13 @@ function activateOctoFever(){
   x:center.x,y:center.y,radius:v.radius,tier:g.tier,color:g.color,
   caught:targets,resisted:resisted,coins:coins,elapsed:0,
   suctionEnd:suctionEnd,reelStart:suctionEnd+.32,
-  duration:suctionEnd+.32+.82+.80,
+  // Keep Fever active until the last resistant rare fish finishes
+  // escaping from the protagonist's mouth, rather than cutting it off.
+  duration:suctionEnd+.32+.82+(targets.some(function(z){return z.willEscape})?2.08:.80),
   swallowSpacing:swallowSpacing,reelProgress:0,reelFrame:0,reeling:false
  };
  feverFx.surfaceAt=feverSurfaceTime(feverFx,time);
- $('hintTitle').textContent='🐙 피버! '+targets.length+'마리 모아서 함께 회수';
+ $('hintTitle').textContent='🐙 피버! '+targets.length+'마리 함께 끌어올리는 중';
  $('hint').textContent='주변 물고기를 미끼 주위로 모아 함께 끌어올립니다.';
 }
 // Keep line attached to stationary suction bait, then retrieve the closed bait.
