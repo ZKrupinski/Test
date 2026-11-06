@@ -1,0 +1,42 @@
+name: Human Fishing Drive Export
+on:
+  push:
+    paths:
+      - '.github/workflows/human-fishing-drive-export.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create complete game bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p drive-export
+          cat > drive-export/README-실행안내.txt <<'DOC'
+          HUMAN FISHING - offline game package
+          이 폴더에 포함된 human-fishing 폴더와 자산 파일을 같은 위치에 유지하세요.
+          압축 해제 후 human-fishing/index.html 을 브라우저에서 실행할 수 있습니다.
+          파일 경로 접근 제한이 있으면 로컬 웹서버를 사용하세요.
+          Python 설치 시 압축 해제 폴더에서 python -m http.server 8000
+          브라우저: http://localhost:8000/human-fishing/
+          게임 전체 소스와 이미지, 오디오 리소스 포함.
+          DOC
+          cp -a human-fishing drive-export/
+          test -f drive-export/human-fishing/assets/octopus/bait/octofever_suction_A_16f.webp
+          test -f drive-export/human-fishing/assets/octopus/bait/octofever_suction_B_16f.webp
+          test -f drive-export/human-fishing/assets/octopus/bait/octofever_suction_drops_16f.webp
+          echo "FILES=$(find drive-export -type f | wc -l)"
+          du -sh drive-export
+      - name: Export as reusable ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Human_Fishing_OctoFever_20261107
+          path: drive-export/
+          compression-level: 0
+          retention-days: 30
+          if-no-files-found: error
