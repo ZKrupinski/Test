@@ -956,61 +956,31 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  game.switchView('fish');
 }
 
-// An animated species must use its official sprite player instead of the
-// aquarium fallback's procedural rotation and scale.
+// The retired Blue Tang multi-frame animation must never mask F123.png.
 {
- const aquariumSave=game.getSave();
- const oldOwned={...aquariumSave.owned};
- aquariumSave.owned={'F123':1}; // F123 = Blue Tang / 블루탱
- for(let i=2;i<=10;i++)aquariumSave.owned['F'+String(i).padStart(3,'0')]=1;
- game.aquariumReset();
- game.setTime(40);
+ const bitmapManifest=fs.readFileSync('human-fishing/fish-bitmap-catalog.js','utf8');
+ const blueTang=game.species.find(sp=>sp.name==='블루탱');
+ assert.ok(blueTang,'The original blue tang species must remain in the catalog');
+ assert.equal(blueTang.id,'F123','The original Blue Tang retains stable image ID F123');
+ assert.ok(fs.existsSync('human-fishing/assets/fish/individual/F123.png'),
+  'The new single-image Blue Tang PNG must be present');
+ assert.match(bitmapManifest,/assetPath:'\.\/assets\/fish\/individual\//,
+  'All fish should resolve to the individual bitmap directory');
+ assert.doesNotMatch(html,/blue-tang-raster\.js|BlueTangSprites|blueTangSpriteQA/,
+  'No legacy Blue Tang animation provider or debug overlay may load');
+ assert.doesNotMatch(script,/blueTangShowcase|setPreviewAction/,
+  'Old eight-frame Blue Tang preview must not return');
+ const aquariumSave=game.getSave(),oldOwned={...aquariumSave.owned};
+ aquariumSave.owned={'F123':1};
+ game.aquariumReset();game.setTime(40);
  game.aquariumEnsure(40);
- const fishActors=game.aquariumActors();
- const animated=fishActors.find(a=>a.sp?.name==='블루탱');
- assert.ok(animated,'Aquarium needs the Blue Tang specimen for sprite regression');
- const calls=[];
- const prev=mock.window.BlueTangSprites;
- mock.window.BlueTangSprites={
-  ready(){return true},
-  supports(sp){return !!sp&&sp.name==='블루탱'},
-  draw(ctx,frame,now){
-   calls.push({action:frame.spriteAction,explicit:frame.spriteAquarium,
-    turnStart:frame.spriteTurnStart,turnFrom:frame.spriteTurnFrom,
-    duration:frame.spriteTurnDuration,frame:frame.spriteFrame,
-    x:frame.x,y:frame.y,now:now});
-   return true;
-  }
- };
- game.switchView('tank');
- element('panel').classList.remove('open');
- element('aquaSaleReceipt').classList.remove('visible');
- game.aquariumDraw(40);
- assert.equal(calls.at(-1).action,'swim',
-  'An animated aquarium fish must use its official swimming frames');
- assert.equal(calls.at(-1).explicit,true,
-  'The sprite player must own animation state and transformations');
- const beginning=animated.dir;
- game.setTime(40.1);
- const e={clientX:animated.x,clientY:animated.y,preventDefault(){}};
- assert.equal(game.aquariumTap(e),true,'Aquarium must receive a Blue Tang tap');
- assert.equal(animated.dir,-beginning);
- game.aquariumDraw(40.28);
- assert.equal(calls.at(-1).turnStart,40.1,
-  'The official sprite player must receive the aquarium U-turn trigger');
- assert.equal(calls.at(-1).turnFrom,beginning,
-  'The official sprite player must preserve the original turn direction');
- game.aquariumStruggle(animated,41.1,1);
- game.aquariumDraw(41.2);
- assert.ok(['hooked','last_resist'].includes(calls.at(-1).action),
-  'Wriggling must use an existing official Blue Tang animation');
- assert.ok(Number.isFinite(calls.at(-1).frame),
-  'Official struggle animation must advance through sprite sheet frames');
- mock.window.BlueTangSprites=prev;
- aquariumSave.owned=oldOwned;
- game.switchView('fish');
+ const blueTangActors=game.aquariumActors();
+ assert.ok(blueTangActors.length>0&&blueTangActors.every(a=>a.sp.id==='F123'),
+  'Single-image Blue Tang must display in every owned aquarium slot');
+ game.switchView('tank');game.aquariumDraw(40.3);
+ aquariumSave.owned=oldOwned;game.switchView('fish');
 }
-console.log('PASS: Blue Tang aquarium uses official swim, 8-frame turn and struggle sprite playback');
+console.log('PASS: Blue Tang now uses individual F123.png only; animated player disabled');
 
 console.log('PASS: aquarium fish touch-to-turn, independent swimmers and random wriggle timelines');
 
