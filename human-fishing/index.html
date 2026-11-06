@@ -3874,6 +3874,11 @@ function ecoTrafficGuide(f,wantX){
   if(g===f||g.feverCaptured||g=== (hook&&hook.obj))continue;
   var space=ecoPairSpace(f,g),ahead=(g.x-f.x)*heading,
    lateral=Math.abs(g.y-f.y);
+  // A loosely swimming pair within ONE school is not a traffic jam.
+  // Only overlapping schoolmates may trigger a lane change; preserve
+  // cohesion for normal followers cruising 30-70px apart.
+  if(f.schoolId&&f.schoolId===g.schoolId&&
+     Math.hypot((g.x-f.x)/space.x,(g.y-f.y)/space.y)>.28)continue;
   if(ahead< -space.x*.22||ahead>space.x*1.75||
    lateral>space.y*1.32)continue;
   var relative=heading*(g.vx||0),ownSpeed=Math.abs(wantX);
