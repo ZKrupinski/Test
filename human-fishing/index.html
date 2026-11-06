@@ -851,10 +851,11 @@ function aquariumStartStruggle(a,now,strength){
 function aquariumTurnScale(a,now){
  var p=(now-a.turnStart)/a.turnDuration;
  if(p<0||p>=1)return -a.dir;
- p=clamp(p,0,1);
- var smooth=p*p*(3-2*p);
+ // 22% anticipation: keep original heading and coil the tail before yaw.
+ if(p<.22)return -a.turnFrom;
+ if(p>=.78)return -a.dir;
+ var q=clamp((p-.22)/.56,0,1),smooth=q*q*(3-2*q);
  var width=Math.cos(Math.PI*smooth);
- // Minimum frontal silhouette prevents a complete one-frame disappearance.
  if(Math.abs(width)<.065)width=width<0?-.065:.065;
  return -a.turnFrom*width;
 }
@@ -868,7 +869,10 @@ function aquariumUpdateFish(now){
   if(!a.sp)return false;
   if(now>=a.nextStruggle)aquariumStartStruggle(a,now,.54+Math.random()*.35);
   var wriggling=a.struggleStart<=now&&a.struggleEnd>now;
-  a.x+=a.dir*a.speed*dt*(wriggling?1.15:1);
+  var turnElapsed=now-a.turnStart,turnP=turnElapsed/a.turnDuration;
+  var turnMovement=turnP>=0&&turnP<.22?.12:
+   turnP>=.22&&turnP<.78?.45:1;
+  a.x+=a.dir*a.speed*dt*(wriggling?1.15:1)*turnMovement;
   a.y=clamp(a.baseY+Math.sin(now*(.55+(a.phase%3)*.08)+a.phase)*12,
    WATER_SURFACE_Y+54,633);
   return a.x>=-190&&a.x<=W+190;
@@ -968,6 +972,13 @@ function drawingTank(now){
      1-Math.sin(progressFallback*55+a.phase)*.027*energy);
   }
   a.sprite.x=0;a.sprite.y=0;a.sprite.vx=sourceFacing*22;
+  var turnP=(now-a.turnStart)/a.turnDuration;
+  a.sprite._hfExtraBend=turnP>=0&&turnP<.22?
+    -a.turnFrom*5*(turnP/.22):
+    turnP>=.22&&turnP<.78?
+      a.turnFrom*8*Math.sin(Math.PI*(turnP-.22)/.56):
+      turnP>=.78&&turnP<1?a.dir*3*(1-turnP)/.22:0;
+  if(wriggle)a.sprite._hfExtraBend+=a.strugglePower*5*Math.sin(now*30+a.phase);
   delete a.sprite.spriteAquarium;
   delete a.sprite.spriteTurnStart;
   delete a.sprite.spriteTurnFrom;
