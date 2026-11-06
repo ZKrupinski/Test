@@ -384,10 +384,10 @@ function ordinaryFishingTarget(){
  // An incorrect placement on a fish must never silently hook a nearby
  // human instead. Human fishing otherwise retains its existing rules.
  if(blockedByBody)return null;
- var human=null,lowest=1;
+ var human=null,lowest=1,rod=gearPower('rod'),bait=gearPower('bait');
  hum.forEach(function(a){
   var d=Math.hypot(a.x-bob.x,a.y+22-bob.y)/
-   (117+save.up[1]*14+(a.id>=20?40:0));
+   (107+save.up[1]*14+(a.id>=20?35:0)+rod*11+bait*8);
   if(d<lowest){lowest=d;human=a}
  });
  return human?{obj:human,kind:'human'}:null;
@@ -1676,12 +1676,9 @@ function buildHum(){
   hum.push({id:id,x:430+i*325+rnd(-55,55),y:337+i*74+rnd(-22,24),phase:rnd(0,6.28),vx:rnd(.18,.44)*(Math.random()<.5?-1:1),size:id>=20?1.25:1});
  }
 }
-function nearest(){
- var best=null,score=1,kind='',rod=gearPower('rod'),bait=gearPower('bait');
- fish.forEach(function(f){var d=Math.hypot(f.x-bob.x,f.y-bob.y)/(118+save.up[1]*20+rod*11+bait*5);if(d<score){score=d;best=f;kind='fish'}});
- hum.forEach(function(h){var d=Math.hypot(h.x-bob.x,h.y+22-bob.y)/(107+save.up[1]*14+(h.id>=20?35:0)+rod*11+bait*8);if(d<score){score=d;best=h;kind='human'}});
- return best?{obj:best,kind:kind}:null;
-}
+// The last-declared nearest() is the LIVE function. Do not restore the
+// old radius-based fish body proximity hook: only mouth overlap counts.
+function nearest(){return ordinaryFishingTarget()}
 function success(){
  var o=hook.obj,human=hook.kind==='human',id=human?String(o.id):o.sp.id;
  var name=human?humans[o.id]:o.sp.name,owned=human?save.human:save.owned,fresh=!owned[id];
