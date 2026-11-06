@@ -4021,15 +4021,19 @@ function drawAquariumStageBackground(){
 }
 function aquariumKnownSpecies(){return species.filter(function(sp){return Number(save.owned[sp.id])>0})}
 function aquariumSpawnCodexFish(inView,preferredId){
- if(fish.length>=12)return false;
+ if(fish.length>=aquariumExhibitTarget)return false;
  var choices=aquariumKnownSpecies();if(!choices.length)return false;
- var fresh=choices.filter(function(sp){return !fish.some(function(f){return f.sp&&f.sp.id===sp.id&&!f.feverCaptured})});
+ var fresh=choices.filter(function(sp){
+  return !fish.some(function(f){return f.sp&&f.sp.id===sp.id&&!f.feverCaptured});
+ });
  if(!fresh.length)fresh=choices;
  var selected=preferredId&&fresh.find(function(sp){return sp.id===preferredId});
  var sp=selected||fresh[Math.floor(Math.random()*fresh.length)];
- var dir=Math.random()<.5?1:-1,x=inView?rnd(405,1170):(dir>0?-76:W+76);
+ var dir=Math.random()<.5?1:-1,x=inView?rnd(105,1175):(dir>0?-160:W+160);
  var f=makeWildFish(sp,x,rnd(WATER_SURFACE_Y+95,615),dir,false,0);
- f.speed=Math.max(39,f.speed*1.7);f.vx=dir*f.speed;f.aquariumResident=true;fish.push(f);return true;
+ f.speed=rnd(39,59);f.vx=dir*f.speed;f.vy=0;
+ f.swimMode='cruise';f.nextTurn=eco.t+1000000;
+ f.aquariumResident=true;fish.push(f);return true;
 }
 function aquariumRefreshControls(){
  $('aquaControls').classList.toggle('visible',view==='tank'||aquariumFishingActive);
@@ -4046,6 +4050,7 @@ var aquariumPreviousSetMode=setMode;
 setMode=function(mode){
  var continuing=mode==='fish'&&aquariumFishingActive;
  if(!continuing&&aquariumFishingActive){aquariumFishingActive=false;eco.zone=-1;eco.humanZone=-1;}
+ if(mode==='tank'&&view!=='tank'&&!aquariumPreserveReturn)aquariumResetExhibit();
  aquariumPanelOpen=false;aquariumPreviousSetMode(mode);
  if(mode==='tank')$('sideinfo').classList.remove('show');
  if(mode==='fish'&&!aquariumFishingActive&&eco.zone<0){buildFish();buildHum();}
@@ -4056,17 +4061,45 @@ function aquariumBeginPlay(){
   announce('🐟','도감에 물고기가 없어요','일반 스테이지에서 먼저 물고기를 잡아주세요.');return;
  }
  aquariumCloseSaleReceipt();
+ aquariumEnsureFish(time);
+ // Inherit the exact on-screen animals (including positions, headings and
+ // animation phases) instead of re-rolling a population on Play.
+ var displayed=aquariumFishActors.filter(function(a){return !!a.sp}).map(function(a){
+  var f=makeWildFish(a.sp,a.x,a.y,a.dir,false,0);
+  f.x=a.x;f.y=a.y;f.homeY=a.baseY;
+  f.size=a.size;f.speed=a.speed;f.vx=a.dir*a.speed;f.vy=0;
+  f.phase=a.phase;f.swimMode='cruise';f.nextTurn=eco.t+1000000;
+  f.aquariumResident=true;f._btFacing=a.dir;
+  return f;
+ });
  aquariumFishingActive=true;aquariumPanelOpen=false;aquariumSpawnTimer=0;
- fish=[];hum=[];hook=null;eco.fishTimer=0;eco.humanTimer=0;setMode('fish');
- var initial=save.placed.filter(function(id){return Number(save.owned[id])>0});
- for(var i=0;i<initial.length&&fish.length<9;i++)aquariumSpawnCodexFish(true,initial[i]);
- while(fish.length<9){if(!aquariumSpawnCodexFish(true))break}
- for(var j=0;j<3;j++)aquariumSpawnCodexFish(false);
- if(!introEntrance.active)startCast();
+ fish=displayed;hum=[];hook=null;eco.fishTimer=0;eco.humanTimer=0;
+ eco.zone=zone;eco.humanZone=zone;
+ setMode('fish');
+ if(!introEntrance.active&&!cast.active)startCast();
 }
 function aquariumReturnToExhibit(){
+ // Inhabitants still swimming in play remain visible on return, without
+ // replacing them with another unrelated random population.
+ var survivors=fish.filter(function(f){
+  return f.aquariumResident&&!f.feverCaptured&&(!hook||f!==hook.obj);
+ });
+ aquariumFishActors=survivors.map(function(f){
+  var dir=f.vx<-.5?-1:f.vx>.5?1:f.dir;
+  return {id:f.sp.id,sp:f.sp,x:f.x,y:f.y,baseY:f.y,
+   dir:dir,speed:Math.max(32,Math.abs(f.vx)||f.speed||40),
+   size:f.size,phase:f.phase,turnStart:-100,turnFrom:dir,
+   turnDuration:rnd(.63,.80),lastTap:-100,
+   struggleStart:-100,struggleEnd:-100,strugglePower:0,
+   nextStruggle:time+rnd(5,15),
+   sprite:{sp:f.sp,x:0,y:0,vx:dir*40,size:f.size,phase:f.phase}};
+ });
+ aquariumFishSignature=aquariumKnownSpecies().map(function(sp){return sp.id}).join('|');
+ aquariumLastTime=time;aquariumPreserveReturn=true;
  hideVirtualJoystick();cast.active=false;feverFx=null;hook=null;
- aquariumFishingActive=false;eco.zone=-1;eco.humanZone=-1;setMode('tank');
+ aquariumFishingActive=false;eco.zone=-1;eco.humanZone=-1;
+ setMode('tank');
+ aquariumPreserveReturn=false;
 }
 $('aquaPlay').onclick=function(){
  if(aquariumFishingActive)aquariumReturnToExhibit();
