@@ -155,6 +155,11 @@ window.__hfTest={
  markIntroHeroReady:function(){playerOctoAtlas.swim={ready:true}},
  advanceIntro:advanceIntroEntrance,
  getHook:function(){return hook},
+ redLureReleasePose:redLurePose,
+ getRedLurePulseAt:function(){return redLureReleasePulseAt},
+ mouthRigCreate:makeMouthHookRig,
+ mouthRigStep:hookedFishMouthPivot,
+ mouthRigDraw:drawHookedFishAtMouth,
  catchNow:success,
  setHook:function(h){hook=h},
  triggerEscape:escapeHook,
@@ -1280,7 +1285,7 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
   'Body contact must be detected for a failed non-mouth release');
  assert.equal(game.mouthHit(commonFish,bait,57.1),false,
   'Putting the lure in the middle of a fish must NOT count as a mouth hit');
- const companion=game.makeFish(common,625,455,-1,false,0),
+ const companion=game.makeFish(common,625,455,1,false,0),
        distant=game.makeFish(common,1100,470,-1,false,0);
  game.setFish([commonFish,companion,distant]);
  game.setHum([]);
@@ -1424,6 +1429,79 @@ console.log('PASS: mouth-only regular fishing, tier-dependent weak points, super
  save.fever.ready=beforeFever;
  mock.window.HumanFishingArt=priorArt;
 }
+// Regular release: one short mouth-opening pulse from the existing
+// transparent red-lure PNG frames, then a fish hooked BY ITS MOUTH and
+// physically swung from the bait anchor as the rod retrieves it.
+{
+ const previousArt=mock.window.HumanFishingArt,previousFever=game.getSave().fever.ready;
+ const previousBait=game.getSave().gearEquipped.bait;
+ const png={width:320,height:140,_hfFacingRight:true,_hfScale:1};
+ mock.window.HumanFishingArt={bitmap(){return png;}};
+ const sp=game.species.find(z=>z.rarity==='COMMON');
+ const f=game.makeFish(sp,630,460,1,false,0);
+ f.behavior='cruise';f.panicUntil=0;f.dir=1;f.vx=25;
+ const bait=game.getBob();
+ game.switchView('fish');game.getCast().active=false;game.setHook(null);
+ game.setFish([f]);game.setHum([]);
+ game.getSave().fever.ready=false;
+ game.setTime(71);
+ const weak=game.mouthWeakspot(f,71);
+ assert.ok(weak,'The approved PNG must supply a real mouth pivot');
+ bait.x=weak.x;bait.y=weak.y;
+ assert.equal(game.targetOnRelease()?.obj,f,'The center of the bait must overlap the mouth');
+ game.releaseNow();
+ assert.ok(game.getHook()&&game.getHook().mouthRig,
+  'Ordinary successful fish bite must attach a mouth-anchored fish rig');
+ const h=game.getHook(),rig=h.mouthRig;
+ assert.ok(Math.abs(h.startX-weak.x)<.001&&Math.abs(h.startY-weak.y)<.001,
+  'The bait flight must start at the release point, not jump to the fish center');
+ assert.ok(Math.abs(rig.mouthX-(weak.x-f.x))<.001,
+  'Mouth pivot offset must equal the fish PNG weak-point position');
+ assert.equal(game.getRedLurePulseAt(),71,
+  'Releasing the lure must trigger the one-shot mouth-open pose immediately');
+ const beginning=game.redLureReleasePose(71).frame;
+ const gape=game.redLureReleasePose(71.11).frame;
+ const shut=game.redLureReleasePose(71.26).frame;
+ assert.ok(gape>=9&&gape>beginning&&shut<gape,
+  'Red octopus should briefly gape and then close using existing frames');
+ h.travelDuration=1.2;
+ h.elapsed=.02;
+ const pivotA=game.mouthRigStep(h,71.02,{x:weak.x,y:weak.y});
+ assert.equal(pivotA.pivotX,weak.x);
+ assert.equal(pivotA.pivotY,weak.y);
+ h.elapsed=.42;
+ const pivotB=game.mouthRigStep(h,71.42,{x:weak.x-190,y:weak.y-116});
+ assert.ok(Math.abs(pivotB.angle)>0.04,
+  'Fish body must visibly rotate away from horizontal as the lure is reeled');
+ assert.ok(Math.abs(pivotB.angle)<=2.15,
+  'Physical fish swing must remain bounded under fast lure acceleration');
+ // Mouth remains invariant under the entire fish rigid transform:
+ // translate(anchor), rotate(body), translate(-mouthOffset).
+ const cs=Math.cos(pivotB.angle),sn=Math.sin(pivotB.angle);
+ const localX=pivotB.mouthX-pivotB.mouthX,localY=pivotB.mouthY-pivotB.mouthY;
+ assert.ok(Math.abs(pivotB.pivotX+(localX*cs-localY*sn)-pivotB.pivotX)<1e-7,
+  'Swing rotation must preserve the bait-to-mouth anchor exactly');
+ assert.ok(game.mouthRigDraw(h,71.42),
+  'Mouth-rig draw must use the original fish bitmap in the normal hook layer');
+ h.elapsed=.80;
+ const pivotC=game.mouthRigStep(h,71.80,{x:weak.x-220,y:weak.y-220});
+ assert.ok(Number.isFinite(pivotC.angle)&&Math.abs(pivotC.angle-pivotB.angle)<2,
+  'Reel movement must integrate angular spring instead of snapping to a fixed pose');
+ game.setFish([]);game.setHook(null);game.getSave().fever.ready=false;
+ game.setTime(72.9);
+ game.releaseNow();
+ assert.ok(!game.getHook(),'Empty-water release should not hook a fish');
+ assert.equal(game.getRedLurePulseAt(),72.9,
+  'Even a missed release should briefly open the bait mouth');
+ game.getSave().fever.ready=previousFever;
+ game.getSave().gearEquipped.bait=previousBait;
+ mock.window.HumanFishingArt=previousArt;
+ assert.match(script,/ctx\.translate\(-joint\.mouthX,-joint\.mouthY\)/,
+  'The fish must render around mouth coordinates, not its center');
+ assert.match(script,/drawFishStripWarp\(ctx,image,w,hgt/,
+  'Hooked fish should deform its existing bitmap without replacing art');
+}
+console.log('PASS: bait quick-mouth snap and mouth-pivot fish pendulum follows lure inertia');
 console.log('PASS: rare Fever targets visibly reel up, evade at mouth, return alive; giant fish weak spots and bait are smaller');
 console.log('PASS: Blue Tang now uses individual F123.png only; animated player disabled');
 
