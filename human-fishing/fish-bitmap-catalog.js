@@ -26,6 +26,7 @@
   ['RARE','LEGEND','LEGEND','RARE','EPIC','EPIC','EPIC','RARE'],
   ['RARE','RARE','EPIC','RARE','EPIC','LEGEND','EPIC','RARE']
  ];
+ var baseTierFix={"제브라다니오":"COMMON","드워프구라미":"COMMON","허니구라미":"UNCOMMON","오토싱클루스":"UNCOMMON","파이어피시":"UNCOMMON","블루그린크로미스":"COMMON","만다린피시":"RARE","식스라인래스":"UNCOMMON","클리너래스":"UNCOMMON","뱅가이카디널피시":"UNCOMMON","파자마카디널피시":"UNCOMMON","코넷피시":"UNCOMMON","트럼펫피시":"UNCOMMON","만타가오리":"LEGEND","푸른점가오리":"UNCOMMON","점박이매가오리":"RARE","참가자미":"COMMON","쥐치":"COMMON","볼락":"COMMON","조피볼락":"COMMON","양태":"COMMON","고래상어":"MYTHIC","귀상어":"EPIC","백철갑상어":"LEGEND","나일퍼치":"EPIC","모토로민물가오리":"EPIC","아시안아로와나":"MYTHIC","쿠키커터상어":"RARE","주름상어":"MYTHIC","고블린상어":"LEGEND","은상어":"EPIC","식스길상어":"EPIC","연어상어":"RARE","그린란드상어":"MYTHIC","늑대장어":"UNCOMMON","샌드랜스":"COMMON","카펠린":"COMMON","럼프피시":"UNCOMMON","대서양늑대고기":"RARE","그린란드넙치":"COMMON","북대서양홍어":"UNCOMMON"};
  var installed=false,loaded=Object.create(null),preload=Object.create(null),created={};
  var enabled=!!window.HumanFishingFishAssetsReady;
  function imageFor(id){
@@ -57,6 +58,7 @@
  }
  function extend(list){
   if(!enabled||installed)return list;
+  list.forEach(function(sp){if(baseTierFix[sp.name])sp.rarity=baseTierFix[sp.name];});
   groups.forEach(function(group,g){
    group.names.forEach(function(name,j){
     var id='F'+String(241+g*8+j).padStart(3,'0');
