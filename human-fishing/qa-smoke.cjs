@@ -577,7 +577,9 @@ for(const sourceFacing of [-1,1])for(const swimFacing of [-1,1]){
  const initial=game.motionPose(actor,15,1,setting);
  assert.equal(initial.sx,1,'Initial fish orientation must match its travel direction');
  actor.dir=-1;
- const prep=game.motionPose(actor,15.01,1,setting);
+ const began=game.motionPose(actor,15.01,1,setting);
+ assert.equal(began.sx,1,'A fish must hold its old facing at turn onset');
+ const prep=game.motionPose(actor,15.01+setting.prep*.5,1,setting);
  assert.equal(prep.sx,1,'A fish must hold its old facing while preparing to turn');
  assert.ok(prep.bend!==0,'The fish must visibly coil before it turns');
  const halfway=game.motionPose(actor,15.01+setting.prep+setting.turn*.5,1,setting);
