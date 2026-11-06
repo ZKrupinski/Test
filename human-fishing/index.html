@@ -3295,15 +3295,28 @@ function escapePose(fx,t){
     scale:1};
   }
   if(t<1.19){
-   var dive=smooth((t-.74)/.45);
-   return{stage:'dive',x:x+d*(152+240*dive),
+   // Cubic Hermite handoff: finish diving at the exact starting POSITION
+   // and SPEED of the flee. A smoothstep would bring the fish to a full
+   // stop then jump to 990 px/s on the next frame.
+   var q=clamp((t-.74)/.45,0,1),dive=smooth(q);
+   var exitVelocity=600,hermiteEnd=q*q*(q-1);
+   return{stage:'dive',
+    x:x+d*(152+240*dive+exitVelocity*.45*hermiteEnd),
     y:mix(y+73,365,dive)+12*Math.sin(Math.PI*dive),
     rot:d*(.74-1.0*dive),scale:1};
   }
-  var run=t-1.19;
-  return{stage:'flee',x:x+d*(392+990*run+175*run*run),
-   y:365+Math.sin(run*18+(fx.phase||0))*8+Math.min(34,run*26),
-   rot:d*-.075,scale:1};
+  var run=t-1.19,phase=fx.phase||0;
+  // At the dive/flee boundary the old phase-offset sinusoid suddenly
+  // shifted Y by up to 8px. Start the new tail-wave at zero offset and
+  // ramp it in, without resetting the fish position or heading.
+  var speedRamp=run-.10*(1-Math.exp(-run/.10));
+  var bobRamp=1-Math.exp(-run/.10);
+  var wave=(Math.sin(run*18+phase)-Math.sin(phase))*8*bobRamp;
+  var drift=Math.min(34,26*(run-.08*(1-Math.exp(-run/.08))));
+  return{stage:'flee',
+   x:x+d*(392+600*run+390*speedRamp+175*run*run),
+   y:365+wave+drift,
+   rot:d*(-.26+.185*(1-Math.exp(-run/.14))),scale:1};
  }
  // Human elites retain their original aerial counterattack and recovery.
  if(t<.29)return{stage:'struggle',x:x+Math.sin(t*64)*12,
@@ -3347,10 +3360,11 @@ function escapeFishHeading(fx,t){
   return mix(current.rot,travelAngle,blend);
  }
  if(current.stage==='dive')return travelAngle+Math.sin(t*30)*.035;
- // After reentry the body smoothly levels with the high-speed swimming path.
- var smooth=clamp((t-1.19)/.16,0,1);
- var finalAngle=fx.dir*Math.atan2(365-(fx.y+73),240);
- return mix(finalAngle,travelAngle,smooth)+Math.sin(t*27)*.018;
+ // The Hermite dive and accelerated flee have matching tangents. Heading
+ // follows that continuous velocity; its tiny swimming sway fades in so
+ // the first flee frame does not snap to a different angle.
+ var run=Math.max(0,t-1.19),settle=clamp(run/.16,0,1);
+ return travelAngle+Math.sin(t*27)*.018*settle;
 }
 function groggyStar(frame){
  if(groggyStars[frame])return groggyStars[frame];
