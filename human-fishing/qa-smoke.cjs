@@ -756,11 +756,17 @@ assert.ok(new Set(residents.map(f=>f.swimMode)).size>=2,
  'Individuals should have distinct drifting, hovering and roaming rhythms');
 assert.ok(residents.every(f=>f.y>=game.depthMin(f)&&f.y<=game.depthMax(f)),
  'Each complete fish sprite must stay below the waterline and above the seabed');
-assert.match(script,/type==='ray'/,'Rays need a distinct bitmap silhouette');
-assert.match(script,/type==='horse'/,'Seahorses need a distinct bitmap silhouette');
-assert.match(script,/type==='eel'/,'Eels need a distinct bitmap silhouette');
-assert.match(script,/type==='puffer'/,'Puffers need a distinct bitmap silhouette');
-assert.match(script,/type==='shark'/,'Large pelagic species need a distinctive body shape');
+// The 304 approved high-resolution transparent PNGs encode each species
+// silhouette; the obsolete vector-procedural fish generator must stay gone.
+assert.doesNotMatch(script,/sprites\[key\]=c;return c/,
+ 'Legacy vector fish artwork must not be regenerated');
+assert.match(script,/window\.HumanFishingArt\.bitmap\(sp\.id\)/,
+ 'All fish, including rays, seahorses, eels and Blue Tang use individual PNGs');
+const fishAssetDir='human-fishing/assets/fish/individual';
+for(const id of ['F001','F046','F123','F200','F240','F304']){
+ assert.ok(fs.existsSync(fishAssetDir+'/'+id+'.png'),
+  'Missing original single-image fish asset '+id);
+}
 const startIds=new Set(residents.map(f=>f.ecoId));
 game.getCast().active=true;
 for(let i=0;i<2200;i++){
