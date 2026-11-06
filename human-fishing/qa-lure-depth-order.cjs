@@ -81,8 +81,9 @@ assert.ok(drops>launched&&drops>lastFx,
  'Water droplet bitmap overlay must render after ALL fish and other canvas effects');
 assert.equal(active.split('drawFeverSuctionParticles(feverFx,time);').length-1,1,
  'Fever droplet sprites must have exactly one final overlay pass');
-assert.ok(source.includes('feverSuctionArt.dropsVisible=makeFeverDropletsVisible(im)'),
- 'Displayed drops must alpha-correct translucent approved bitmap cells');
+assert.ok(source.includes('feverSuctionArt.dropsVisible=makeFeverDropletsVisible(im)')&&
+ source.includes('Math.round(a*5.4+14)'),
+ 'Displayed drops must aggressively brighten approved 256px bitmap cells');
 assert.ok(source.includes('var im=feverSuctionArt.dropsVisible||feverSuctionArt.drops'),
  'Drop renderer must use the brighter display-only source with raw fallback');
 assert.ok(source.includes('var rotationTravel=turn+(mass<1.35?Math.PI*2:0);')&&
@@ -91,8 +92,8 @@ assert.ok(source.includes('var rotationTravel=turn+(mass<1.35?Math.PI*2:0);')&&
 assert.ok(source.includes('var waveA=.5-.5*Math.cos(t*9.1);')&&
  source.includes('var waveB=.5-.5*Math.cos(t*7.4-1.27);'),
  'Both vortex bitmap layers must breathe smoothly instead of jumping on loop reset');
-assert.ok(source.includes('var alpha=appear*fade*Math.sin(Math.PI*flow)'),
- 'Suction droplets must fade in and out individually rather than pop at the perimeter');
+assert.ok(source.includes('var alpha=appear*fade*(.54+.46*Math.sin(Math.PI*flow))'),
+ 'Suction droplets need a nonzero alpha floor on dark and bright backgrounds');
 assert.ok(source.includes('function feverGripSlot(fx,index)')&&
  source.includes('radius=[0,64,70,79,88,100,111][n]+ring*111'),
  'Inhaled fish must retain separate concentric grip slots around the center');

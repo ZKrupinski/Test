@@ -19,12 +19,13 @@ assert.match(source,/radius:\[100,132,170,215,265,320\]\[clamp\(tier,0,5\)\]\+lv
  'Real catch radii must continue to depend on tier and level');
 
 const calls=[],ctx={
- lastX:0,lastY:0,
+ lastX:0,lastY:0,globalAlpha:1,
  save(){},restore(){},
  translate(x,y){this.lastX=x;this.lastY=y},
  rotate(){},
  drawImage(image,...p){calls.push({
-  image:image.id,x:this.lastX,y:this.lastY,w:p[6],h:p[7]
+  image:image.id,x:this.lastX,y:this.lastY,w:p[6],h:p[7],
+  alpha:this.globalAlpha
  })}
 };
 const img=(id)=>({id,ready:true,width:400,height:400,naturalWidth:400,naturalHeight:400});
@@ -70,12 +71,23 @@ for(let tier=0;tier<=5;tier++){
   calls.length=0;
   fx.elapsed=.55;
   scene.drawFeverSuctionParticles(fx,.55);
-  assert.equal(calls.length,22,'Expected 22 painted suction droplets');
+  assert.equal(calls.length,24,'Expected 24 bright painted suction droplets');
   for(const item of calls){
    const centerDistance=Math.hypot(item.x-fx.x,item.y-fx.y);
-   assert.ok(centerDistance+item.w*.5<=realRadius*.5+1e-6,
+   assert.ok(centerDistance+item.w*.55<=realRadius*.5+1e-6,
     tier+'/'+level+': suction droplet exceeds shrunken visual boundary');
+   assert.ok(item.alpha>=.53&&item.alpha<=1,
+    'Distant and close particles must remain visible on the top layer');
+   assert.ok(item.w>=24,'Droplet bitmap is too small for mobile display');
+  }
+  for(const early of [.14,.30,.70]){
+   fx.elapsed=early;calls.length=0;
+   scene.drawFeverSuctionParticles(fx,early);
+   assert.equal(calls.length,24,
+    'Droplet overlay must persist visibly through whole suction burst');
+   assert.ok(calls.some(x=>x.alpha>.54&&x.w>24),
+    'Droplet visibility collapsed during the pull-in animation');
   }
  }
 }
-console.log('PASS: all 6 tiers and 4 upgrade levels flash full-size, snap to half, and constrain droplets to shrinking vortex.');
+console.log('PASS: all Fever tiers flash full-size, snap to half, and show 24 high-contrast droplet sprites through suction.');

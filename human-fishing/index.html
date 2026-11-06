@@ -4683,8 +4683,17 @@ function makeFeverDropletsVisible(im){
   g.drawImage(im,0,0);
   var pixels=g.getImageData(0,0,canvas.width,canvas.height),
    data=pixels.data;
-  for(var i=3;i<data.length;i+=4)
-   if(data[i])data[i]=Math.min(255,Math.round(data[i]*3.5));
+  // The original 64px bitmap frames contain very low-opacity cyan foam.
+  // Boost contrast on a display-only copy to preserve the approved shapes
+  // but make individual drops visible over bright fish AND dark water.
+  for(var i=0;i<data.length;i+=4){
+   var a=data[i+3];
+   if(a<8){data[i+3]=0;continue}
+   data[i]=Math.min(255,Math.round(data[i]*.42+145));
+   data[i+1]=Math.min(255,Math.round(data[i+1]*.52+118));
+   data[i+2]=Math.min(255,Math.round(data[i+2]*.50+127));
+   data[i+3]=Math.min(255,Math.round(a*5.4+14));
+  }
   g.putImageData(pixels,0,0);
   canvas.ready=true;
   return canvas;
@@ -4776,27 +4785,30 @@ function drawFeverVortex(fx,reel){
 // Never use procedurally drawn vector drops.
 function drawFeverSuctionParticles(fx,now){
  if(!fx||!feverSuctionArt.drops||!feverSuctionArt.drops.ready||
-   fx.elapsed>=fx.suctionEnd||lureRecovery.active)return;
+   fx.elapsed>=fx.suctionEnd)return;
  var im=feverSuctionArt.dropsVisible||feverSuctionArt.drops,
   p=clamp(fx.elapsed/fx.suctionEnd,0,1);
- var appear=castEasing(fx.elapsed/.16),
-  fade=1-castEasing((p-.88)/.12);
- for(var i=0;i<22;i++){
+ var appear=castEasing(fx.elapsed/.10),
+  fade=1-castEasing((p-.90)/.10);
+ for(var i=0;i<24;i++){
   var flow=(fx.elapsed*(.96+(i%4)*.17)+i*.61803398875)%1;
   // Same clockwise flow as the front bitmap and sucked-in fish.
   var theta=i*2.39996+now*.28+flow*(5.0+(i%4)*.33);
-  // Painted drops remain distinct even at the minimum 100px catch radius.
-  var d=(19+(i%5)*6)*(1-.65*flow);
-  // Drops ride the collapsing visual vortex; the actual capture radius
-  // stays unchanged. Keep each alpha-cut frame inside the shrinking ring.
+  // Real sprite sheet is only 256px (64px cells). At the old 19-43px
+  // output, details became sub-pixel on a phone. Render visibly at
+  // 25-57px while respecting the half-size Fever vortex on every tier.
   var visualRadius=fx.radius*feverSnapScale(fx);
-  var radius=Math.max(0,visualRadius-d*.5-2)*
-   (.93*Math.pow(1-flow,1.45));
+  var d=Math.min(24+(i%5)*6+Math.min(12,fx.radius*.035),
+   visualRadius*.76)*(1-.19*flow);
+  var radius=Math.max(0,visualRadius-d*.53-2)*
+   (.94*Math.pow(1-flow,1.35));
   var x=fx.x+Math.cos(theta)*radius;
   var y=fx.y+Math.sin(theta)*radius*.87;
   // Each droplet is born, contracts and disappears individually: no
   // synchronous bubbles popping back at the vortex perimeter.
-  var alpha=appear*fade*Math.sin(Math.PI*flow)*(.99-.16*flow);
+  // Keep a clearly visible alpha floor between each sprite's contraction
+  // cycles; previously multiplying by sin(flow) hid most particles.
+  var alpha=appear*fade*(.54+.46*Math.sin(Math.PI*flow));
   feverSuctionAtlasFrame(im,(i*7+Math.floor(now*11))%16,
    x,y,d,theta+Math.PI*.25,alpha);
  }
