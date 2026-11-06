@@ -11,7 +11,7 @@ assert.ok(start>=0&&end>start,'Missing collision/traffic logic');
 const code=script.slice(start,end);
 assert.match(code,/function ecoTrafficGuide\(f,wantX\)/);
 assert.match(code,/var traffic=clearing\|\|state==='flee'/);
-assert.match(code,/var passing=\(\(f.trafficPassUntil/);
+assert.match(code,/var exiting=!!\(f\.trafficExit\|\|g\.trafficExit\)/);
 let now=0,id=0;
 const W=1280,fish=[],hum=[];
 const env={
