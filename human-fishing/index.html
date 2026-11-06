@@ -603,13 +603,13 @@ function fishMotionPose(a,now,sourceFacing,settings){
  a._hfFacing=a._hfTarget||desired;
  return{sx:a._hfFacing/sourceFacing,bend:0,tilt:0,kick:0};
 }
-function drawFishStripWarp(g,image,w,h,now,phase,settings,pose,action){
+function drawFishStripWarp(g,image,w,h,now,phase,settings,pose,action,forcedBoost){
  if(!fishMotionGlobal.enabled){g.drawImage(image,-w/2,-h/2,w,h);return}
  var n=settings.strips,sourceWidth=image.width,sourceHeight=image.height;
  var sourceStep=sourceWidth/n,drawScale=w/sourceWidth;
  var flail=action==='last_resist'||action==='hooked'||action==='slip'||action==='bite';
  var escaping=action==='flee'||action==='reentry';
- var boost=flail?2.0:escaping?1.4:1;
+ var boost=Number.isFinite(forcedBoost)?forcedBoost:flail?2.0:escaping?1.4:1;
  var wave=now*settings.frequency*Math.PI*2+phase*2.1;
  for(var i=0;i<n;i++){
   var sx=Math.max(0,i*sourceStep-.7),ex=Math.min(sourceWidth,(i+1)*sourceStep+.7);
@@ -642,14 +642,18 @@ function drawFishOnContext(g,a,now,alpha){
  var struggling=action==='bite'||action==='hooked'||action==='last_resist'||action==='slip';
  var escaping=action==='reentry'||action==='flee';
  if(struggling){
-  var rate=action==='last_resist'?48:action==='slip'?38:31,
+  var rate=a._hfFlailRate|| (action==='last_resist'?48:action==='slip'?38:31),
+   weight=a._hfFlailWeight===undefined?1:a._hfFlailWeight,
    kick=Math.cos(now*(rate*.77)+phase*2.1),wriggle=Math.sin(now*rate+phase*1.7);
-  g.translate(wriggle*3,kick*2.2);g.rotate(wriggle*.11);
- }else if(escaping)g.rotate(Math.sin(now*32+phase*1.8)*.065);
+  g.translate(wriggle*3*weight,kick*2.2*weight);g.rotate(wriggle*.11*weight);
+ }else if(escaping){
+  var entryWeight=a._hfEscapeWeight===undefined?1:a._hfEscapeWeight;
+  g.rotate(Math.sin(now*32+phase*1.8)*.065*entryWeight);
+ }
  if(a._hfExtraBend)pose.bend+=a._hfExtraBend;
  g.rotate(pose.tilt);
  g.scale(pose.sx,1);
- drawFishStripWarp(g,image,w,h,now,phase,settings,pose,action);
+ drawFishStripWarp(g,image,w,h,now,phase,settings,pose,action,a._hfWarpBoost);
  g.restore();
 }
 function drawFish(a,now,alpha){drawFishOnContext(ctx,a,now,alpha)}
@@ -3288,10 +3292,15 @@ function escapePose(fx,t){
   }
   if(t<.74){
    var slip=smooth((t-.42)/.32);
+   // Carry the previous struggle wave phase across this transition:
+   // never choose a new, unrelated starting position for the slip.
+   var local=t-.42,phase=fx.phase||0;
    return{stage:'slip',
-    x:x+d*(42+110*slip)+Math.sin(t*46)*8*(1-slip),
-    y:y+16+57*slip-18*Math.sin(Math.PI*slip),
-    rot:d*slip*.74+Math.sin(t*44)*.22*(1-slip),
+    x:x+d*(42+110*slip)+Math.sin(.42*50+phase+local*46)*9*(1-slip),
+    y:y+16+57*slip-18*Math.sin(Math.PI*slip)+
+      Math.sin(.42*35+phase+local*35)*5*(1-slip),
+    rot:d*slip*.74+
+      Math.sin(.42*44+phase+local*44)*.38*(1-slip),
     scale:1};
   }
   if(t<1.19){
@@ -3431,14 +3440,20 @@ function drawEscapeFx(dt){
  }else{
   // The escape is rendered in the foreground over the open mouth.
   ctx.scale(1.2*(pose.scale||1),1.2*(pose.scale||1));
-  if(pose.stage==='struggle'||pose.stage==='slip')
-   ctx.rotate(Math.sin(fx.elapsed*52)*.17);
+  // Fade the flail into the swimming bend at re-entry, instead of
+  // swapping both procedural actions with a one-frame body jump.
+  var isFlail=pose.stage==='struggle'||pose.stage==='slip';
+  var flailWeight=pose.stage==='slip'?
+   clamp((.74-fx.elapsed)/.11,0,1):isFlail?1:0;
+  var entryWeight=pose.stage==='dive'?
+   clamp((fx.elapsed-.74)/.11,0,1):1;
+  if(isFlail)ctx.rotate(Math.sin(fx.elapsed*52)*.17*flailWeight);
   var escapeMotion=pose.stage==='flee'?'flee':pose.stage==='dive'?'reentry':
       pose.stage==='slip'?'slip':'last_resist';
-   drawFish({sp:fx.sp,x:0,y:0,vx:fx.dir*26,size:fx.size||1.2,phase:fx.phase,
-     spriteAction:escapeMotion,
-     spriteFrame:Math.floor(fx.elapsed*
-      (pose.stage==='struggle'?25:pose.stage==='flee'?22:20))%8},time);
+  drawFish({sp:fx.sp,x:0,y:0,vx:fx.dir*26,size:fx.size||1.2,phase:fx.phase,
+    spriteAction:escapeMotion,_hfFlailRate:48,
+    _hfFlailWeight:flailWeight,_hfEscapeWeight:entryWeight,
+    _hfWarpBoost:isFlail?1.4+.6*flailWeight:1.4},time);
  }
  ctx.restore();
  if(fx.impact&&fx.elapsed<1.13){
