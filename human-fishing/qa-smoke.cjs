@@ -525,10 +525,26 @@ assert.ok(game.getCast().active);
 mock.Math=Math;
 const currentCatchCount=state.catches,currentCoins=state.coins;
 const ordinary=game.species[0];
-// The source fish artwork faces LEFT. Normal fish and escaping fish must face the
-// direction their sprites actually move, not swim backward.
-assert.match(script,/if\(a\.vx>0\)ctx\.scale\(-1,1\)/,
- 'Rightward fish must flip the left-facing sprite; leftward fish must not');
+// Installed fish PNGs face RIGHT, while procedural backup fish face LEFT.
+// Both must face their actual movement direction; aquarium turns must not
+// apply the sprite mirror twice.
+const artLoader=fs.readFileSync('human-fishing/fish-bitmap-catalog.js','utf8');
+assert.match(artLoader,/img\._hfFacingRight=true/,
+ 'Individual fish PNGs must declare their native rightward orientation');
+assert.match(script,/var sourceFacing=sprite\._hfFacingRight\?1:-1/,
+ 'Fish renderer must read each source sprite orientation');
+assert.match(script,/if\(swimFacing!==sourceFacing\)ctx\.scale\(-1,1\)/,
+ 'Fish must flip only when its movement disagrees with source facing');
+assert.match(script,/a\.sprite\.vx=sourceFacing\*22/,
+ 'Aquarium must preserve source facing within the nested renderer');
+assert.match(script,/aquariumTurnScale\(a,now\)\*\(-sourceFacing\)/,
+ 'Aquarium U-turn must adjust its mirror to match bitmap orientation');
+for(const sourceFacing of [-1,1])for(const swimFacing of [-1,1]){
+ const mirrored=swimFacing!==sourceFacing;
+ assert.equal(mirrored? -sourceFacing:sourceFacing,swimFacing,
+  'Rendered fish must point '+(swimFacing>0?'right':'left')+
+  ' for source facing '+sourceFacing);
+}
 for(const dir of [-1,1]){
  const diver={x:483,y:191,dir:dir,human:false,size:1};
  const p1=game.escapePose(diver,.79),p2=game.escapePose(diver,.81);
