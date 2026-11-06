@@ -3479,13 +3479,25 @@ function updateEcosystem(dt){
   if(!f.swimMode)f.swimMode='cruise';
   if(!Number.isFinite(f.swimFreq))f.swimFreq=.3+((f.ecoId||0)%4)*.08;
   if(!Number.isFinite(f.swimAmp))f.swimAmp=5;
+  var rarity=fishRarityMovement(f.sp);
+  // Compatibility for persisted fish/QA fixtures created before this system.
+  if(!Number.isFinite(f.agility))f.agility=1;
+  if(!Number.isFinite(f.nextDart)){
+   f.nextDart=eco.t+rnd(rarity.dashMin,rarity.dashMax);
+   f.dartUntil=0;f.dartPrepUntil=0;f.dartDir=f.dir;
+   f.dartY=0;f.dartPattern=Math.floor(Math.random()*3);
+   f.nextTurn=Math.min(f.nextTurn||eco.t+10,
+    eco.t+rnd(rarity.turnMin,rarity.turnMax));
+  }
   var crowd=ecoCrowd(f,dt);
   var style=f.swimMode,pace=
    style==='hover'?.26+.10*Math.sin(eco.t*.7+f.phase):
    style==='wander'?.63+.22*Math.sin(eco.t*f.swimFreq+f.phase):
    style==='dart'?.54+.60*Math.pow(Math.max(0,Math.sin(eco.t*f.swimFreq*2+f.phase)),3):
    .80+.13*Math.sin(eco.t*.28+f.phase);
-  var wantX=f.dir*f.speed*pace;
+  var naturalSpeed=Math.max(f.speed*rarity.cruise*f.agility,
+   rarity.minimum);
+  var wantX=f.dir*naturalSpeed*pace;
   var wantY=Math.sin(eco.t*f.swimFreq+f.phase)*f.swimAmp;
   var state=f.schoolId?'school':style==='hover'?'hover':'cruise';
   if(crowd.count){
@@ -3556,13 +3568,76 @@ function updateEcosystem(dt){
    f.fightTarget=crowd.rival.ecoId;crowd.rival.fightTarget=f.ecoId;
    state='fight';eco.contests++;
   }
+  // Wild rarity AI is lower priority than actual missed-catch panic,
+  // predation or fighting. Awareness must NOT mark fish as 'flee':
+  // rare mouth weak spots remain present and skilled timing can still catch.
+  if(f.panicUntil<=eco.t&&f.fightUntil<=eco.t&&
+     state!=='fight'&&state!=='hunt'&&
+     !f.feverCaptured&&f.x>0&&f.x<W){
+   var lureDist=Infinity,lureDx=0,lureDy=0;
+   if(!cast.active&&!hook&&!feverFx&&!escapeFx&&!catchFx&&
+      rarity.lureSense>0){
+    lureDx=f.x-bob.x;lureDy=f.y-bob.y;
+    lureDist=Math.hypot(lureDx,lureDy);
+   }
+   // Rare, Epic, Legend and Mythic fish dodge the approaching lure
+   // with different awareness distances and reaction intensity.
+   if(rarity.lureAvoid>0&&lureDist<rarity.lureSense){
+    var awayX=Math.abs(lureDx)>5?Math.sign(lureDx):f.dir;
+    var awayY=Math.abs(lureDy)>5?Math.sign(lureDy):Math.sin(f.phase*2);
+    var threat=(1-lureDist/rarity.lureSense);
+    wantX+=awayX*rarity.lureAvoid*(.37+.63*threat);
+    wantY+=awayY*rarity.lureAvoid*.34*(.45+.55*threat);
+    state='evade';
+    // The closer the player gets, the sooner an evasive burst happens.
+    // Short cooldown prevents frame-to-frame jitter of its path.
+    if(eco.t>=(f.dartUntil||0)+.24&&
+       eco.t<(f.nextDart||0)-.65&&
+       Math.random()<dt*(1.4+rarity.cruise*.55)*threat){
+     f.nextDart=eco.t+.09;
+    }
+   }
+   // Unpredictable acceleration/brief brake bursts are individual,
+   // not a synchronized whole-school wave.
+   if(rarity.dashPower>1.10&&f.nextDart<=eco.t&&
+      (f.dartUntil||0)<=eco.t){
+    var toward=f.dir;
+    // Higher rarities occasionally fake their swimming direction.
+    var feintChance=rarity.cruise>2?.37:rarity.cruise>1.7?.24:.09;
+    if(Math.random()<feintChance)toward*=-1;
+    if(f.x<110&&toward<0)toward=1;
+    if(f.x>W-110&&toward>0)toward=-1;
+    f.dartDir=toward;f.dir=toward;
+    f.dartY=rnd(-1,1)*Math.min(42,22*rarity.cruise);
+    f.dartPrepUntil=eco.t+rarity.prep;
+    f.dartUntil=f.dartPrepUntil+rarity.dashLength;
+    f.nextDart=eco.t+rnd(rarity.dashMin,rarity.dashMax);
+   }
+   if(f.dartPrepUntil>eco.t){
+    // Tiny, telegraphed hesitation before a surprising forward lunge.
+    wantX=f.dir*naturalSpeed*.13;
+    wantY*=.35;state='feint';
+   }else if(f.dartUntil>eco.t){
+    var dashRemain=clamp((f.dartUntil-eco.t)/rarity.dashLength,0,1);
+    var dashEnvelope=.70+.30*Math.sin(Math.PI*dashRemain);
+    wantX=f.dartDir*Math.min(rarity.cap,Math.max(
+     naturalSpeed*rarity.dashPower,rarity.minimum*1.85))*dashEnvelope;
+    // Three individual dart trajectories: straight, dive or zigzag.
+    var dartPattern=f.dartPattern||0;
+    wantY+=dartPattern===0?f.dartY*.30:
+     dartPattern===1?f.dartY:
+      f.dartY*Math.sin((1-dashRemain)*Math.PI*3);
+    state='dart';
+   }
+  }
   var top=ecoDepthMin(f),bottom=ecoDepthMax(f);
   if(f.y<top+16)wantY+=Math.max(12,(top+16-f.y)*1.8);
   if(f.y>bottom-16)wantY-=Math.max(12,(f.y-(bottom-16))*1.8);
   if(f.nextTurn<eco.t){
-   f.nextTurn=eco.t+rnd(7,19);
+   f.nextTurn=eco.t+rnd(rarity.turnMin,rarity.turnMax);
    if(!f.schoolId&&f.fleeBurstUntil<=eco.t&&
-      Math.random()<(style==='wander'?.33:style==='hover'?.29:.16))
+      (f.dartUntil||0)<=eco.t&&
+      Math.random()<rarity.turnChance)
     f.dir*=-1;
    f.homeY=ecoSafeDepth(f,f.homeY+rnd(-58,58));
   }
@@ -3570,10 +3645,14 @@ function updateEcosystem(dt){
   wantY+=clamp((f.homeY-f.y)*.22,-11,11);
   // All velocities are pixels per second. Swimmers are calm unless threatened.
   var fleeingFast=f.fleeBurstUntil>eco.t;
-  var steer=Math.min(1,dt*(fleeingFast?18:state==='flee'?3.8:state==='fight'?3.1:1.65));
-  f.vx=mix(f.vx,clamp(wantX,fleeingFast?-330:-85,fleeingFast?330:85),steer);
-  f.vy=mix(f.vy,clamp(wantY,fleeingFast?-100:-40,fleeingFast?100:40),
-   Math.min(1,steer*(fleeingFast?1:.85)));
+  var wildSteer=state==='dart'?rarity.steer*2.7:
+   state==='evade'?rarity.steer*2:rarity.steer;
+  var steer=Math.min(1,dt*(fleeingFast?18:state==='flee'?3.8:
+   state==='fight'?3.1:wildSteer));
+  var wildCap=fleeingFast?330:state==='flee'?85:rarity.cap;
+  f.vx=mix(f.vx,clamp(wantX,-wildCap,wildCap),steer);
+  f.vy=mix(f.vy,clamp(wantY,fleeingFast?-100:-70,
+   fleeingFast?100:70),Math.min(1,steer*(fleeingFast?1:.85)));
   f.x+=f.vx*dt;f.y+=f.vy*dt;
   if(f.missScareStayVisible){
    var contained=missScareScreenLimits(f);
