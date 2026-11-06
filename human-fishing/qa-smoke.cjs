@@ -922,8 +922,9 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  assert.ok(saleIncome===unit||saleIncome===unit*2,
   'Aquarium sale income must follow species tier and net catch quantity');
  assert.ok(!game.getFish().includes(sold),'The caught swimmer must leave the scene');
- // Fever has the same sell-only rule as regular aquarium fishing.
- step(34);
+ // Wait for the 0.79s catch-glint animation before another Fever action.
+ step(65);
+ assert.equal(game.getCatchFx(),null,'Sale flash must finish before a new Fever action');
  aquariumSave.fever.ready=true;
  const targets=game.getFish();
  assert.ok(targets.length>0);
