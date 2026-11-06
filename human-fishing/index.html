@@ -3310,22 +3310,53 @@ function ecoIsHunter(sp,sz){
  return /상어|파이크|배스|농어|아귀|피라냐|참치|다랑어|장어|시클리드|오스카|가물치|늑대고기|전갱이|돔|그루퍼|방어|바라쿠다|구라미|베타/.test(sp.name)||
   (sz>1.22&&sp.index>9);
 }
+// Fish motion difficulty is NOT only a speed multiplier. Each rarity has its
+// own turning rhythm, burst interval, steering agility and lure-awareness.
+// These are ambient behaviours, not the special body-miss high-speed flee.
+var FISH_RARITY_MOVEMENT={
+ COMMON:{cruise:1,minimum:0,cap:85,steer:1.65,turnMin:7,turnMax:17,turnChance:.16,
+  dashMin:12,dashMax:20,dashLength:.18,dashPower:1.05,lureSense:0,lureAvoid:0,prep:0},
+ UNCOMMON:{cruise:1.16,minimum:0,cap:95,steer:2.10,turnMin:5,turnMax:10,turnChance:.34,
+  dashMin:6,dashMax:11,dashLength:.32,dashPower:1.50,lureSense:45,lureAvoid:16,prep:.03},
+ RARE:{cruise:1.48,minimum:31,cap:130,steer:2.9,turnMin:2.9,turnMax:6.1,turnChance:.58,
+  dashMin:2.9,dashMax:5.9,dashLength:.48,dashPower:2.30,lureSense:91,lureAvoid:70,prep:.06},
+ EPIC:{cruise:1.78,minimum:40,cap:163,steer:3.6,turnMin:1.9,turnMax:4.3,turnChance:.73,
+  dashMin:1.8,dashMax:3.7,dashLength:.58,dashPower:2.70,lureSense:119,lureAvoid:103,prep:.09},
+ LEGEND:{cruise:2.15,minimum:48,cap:203,steer:4.3,turnMin:1.25,turnMax:2.9,turnChance:.86,
+  dashMin:1.25,dashMax:2.7,dashLength:.67,dashPower:3.14,lureSense:143,lureAvoid:133,prep:.10},
+ MYTHIC:{cruise:2.48,minimum:59,cap:235,steer:4.9,turnMin:.92,turnMax:2.15,turnChance:.90,
+  dashMin:.88,dashMax:1.95,dashLength:.77,dashPower:3.65,lureSense:167,lureAvoid:163,prep:.12}
+};
+function fishRarityMovement(sp){
+ return FISH_RARITY_MOVEMENT[sp&&sp.rarity]||FISH_RARITY_MOVEMENT.COMMON;
+}
 function makeWildFish(sp,x,y,dir,small,schoolId){
- var visual=fishVisualProfile(sp);
+ var visual=fishVisualProfile(sp),rarity=fishRarityMovement(sp);
  var size=rnd(visual.minScale,visual.maxScale);
  var speed=visual.category==='SMALL'?rnd(17,29):
   visual.category==='LARGE'?rnd(8,17):
   visual.category==='SPECIAL'?rnd(11,24):rnd(13,26);
  var hunter=ecoIsHunter(sp,size),styles=['cruise','wander','hover','dart'];
- var mode=schoolId?'school':styles[Math.floor(Math.random()*styles.length)];
+ // Higher rarity uses unpredictable, dart-heavy styles with fewer rests.
+ var mode=schoolId?'school':
+  sp.rarity==='MYTHIC'||sp.rarity==='LEGEND'?
+   (Math.random()<.75?'dart':'wander'):
+  sp.rarity==='EPIC'||sp.rarity==='RARE'?
+   (Math.random()<.55?'dart':styles[Math.floor(Math.random()*styles.length)]):
+   styles[Math.floor(Math.random()*styles.length)];
  var f={
   ecoId:++eco.next,sp:sp,x:x,y:y,vx:dir*speed,vy:rnd(-3,3),
   speed:speed,dir:dir,size:size,phase:rnd(0,6.28),
   small:visual.category==='SMALL'||!!small,sizeClass:visual.category,
   schoolId:schoolId||0,hunter:hunter,behavior:schoolId?'school':'cruise',
-  swimMode:mode,swimFreq:rnd(.19,.68),swimAmp:rnd(3,11),
+  swimMode:mode,swimFreq:rnd(.19,.68)*(1+(rarity.cruise-1)*.47),
+  swimAmp:rnd(3,11)*(1+(rarity.cruise-1)*.32),
+  // Independent temperament keeps same-rarity species out of sync.
+  agility:rnd(.86,1.14),dartPattern:Math.floor(Math.random()*3),
+  nextDart:eco.t+rnd(rarity.dashMin,rarity.dashMax),
+  dartUntil:0,dartPrepUntil:0,dartDir:dir,dartY:0,
   panicUntil:0,fearX:0,fearY:0,huntUntil:0,fightUntil:0,fightTarget:0,
-  nextTurn:eco.t+rnd(6,18),homeY:y
+  nextTurn:eco.t+rnd(rarity.turnMin,rarity.turnMax),homeY:y
  };
  f.y=ecoSafeDepth(f,y);f.homeY=f.y;
  return f;
