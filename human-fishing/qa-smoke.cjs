@@ -232,10 +232,10 @@ assert.match(script,/WATER_SURFACE_Y=293,PLAYER_STAGE_DROP=46/,
  'The waterline must move down 24px while the hero has 46px headroom');
 assert.match(runtimeTick,/ctx\.translate\(0,PLAYER_STAGE_DROP\)/,
  'Final active renderer must shift the main octopus, rod and red cheerleader together');
-assert.match(script,/CATCH_MOUTH_X=482,CATCH_MOUTH_LOCAL_Y=168/,
- 'The open-mouth catch target must track the slightly higher, more rightward cavity');
-assert.equal(game.getMouthPos(0).x,482,'Bait target X must sit inside the open mouth');
-assert.equal(game.getMouthPos(0).y,214,'Bait target Y must sit inside the open mouth after player drop');
+assert.match(script,/CATCH_MOUTH_X=500,CATCH_MOUTH_LOCAL_Y=94/,
+ 'The shared ordinary/Fever bait destination must move 18px right and 74px upward');
+assert.equal(game.getMouthPos(0).x,500,'Bait target X must shift slightly to the right');
+assert.equal(game.getMouthPos(0).y,140,'Bait target Y must shift up by about one lure diameter');
 assert.match(script,/function rodTip\(now\)\{return evaluateRodPose\(now\)\.tip\}/,
  'Physical rod and line must share the identical bent-tip pose');
 assert.match(script,/drawRodWarped\(ctx,image,pose,pose\.root\.x,pose\.root\.y,1\)/,
@@ -740,7 +740,7 @@ for(const sourceFacing of [-1,1])for(const swimFacing of [-1,1]){
 // Regression: after the octopus-mouth escape, neither a dive/flee stage
 // switch nor the fading swimming kick may teleport the fish one frame.
 for(const dir of [-1,1])for(const phase of [0,.65,1.6,3.3,5.7]){
- const fx={x:482,y:214,dir,phase,human:false,size:1.1};
+ const fx={x:500,y:140,dir,phase,human:false,size:1.1};
  for(const edge of [.42,.74,1.19]){
   const before=game.escapePose(fx,edge-.00001);
   const after=game.escapePose(fx,edge);
@@ -856,8 +856,8 @@ assert.equal(state.catches,currentCatchCount,'Human escape must not grant catche
 assert.equal(state.coins,currentCoins,'Human escape must not grant pearls');
 // The entire hook travels along one upward Bézier arc directly into the mouth.
 const mouth=game.getMouthPos(0),origin={x:830,y:510};
-assert.equal(mouth.x,482,'Reeled-in red bait must end in the adjusted mouth cavity');
-assert.equal(mouth.y,214,'Reeled-in red bait must end at the raised mouth center');
+assert.equal(mouth.x,500,'Reeled-in red bait must reach the new shared rightward arrival point');
+assert.equal(mouth.y,140,'Reeled-in red bait must finish one bait diameter higher');
 const first=game.path(origin.x,origin.y,mouth,.26);
 const middle=game.path(origin.x,origin.y,mouth,.54);
 const near=game.path(origin.x,origin.y,mouth,.88);
