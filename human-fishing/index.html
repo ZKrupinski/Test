@@ -3370,7 +3370,8 @@ function escapeFishHeading(fx,t){
   var blend=clamp((t-.42)/.32,0,1);
   return mix(current.rot,travelAngle,blend);
  }
- if(current.stage==='dive')return travelAngle+Math.sin(t*30)*.035;
+ if(current.stage==='dive')return travelAngle+
+  Math.sin(t*30)*.035*clamp((1.19-t)/.13,0,1);
  // The Hermite dive and accelerated flee have matching tangents. Heading
  // follows that continuous velocity; its tiny swimming sway fades in so
  // the first flee frame does not snap to a different angle.
