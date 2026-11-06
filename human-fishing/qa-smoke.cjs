@@ -881,7 +881,7 @@ assert.match(runtimeTick,/var point=swallowPoint\(hook\.startX,hook\.startY,mout
 assert.match(runtimeTick,/var baitOffset=danglingBaitPosition\(time\)/,
  'The small dangling bait, NOT the octopus body, must follow the hook to the player mouth');
 assert.match(runtimeTick,/bob\.x=o\.x-\(baitOffset\.x-bob\.x\)/,
- 'Carrier must stay above the bait's fish-mouth pivot while reeling');
+ "Carrier must stay above the bait mouth pivot while reeling");
 assert.match(runtimeTick,/drawBaitAbovePlayer\(time\)/,
  'Bait must remain layered above protagonist and fishing line until swallowing');
 assert.match(script,/if\(!fx\.swallowed\)drawSwallowCreature/,'Reward animation must not replay a second flight');
