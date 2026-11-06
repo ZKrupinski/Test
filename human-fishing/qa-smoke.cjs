@@ -1095,7 +1095,7 @@ assert.ok(impacts.screen.length<=5&&impacts.octo.length<=5,
  'Continuous multi-catch actions must never accumulate unbounded vibrations');
 // A single fish brushing the lure should shake just that fish once until it exits.
 game.switchView('fish');game.getCast().active=false;game.setHook(null);
-step(65); // Let the longer 16-frame player swallow finish before checking new lure contact.
+step(100); // Allow full player swallow AND 0.32s natural line retraction to finish before grazing.
 game.getCast().active=false;
 assert.equal(game.getCatchFx(),null,'Test environment must not still be playing catch effects');
 const grazed=game.makeFish(game.species[0],660,425,1,false,0);
