@@ -357,14 +357,31 @@ function beep(kind){try{audioCtx=audioCtx||new (window.AudioContext||window.webk
 // Normal fishing only: a hidden, per-fish mouth weak point must overlap
 // the equipped bait's hidden center area. This never alters OCTO FEVER AOE.
 var FISH_MOUTH_RADIUS={COMMON:14,UNCOMMON:11.5,RARE:8.8,EPIC:6.7,LEGEND:4.7,MYTHIC:3.1};
-function baitCenterRadius(){
- var bait=selectedGear('bait');
- var level=gearLevel('bait',bait.id),shop=Number(save.shop.bait)||0;
- // Higher quality lures give a larger center contact area, without
- // moving the bait or changing the species' invisible weak point.
- // The painted lure body is roughly 29-33px across. Its hidden hit circle
- // stays well WITHIN it even for the strongest fully-upgraded bait.
- return clamp(3.2+bait.tier*.83+level*.18+shop*.10,3.2,9.2);
+// The red octopus is the carrier; its dangling BAIT is the ordinary hook
+// center and fish-mouth pivot. OCTO FEVER instead targets octopus body center.
+function baitSwingStats(gear,level){
+ var g=gear||selectedGear('bait');
+ var lv=level===undefined?gearLevel('bait',g.id):level;
+ var quality=clamp(g.tier/5*.83+lv/10*.17,0,1);
+ return{quality:quality,
+  // High-grade bait is steadier but has a smaller precision contact circle.
+  angle:.23*(1-.82*quality),
+  contactRadius:clamp(5.8-g.tier*.34-lv*.055,3.45,5.8)};
+}
+function baitCenterRadius(){return baitSwingStats().contactRadius}
+function danglingBaitPosition(now){
+ var stats=baitSwingStats();
+ var moving=typeof rodMotion!=='undefined'&&rodMotion?(rodMotion.vx||0):0;
+ var inertia=clamp(moving/350,-1,1);
+ var angle=Math.sin(now*3.35+bob.x*.012)*stats.angle-
+  inertia*stats.angle*1.20;
+ if(hook)angle*=.62;
+ if(feverFx)angle*=.72;
+ angle=clamp(angle,-.40,.40);
+ var jointX=bob.x,jointY=bob.y+27,length=24;
+ return{x:jointX+Math.sin(angle)*length,
+  y:jointY+Math.cos(angle)*length,
+  jointX:jointX,jointY:jointY,angle:angle,length:length};
 }
 function isFishFleeing(f){
  return !!f&&!f.feverCaptured&&(Number(f.panicUntil)>eco.t||
@@ -1660,7 +1677,14 @@ function equipmentItem(cat,id){
 function equipmentMetrics(cat,g,lv){
  var power=Math.min(24,(Number(save.shop[cat])||0)+g.tier*2+lv);
  if(cat==='rod'){var p=rodHandling(g,lv);return [['미끼 속도',p.speed,'px/s'],['가속',p.acceleration,'px/s²'],['제동',p.braking,'px/s²'],['흔들림',+p.wobble.toFixed(1),'px']];}
- if(cat==='bait')return [['유인 능력',power,''],['최상급 물고기 출현',+(Math.min(.23,.035+power*.004+g.tier*.012)*100).toFixed(1),'%'],['보스 인간 출현',+(Math.min(.72,.11+power*.014+g.tier*.024)*100).toFixed(1),'%']];
+ if(cat==='bait'){
+  var sw=baitSwingStats(g,lv);
+  return [['유인 능력',power,''],
+   ['입질 접촉 반경',+sw.contactRadius.toFixed(2),'px'],
+   ['미끼 흔들림',+(sw.angle*24).toFixed(1),'px'],
+   ['최상급 물고기 출현',+(Math.min(.23,.035+power*.004+g.tier*.012)*100).toFixed(1),'%'],
+   ['보스 인간 출현',+(Math.min(.72,.11+power*.014+g.tier*.024)*100).toFixed(1),'%']];
+ }
  if(cat==='net')return [['추가 포획 확률',+(Math.min(.85,power*.054)*100).toFixed(1),'%'],['진주 보너스',+(power*2.5).toFixed(1),'%']];
  if(cat==='helper')return [['자동 진주 / 35초',power?Math.max(1,Math.floor(power*3.5)):0,'◈'],['릴 시간 보정',+(power*1.2).toFixed(1),'%']];
  var q=octoStats(g.tier,lv);return [['피버 문어 크기',q.size,'px'],['광역 반경',q.radius,'px'],['발동 확률',+(q.chance*100).toFixed(1),'%'],['포획 보정',+(q.bonus*100).toFixed(1),'%p']];
@@ -1684,6 +1708,7 @@ function equipmentSummary(){
  ['진주 보상','+'+(np*2.5).toFixed(1)+'%'],
  ['자동 진주 / 35초','◈ '+(hp?Math.max(1,Math.floor(hp*3.5)):0)],
  ['피버 포획 범위',fever.radius+'px'],
+ ['미끼 약점 접촉 반경',baitSwingStats(bait).contactRadius.toFixed(2)+'px'],
  ['피버 발동 확률',+(fever.chance*100).toFixed(1)+'%']
  ];
  return '<div class="loadout-heading"><h3>현재 장착 스탯</h3><small>장착 및 강화 시 즉시 업데이트 · ◈ '+save.coins.toLocaleString()+'</small></div>'+
@@ -3256,7 +3281,8 @@ save.fever.activations=Math.max(0,Number(save.fever.activations)||0);
 function octoStats(tier,lv){
  return {
   size:52+tier*12+lv*3,
-  radius:145+tier*34+lv*12,
+  // Baby reach 100px; upgrading octopus TIER distinctly expands suction.
+  radius:[100,132,170,215,265,320][clamp(tier,0,5)]+lv*3,
   chance:Math.min(.74,.10+tier*.052+lv*.020),
   bonus:Math.min(.27,.038+tier*.035+lv*.012)
  };
