@@ -1127,7 +1127,13 @@ game.getCast().active=false;
 assert.equal(game.getCatchFx(),null,'Test environment must not still be playing catch effects');
 const grazed=game.makeFish(game.species[0],660,425,1,false,0);
 game.setFish([grazed]);
-const brushBob=game.getBob();brushBob.x=660;brushBob.y=425;
+const brushBob=game.getBob();
+brushBob.x=660;brushBob.y=425;
+for(let k=0;k<7;k++){
+ const tip=game.getBaitTip();
+ brushBob.x+=grazed.x-tip.x;
+ brushBob.y+=grazed.y-tip.y;
+}
 impacts.lastBrush=-5;impacts.screen.length=0;impacts.lure.length=0;
 game.checkBrush();
 assert.ok(grazed.shakeUntil>0,'Fish must have its own local sprite vibration at bait contact');
