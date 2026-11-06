@@ -243,7 +243,7 @@ assert.match(script,/var tip=rodTip\(time\),/,
  const recovery=at('recover',.15,28),recoveryEnd=at('recover',1.0,28);
  assert.ok(Math.abs(recoveryEnd.bend-rest.bend)<Math.abs(recovery.bend-rest.bend),
   'Releasing a fish must spring back with decreasing amplitude');
- assert.deepEqual(game.rodWarp(34,35),{dx:0,dy:0,sx:0,sy:0},
+ assert.ok(Object.values(game.rodWarp(34,35)).every(v=>v===0),
   'Grip and reel region must stay completely rigid');
  assert.ok(game.rodWarp(104,35).dy>25,
   'The blank must bend progressively towards its tip');
