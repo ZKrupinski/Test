@@ -1517,7 +1517,7 @@ console.log('PASS: hook-bait centered fishing, shrinking precision at high tiers
  assert.ok(fx.duration>fx.reelStart+.82+1.9,
   'Fever must remain alive for the rare mouth-escape and dive');
  const now=clock/1000,releaseAt=fx.reelStart+.82;
- const gathering=game.toss(pulled,{...fx,elapsed:.45},0,now);
+ const gathering=game.toss(pulled,{...fx,elapsed:.34},0,now);
  const lifting=game.toss(pulled,{...fx,elapsed:fx.reelStart+.40},0,now);
  assert.equal(gathering.phase,'gather');
  assert.equal(lifting.phase,'held');
