@@ -479,29 +479,28 @@ function scareFishOnMiss(point){
 }
 function ordinaryFishingTarget(){
  var best=null,score=Infinity,blockedByBody=false;
+ var baitTip=danglingBaitPosition(time);
  fish.forEach(function(f){
   if(!f||f.feverCaptured)return;
-  if(fishBodyContact(f,bob)&&!fishMouthOverlapsLure(f,bob,time))
+  if(fishBodyContact(f,baitTip)&&!fishMouthOverlapsLure(f,baitTip,time))
    blockedByBody=true;
   var mouth=fishMouthWeakspot(f,time);
   if(!mouth)return;
   var radius=baitCenterRadius();
-  var dx=(bob.x-mouth.x)/(mouth.rx+radius),
-      dy=(bob.y-mouth.y)/(mouth.ry+radius);
+  var dx=(baitTip.x-mouth.x)/(mouth.rx+radius),
+      dy=(baitTip.y-mouth.y)/(mouth.ry+radius);
   var d2=dx*dx+dy*dy;
   if(d2<=1&&d2<score){best=f;score=d2}
  });
  if(best)return{obj:best,kind:'fish'};
- // An incorrect placement on a fish must never silently hook a nearby
- // human instead. Human fishing otherwise retains its existing rules.
  if(blockedByBody)return null;
  var human=null,lowest=1,rod=gearPower('rod'),bait=gearPower('bait');
  hum.forEach(function(a){
-  var d=Math.hypot(a.x-bob.x,a.y+22-bob.y)/
+  var d=Math.hypot(a.x-baitTip.x,a.y+22-baitTip.y)/
    (107+save.up[1]*14+(a.id>=20?35:0)+rod*11+bait*8);
   if(d<lowest){lowest=d;human=a}
  });
- return human?{obj:human,kind:'human'}:null;
+ return human?{obj:human,kind:'human'};
 }
 function nearest(){return ordinaryFishingTarget()}
 function release(){if(hook||view!=='fish'&&view!=='human')return;var found=nearest();ripple(bob.x,bob.y);beep('hit');if(found){hook={obj:found,kind:view,elapsed:0,startX:found.x,startY:found.y,originX:bob.x,originY:bob.y};$('hintTitle').textContent='입질 성공!';$('hint').textContent='당겨 올리는 중…';spawnParticles(bob.x,bob.y,12,'water')}else{announce('💧','앗, 놓쳤다!','움직이는 생물 가까이 찌를 놓아보세요.');$('hintTitle').textContent='다시 찌를 움직여보세요';spawnParticles(bob.x,bob.y,8,'water')}}
@@ -1021,8 +1020,9 @@ function release(){
  }else{
   // A body/tail miss disturbs all fish around the bait. The escaping fish
   // immediately lose their mouth weak points until the flight is finished.
-  var bodyMiss=fish.some(function(f){return fishBodyContact(f,bob)});
-  var scared=bodyMiss?scareFishOnMiss(bob):0;
+  var baitTip=danglingBaitPosition(time);
+  var bodyMiss=fish.some(function(f){return fishBodyContact(f,baitTip)});
+  var scared=bodyMiss?scareFishOnMiss(baitTip):0;
   if(window.octoSidekicksSignal)window.octoSidekicksSignal('miss',time);
   if(scared){
    $('hintTitle').textContent='입을 놓쳤어! 주변 물고기들이 도망칩니다';
@@ -2851,9 +2851,10 @@ function checkBaitBrush(){
  for(var i=0;i<fish.length;i++){
   var f=fish[i];if(f.feverCaptured||isFishFleeing(f))continue;
   var rx=15+36*(f.size||1),ry=12+21*(f.size||1);
-  var dx=(f.x-bob.x)/rx,dy=(f.y-bob.y)/ry;
+  var baitTip=danglingBaitPosition(time);
+  var dx=(f.x-baitTip.x)/rx,dy=(f.y-baitTip.y)/ry;
   var touching=dx*dx+dy*dy<=1;
-  if(touching&&!fishMouthOverlapsLure(f,bob,time)&&!f.brushTouching&&
+  if(touching&&!fishMouthOverlapsLure(f,baitTip,time)&&!f.brushTouching&&
      time-(f.lastBrushAt||-5)>.55){
    f.lastBrushAt=time;vibrationPulse('brush');
    playerOctoCue('excited',.9/PLAYER_ANIM_RATE);
@@ -2873,7 +2874,7 @@ function checkBaitWeakspot(){
  }
  for(var i=0;i<fish.length;i++){
   var f=fish[i];if(!f||f.feverCaptured||isFishFleeing(f))continue;
-  var weak=fishMouthOverlapsLure(f,bob,time);
+  var weak=fishMouthOverlapsLure(f,danglingBaitPosition(time),time);
   if(weak&&!f.weakTouching&&vibrationPulse('weakspot')){
    f.shakeUntil=time+.235;f.shakePower=2.65;
    f.shakeDuration=.235;
@@ -2932,7 +2933,11 @@ function tick(stamp){
      var point=swallowPoint(hook.startX,hook.startY,mouthPos(time),p);
      o.x=point.x;o.y=point.y;
     }
-    bob.x=o.x;bob.y=o.y;
+    // The small swinging bait remains the actual fish-mouth joint.
+    // The red octopus body therefore travels above the fish's mouth.
+    var baitOffset=danglingBaitPosition(time);
+    bob.x=o.x-(baitOffset.x-bob.x);
+    bob.y=o.y-(baitOffset.y-bob.y);
   }
   // Ordered canvas layers:
   // 1. Protagonist, cheerleader and fishing ROD (background props)
@@ -3192,7 +3197,7 @@ function hookedFishMouthPivot(h,now,anchor){
 function drawHookedFishAtMouth(h,now){
  var f=h.obj,rig=h.mouthRig,image=fishSprite(f.sp);
  if(!image||!rig)return false;
- var anchor=lureLineAnchor(),joint=hookedFishMouthPivot(h,now,anchor);
+ var anchor=danglingBaitPosition(now),joint=hookedFishMouthPivot(h,now,anchor);
  var settings=fishMotionSettings(f.sp),size=.5*(f.size||fishVisualProfile(f.sp).baseScale)*
   (image._hfScale||1),w=image.width*size,hgt=image.height*size;
  var progress=clamp(h.elapsed/(h.travelDuration||1),0,1);
@@ -4175,7 +4180,8 @@ release=function(){
  // A fast one-shot opening/closing of the EXISTING red octopus PNG sheet
  // fires on every ordinary release, even if the fish was missed.
  triggerRedLureReleasePulse();
- var lureAtRelease={x:bob.x,y:bob.y};
+ var danglingTip=danglingBaitPosition(time);
+ var lureAtRelease={x:danglingTip.x,y:danglingTip.y};
  oldReleaseForDifficulty();
  if(hook){
   if(hook.kind==='fish'){
