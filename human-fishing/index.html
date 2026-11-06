@@ -69,6 +69,9 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 /* Named equipment-specific transparent PNG art previews. */
 .shop-icon.rod-bitmap-preview{width:95px;min-width:95px;height:74px;overflow:hidden;background:#103e4c;display:grid;place-items:center}
 .shop-icon.rod-bitmap-preview img{width:112%;height:118%;object-fit:contain;pointer-events:none}
+.shop-icon.bait-bitmap-preview{width:78px;min-width:78px;height:78px;overflow:hidden;background-color:#103e4c;background-repeat:no-repeat;background-size:1000% 100%}
+.loadout-bait-img{display:inline-block;width:54px;height:54px;flex-shrink:0;background-repeat:no-repeat;background-size:1000% 100%}
+.bait-special-desc{color:#8cf1d7!important;font-size:12px!important;font-weight:750}
 .loadout-rod-img{display:block;width:66px;max-width:100%;height:48px;object-fit:contain;pointer-events:none}
 
 
@@ -1721,7 +1724,8 @@ function equipmentMetrics(cat,g,lv){
   var sw=baitSwingStats(g,lv);
   return [['유인 능력',power,''],
    ['입질 접촉 반경',+sw.contactRadius.toFixed(2),'px'],
-   ['미끼 흔들림',+(sw.angle*24).toFixed(1),'px'],
+   ['미끼 흔들림',+(sw.angle*41).toFixed(1),'px'],
+   ['특수 기능 강화',Math.round(lv*4.5),'%'],
    ['최상급 물고기 출현',+(Math.min(.23,.035+power*.004+g.tier*.012)*100).toFixed(1),'%'],
    ['보스 인간 출현',+(Math.min(.72,.11+power*.014+g.tier*.024)*100).toFixed(1),'%']];
  }
@@ -1732,7 +1736,8 @@ function equipmentMetrics(cat,g,lv){
 function equipmentMetricsHtml(cat,g,lv,compare){
  var rows=equipmentMetrics(cat,g,lv),base=compare?equipmentMetrics(cat,compare,gearLevel(cat,compare.id)):null;
  return '<div class="loadout-metrics">'+rows.map(function(v,i){
-  var delta=base?+(v[1]-base[i][1]).toFixed(1):0,good=i===3&&cat==='rod'?-delta:delta;
+  var delta=base?+(v[1]-base[i][1]).toFixed(1):0,
+   good=(cat==='rod'&&i===3)||(cat==='bait'&&(i===1||i===2))?-delta:delta;
   return '<span>'+v[0]+'<b>'+v[1]+v[2]+'</b>'+(base&&delta?'<em>'+ (good>0?'▲ ':'▼ ')+Math.abs(delta)+v[2]+'</em>':'')+'</span>';
  }).join('')+'</div>';
 }
@@ -1741,7 +1746,7 @@ function equipmentSummary(){
  var bait=selectedGear('bait'),oct=selectedGear('octopus'),fever=octoStats(oct.tier,gearLevel('octopus',oct.id));
  var data=[
  ['미끼 이동 속도',rod.speed+'px/s'],
- ['물고기 포획 반경',(118+save.up[1]*20+rp*11+bp*5)+'px'],
+ ['일반 입질 접촉 반경',baitCenterRadius().toFixed(2)+'px'],
  ['인간 포획 반경',(107+save.up[1]*14+rp*11+bp*8)+'px'],
  ['보스 인간 출현',+(Math.min(.72,.11+bp*.014+bait.tier*.024)*100).toFixed(1)+'%'],
  ['추가 포획 확률',+(Math.min(.85,np*.054)*100).toFixed(1)+'%'],
@@ -1757,12 +1762,16 @@ function equipmentSummary(){
 function equipmentIconMarkup(cat,item){
  if(cat==='rod')return '<div class="shop-icon rod-bitmap-preview" style="border-color:'+item.color+
   '"><img draggable="false" loading="lazy" src="'+rodBitmapPath(item.id)+'" alt="'+escapeHtml(item.name)+'"></div>';
+ if(cat==='bait')return '<div class="shop-icon bait-bitmap-preview" role="img" aria-label="'+escapeHtml(item.name)+
+  '" style="border-color:'+item.color+';'+baitSpriteCss(item.tier)+';background-position:'+baitSpritePosition(item.tier)+'"></div>';
  return '<div class="shop-icon" style="border-color:'+item.color+';color:'+item.color+'">'+gearIcons[cat]+'</div>';
 }
 function renderEquipment(){
  var slots='<div class="loadout-heading"><h3>장비 슬롯</h3><small>장비를 눌러 보유 장비 변경 및 강화</small></div><div class="loadout-slots">'+Object.keys(gearCatalog).map(function(cat){
   var g=selectedGear(cat);
-  return '<button type="button" data-gear-slot="'+cat+'" class="loadout-slot '+(equipmentCategory===cat?'selected':'')+'"><span class="loadout-icon">'+(cat==='rod'?'<img class="loadout-rod-img" src="'+rodBitmapPath(g.id)+'" alt="">':gearIcons[cat])+'</span><span><small>'+gearCategoryNames[cat]+'</small><strong>'+escapeHtml(g.name)+'</strong><small>Lv.'+gearLevel(cat,g.id)+'/10</small></span></button>';
+  return '<button type="button" data-gear-slot="'+cat+'" class="loadout-slot '+(equipmentCategory===cat?'selected':'')+'"><span class="loadout-icon">'+(cat==='rod'?'<img class="loadout-rod-img" src="'+rodBitmapPath(g.id)+'" alt="">':
+  cat==='bait'?'<span class="loadout-bait-img" role="img" aria-label="'+escapeHtml(g.name)+
+  '" style="'+baitSpriteCss(g.tier)+';background-position:'+baitSpritePosition(g.tier)+'"></span>':gearIcons[cat])+'</span><span><small>'+gearCategoryNames[cat]+'</small><strong>'+escapeHtml(g.name)+'</strong><small>Lv.'+gearLevel(cat,g.id)+'/10</small></span></button>';
  }).join('')+'</div>';
  var cat=equipmentCategory,current=selectedGear(cat);
  var owned=save.gearOwned[cat].map(function(id){return equipmentItem(cat,id)}).filter(Boolean).sort(function(a,b){return a.tier-b.tier});
@@ -1772,7 +1781,8 @@ function renderEquipment(){
   var delta=next.map(function(v,i){var d=+(v[1]-now[i][1]).toFixed(1);return d?(v[0]+' '+(d>0?'+':'')+d+v[2]):''}).filter(Boolean).join(' · ');
   return '<article class="shop-card '+(equipped?'equipped':'')+'">'+equipmentIconMarkup(cat,item)+'<div class="shop-detail"><h3>'+escapeHtml(item.name)+'</h3>'+
    '<span class="shop-badge">'+(equipped?'● 장착 중':'보유 장비')+'</span><span class="shop-badge">TIER '+(item.tier+1)+'</span><span class="shop-badge">LV '+lv+'/10</span>'+
-   '<p>'+escapeHtml(item.desc)+'</p>'+equipmentMetricsHtml(cat,item,lv,equipped?null:current)+
+   '<p>'+escapeHtml(item.desc)+'</p>'+(cat==='bait'?'<p class="bait-special-desc">✦ '+escapeHtml(baitTraitPreview(item,lv))+'</p>':'')+
+   equipmentMetricsHtml(cat,item,lv,equipped?null:current)+
    '<div class="shop-progress"><i style="width:'+(lv*10)+'%"></i></div>'+
    '<div class="loadout-next">'+(max?'최대 강화 완료':'다음 강화 → '+(delta||'성능 유지'))+'</div>'+
    '<div class="loadout-actions"><button type="button" data-loadout="equip" data-gear-id="'+item.id+'" '+(equipped?'disabled':'')+'>'+(equipped?'장착 중 ✓':'장착하기')+'</button>'+
@@ -1817,10 +1827,11 @@ function renderShop(){
   var cat=shopCategory,owned=save.gearOwned[cat].includes(item.id),lv=gearLevel(cat,item.id),current=selectedGear(cat);
   return '<article class="shop-card '+(current.id===item.id?'equipped':'')+'">'+equipmentIconMarkup(cat,item)+'<div class="shop-detail"><h3>'+escapeHtml(item.name)+'</h3>'+
    '<span class="shop-badge">'+(current.id===item.id?'● 장착 중':owned?'보유 중':'미보유')+'</span><span class="shop-badge">TIER '+(item.tier+1)+'</span><span class="shop-badge">LV '+lv+'/10</span>'+
-   '<p>'+escapeHtml(item.desc)+'</p>'+equipmentMetricsHtml(cat,item,lv,owned?null:current)+
+   '<p>'+escapeHtml(item.desc)+'</p>'+(cat==='bait'?'<p class="bait-special-desc">✦ '+escapeHtml(baitTraitPreview(item,lv))+'</p>':'')+
+   equipmentMetricsHtml(cat,item,lv,owned?null:current)+
    '<div class="shop-buttons"><button type="button" data-shop-buy="'+item.id+'" '+(owned||save.coins<item.price?'disabled':'')+'>'+(owned?'보유 중 ✓':'◈ '+item.price.toLocaleString()+' 구매')+'</button></div></div></article>';
  }).join('');
- openPanel('장비 상점 · 30가지 장비','낚싯대 · 미끼 · 어망 · 조력자 · 피버 문어 / 구매 전용',
+ openPanel('장비 상점 · '+Object.keys(gearCatalog).reduce(function(n,key){return n+gearCatalog[key].length},0)+'가지 장비','낚싯대 · 미끼 · 어망 · 조력자 · 피버 문어 / 구매 전용',
   '<div class="shop-hint">보유 진주 <b style="color:#ffe0aa">◈ '+save.coins.toLocaleString()+
   '</b> · 상점에서는 <b>구매만</b> 가능합니다. 장착과 강화는 <button type="button" class="smallbtn" id="shopToGear">🎒 장비 메뉴</button>에서 진행하세요.</div>'+
   tabs+'<div class="shop-grid">'+cards+'</div>');
