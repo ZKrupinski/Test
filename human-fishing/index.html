@@ -1041,6 +1041,7 @@ function release(){
    $('hint').textContent='물고기 입의 약점 영역에 미끼 중심을 맞춰야 낚입니다.';
   }
   spawnParticles(bob.x,bob.y,scared?14:8,'water');
+  beginMissReturn();
  }
 }
 function success(){
@@ -1935,6 +1936,12 @@ function advanceIntroEntrance(dt){
 // Shared, uninterrupted mouth-drop / player reaction / line-retract sequence.
 // Applies identically to normal fishing and OCTO FEVER.
 var lureRecovery={active:false};
+function beginMissReturn(){
+ // Return underwater immediately after a missed release; sample depth once.
+ hideVirtualJoystick();
+ lureRecovery={active:true,kind:'miss_return',start:time,
+  fromX:bob.x,fromY:bob.y,toX:W*.5,toY:rnd(360,590),duration:.4};
+}
 function beginLureRecovery(result){
  if(lureRecovery.active)return;
  var kind=result==='swallow_failure'?'swallow_failure':'swallow_success';
@@ -1948,6 +1955,13 @@ function beginLureRecovery(result){
 function updateLureRecovery(dt){
  if(!lureRecovery.active||view!=='fish')return;
  var r=lureRecovery,age=Math.max(0,time-r.start),p;
+ if(r.kind==='miss_return'){
+  p=clamp(age/r.duration,0,1);
+  var ease=1-Math.pow(1-p,3);
+  bob.x=mix(r.fromX,r.toX,ease);bob.y=mix(r.fromY,r.toY,ease);
+  if(p>=1){r.active=false;bob.x=r.toX;bob.y=r.toY}
+  return;
+ }
  if(age<r.dropDuration){
   // Drop instantly from the mouth, accelerate naturally under gravity.
   p=clamp(age/r.dropDuration,0,1);

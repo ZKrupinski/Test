@@ -158,6 +158,8 @@ window.__hfTest={
  swallow:playCatchFx,
  getCast:function(){return cast},
  getRecovery:function(){return lureRecovery},
+ updateRecovery:updateLureRecovery,
+ swapRandom:function(fn){const old=random;random=fn;return old},
  getIntro:function(){return introEntrance},
  markIntroHeroReady:function(){playerOctoAtlas.swim={ready:true}},
  advanceIntro:advanceIntroEntrance,
@@ -1417,6 +1419,20 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
   assert.ok(game.getFish().includes(nearEdge),
    'Affected fish must not despawn while recovering from a missed catch');
  }
+ // Complete the real missed-release recovery before the next input.
+ const returning=game.getRecovery();
+ assert.equal(returning.kind,'miss_return');
+ assert.ok(returning.active);
+ assert.equal(returning.toX,640);
+ assert.ok(returning.toY>=360&&returning.toY<=590);
+ game.setTime(returning.start+.2);game.updateRecovery(.2);
+ assert.ok(Math.abs(bait.x-640)<Math.abs(returning.fromX-640));
+ game.releaseNow();
+ assert.equal(game.getHook(),null,'Return movement must block duplicate release');
+ game.setTime(returning.start+.41);game.updateRecovery(.21);
+ assert.equal(returning.active,false);
+ assert.equal(bait.x,640);assert.equal(bait.y,returning.toY);
+ assert.equal(game.getCast().active,false,'A miss must not replay the long cast');
  // Restore a normal catchable state and check the exact mouth actually
  // produces a fish hook via the full normal release path.
  commonFish.panicUntil=0;commonFish.fleeBurstUntil=0;
@@ -1792,3 +1808,23 @@ console.log('PASS: localized fish and octopus shake, gentle contact, bite, sucti
  saved.gearEquipped.bait=before;
 }
 console.log('PASS: 10 unique hooked bait models, preserved legacy IDs, shrinking precision, upgradeable stability and octopus-centered Fever');
+
+{
+ game.switchView('fish');game.getRecovery().active=false;
+ game.getCast().active=false;game.setHook(null);
+ game.setFish([]);game.setHum([]);game.getSave().fever.ready=false;
+ const ys=[];const previousRandom=game.swapRandom(()=>0);
+ for(const random of [0,.5,.999]){
+  game.swapRandom(()=>random);
+  game.setTime(200+ys.length);game.getBob().x=100;game.getBob().y=500;
+  game.releaseNow();const recovery=game.getRecovery();
+  assert.equal(recovery.kind,'miss_return');assert.ok(recovery.active);
+  ys.push(recovery.toY);
+  game.setTime(recovery.start+.41);game.updateRecovery(.41);
+  assert.equal(game.getBob().x,640);assert.equal(game.getBob().y,recovery.toY);
+  assert.ok(!recovery.active);
+ }
+ game.swapRandom(previousRandom);
+ assert.ok(ys[0]<ys[1]&&ys[1]<ys[2],'Each miss must resample the return depth');
+}
+console.log('PASS: missed releases return centrally within 0.4s at randomized safe depths; duplicate inputs blocked and next release enabled');
