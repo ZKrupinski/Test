@@ -2318,8 +2318,8 @@ function drawRod(now){
 var rodTunerPreview={mode:'cast',at:time};
 function rodTunerGear(){
  var id=$('rodTuneSpecies').value;
- return gearCatalog.rod.map(function(item){return gearDefinition('rod',item)}).find(function(g){return g.id===id})||
-  selectedGear('rod');
+ return gearCatalog.rod.map(function(v,i){return{id:v[0],name:v[1],tier:i};})
+  .find(function(g){return g.id===id})||selectedGear('rod');
 }
 function rodTunerRefresh(){
  var gear=rodTunerGear(),changes=save.rodMotionOverrides[gear.id]||{};
