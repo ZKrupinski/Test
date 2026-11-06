@@ -2,7 +2,7 @@
 (function () {
  'use strict';
  var images=[], NativeImage=window.Image, rotated=false, started=false;
- function TrackedImage(w,h){var img=new NativeImage(w,h);images.push(img);return img;}
+ function TrackedImage(w,h){var img=arguments.length===0?new NativeImage():arguments.length===1?new NativeImage(w):new NativeImage(w,h);images.push(img);return img;}
  TrackedImage.prototype=NativeImage.prototype;
  Object.setPrototypeOf(TrackedImage,NativeImage);
  window.Image=TrackedImage;
