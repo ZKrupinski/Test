@@ -1266,6 +1266,16 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  game.releaseNow();
  assert.equal(game.getHook(),null,
   'A body-only release must NOT create a fishing hook');
+ // Verify that the start impulse is immediate (before any ecosystem frame),
+ // rather than gradually easing up from normal roaming velocity.
+ assert.ok(Math.abs(commonFish.vx)>=285&&Math.abs(companion.vx)>=285,
+  'A body miss must instantly launch nearby fish at >=285 px/s');
+ const fleeStartX=commonFish.x;
+ game.ecoTick(.016);
+ assert.ok(Math.abs(commonFish.x-fleeStartX)>4.4,
+  'Fish must visibly cover at least 4.4px in the very first 16ms flee frame');
+ assert.ok(Math.abs(commonFish.vx)>=275&&Math.abs(companion.vx)>=275,
+  'High-speed escape must remain fast after the first ecosystem update');
  const eco=game.getEco();
  assert.ok(commonFish.fleeBurstUntil>eco.t&&companion.fleeBurstUntil>eco.t,
   'Touching the body must scare all fish in the nearby shoal');
