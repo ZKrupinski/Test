@@ -1539,6 +1539,7 @@ function success(){
  triggerRedLureReaction('gulp');
  playCatchFx(o,human,aquariumSale?name+' · 판매':name,reward,extra,!aquariumSale&&fresh);
  if(window.octoSidekicksCatch)window.octoSidekicksCatch(time,{rare:!!(fresh||extra||human||(o.sp&&['EPIC','LEGEND','MYTHIC'].indexOf(o.sp.rarity)>=0))});
+ triggerRodRecoil(time);
  hook=null;
  // Keep every non-caught animal and its movement state across casts.
  if(human)hum=hum.filter(function(h){return h!==o});
@@ -1583,7 +1584,7 @@ function startCast(){
  if(introEntrance.active)return; // No rod cast before the arrival is complete.
  playerOctoCueState=null;playerOctoIdleState=null;
  if(window.octoSidekicksSignal)window.octoSidekicksSignal('cast',time);
- hideVirtualJoystick();cast.active=true;cast.elapsed=0;cast.landing=false;drag=false;dragPointer=null;dragQualified=false;
+ hideVirtualJoystick();rodRecoil.at=-100;cast.active=true;cast.elapsed=0;cast.landing=false;drag=false;dragPointer=null;dragQualified=false;
  bob.x=rodTip(time).x-10;bob.y=rodTip(time).y+18;
  $('hintTitle').textContent='낚싯대를 휘둘러 찌를 던지는 중…';
  $('hint').textContent='수면에 닿은 미끼가 천천히 가라앉습니다. 물속으로 들어온 순간 화면 어디든 터치하면 조이스틱으로 움직일 수 있어요.';
@@ -3134,6 +3135,7 @@ function escapeHook(){
   duration:human?3.0:2.75
  };
  o.feverCaptured=true;
+ triggerRodRecoil(time);
  hook=null;hideVirtualJoystick();
  var tip=rodTip(time);bob.x=tip.x-9;bob.y=tip.y+19;
  startPlayerOctoReaction('swallow_failure');
@@ -3737,6 +3739,7 @@ function drawFeverFx(dt){
 
  if(fx.elapsed>=fx.duration){
   if(fx.caught.length)startPlayerOctoReaction('swallow_success');
+  triggerRodRecoil(time);
   feverFx=null;buildFish();buildHum();
   if(view==='fish')startCast();
  }
