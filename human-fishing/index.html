@@ -3030,9 +3030,15 @@ function tick(stamp){
     }
     // The small swinging bait remains the actual fish-mouth joint.
     // The red octopus body therefore travels above the fish's mouth.
-    var baitOffset=danglingBaitPosition(time);
-    bob.x=o.x-(baitOffset.x-bob.x);
-    bob.y=o.y-(baitOffset.y-bob.y);
+    // Solve for the carrier BODY position so the independently swinging
+    // hook BAIT center lands exactly on the moving fish-mouth joint.
+    // The hook angle depends mildly on carrier x, so one approximation
+    // would drift by several pixels. Four bounded iterations converge.
+    for(var hookSolve=0;hookSolve<4;hookSolve++){
+     var baitOffset=danglingBaitPosition(time);
+     bob.x+=o.x-baitOffset.x;
+     bob.y+=o.y-baitOffset.y;
+    }
   }
   // Ordered canvas layers:
   // 1. Protagonist, cheerleader and fishing ROD (background props)
