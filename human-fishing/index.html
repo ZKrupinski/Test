@@ -497,7 +497,7 @@ function fishSprite(sp){
 var fishMotionGlobal={enabled:true,amp:1,tempo:1,turn:1,flap:1};
 if(!save.fishMotionOverrides||typeof save.fishMotionOverrides!=='object')save.fishMotionOverrides={};
 function fishMotionSettings(sp){
- var profile=fishVisualProfile(sp),shape=profile.shape,size=profile.category;
+ var profile=sp._hfMotionProfile||(sp._hfMotionProfile=fishVisualProfile(sp)),shape=profile.shape,size=profile.category;
  var base={frequency:size==='SMALL'?2.5:size==='LARGE'?.86:size==='SPECIAL'?1.45:1.65,
   amplitude:size==='SMALL'?2.15:size==='LARGE'?3.6:2.75,
   flex:1,tail:1,prep:.17,turn:.27,recover:.15,strips:10};
@@ -511,13 +511,13 @@ function fishMotionSettings(sp){
   base.frequency*=.82;base.amplitude*=1.22;
  }
  var o=save.fishMotionOverrides[sp.id]||{};
- return{frequency:base.frequency*fishMotionGlobal.tempo*clamp(Number(o.tempo)||1,.3,2.8),
-  amplitude:base.amplitude*fishMotionGlobal.amp*clamp(Number(o.amp)||1,.0,3),
-  flex:base.flex*clamp(Number(o.tail)||1,.0,3),
-  prep:base.prep*fishMotionGlobal.turn*clamp(Number(o.prep)||1,.2,3),
-  turn:base.turn*fishMotionGlobal.turn*clamp(Number(o.turn)||1,.25,3),
+ return{frequency:base.frequency*fishMotionGlobal.tempo*clamp(o.tempo===undefined?1:Number(o.tempo),.3,2.8),
+  amplitude:base.amplitude*fishMotionGlobal.amp*clamp(o.amp===undefined?1:Number(o.amp),.0,3),
+  flex:base.flex*clamp(o.tail===undefined?1:Number(o.tail),.0,3),
+  prep:base.prep*fishMotionGlobal.turn*clamp(o.prep===undefined?1:Number(o.prep),.2,3),
+  turn:base.turn*fishMotionGlobal.turn*clamp(o.turn===undefined?1:Number(o.turn),.25,3),
   recover:base.recover,strips:base.strips,
-  flap:fishMotionGlobal.flap*clamp(Number(o.flap)||1,.0,3),
+  flap:fishMotionGlobal.flap*clamp(o.flap===undefined?1:Number(o.flap),.0,3),
   shape:shape};
 }
 function fishMotionPose(a,now,sourceFacing,settings){
