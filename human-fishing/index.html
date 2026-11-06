@@ -2886,9 +2886,73 @@ function drawSwallowCreature(entity,elapsed,delay,travel,mouth){
  }
  return true;
 }
+// The actual fish mouth is the joint. Only the BODY rotates around it,
+// while the joint follows the bait/line anchor; no mid-body pivot or image edit.
+function makeMouthHookRig(f,now,anchor){
+ var weak=fishMouthWeakspot(f,now);
+ if(!weak)return null;
+ var image=fishSprite(f.sp),size=.5*(f.size||fishVisualProfile(f.sp).baseScale)*
+  (image._hfScale||1);
+ var bobbing=Math.sin(now*2+(f.phase||0))*Math.min(3,1.8+size);
+ return{
+  mouthX:weak.x-f.x,mouthY:weak.y-f.y-bobbing,
+  facing:weak.facing,angle:0,angularVelocity:0,
+  lastX:anchor.x,lastY:anchor.y,lastVX:0,lastVY:0,
+  lastAt:now,
+  // Keep the exact original fish silhouette/scale throughout the lift.
+  srcW:image.width,srcH:image.height
+ };
+}
+function hookedFishMouthPivot(h,now,anchor){
+ var rig=h.mouthRig;
+ if(!rig)return null;
+ var dt=clamp(now-rig.lastAt,0,.045);
+ var progress=clamp(h.elapsed/(h.travelDuration||1),0,1);
+ if(dt>.0001){
+  var vx=clamp((anchor.x-rig.lastX)/dt,-1300,1300);
+  var vy=clamp((anchor.y-rig.lastY)/dt,-1600,1600);
+  var accelerationX=clamp((vx-rig.lastVX)/dt,-3000,3000);
+  // At release the fish still points in its swimming direction. As the
+  // bait pulls it upward, gravity hangs its tail beneath the fixed mouth.
+  var hang=progress<.52?
+   progress/.52*progress/.52*(3-2*progress/.52):1;
+  var neutral=-rig.facing*1.43*hang;
+  var inertia=clamp(-vx*.00047-accelerationX*.000045,-.38,.38);
+  var target=clamp(neutral+inertia+lureHangState.angle*.25,-1.95,1.95);
+  rig.angularVelocity+=((target-rig.angle)*93-rig.angularVelocity*11)*dt;
+  rig.angularVelocity=clamp(rig.angularVelocity,-7,7);
+  rig.angle=clamp(rig.angle+rig.angularVelocity*dt,-2.15,2.15);
+  rig.lastX=anchor.x;rig.lastY=anchor.y;
+  rig.lastVX=vx;rig.lastVY=vy;rig.lastAt=now;
+ }
+ return{angle:rig.angle,pivotX:anchor.x,pivotY:anchor.y,
+  mouthX:rig.mouthX,mouthY:rig.mouthY,facing:rig.facing};
+}
+function drawHookedFishAtMouth(h,now){
+ var f=h.obj,rig=h.mouthRig,image=fishSprite(f.sp);
+ if(!image||!rig)return false;
+ var anchor=lureLineAnchor(),joint=hookedFishMouthPivot(h,now,anchor);
+ var settings=fishMotionSettings(f.sp),size=.5*(f.size||fishVisualProfile(f.sp).baseScale)*
+  (image._hfScale||1),w=image.width*size,hgt=image.height*size;
+ var progress=clamp(h.elapsed/(h.travelDuration||1),0,1);
+ var shrink=h.willEscape?1:progress<.90?1:Math.max(.02,1-(progress-.90)/.10);
+ var sourceFacing=image._hfFacingRight?1:-1;
+ ctx.save();
+ ctx.translate(joint.pivotX,joint.pivotY);
+ ctx.scale(shrink,shrink);ctx.rotate(joint.angle);
+ // Rotate the drawn fish about its mouth, *not* its image center.
+ // The inverse mouth offset is applied before mirroring the original PNG.
+ ctx.translate(-joint.mouthX,-joint.mouthY);
+ ctx.scale(joint.facing/sourceFacing,1);
+ drawFishStripWarp(ctx,image,w,hgt,now,f.phase||0,settings,
+  {bend:0,tilt:0,sx:1},'hooked',1.60);
+ ctx.restore();
+ return true;
+}
 function drawHookSwallow(now){
  if(!hook||!hook.travelDuration)return;
  var o=hook.obj;
+ if(hook.kind==='fish'&&hook.mouthRig&&drawHookedFishAtMouth(hook,now))return;
  var entity={x:hook.startX,y:hook.startY,human:hook.kind==='human',
   vibration:hook.kind==='fish'?(3.2+4.6*clamp(hook.elapsed/(hook.travelDuration||1),0,1)):1.7,
   id:hook.kind==='human'?o.id:0,sp:hook.kind==='fish'?o.sp:null,
@@ -3659,8 +3723,21 @@ var oldReleaseForDifficulty=release;
 release=function(){
  if(view!=='fish'||hook||cast.active||feverFx||escapeFx||octoGroggy>0)return;
  if(save.fever.ready){activateOctoFever();return}
+ // A fast one-shot opening/closing of the EXISTING red octopus PNG sheet
+ // fires on every ordinary release, even if the fish was missed.
+ triggerRedLureReleasePulse();
+ var lureAtRelease={x:bob.x,y:bob.y};
  oldReleaseForDifficulty();
  if(hook){
+  if(hook.kind==='fish'){
+   var mouthRig=makeMouthHookRig(hook.obj,time,lureAtRelease);
+   if(mouthRig){
+    hook.mouthRig=mouthRig;
+    // The line and bait begin at the actual release point rather than
+    // jumping to the fish sprite's center when the first lift frame starts.
+    hook.startX=lureAtRelease.x;hook.startY=lureAtRelease.y;
+   }
+  }
   vibrationPulse('bite');
   if(hook.kind==='fish'){hook.obj.shakeUntil=time+.22;hook.obj.shakePower=3.2}
   var h=hook.kind==='human',target=h?{id:hook.obj.id}:hook.obj.sp;
@@ -3833,12 +3910,24 @@ function triggerRedLureReaction(action){
  if(action!=='gulp'&&action!=='fail')return;
  redLureReaction={action:action,start:time,duration:action==='gulp'?.75:1.05};
 }
+var redLureReleasePulseAt=-100;
+function triggerRedLureReleasePulse(){
+ redLureReleasePulseAt=time;
+}
 function redLurePose(now){
  if(redLureReaction){
   var elapsed=now-redLureReaction.start;
   if(elapsed>=0&&elapsed<redLureReaction.duration)
    return{action:redLureReaction.action,frame:Math.min(15,Math.floor(elapsed/redLureReaction.duration*16))};
   if(elapsed>=redLureReaction.duration)redLureReaction=null;
+ }
+ // Quick mouth snap at lift-off: the 16-frame illustrated OPEN sheet is
+ // played forward to frame 11 and backward to frame 1 in about 0.28 s.
+ var snap=now-redLureReleasePulseAt;
+ if(snap>=0&&snap<.28){
+  var u=snap/.28;
+  var opening=u<.40?u/.40:(1-u)/.60;
+  return{action:'open',frame:Math.max(0,Math.min(11,Math.round(11*opening)))};
  }
  if(hook&&hook.travelDuration){
   var p=clamp(hook.elapsed/(hook.travelDuration*(hook.willEscape?hook.escapeAt||.88:1)),0,1);
