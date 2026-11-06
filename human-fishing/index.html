@@ -1317,7 +1317,7 @@ function drawAquariumKeeper(now){
  ctx.save();ctx.translate(0,PLAYER_STAGE_DROP);
  if(window.octoSidekicksObserve)window.octoSidekicksObserve({view:'fish',casting:false,lure:false,hook:false,near:false,fever:false},now);
  if(window.drawOctopusSidekicks)window.drawOctopusSidekicks(ctx,now,octo);
- drawOcto(now);drawRod(now);drawHelpers(now);
+ drawOcto(now,aquariumKeeperPose(now));drawRod(now);drawHelpers(now);
  ctx.restore();
 }
 function drawingTank(now){
