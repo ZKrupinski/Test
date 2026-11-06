@@ -240,7 +240,7 @@ assert.match(script,/var tip=rodTip\(time\),/,
   'A caught fish must bend the rod more than its hanging load');
  assert.ok(heavy.bend>reel.bend+5,
   'Large fish and humans should visibly load the rod harder');
- const recovery=at('recover',.4,28),recoveryEnd=at('recover',1.0,28);
+ const recovery=at('recover',.15,28),recoveryEnd=at('recover',1.0,28);
  assert.ok(Math.abs(recoveryEnd.bend-rest.bend)<Math.abs(recovery.bend-rest.bend),
   'Releasing a fish must spring back with decreasing amplitude');
  assert.deepEqual(game.rodWarp(34,35),{dx:0,dy:0,sx:0,sy:0},
