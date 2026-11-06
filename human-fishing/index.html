@@ -175,6 +175,8 @@ nav{flex-wrap:nowrap}
 </div>
 <script src="./boot.js?v=20261106-fullscreen1"></script>
 <script src="./blue-tang-raster.js?v=2.11"></script>
+<script src="./assets/fish/ready.js?v=20261106-fish304"></script>
+<script src="./fish-bitmap-catalog.js?v=20261106-fish304"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
 <script>
 (function(){
@@ -207,7 +209,7 @@ var colors=['#ffbd75','#fa8196','#69e7df','#e8d574','#90b6ef','#b191eb','#67c68e
 function rnd(a,b){return a+random()*(b-a)}function clamp(v,a,b){return Math.max(a,Math.min(b,v))}function mix(a,b,t){return a+(b-a)*t}function ease(t){return 1-Math.pow(1-clamp(t,0,1),3)}
 function resizePointer(e){if(window.HumanFishingBoot)return window.HumanFishingBoot.point(e,canvas,W,H);var rect=canvas.getBoundingClientRect();return {x:(e.clientX-rect.left)/rect.width*W,y:(e.clientY-rect.top)/rect.height*H}}
 function setMode(m){view=m;hook=null;drag=false;canvas.classList.remove('dragging');$('panel').classList.remove('open');$('sideinfo').classList.toggle('show',m==='tank');['Fish','Human','Tank','Book','Grow'].forEach(function(n){$('nav'+n).classList.toggle('active',({Fish:'fish',Human:'human',Tank:'tank',Book:'book',Grow:'grow'})[n]===m)});$('action').style.display=m==='fish'||m==='human'?'':'none';$('guide')?.classList.remove('x');$('hintTitle').textContent=m==='tank'?'내가 잡은 물고기가 살아 움직여요':m==='human'?'인간을 향해 찌를 던져보세요':'찌를 물고기 가까이 드래그!';$('hint').textContent=m==='tank'?'우측 전시 목록에서 물고기를 배치하세요.':m==='human'?'아기 같은 인간 캐리커처를 유혹해요.':'손을 떼면 주변 물고기가 낚여 올라옵니다.';$('stageName').textContent=m==='human'?'인간의 부두':m==='tank'?'나의 아쿠아리움':habitats[zone];$('stageNo').textContent=m==='human'?'SPECIAL FISHING':m==='tank'?'MY AQUARIUM':'STAGE '+String(zone+1).padStart(2,'0')+' / 12';bob={x:680,y:390};if(m==='book')renderBook();if(m==='grow')renderGrow();if(m==='tank')renderTankSide();updateStats()}
-function updateStats(){var count=Object.keys(save.owned).length;var h=Object.keys(save.human).length;$('coins').textContent='◈ '+save.coins.toLocaleString()+'　🐟 '+count+'/240'+(h?'　🧑 '+h+'/24':'')}
+function updateStats(){var count=Object.keys(save.owned).length;var h=Object.keys(save.human).length;$('coins').textContent='◈ '+save.coins.toLocaleString()+'　🐟 '+count+'/'+species.length+(h?'　🧑 '+h+'/24':'')}
 function buildFish(){fish=[];for(var i=0;i<16;i++){var idx=Math.floor(rnd(0,20));if(i<5)idx=i+Math.floor(rnd(0,3));var sp=species[zone*20+idx];fish.push({sp:sp,x:rnd(300,1180),y:rnd(290,600),vx:rnd(.24,.65)*(random()<.5?-1:1),phase:rnd(0,6.28),size:sp.index>=18?1.65:sp.index>=14?1.28:rnd(.76,1.18)})} }
 function buildHum(){hum=[];for(var i=0;i<6;i++)hum.push({id:i+Math.floor(rnd(0,4)),x:360+i*145+random()*40,y:171+rnd(-14,15),phase:rnd(0,6.28),vx:rnd(.1,.3)*(random()<.5?-1:1)})}
 function createBubble(){bubbles.push({x:rnd(10,1280),y:730,r:rnd(2,8),speed:rnd(.3,1.3),phase:rnd(0,6.2)})}for(var i=0;i<34;i++){createBubble();bubbles[i].y=random()*720}
@@ -231,7 +233,7 @@ function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return {'
 function renderBook(filter,query){filter=filter===undefined?-1:Number(filter);query=query||'';var count=Object.keys(save.owned).length;var tool='<div class="toolbar"><input id="search" placeholder="물고기 이름 검색" value="'+escapeHtml(query)+'"><select id="filter"><option value="-1">전체 서식지 12곳</option>'+habitats.map(function(h,i){return '<option value="'+i+'" '+(i===filter?'selected':'')+'>'+escapeHtml(h)+'</option>'}).join('')+'</select></div>';var visible=species.filter(function(s){return(filter===-1||s.habitat===filter)&&s.name.includes(query)});var cards='<div class="cards">'+visible.map(function(s){var n=save.owned[s.id]||0;return '<div class="card '+(n?'':'locked')+'"><div class="face">'+(n?'🐟':'◈')+'</div><div class="name">'+(n?escapeHtml(s.name):'???')+'</div><div class="meta">'+escapeHtml(habitats[s.habitat])+'</div><div class="num">'+(n?'보유 '+n+'마리':s.id+' · 미발견')+'</div></div>'}).join('')+'</div>';openPanel('물고기 도감','실제 어종 기반 240종 · 발견 '+count+' / 240 · 알파용 임시 아이콘',tool+cards);$('search').oninput=function(){var q=this.value,f=Number($('filter').value),list=species.filter(function(s){return f===-1||s.habitat===f});document.querySelectorAll('#panelBody .cards .card').forEach(function(el,i){el.style.display=!q||list[i]&&list[i].name.includes(q)?'':'none'})};$('filter').onchange=function(){renderBook(Number(this.value),'')}}
 function renderGrow(){var titles=['촉수 파워','찌 감각','진주 보너스'],desc=['포획 속도를 올립니다.','포획 가능한 거리 +20px / 레벨','낚시 보상 +4 / 레벨'];var s='<div class="stats">'+titles.map(function(t,i){var lv=save.up[i],cost=80+(lv*70);return '<div class="stat"><h3>'+t+'　Lv.'+lv+'/5</h3><p>'+desc[i]+'</p><button data-up="'+i+'" '+(lv>=5?'disabled':'')+'>'+(lv>=5?'MAX':'◈ '+cost+' 강화하기')+'</button></div>'}).join('')+'</div>';openPanel('문어 성장','모은 진주로 낚시 능력을 업그레이드',s);document.querySelectorAll('[data-up]').forEach(function(b){b.onclick=function(){var i=Number(this.getAttribute('data-up')),cost=80+save.up[i]*70;if(save.up[i]>=5)return;if(save.coins<cost){announce('◈','진주가 부족해요','물고기를 낚아서 진주를 모아주세요.');return}save.coins-=cost;save.up[i]++;persist();updateStats();beep('catch');renderGrow()}})}
 function renderTankSide(){var choices=Object.keys(save.owned).filter(function(id){return save.owned[id]>save.placed.filter(function(p){return p===id}).length});var html='<h3>🐠 나의 아쿠아리움</h3><p>전시 중 '+save.placed.length+' / 30마리<br>잡은 물고기를 배치하세요.</p>';html+='<div class="slot"><span>장식 테마</span><button id="decorChange">변경</button></div>';if(!choices.length&&!save.placed.length)html+='<p>낚시를 해서 물고기를 먼저 잡아보세요.</p>';choices.slice(0,20).forEach(function(id){var s=species.find(function(z){return z.id===id});if(s)html+='<div class="slot"><span>🐠 '+escapeHtml(s.name)+'</span><button data-place="'+id+'">＋</button></div>'});if(choices.length>20)html+='<p>+'+(choices.length-20)+'종 보유. 먼저 일부 물고기를 배치하세요.</p>';if(save.placed.length)html+='<h3 style="margin-top:14px">전시 중</h3>'+save.placed.map(function(id,i){var s=species.find(function(z){return z.id===id});return '<div class="slot"><span>'+(s?escapeHtml(s.name):'물고기')+'</span><button data-remove="'+i+'">−</button></div>'}).join('');$('sideinfo').innerHTML=html;var d=$('decorChange');if(d)d.onclick=function(){decor=(decor+1)%3;save.decor=decor;persist();renderTankSide()};document.querySelectorAll('[data-place]').forEach(function(b){b.onclick=function(){if(save.placed.length>=30){announce('🐠','수조가 가득 찼어요','현재 알파는 최대 30마리 전시');return}save.placed.push(this.getAttribute('data-place'));persist();renderTankSide();beep('catch')}});document.querySelectorAll('[data-remove]').forEach(function(b){b.onclick=function(){save.placed.splice(Number(this.getAttribute('data-remove')),1);persist();renderTankSide()}})}
-function chooseZone(){var html='<div class="cards">'+habitats.map(function(h,i){var found=species.slice(i*20,i*20+20).filter(function(s){return save.owned[s.id]}).length;return '<div class="card"><div class="face">'+['🌿','🐟','🌊','🌱','🏞️','🐠','🪸','🐚','⚓','🦈','✨','❄️'][i]+'</div><div class="name">'+escapeHtml(h)+'</div><div class="meta">'+(i+1)+'번째 서식지</div><div class="num">'+found+'/20 발견</div><button data-zone="'+i+'">탐험하기</button></div>'}).join('')+'</div>';openPanel('스테이지 선택','12개 서식지 전체 열람 가능 · 알파 탐험 모드',html);document.querySelectorAll('[data-zone]').forEach(function(b){b.onclick=function(){zone=Number(this.getAttribute('data-zone'));save.zone=zone;persist();buildFish();setMode('fish')}})}
+function chooseZone(){var html='<div class="cards">'+habitats.map(function(h,i){var found=species.filter(function(s){return s.habitat===i&&save.owned[s.id]}).length;return '<div class="card"><div class="face">'+['🌿','🐟','🌊','🌱','🏞️','🐠','🪸','🐚','⚓','🦈','✨','❄️'][i]+'</div><div class="name">'+escapeHtml(h)+'</div><div class="meta">'+(i+1)+'번째 서식지</div><div class="num">'+found+'/'+species.filter(function(s){return s.habitat===i}).length+' 발견</div><button data-zone="'+i+'">탐험하기</button></div>'}).join('')+'</div>';openPanel('스테이지 선택','12개 서식지 전체 열람 가능 · 알파 탐험 모드',html);document.querySelectorAll('[data-zone]').forEach(function(b){b.onclick=function(){zone=Number(this.getAttribute('data-zone'));save.zone=zone;persist();buildFish();setMode('fish')}})}
 $('navFish').onclick=function(){setMode('fish');chooseZone()};$('navHuman').onclick=function(){setMode('human')};$('navTank').onclick=function(){setMode('tank')};$('navBook').onclick=function(){setMode('book')};$('navGrow').onclick=function(){setMode('grow')};$('closePanel').onclick=function(){setMode('fish')};$('stageName').parentElement.style.cursor='pointer';$('stageName').parentElement.onclick=function(){if(view==='fish')chooseZone()};
 function circle(x,y,r,col){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=col;ctx.fill()}
 function rounded(x,y,w,h,r,fill){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=fill;ctx.fill()}
@@ -329,6 +331,7 @@ function fishVisualProfile(sp){
  var big=/아라파이마|고래상어|백상아리|귀상어|그린란드상어|연어상어|식스길상어|나일퍼치|대서양연어|왕연어|노던파이크|백철갑상어|황새치|돛새치|청새치|황다랑어|참다랑어|눈다랑어|날개다랑어|가다랑어|아로와나|자이언트구라미|모토로민물가오리|흑새치|줄무늬청새치|대형/.test(n);
  var tiny=/구피|테트라|라스보라|송사리|피라미|갈겨니|멸치|정어리|청어|빙어|카펠린|바브|다니오|크로미스|파이어피시|카디널피시|쉬리|납자루|피그미|클리너래스/.test(n);
  var category=odd?'SPECIAL':big?'LARGE':tiny?'SMALL':'MEDIUM';
+ if(sp.artSizeClass)category=sp.artSizeClass;
  var range=category==='SMALL'?[.53,.82]:
   category==='LARGE'?[1.78,2.34]:
   category==='SPECIAL'?(
@@ -451,6 +454,8 @@ function fishSpeciesAppearance(sp){
 
 }
 function fishSprite(sp){
+ var bitmap=window.HumanFishingArt&&window.HumanFishingArt.bitmap(sp.id);
+ if(bitmap)return bitmap;
  var key=sp.id;if(sprites[key])return sprites[key];
  var profile=fishVisualProfile(sp),type=profile.shape,seed=Number(key.slice(1));
  var c=document.createElement('canvas');c.width=224;c.height=144;
@@ -986,7 +991,7 @@ function drawFish(a,now,alpha){
   if(player.draw(ctx,a,now,alpha,nearBait))return;
  }
  var sp=a.sp;if(!sp)return;
- var sprite=fishSprite(sp),sz=.5*(a.size||fishVisualProfile(sp).baseScale),
+ var sprite=fishSprite(sp),sz=.5*(a.size||fishVisualProfile(sp).baseScale)*(sprite._hfScale||1),
   phase=a.phase||0,action=a.spriteAction||'',
   struggling=action==='bite'||action==='hooked'||action==='last_resist'||action==='slip',
   escaping=action==='reentry'||action==='flee';
@@ -1122,9 +1127,9 @@ function renderBook(filter,query){
  filter=filter===undefined?-3:Number(filter);query=query||'';
  var count=Object.keys(save.owned).length,hCount=Object.keys(save.human).filter(function(k){return save.human[k]>0}).length;
  var tool='<div class="toolbar"><input id="search" placeholder="인간·물고기 이름 검색" value="'+escapeHtml(query)+'"><select id="filter">'+
- '<option value="-3" '+(filter===-3?'selected':'')+'>전체 생물 · 264종</option>'+
+ '<option value="-3" '+(filter===-3?'selected':'')+'>전체 생물 · '+(species.length+humans.length)+'종</option>'+
  '<option value="-2" '+(filter===-2?'selected':'')+'>🧑 인간 도감 · 24종</option>'+
- '<option value="-1" '+(filter===-1?'selected':'')+'>🐟 물고기 도감 · 240종</option>'+
+ '<option value="-1" '+(filter===-1?'selected':'')+'>🐟 물고기 도감 · '+species.length+'종</option>'+
  habitats.map(function(n,i){return '<option value="'+i+'" '+(filter===i?'selected':'')+'>'+escapeHtml(n)+'</option>'}).join('')+'</select></div>';
  var visibleFish=filter===-3||filter===-1||filter>=0?species.filter(function(x){return filter<0||x.habitat===filter}):[];
  var visibleHuman=filter===-3||filter===-2?humans.map(function(n,id){return{id:id,name:n}}):[];
@@ -1138,7 +1143,7 @@ function renderBook(filter,query){
   var className={SMALL:'소형',MEDIUM:'중형',LARGE:'대형',SPECIAL:'특수형'}[visual.category];
   return '<div class="card '+(n?'':'locked')+'" data-name="'+escapeHtml(sp.name)+'"><div class="face">'+(n?'🐟':'◈')+'</div><div class="name">'+(n?escapeHtml(sp.name):'???')+'</div><div class="meta">'+escapeHtml(habitats[sp.habitat])+' · '+escapeHtml(sp.rarity)+' Lv.'+sp.level+(n?' · '+className:'')+'</div><div class="num">'+(n?'보유 '+n+'마리':sp.id+' 미발견')+'</div></div>';
  }).join('')+'</div>';
- openPanel('통합 생물 도감','물고기 '+count+'/240 · 인간 '+hCount+'/24 · 264종 컬렉션',tool+cards);
+ openPanel('통합 생물 도감','물고기 '+count+'/'+species.length+' · 인간 '+hCount+'/24 · '+(species.length+humans.length)+'종 컬렉션',tool+cards);
  $('search').oninput=function(){
   var q=this.value.toLowerCase();
   document.querySelectorAll('#panelBody .cards .card').forEach(function(card){card.style.display=card.dataset.name.toLowerCase().includes(q)?'':'none'});
@@ -1302,8 +1307,8 @@ function aquariumTapFish(event){
   if(!a.sp||!a.sprite)return;
   var animated=!!fishAnimatorFor(a.sp);
   var art=animated?null:fishSprite(a.sp);
-  var rx=(animated?60*a.size:art.width*.25*a.size)+18;
-  var ry=(animated?30*a.size:art.height*.25*a.size)+17;
+  var rx=(animated?60*a.size:art.width*(art._hfScale||1)*.25*a.size)+18;
+  var ry=(animated?30*a.size:art.height*(art._hfScale||1)*.25*a.size)+17;
   // Touch geometry matches the actual bitmap, with a generous mobile margin.
   var dx=(p.x-a.x)/Math.max(34,rx),dy=(p.y-a.y)/Math.max(28,ry);
   var d=dx*dx+dy*dy;
@@ -2891,6 +2896,7 @@ species.forEach(function(sp){
  sp.rarity=k===19?'MYTHIC':k===18?'LEGEND':k===17?'EPIC':k>=15?'RARE':k>=11?'UNCOMMON':'COMMON';
  sp.level=Math.min(75,1+sp.habitat*3+Math.floor(k/3)*3+(k>=15?(k-13)*2:0));
 });
+if(window.HumanFishingArt)window.HumanFishingArt.extend(species);
 if(!save.fever||typeof save.fever!=='object')save.fever={count:0,ready:false,total:0,activations:0};
 // Legacy saves could have 6/6 visually full while never becoming READY.
 // Restore readiness rather than leave the player stranded at full gauge.
@@ -3003,7 +3009,13 @@ function chooseWildSpecies(){
  else if(r<mythic+legend+epic){lo=17;hi=17}
  else if(r<mythic+legend+epic+rare){lo=15;hi=16}
  else if(r<mythic+legend+epic+rare+uncommon){lo=11;hi=14}
- return species[zone*20+ecoPickSpeciesIndex(lo,hi)];
+ var selected=species[zone*20+ecoPickSpeciesIndex(lo,hi)];
+ var art=window.HumanFishingArt;
+ if(art&&art.enabled){
+  var extras=art.variantsFor(species,zone,selected.rarity);
+  if(extras.length&&Math.random()<.45)return extras[Math.floor(Math.random()*extras.length)];
+ }
+ return selected;
 }
 function ecoCanSchool(sp){
  return /멸치|정어리|청어|송사리|피라미|갈겨니|다니오|테트라|구피|네온|카디널|크로미스|빙어|카펠린|전갱이|스내퍼|라스보라|코리도라스|바브|납자루/.test(sp.name);
@@ -4054,6 +4066,7 @@ updateStats();setMode('fish');
 // Queue every deferred action before opening the resource gate.
 loadRemainingPlayerAtlases();
 if(window.octoSidekicksStartFullLoad)window.octoSidekicksStartFullLoad();
+if(window.HumanFishingArt)window.HumanFishingArt.primeHabitat(zone,species);
 function beginLoadedGame(){
  document.querySelectorAll('[inert]').forEach(function(el){el.removeAttribute('inert');});
  last=performance.now();requestAnimationFrame(tick);
