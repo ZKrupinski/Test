@@ -153,6 +153,7 @@ window.__hfTest={
  mouthFrames:function(){return mouthFrames},
  swallow:playCatchFx,
  getCast:function(){return cast},
+ getRecovery:function(){return lureRecovery},
  getIntro:function(){return introEntrance},
  markIntroHeroReady:function(){playerOctoAtlas.swim={ready:true}},
  advanceIntro:advanceIntroEntrance,
@@ -659,7 +660,14 @@ const retract=game.reel({...fxStart,elapsed:fxStart.reelStart+.41},clock/1000);
 assert.ok(retract.progress>.4&&retract.progress<.6);
 step(165);
 assert.equal(game.getFeverFx(),null);
-assert.ok(game.getCast().active);
+assert.ok(game.getRecovery().active,
+ 'After arriving, the Fever bait must fall and complete the character reaction');
+assert.ok(game.getBob().y>game.getMouthPos(clock/1000).y+24,
+ 'The lure must drop visibly below the mouth without a stationary pause');
+assert.equal(game.getCast().active,false,'Next cast cannot interrupt the reaction');
+step(65);
+assert.ok(game.getCast().active,
+ 'After reacting, the line must reel the dangling lure to the rod and auto-cast');
 mock.Math=Math;
 const currentCatchCount=state.catches,currentCoins=state.coins;
 const ordinary=game.species[0];
