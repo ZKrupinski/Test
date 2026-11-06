@@ -3563,7 +3563,7 @@ function drawEscapeFx(dt){
    ctx.rotate(Math.sin(fx.elapsed*52)*.17);
   var escapeMotion=pose.stage==='flee'?'flee':pose.stage==='dive'?'reentry':
       pose.stage==='slip'?'slip':'last_resist';
-   drawFish({sp:fx.sp,x:0,y:0,vx:fx.dir,size:fx.size||1.2,phase:fx.phase,
+   drawFish({sp:fx.sp,x:0,y:0,vx:fx.dir*26,size:fx.size||1.2,phase:fx.phase,
      spriteAction:escapeMotion,
      spriteFrame:Math.floor(fx.elapsed*
       (pose.stage==='struggle'?25:pose.stage==='flee'?22:20))%8},time);
