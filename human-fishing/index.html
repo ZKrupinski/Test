@@ -359,8 +359,10 @@ function scareFishOnMiss(point){
   f.fleeBurstUntil=Math.max(f.fleeBurstUntil||0,eco.t+2.05);
   f.escapeNoCatchUntil=Math.max(f.escapeNoCatchUntil||0,eco.t+2.65);
   f.behavior='flee';f.fightUntil=0;
-  f.vx=dir*Math.max(92,Math.abs(f.vx||0));
-  f.vy=clamp(dy*.24,-36,36);
+  // Instant panic launch: no gradual takeoff from the former 92 px/s.
+  // Both small and large fish burst away on the same release frame.
+  f.vx=dir*Math.max(285,Math.abs(f.vx||0));
+  f.vy=clamp(dy*.50,-78,78);
   f.shakeUntil=time+.16;f.shakePower=2.2;
   scared++;
  });
@@ -3297,8 +3299,8 @@ function updateEcosystem(dt){
     // Wrong-body contact causes high-speed retreat, retaining its
     // original direction until the fish has fled the bait.
     var runDir=f.fleeDir||f.dir||1;
-    wantX=runDir*(158+Math.min(24,f.speed*.5));
-    wantY=clamp(dy/dist*82,-82,82);f.dir=runDir;
+    wantX=runDir*(292+Math.min(28,f.speed*.9));
+    wantY=clamp(dy/dist*94,-94,94);f.dir=runDir;
    }else{
     wantX=dx/dist*61+(dx>=0?14:-14);
     wantY=dy/dist*37;
@@ -3339,9 +3341,9 @@ function updateEcosystem(dt){
   wantY+=clamp((f.homeY-f.y)*.22,-11,11);
   // All velocities are pixels per second. Swimmers are calm unless threatened.
   var fleeingFast=f.fleeBurstUntil>eco.t;
-  var steer=Math.min(1,dt*(fleeingFast?12:state==='flee'?3.8:state==='fight'?3.1:1.65));
-  f.vx=mix(f.vx,clamp(wantX,fleeingFast?-195:-85,fleeingFast?195:85),steer);
-  f.vy=mix(f.vy,clamp(wantY,fleeingFast?-84:-40,fleeingFast?84:40),
+  var steer=Math.min(1,dt*(fleeingFast?18:state==='flee'?3.8:state==='fight'?3.1:1.65));
+  f.vx=mix(f.vx,clamp(wantX,fleeingFast?-330:-85,fleeingFast?330:85),steer);
+  f.vy=mix(f.vy,clamp(wantY,fleeingFast?-100:-40,fleeingFast?100:40),
    Math.min(1,steer*(fleeingFast?1:.85)));
   f.x+=f.vx*dt;f.y+=f.vy*dt;
   if(f.y<top){f.y=top;f.vy=Math.max(0,f.vy*.28)}
