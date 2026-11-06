@@ -1202,9 +1202,531 @@ function success(){
  $('hint').textContent='장비를 강화하면 희귀한 인간도 더 쉽게 잡을 수 있어요.';
 }
 function rodTip(now){
- // The line, cast motion and rod art use the SAME evaluated, bent tip.
- return evaluateRodPose(now).tip;
+ return {x:490+save.shop.rod*6,y:92-save.shop.rod*1.6+Math.sin(now*1.5)*2.5};
 }
+function drawRod(now){
+ // Rendered as a single image-like painted assembly with reel, guides and a gripped handle.
+ var tip=rodTip(now);
+ ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+ ctx.shadowColor='#021923ad';ctx.shadowBlur=9;ctx.shadowOffsetY=3;
+ ctx.beginPath();ctx.moveTo(259,200);ctx.bezierCurveTo(332,175,414,125,tip.x,tip.y);
+ ctx.strokeStyle='#282e35';ctx.lineWidth=11;ctx.stroke();ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+ var g=ctx.createLinearGradient(260,198,tip.x,tip.y);
+ g.addColorStop(0,save.shop.rod>=5?'#ead8b1':'#9a6c45');
+ g.addColorStop(.50,save.shop.rod>=5?'#87c8bc':'#bc9b6d');
+ g.addColorStop(1,save.shop.rod>=5?'#d8f0e8':'#d7ba85');
+ ctx.strokeStyle=g;ctx.lineWidth=6.5;ctx.stroke();
+ ctx.strokeStyle='#e4d5ab';ctx.lineWidth=1.5;ctx.stroke();
+ // Rod rings along the curve
+ for(var i=0;i<3;i++){
+  var p=(i+1)/4,x=259+(tip.x-259)*p,y=200+(tip.y-200)*p;
+  ctx.strokeStyle='#e1d5ac';ctx.lineWidth=2.4;ctx.beginPath();ctx.ellipse(x,y,6-p*3,10-p*4,.65,0,Math.PI*2);ctx.stroke();
+ }
+ // Cork handle, crank and round reel
+ ctx.strokeStyle='#48302a';ctx.lineWidth=14;ctx.beginPath();ctx.moveTo(242,207);ctx.lineTo(291,185);ctx.stroke();
+ ctx.strokeStyle=save.shop.rod>=5?'#cca66d':'#c99661';ctx.lineWidth=9;ctx.stroke();
+ ctx.fillStyle='#1e4953';ctx.beginPath();ctx.arc(312,199,15,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle=save.shop.rod>=5?'#ffd991':'#9cb7b7';ctx.lineWidth=4;ctx.stroke();
+ ctx.fillStyle='#f5d8aa';ctx.beginPath();ctx.arc(312,199,5,0,Math.PI*2);ctx.fill();
+ ctx.lineWidth=3;ctx.strokeStyle='#d8a96d';ctx.beginPath();ctx.moveTo(321,202);ctx.lineTo(334,219);ctx.stroke();
+ ctx.fillStyle='#daba86';ctx.beginPath();ctx.arc(334,219,5,0,Math.PI*2);ctx.fill();
+ ctx.restore();
+}
+function drawLine(){
+ var from=rodTip(time),end=hook?{x:hook.obj.x,y:hook.obj.y+20}:bob;
+ var slack=hook?1:drag?17:53,curveX=(from.x+end.x)*.5;
+ ctx.save();ctx.lineJoin='round';ctx.lineCap='round';
+ ctx.beginPath();ctx.moveTo(from.x,from.y);
+ ctx.bezierCurveTo(from.x+40,from.y+70+slack,curveX,end.y+slack,end.x,end.y);
+ ctx.strokeStyle='#042632a8';ctx.lineWidth=3.1;ctx.stroke();
+ ctx.strokeStyle=hook?'#fff7d9':'#bde7e5e0';ctx.lineWidth=1.3;ctx.stroke();
+ ctx.beginPath();ctx.moveTo(end.x-5,end.y-5);ctx.lineTo(end.x+4,end.y+5);
+ ctx.strokeStyle='#e8f7f4';ctx.lineWidth=1.1;ctx.stroke();
+ ctx.restore();
+}
+function drawHelpers(now){
+ var lv=save.shop.helper;if(!lv)return;
+ var n=Math.min(3,Math.ceil(lv/3));
+ for(var i=0;i<n;i++){
+  var x=380+i*64+Math.sin(now*1.3+i*2)*12,y=235+i%2*23+Math.sin(now*2+i)*7;
+  ctx.fillStyle='#071f2c77';ctx.beginPath();ctx.ellipse(x,y+17,26,9,0,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#507d9e';ctx.lineWidth=5;ctx.lineCap='round';
+  for(var k=-1;k<=1;k++){ctx.beginPath();ctx.moveTo(x+k*6,y+12);ctx.lineTo(x+k*12,y+25);ctx.stroke();}
+  ctx.fillStyle=ctx.createRadialGradient(x-7,y-9,3,x,y,25);ctx.fillStyle='#85e2d2';
+  ctx.beginPath();ctx.ellipse(x,y,21,19,0,0,Math.PI*2);ctx.fill();
+  circle(x-7,y-3,4,'#f5fff2');circle(x+8,y-3,4,'#f5fff2');
+  circle(x-6,y-3,2,'#1b4658');circle(x+8,y-3,2,'#1b4658');
+ }
+}
+var helperIncomeTimer=0;
+function tick(stamp){
+ var dt=Math.min((stamp-last)/1000,.045);last=stamp;time+=dt;
+ ctx.clearRect(0,0,W,H);
+ if(view==='tank')drawingTank(time);
+ else{
+  sea(false);coral(time);
+  if(view==='fish'||view==='book'||view==='grow'||view==='shop'){
+   fish.forEach(function(a){
+    if(!hook||a!==hook.obj){a.x+=a.vx*dt*60;a.phase+=dt*.4;if(a.x<320||a.x>1195)a.vx*=-1}
+    drawFish(a,time);
+   });
+   hum.forEach(function(a){
+    if(!hook||a!==hook.obj){a.x+=a.vx*dt*55;a.phase+=dt*.23;if(a.x<350||a.x>1200)a.vx*=-1}
+    humanIcon(a,time);
+   });
+  }
+  // Historical tick definition. The final renderer below owns the entrance.
+  if(window.drawOctopusSidekicks)window.drawOctopusSidekicks(ctx,time,octo);
+  drawOcto(time);drawRod(time);drawHelpers(time);
+  if(view==='fish'){
+   if(hook){
+    hook.elapsed+=dt;
+    var rawDuration=hook.kind==='human'?(hook.obj.id>=20?2.5:1.85):(1.10-save.up[0]*.08);
+    var duration=Math.max(.58,rawDuration*(1-save.shop.rod*.05-save.shop.helper*.02));
+    var p=ease(hook.elapsed/duration),o=hook.obj;
+    o.x=mix(hook.startX,390,p)+(hook.kind==='human'?Math.sin(time*21)*(1-p)*15:0);
+    o.y=mix(hook.startY,262-55*Math.sin(p*Math.PI),p);
+    bob.x=o.x;bob.y=o.y;
+    if(hook.elapsed>=duration)success();
+   }
+   drawLine();if(!hook)drawBob();
+  }
+ }
+ if(view==='fish'&&save.shop.helper>0){
+  helperIncomeTimer+=dt;
+  if(helperIncomeTimer>=35){
+   helperIncomeTimer-=35;var pay=save.shop.helper*5;
+   save.coins+=pay;persist();updateStats();announce('🦑','조력자 보너스','진주 +'+pay);
+  }
+ }
+ bubbles.forEach(function(b){
+  b.y-=b.speed*dt*50;b.x+=Math.sin(time+b.phase)*dt*4;
+  if(b.y<0){b.y=730;b.x=rnd(10,1250)}
+  ctx.strokeStyle='#b4f8f052';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.stroke();
+ });
+ particleFrame(dt);
+ if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}
+ requestAnimationFrame(tick);
+}
+
+
+// ALPHA 0.4 — centered octopus casting, slow sinking bait, strict lure-only dragging,
+// and a 24-item (4 tabs × 6 models) purchasable/equippable 10-level equipment shop.
+var cast={active:false,elapsed:0,duration:3.25,landing:false};
+var dragPointer=null,dragStart=null,dragOffset=null,dragQualified=false,shopCategory='rod',shopSort='tier';
+if(!save.gearOwned||typeof save.gearOwned!=='object')save.gearOwned={};
+if(!save.gearLevels||typeof save.gearLevels!=='object')save.gearLevels={};
+if(!save.gearEquipped||typeof save.gearEquipped!=='object')save.gearEquipped={};
+var gearCatalog={
+ rod:[
+ ['cork','코르크 낚싯대','클래식·기본형',0,'#b58c5f'],
+ ['bamboo','고탄성 대나무대','낭창한 탄성',125,'#b9cf88'],
+ ['marine','해양 합금대','강한 내구성',320,'#82b6ca'],
+ ['carbon','블랙 카본대','고속 릴링',750,'#8ca0af'],
+ ['titan','티타늄 심해대','고급 장력 제어',1450,'#e4ce91'],
+ ['abyss','어비스 전설대','심해 최고 등급',2900,'#ad85ee']],
+ bait:[
+ ['worm','살랑이는 기본 미끼','기본 입질',0,'#f3c58f'],
+ ['shrimp','발광 새우 미끼','발광 유인',100,'#ffd397'],
+ ['spoon','반짝이는 스푼','빛 반사',260,'#ccd8e9'],
+ ['coral','산호 구슬 미끼','희귀어 유인',620,'#ff9a8f'],
+ ['star','심해 별빛 미끼','엘리트 유인',1250,'#7af4de'],
+ ['void','블랙홀 미끼','보스 유인',2450,'#c18aff']],
+ net:[
+ ['linen','기본 어망','추가 수집 기초',0,'#acbeb2'],
+ ['mesh','촘촘한 그물','소형어 수집',150,'#92cad0'],
+ ['wide','광역 어망','대형 물고기 수집',360,'#f0ca91'],
+ ['armored','강철 와이어망','튼튼한 보관',790,'#b2c1d1'],
+ ['gold','황금 수집망','진주 보정',1520,'#ffd17e'],
+ ['quantum','위상 어망','특수 추가 포획',2950,'#cd99ef']],
+ helper:[
+ ['crab','조개집게 게','초보 조력자',0,'#ffb98d'],
+ ['shrimp','분홍 새우 친구','먹이 감지',120,'#ff9db3'],
+ ['jelly','발광 해파리','빛 보조',300,'#a6eaff'],
+ ['ray','꼬마 가오리','유영 탐지',700,'#7fc9dc'],
+ ['octo','꼬마 문어 친구','릴 조작 보조',1350,'#e2a3f5'],
+ ['drone','심해 탐사 드론','자동 지원',2700,'#ffe2a1']],
+ octopus:[
+ ['baby','아기 산호문어','작지만 빠른 기본 촉수',0,'#f4a39e'],
+ ['lagoon','청록 바다문어','더 커진 촉수 반경',230,'#63d2d2'],
+ ['spotted','독무늬 사냥문어','정교한 빨판·포획력 강화',560,'#b891ef'],
+ ['gold','황금 흡판문어','다수 포획 특화 대형 문어',1200,'#f9c270'],
+ ['glow','심해 발광문어','희귀 생물 광역 포획 특화',2600,'#7fe7c8'],
+ ['king','왕관 괴수문어','최대 크기·발동·포획력',5000,'#ff8db9']]
+};
+var gearIcons={rod:'🎣',bait:'🪱',net:'🕸️',helper:'🦑',octopus:'🐙'};
+var gearCategoryNames={rod:'낚싯대',bait:'미끼',net:'어망',helper:'조력자',octopus:'피버 문어'};
+Object.keys(gearCatalog).forEach(function(cat){
+ save.gearOwned[cat]=Array.isArray(save.gearOwned[cat])?save.gearOwned[cat]:[gearCatalog[cat][0][0]];
+ save.gearLevels[cat]=save.gearLevels[cat]&&typeof save.gearLevels[cat]==='object'?save.gearLevels[cat]:{};
+ save.gearEquipped[cat]=save.gearEquipped[cat]||gearCatalog[cat][0][0];
+ if(!save.gearOwned[cat].includes(gearCatalog[cat][0][0]))save.gearOwned[cat].unshift(gearCatalog[cat][0][0]);
+ if(!save.gearOwned[cat].includes(save.gearEquipped[cat]))save.gearEquipped[cat]=gearCatalog[cat][0][0];
+});
+function selectedGear(cat){
+ var key=save.gearEquipped[cat],items=gearCatalog[cat];
+ return items.map(function(v,i){return{id:v[0],name:v[1],desc:v[2],price:v[3],color:v[4],tier:i}}).find(function(v){return v.id===key})||
+ {id:items[0][0],name:items[0][1],desc:items[0][2],price:0,color:items[0][4],tier:0};
+}
+function gearLevel(cat,key){return Math.max(0,Math.min(10,Number(save.gearLevels[cat][key])||0))}
+function gearPower(cat){var g=selectedGear(cat);return Math.min(24,(Number(save.shop[cat])||0)+g.tier*2+gearLevel(cat,g.id))}
+function gearPrice(cat,g){var l=gearLevel(cat,g.id);return Math.ceil((75+g.tier*95)*(1+l*.65)/10)*10}
+function rodHandlingHtml(gear,lv){
+ var p=rodHandling(gear,lv);
+ var response=Math.round(p.acceleration/35),brake=Math.round(p.braking/35);
+ return '<p class="rod-handling">미끼 속도 <b>'+p.speed+'px/s</b> · 반응력 <b>'+response+
+  '</b> · 제동력 <b>'+brake+'</b> · 흔들림 <b>'+Math.round(p.wobble)+'px/s</b></p>';
+}
+
+var equipmentCategory='rod';
+function equipmentItem(cat,id){
+ var rows=gearCatalog[cat]||[],i=rows.findIndex(function(v){return v[0]===id});
+ return i<0?null:{id:rows[i][0],name:rows[i][1],desc:rows[i][2],price:rows[i][3],color:rows[i][4],tier:i};
+}
+function equipmentMetrics(cat,g,lv){
+ var power=Math.min(24,(Number(save.shop[cat])||0)+g.tier*2+lv);
+ if(cat==='rod'){var p=rodHandling(g,lv);return [['미끼 속도',p.speed,'px/s'],['가속',p.acceleration,'px/s²'],['제동',p.braking,'px/s²'],['흔들림',+p.wobble.toFixed(1),'px']];}
+ if(cat==='bait')return [['유인 능력',power,''],['최상급 물고기 출현',+(Math.min(.23,.035+power*.004+g.tier*.012)*100).toFixed(1),'%'],['보스 인간 출현',+(Math.min(.72,.11+power*.014+g.tier*.024)*100).toFixed(1),'%']];
+ if(cat==='net')return [['추가 포획 확률',+(Math.min(.85,power*.054)*100).toFixed(1),'%'],['진주 보너스',+(power*2.5).toFixed(1),'%']];
+ if(cat==='helper')return [['자동 진주 / 35초',power?Math.max(1,Math.floor(power*3.5)):0,'◈'],['릴 시간 보정',+(power*1.2).toFixed(1),'%']];
+ var q=octoStats(g.tier,lv);return [['피버 문어 크기',q.size,'px'],['광역 반경',q.radius,'px'],['발동 확률',+(q.chance*100).toFixed(1),'%'],['포획 보정',+(q.bonus*100).toFixed(1),'%p']];
+}
+function equipmentMetricsHtml(cat,g,lv,compare){
+ var rows=equipmentMetrics(cat,g,lv),base=compare?equipmentMetrics(cat,compare,gearLevel(cat,compare.id)):null;
+ return '<div class="loadout-metrics">'+rows.map(function(v,i){
+  var delta=base?+(v[1]-base[i][1]).toFixed(1):0,good=i===3&&cat==='rod'?-delta:delta;
+  return '<span>'+v[0]+'<b>'+v[1]+v[2]+'</b>'+(base&&delta?'<em>'+ (good>0?'▲ ':'▼ ')+Math.abs(delta)+v[2]+'</em>':'')+'</span>';
+ }).join('')+'</div>';
+}
+function equipmentSummary(){
+ var rod=rodHandling(),rp=gearPower('rod'),bp=gearPower('bait'),np=gearPower('net'),hp=gearPower('helper');
+ var bait=selectedGear('bait'),oct=selectedGear('octopus'),fever=octoStats(oct.tier,gearLevel('octopus',oct.id));
+ var data=[
+ ['미끼 이동 속도',rod.speed+'px/s'],
+ ['물고기 포획 반경',(118+save.up[1]*20+rp*11+bp*5)+'px'],
+ ['인간 포획 반경',(107+save.up[1]*14+rp*11+bp*8)+'px'],
+ ['보스 인간 출현',+(Math.min(.72,.11+bp*.014+bait.tier*.024)*100).toFixed(1)+'%'],
+ ['추가 포획 확률',+(Math.min(.85,np*.054)*100).toFixed(1)+'%'],
+ ['진주 보상','+'+(np*2.5).toFixed(1)+'%'],
+ ['자동 진주 / 35초','◈ '+(hp?Math.max(1,Math.floor(hp*3.5)):0)],
+ ['피버 포획 범위',fever.radius+'px'],
+ ['피버 발동 확률',+(fever.chance*100).toFixed(1)+'%']
+ ];
+ return '<div class="loadout-heading"><h3>현재 장착 스탯</h3><small>장착 및 강화 시 즉시 업데이트 · ◈ '+save.coins.toLocaleString()+'</small></div>'+
+ '<div class="loadout-stats">'+data.map(function(d){return '<div class="loadout-stat"><small>'+d[0]+'</small><strong>'+d[1]+'</strong></div>'}).join('')+'</div>';
+}
+function equipmentIconMarkup(cat,item){
+ if(cat==='rod')return '<div class="shop-icon rod-bitmap-preview" style="border-color:'+item.color+
+  '"><img draggable="false" loading="lazy" src="'+rodBitmapPath(item.id)+'" alt="'+escapeHtml(item.name)+'"></div>';
+ return '<div class="shop-icon" style="border-color:'+item.color+';color:'+item.color+'">'+gearIcons[cat]+'</div>';
+}
+function renderEquipment(){
+ var slots='<div class="loadout-heading"><h3>장비 슬롯</h3><small>장비를 눌러 보유 장비 변경 및 강화</small></div><div class="loadout-slots">'+Object.keys(gearCatalog).map(function(cat){
+  var g=selectedGear(cat);
+  return '<button type="button" data-gear-slot="'+cat+'" class="loadout-slot '+(equipmentCategory===cat?'selected':'')+'"><span class="loadout-icon">'+(cat==='rod'?'<img class="loadout-rod-img" src="'+rodBitmapPath(g.id)+'" alt="">':gearIcons[cat])+'</span><span><small>'+gearCategoryNames[cat]+'</small><strong>'+escapeHtml(g.name)+'</strong><small>Lv.'+gearLevel(cat,g.id)+'/10</small></span></button>';
+ }).join('')+'</div>';
+ var cat=equipmentCategory,current=selectedGear(cat);
+ var owned=save.gearOwned[cat].map(function(id){return equipmentItem(cat,id)}).filter(Boolean).sort(function(a,b){return a.tier-b.tier});
+ var cards=owned.map(function(item){
+  var lv=gearLevel(cat,item.id),equipped=current.id===item.id,max=lv===10,cost=gearPrice(cat,item);
+  var next=max?[]:equipmentMetrics(cat,item,lv+1),now=equipmentMetrics(cat,item,lv);
+  var delta=next.map(function(v,i){var d=+(v[1]-now[i][1]).toFixed(1);return d?(v[0]+' '+(d>0?'+':'')+d+v[2]):''}).filter(Boolean).join(' · ');
+  return '<article class="shop-card '+(equipped?'equipped':'')+'">'+equipmentIconMarkup(cat,item)+'<div class="shop-detail"><h3>'+escapeHtml(item.name)+'</h3>'+
+   '<span class="shop-badge">'+(equipped?'● 장착 중':'보유 장비')+'</span><span class="shop-badge">TIER '+(item.tier+1)+'</span><span class="shop-badge">LV '+lv+'/10</span>'+
+   '<p>'+escapeHtml(item.desc)+'</p>'+equipmentMetricsHtml(cat,item,lv,equipped?null:current)+
+   '<div class="shop-progress"><i style="width:'+(lv*10)+'%"></i></div>'+
+   '<div class="loadout-next">'+(max?'최대 강화 완료':'다음 강화 → '+(delta||'성능 유지'))+'</div>'+
+   '<div class="loadout-actions"><button type="button" data-loadout="equip" data-gear-id="'+item.id+'" '+(equipped?'disabled':'')+'>'+(equipped?'장착 중 ✓':'장착하기')+'</button>'+
+   '<button type="button" data-loadout="upgrade" data-gear-id="'+item.id+'" '+(max||save.coins<cost?'disabled':'')+'>'+(max?'MAX':'◈ '+cost.toLocaleString()+' 강화')+'</button></div></div></article>';
+ }).join('');
+ openPanel('나의 장비 · EQUIPMENT','5개 장비 슬롯 · 보유 장비 장착 및 10단계 강화',
+  slots+equipmentSummary()+
+  '<div class="loadout-heading"><h3>'+gearIcons[cat]+' '+gearCategoryNames[cat]+' · 보유 '+owned.length+'/'+gearCatalog[cat].length+'</h3><small>장비별 독립 강화 · 미보유 장비는 상점에서 구매</small></div>'+
+  '<div class="loadout-hint">▲▼는 현재 장착 장비와의 스탯 차이입니다. 장착 변경이나 강화가 실제 낚시 성능에 적용됩니다.</div>'+
+  '<div class="shop-grid">'+cards+'</div><p class="loadout-hint"><button type="button" class="smallbtn" id="gearToShop">🛒 새 장비 구매</button></p>');
+ document.querySelectorAll('[data-gear-slot]').forEach(function(b){b.onclick=function(){equipmentCategory=this.dataset.gearSlot;renderEquipment()}});
+ document.querySelectorAll('[data-loadout]').forEach(function(b){b.onclick=function(){
+  var cat=equipmentCategory,item=equipmentItem(cat,this.dataset.gearId),action=this.dataset.loadout;
+  if(!item||!save.gearOwned[cat].includes(item.id))return;
+  if(action==='equip'){if(save.gearEquipped[cat]===item.id)return;save.gearEquipped[cat]=item.id;}
+  else if(action==='upgrade'){
+   if(gearLevel(cat,item.id)>=10)return;
+   var cost=gearPrice(cat,item);if(save.coins<cost)return;
+   save.coins-=cost;save.gearLevels[cat][item.id]=gearLevel(cat,item.id)+1;
+  }else return;
+  persist();updateStats();beep('catch');
+  if(cat==='bait'){buildFish();buildHum()}
+  if(cat==='octopus')updateFeverHud();
+  renderEquipment();
+ }});
+ $('gearToShop').onclick=function(){shopCategory=equipmentCategory;setMode('shop')};
+}
+function renderShop(){
+ var tabs='<div class="shop-controls"><div class="shop-tabs">'+Object.keys(gearCatalog).map(function(cat){
+  return '<button data-shop-tab="'+cat+'" class="'+(shopCategory===cat?'selected':'')+'">'+gearIcons[cat]+' '+gearCategoryNames[cat]+'</button>';
+ }).join('')+'</div><label class="shop-sort">정렬 <select id="shopSort">'+
+  '<option value="tier">등급 낮은순</option><option value="price">가격 낮은순</option>'+
+  '<option value="level">레벨 높은순</option><option value="name">이름순</option></select></label></div>';
+ var items=gearCatalog[shopCategory].map(function(v,i){return{id:v[0],name:v[1],desc:v[2],price:v[3],color:v[4],tier:i}});
+ items.sort(function(a,b){
+  if(shopSort==='price')return a.price-b.price;
+  if(shopSort==='level')return gearLevel(shopCategory,b.id)-gearLevel(shopCategory,a.id)||a.tier-b.tier;
+  if(shopSort==='name')return a.name.localeCompare(b.name,'ko');
+  return a.tier-b.tier;
+ });
+ var cards=items.map(function(item){
+  var cat=shopCategory,owned=save.gearOwned[cat].includes(item.id),lv=gearLevel(cat,item.id),current=selectedGear(cat);
+  return '<article class="shop-card '+(current.id===item.id?'equipped':'')+'">'+equipmentIconMarkup(cat,item)+'<div class="shop-detail"><h3>'+escapeHtml(item.name)+'</h3>'+
+   '<span class="shop-badge">'+(current.id===item.id?'● 장착 중':owned?'보유 중':'미보유')+'</span><span class="shop-badge">TIER '+(item.tier+1)+'</span><span class="shop-badge">LV '+lv+'/10</span>'+
+   '<p>'+escapeHtml(item.desc)+'</p>'+equipmentMetricsHtml(cat,item,lv,owned?null:current)+
+   '<div class="shop-buttons"><button type="button" data-shop-buy="'+item.id+'" '+(owned||save.coins<item.price?'disabled':'')+'>'+(owned?'보유 중 ✓':'◈ '+item.price.toLocaleString()+' 구매')+'</button></div></div></article>';
+ }).join('');
+ openPanel('장비 상점 · 30가지 장비','낚싯대 · 미끼 · 어망 · 조력자 · 피버 문어 / 구매 전용',
+  '<div class="shop-hint">보유 진주 <b style="color:#ffe0aa">◈ '+save.coins.toLocaleString()+
+  '</b> · 상점에서는 <b>구매만</b> 가능합니다. 장착과 강화는 <button type="button" class="smallbtn" id="shopToGear">🎒 장비 메뉴</button>에서 진행하세요.</div>'+
+  tabs+'<div class="shop-grid">'+cards+'</div>');
+ $('shopSort').value=shopSort;
+ $('shopSort').onchange=function(){shopSort=this.value;renderShop()};
+ document.querySelectorAll('[data-shop-tab]').forEach(function(b){b.onclick=function(){shopCategory=b.dataset.shopTab;renderShop()}});
+ document.querySelectorAll('[data-shop-buy]').forEach(function(b){b.onclick=function(){
+  var item=equipmentItem(shopCategory,b.dataset.shopBuy);
+  if(!item||save.gearOwned[shopCategory].includes(item.id)||save.coins<item.price)return;
+  save.coins-=item.price;save.gearOwned[shopCategory].push(item.id);
+  persist();updateStats();beep('catch');renderShop();
+ }});
+ $('shopToGear').onclick=function(){equipmentCategory=shopCategory;setMode('gear')};
+}
+function buildFish(){
+ fish=[];var bp=gearPower('bait'),lt=selectedGear('bait').tier;
+ for(var i=0;i<16;i++){
+  var r=Math.random(),idx;
+  if(i<5)idx=Math.floor(rnd(0,9));
+  else if(r<Math.min(.23,.035+bp*.004+lt*.012))idx=18+Math.floor(rnd(0,2));
+  else if(r<Math.min(.58,.19+bp*.011+lt*.018))idx=14+Math.floor(rnd(0,4));
+  else idx=Math.floor(rnd(0,14));
+  var sp=species[zone*20+idx];
+  fish.push({sp:sp,x:rnd(330,1180),y:rnd(328,602),vx:rnd(.23,.67)*(random()<.5?-1:1),phase:rnd(0,6.28),size:sp.index>=18?1.55:sp.index>=14?1.2:rnd(.82,1.17)});
+ }
+}
+function buildHum(){
+ hum=[];var bp=gearPower('bait'),rare=Math.min(.72,.11+bp*.014+selectedGear('bait').tier*.024);
+ for(var i=0;i<3;i++){
+  var id=i===2&&Math.random()<rare?20+Math.floor(rnd(0,4)):Math.floor(rnd(0,20));
+  hum.push({id:id,x:430+i*325+rnd(-55,55),y:337+i*74+rnd(-22,24),phase:rnd(0,6.28),vx:rnd(.18,.44)*(Math.random()<.5?-1:1),size:id>=20?1.25:1});
+ }
+}
+function nearest(){
+ var best=null,score=1,kind='',rod=gearPower('rod'),bait=gearPower('bait');
+ fish.forEach(function(f){var d=Math.hypot(f.x-bob.x,f.y-bob.y)/(118+save.up[1]*20+rod*11+bait*5);if(d<score){score=d;best=f;kind='fish'}});
+ hum.forEach(function(h){var d=Math.hypot(h.x-bob.x,h.y+22-bob.y)/(107+save.up[1]*14+(h.id>=20?35:0)+rod*11+bait*8);if(d<score){score=d;best=h;kind='human'}});
+ return best?{obj:best,kind:kind}:null;
+}
+function success(){
+ var o=hook.obj,human=hook.kind==='human',id=human?String(o.id):o.sp.id;
+ var name=human?humans[o.id]:o.sp.name,owned=human?save.human:save.owned,fresh=!owned[id];
+ var power=gearPower('net'),extra=power>0&&Math.random()<Math.min(.85,power*.054),qty=extra?2:1;
+ var aquariumSale=aquariumFishingActive&&!human;
+ // Aquarium catches pay only shop currency, without acquiring or using owned fish.
+ if(!aquariumSale)owned[id]=(owned[id]||0)+qty;
+ var base=(human?70:15)+(human?(o.id>=20?180:o.id*5):o.sp.index>=18?85:o.sp.index>=14?35:0)+save.up[2]*4;
+ var reward=aquariumSale?aquariumUnitSalePrice(o.sp)*qty:Math.floor(base*(1+power*.025));
+ save.coins+=reward;save.catches++;
+ if(!human)recordFeverCapture(qty);
+ if(!aquariumSale&&human&&save.humanPlaced.length===0)save.humanPlaced.push(id);
+ if(!aquariumSale&&!human&&save.placed.length===0)save.placed.push(id);
+ persist();updateStats();beep('catch');spawnParticles(645,290,extra?50:32,'gold');
+ startPlayerOctoReaction('swallow_success');
+ triggerRedLureReaction('gulp');
+ playCatchFx(o,human,aquariumSale?name+' · 판매':name,reward,extra,!aquariumSale&&fresh);
+ if(window.octoSidekicksCatch)window.octoSidekicksCatch(time,{rare:!!(fresh||extra||human||(o.sp&&['EPIC','LEGEND','MYTHIC'].indexOf(o.sp.rarity)>=0))});
+ hook=null;
+ // Keep every non-caught animal and its movement state across casts.
+ if(human)hum=hum.filter(function(h){return h!==o});
+ else fish=fish.filter(function(f){return f!==o});
+ $('hintTitle').textContent='잡은 생물이 문어 입속으로 들어가는 중';
+ $('hint').textContent='미끼가 잠겨 멈추면, 미끼를 직접 잡아 드래그하세요.';
+}
+// One-time character entrance on the first game launch. The hero, rod and
+// the two cheering octopuses share the SAME horizontal offset. No camera
+// movement, fishing collisions or lure trajectories are modified.
+var introEntrance={active:true,elapsed:0,duration:1.8,offset:-260,visualReady:false};
+function advanceIntroEntrance(dt){
+ if(!introEntrance.active||view!=='fish')return;
+ // Wait for BOTH compact 16f/12f startup sheets, with no arbitrary 4-second
+ // bypass. Neither character (nor the fishing rod) is drawn before both
+ // illustrated assets can appear on the very same frame.
+ if(!introEntrance.visualReady){
+  var heroIntroImage=playerOctoAtlas.swim;
+  var redIntroReady=window.octoSidekicksIntroReady&&window.octoSidekicksIntroReady();
+  if(!heroIntroImage||!heroIntroImage.ready||!redIntroReady)return;
+  introEntrance.visualReady=true;
+  introEntrance.elapsed=0;
+  // Starting the cheering animation at boot caused the red friend to finish
+  // before the hero had loaded. Both now START at the same simulation time.
+  if(window.octoSidekicksSignal)window.octoSidekicksSignal('entrance',time);
+  if(window.octoSidekicksStartFullLoad)window.octoSidekicksStartFullLoad();
+  loadRemainingPlayerAtlases();
+ }
+ introEntrance.elapsed=Math.min(introEntrance.duration,introEntrance.elapsed+dt);
+ var u=clamp(introEntrance.elapsed/introEntrance.duration,0,1);
+ // Start visibly just left of the resting pose (not 860px offscreen).
+ // Smooth ease-in-out makes the entrance readable at normal game size.
+ var ease=u*u*(3-2*u);
+ introEntrance.offset=-260*(1-ease)+6*Math.sin(Math.PI*u)*u;
+ if(u>=1){
+  introEntrance.active=false;introEntrance.offset=0;
+  playerOctoIdleState=null;
+  startCast(); // First actual bait throw begins only AFTER everyone arrives.
+ }
+}
+function startCast(){
+ if(introEntrance.active)return; // No rod cast before the arrival is complete.
+ playerOctoCueState=null;playerOctoIdleState=null;
+ if(window.octoSidekicksSignal)window.octoSidekicksSignal('cast',time);
+ hideVirtualJoystick();cast.active=true;cast.elapsed=0;cast.landing=false;drag=false;dragPointer=null;dragQualified=false;
+ bob.x=rodTip(time).x-10;bob.y=rodTip(time).y+18;
+ $('hintTitle').textContent='낚싯대를 휘둘러 찌를 던지는 중…';
+ $('hint').textContent='수면에 닿은 미끼가 천천히 가라앉습니다. 물속으로 들어온 순간 화면 어디든 터치하면 조이스틱으로 움직일 수 있어요.';
+}
+function castEasing(p){p=clamp(p,0,1);return p*p*(3-2*p)}
+function castMotion(dt){
+ if(!cast.active||view!=='fish')return;
+ cast.elapsed+=dt;var u=cast.elapsed,tip=rodTip(time);
+ if(u<.58){
+  bob.x=tip.x-18;bob.y=tip.y+13;
+ }else if(u<1.4){
+  var p=castEasing((u-.58)/.82);
+  bob.x=mix(tip.x-16,640,p);
+  bob.y=mix(tip.y+13,WATER_SURFACE_Y+3,p)-72*Math.sin(Math.PI*p);
+ }else{
+  if(!cast.landing){
+   cast.landing=true;ripple(640,WATER_SURFACE_Y+3);beep('hit');spawnParticles(640,WATER_SURFACE_Y+3,14,'water');
+  }
+  var p=castEasing((u-1.4)/(cast.duration-1.4));
+  bob.x=640; // Sink directly beneath the shortened rod tip.
+  bob.y=(WATER_SURFACE_Y+3)+(436-(WATER_SURFACE_Y+3))*p+Math.sin((u-1.4)*14)*4*(1-p);
+  if(Math.floor(u*9)%3===0&&Math.random()<dt*25)
+   particles.push({x:bob.x+rnd(-7,7),y:bob.y+rnd(-3,7),vx:rnd(-.3,.3),vy:rnd(-.7,-.2),life:.55,size:rnd(2,5),kind:'water'});
+ }
+ if(u>=cast.duration){
+  cast.active=false;bob.x=640;bob.y=436;
+  $('hintTitle').textContent='화면 아무 데나 터치하면 가상 조이스틱이 나타나요';
+  $('hint').textContent='스틱을 밀어 이동하고 손을 떼면 가까운 생물 포획!';
+ }
+}
+// Each rod has its own actual velocity, braking, reversal and drift response.
+var joystick={active:false,id:null,x:0,y:0,dx:0,dy:0,engaged:false,traveled:0};
+var rodMotion={vx:0,vy:0};
+function hideVirtualJoystick(){
+ joystick.active=false;joystick.id=null;joystick.dx=0;joystick.dy=0;joystick.engaged=false;
+ rodMotion.vx=0;rodMotion.vy=0;
+ $('virtualJoystick').classList.remove('visible');
+ $('virtualKnob').style.left='50%';$('virtualKnob').style.top='50%';
+ canvas.classList.remove('dragging');
+ drag=false;
+}
+function moveVirtualJoystick(p){
+ var dx=p.x-joystick.x,dy=p.y-joystick.y,d=Math.hypot(dx,dy);
+ var radius=76;
+ if(d>radius){dx=dx/d*radius;dy=dy/d*radius;}
+ joystick.dx=dx/radius;joystick.dy=dy/radius;
+ joystick.traveled=Math.max(joystick.traveled,d);
+ if(d>10)joystick.engaged=true;
+ $('virtualKnob').style.left=(50+joystick.dx*30)+'%';
+ $('virtualKnob').style.top=(50+joystick.dy*30)+'%';
+ canvas.classList.toggle('dragging',joystick.engaged);
+}
+function onBaitPointerDown(e){
+ if(view==='tank'){aquariumTapFish(e);return;}
+ // Keep the natural air-cast. Once the bait has touched water (u >= 1.4),
+ // any canvas touch is the origin of a virtual joystick, NOT a teleport.
+ if(view!=='fish'||introEntrance.active||hook||feverFx||catchFx||escapeFx||octoGroggy>0||joystick.active||cast.active&&!cast.landing)return;
+ var p=resizePointer(e);
+ if(cast.active&&cast.landing){
+   cast.active=false; // interrupt sinking at its CURRENT depth without snapping to y=436
+   $('hintTitle').textContent='가상 조이스틱으로 미끼 조작 중';
+   $('hint').textContent='어느 위치에서든 밀어서 이동 · 놓으면 포획 판정';
+ }
+ joystick.active=true;joystick.id=e.pointerId;joystick.x=p.x;joystick.y=p.y;
+ joystick.dx=0;joystick.dy=0;joystick.engaged=false;joystick.traveled=0;
+ var centerX=clamp(p.x,76,W-76),centerY=clamp(p.y,76,H-76);
+ var stick=$('virtualJoystick'),knob=$('virtualKnob');
+ stick.style.left=(centerX/W*100)+'%';stick.style.top=(centerY/H*100)+'%';
+ knob.style.left='50%';knob.style.top='50%';
+ stick.classList.add('visible');
+ try{canvas.setPointerCapture(e.pointerId)}catch(err){}
+ e.preventDefault();
+}
+function onBaitPointerMove(e){
+ if(!joystick.active||joystick.id!==e.pointerId)return;
+ moveVirtualJoystick(resizePointer(e));
+ e.preventDefault();
+}
+function onBaitPointerUp(e){
+ if(!joystick.active||joystick.id!==e.pointerId)return;
+ // Ordinary fishing still needs a deliberate joystick drag. READY Fever
+ // must work even when the player simply taps and releases without moving.
+ var moved=joystick.engaged,feverReady=!!(save.fever&&save.fever.ready);
+ hideVirtualJoystick();
+ e.preventDefault();
+ if((moved||feverReady)&&view==='fish'&&!cast.active&&!hook){
+  playerOctoCue('excited',.72/PLAYER_ANIM_RATE);
+  release();
+ }
+}
+function onBaitPointerCancel(e){
+ if(!joystick.active||joystick.id!==e.pointerId)return;
+ hideVirtualJoystick();
+}
+// Same visible horizontal reach on either side of the 1280px fishing view.
+// Reserve half of the currently displayed lure bitmap so it never clips.
+function baitHorizontalBounds(){
+ var radius=save.fever&&save.fever.ready?
+  octoStats(selectedGear('octopus').tier,gearLevel('octopus',selectedGear('octopus').id)).size*.5:27;
+ var margin=Math.max(62,Math.ceil(radius+8));
+ return{min:margin,max:W-margin};
+}
+// Rod tier drives the feel; upgrading an individual rod noticeably improves it.
+// Tier 0 feels heavy and imprecise, while tier 5 can turn and stop immediately.
+function rodHandling(gear,level){
+ var g=gear||selectedGear('rod');
+ var lv=level===undefined?gearLevel('rod',g.id):level;
+ var quality=clamp((g.tier+Math.min(10,lv)*.065+(Number(save.shop.rod)||0)*.035)/5.8,0,1);
+ return{
+  quality:quality,
+  speed:Math.round(150+360*quality),
+  acceleration:Math.round(650+5200*quality*quality),
+  braking:Math.round(175+3500*quality*quality),
+  reversePenalty:.67+.33*quality,
+  deadZone:.16-.085*quality,
+  wobble:12*(1-quality)*(1-quality)
+ };
+}
+function updateJoystick(dt){
+ if(!joystick.active||view!=='fish'||hook)return;
+ var rod=rodHandling(),nx=joystick.dx,ny=joystick.dy;
+ var mag=Math.hypot(nx,ny),p=mag>rod.deadZone?
+  Math.min(1,(mag-rod.deadZone)/(1-rod.deadZone)):0;
+ var desiredX=0,desiredY=0;
+ if(p>0){
+  // Low-grade rods are slower to accelerate and have mild side-to-side drift.
+  var sway=Math.sin(time*3.5+0.7)*rod.wobble;
+  desiredX=nx/mag*rod.speed*p+sway*ny/mag;
+  desiredY=ny/mag*rod.speed*p-sway*nx/mag;
+ }
+ var diffX=desiredX-rodMotion.vx,diffY=desiredY-rodMotion.vy;
+ var diff=Math.hypot(diffX,diffY);
+ var reverse=desiredX*rodMotion.vx+desiredY*rodMotion.vy<0;
+ var rate=p>0?rod.acceleration*(reverse?rod.reversePenalty:1):rod.braking;
+ var move=Math.min(diff,rate*Math.max(0,dt));
+ if(diff>.0001){rodMotion.vx+=diffX/diff*move;rodMotion.vy+=diffY/diff*move}
+ var bounds=baitHorizontalBounds();
+ bob.x=clamp(bob.x+rodMotion.vx*dt,bounds.min,bounds.max);
+ bob.y=clamp(bob.y+rodMotion.vy*dt,274,615);
+ if((bob.x<=bounds.min&&rodMotion.vx<0)||(bob.x>=bounds.max&&rodMotion.vx>0))rodMotion.vx=0;
+ if((bob.y<=274&&rodMotion.vy<0)||(bob.y>=615&&rodMotion.vy>0))rodMotion.vy=0;
+}
+function rodTip(now){return evaluateRodPose(now).tip}
 // Original approved illustrated 4x4 / 16-frame sheets: no redraw or regeneration.
 // These eight sprites belong to the PLAYER octopus, not the red/purple spectators.
 var playerOctoSources={
