@@ -2944,11 +2944,12 @@ function tick(stamp){
 // Alpha 0.8 — giant octopus mouth and uninterrupted whole-creature suction.
 // Raster frames are prerendered into offscreen canvases; only the fishing LINE remains vector.
 var mouthFrames={},catchFx=null;
-// Final capture and red bait landing spot on the illustrated OPEN mouth.
-// Previous (452,191+DROP) stopped slightly down-left of the open cavity.
-// Move another 12px right and 9px up to hit the actual mouth center; red bait, hooked creature,
-// success suction and Fever toss share this EXACT animated mouth position.
-var CATCH_MOUTH_X=482,CATCH_MOUTH_LOCAL_Y=168;
+// Unified bait/catch arrival target for ordinary fishing and OCTO FEVER.
+// Move the final destination +18px to the right and -74px (roughly one
+// illustrated bait diameter) up from the previous (482,168+DROP) location.
+// Keep the animated mouth overlay, hooked fish, the red lure, escaped fish,
+// catch impact and Fever toss/vortex centered on the exact same destination.
+var CATCH_MOUTH_X=500,CATCH_MOUTH_LOCAL_Y=94;
 function mouthPos(now){
  return{x:CATCH_MOUTH_X,y:CATCH_MOUTH_LOCAL_Y+PLAYER_STAGE_DROP+
   Math.sin(now*1.2)*3};
