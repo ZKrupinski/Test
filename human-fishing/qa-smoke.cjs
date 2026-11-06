@@ -141,6 +141,8 @@ window.__hfTest={
  flingSprite:feverFlingStreakSprite,
  getReelSprites:function(){return feverSprites},
  feverMouthFrame:feverMouthSpriteFrame,
+ feverLiftRare:feverLiftResistantFish,
+ feverReturnRare:feverReturnResistantFish,
  rodTip:rodTip,
  getCatchFx:function(){return catchFx},
  path:swallowPoint,
@@ -1237,8 +1239,10 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  const baseRadius=game.baitCenterRadius();
  save.gearEquipped.bait='void';
  const superiorRadius=game.baitCenterRadius();
- assert.ok(superiorRadius>baseRadius+6,
-  'High-quality bait must have a visibly larger invisible center contact area');
+ assert.ok(superiorRadius>baseRadius+3,
+  'High-quality bait must still have a modestly larger center contact area');
+ assert.ok(baseRadius<5&&superiorRadius<=9.2,
+  'Even upgraded bait collision radius must stay inside the painted octopus bait body');
  save.gearEquipped.bait='worm';
  const commonFish=game.makeFish(common,580,440,1,false,0);
  commonFish.behavior='cruise';commonFish.panicUntil=0;
@@ -1252,6 +1256,14 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  assert.ok(rareMouth.rx<mouth.rx*.4,
   'Mythic fish must have a much smaller catchable mouth area');
  assert.ok(rareMouth.ry<mouth.ry*.4);
+ const bigFish=game.makeFish(common,580,440,1,false,0);
+ bigFish.size=commonFish.size*3.0;
+ bigFish.behavior='cruise';bigFish.panicUntil=0;
+ const giantMouth=game.mouthWeakspot(bigFish,57);
+ assert.ok(giantMouth&&giantMouth.rx<mouth.rx*.78,
+  'Three-times-larger fish should have SMALLER, not larger mouth weak-point radius');
+ assert.ok(giantMouth.ry<mouth.ry*.78,
+  'Large fish weak-point shrink must apply in both axes');
  commonFish.dir=-1;commonFish.vx=-26;
  commonFish._hfFacing=-1;commonFish._hfTarget=-1;commonFish._hfTurnStart=-100;
  const leftMouth=game.mouthWeakspot(commonFish,57.1);
@@ -1345,6 +1357,74 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
   'Mouth and bait hit regions must stay invisible during normal gameplay');
 }
 console.log('PASS: mouth-only regular fishing, tier-dependent weak points, superior bait radius, fast noncatchable flee; Fever unchanged');
+// A MYTHIC fish in OCTO FEVER must be drawn into the whirlpool and
+// carried all the way to the octopus's mouth even on a guaranteed failure.
+// It then visibly breaks free and rejoins the living underwater population.
+{
+ const sp=game.species.find(f=>f.rarity==='MYTHIC'),common=
+  game.species.find(f=>f.rarity==='COMMON');
+ assert.ok(game.feverLiftRare(sp),'MYTHIC is eligible for visual retrieval on resistance');
+ assert.ok(!game.feverLiftRare(common),'Common fish retain standard Fever catch roll');
+ const save=game.getSave(),beforeCoins=save.coins,beforeCatches=save.catches;
+ const beforeOwned=save.owned[sp.id]||0,beforeFever=save.fever.ready;
+ const priorMath=mock.Math, priorArt=mock.window.HumanFishingArt;
+ mock.window.HumanFishingArt={bitmap(){return{
+  width:360,height:180,_hfFacingRight:true,_hfScale:1
+ }}};
+ const bait=game.getBob();bait.x=625;bait.y=460;
+ const rare=game.makeFish(sp,640,467,1,false,0);
+ rare.size=1.4;rare.panicUntil=0;rare.behavior='cruise';
+ game.switchView('fish');game.setFish([rare]);game.setHum([]);
+ game.setHook(null);game.getCast().active=false;save.fever.ready=true;
+ mock.Math=Object.assign(Object.create(Math),{random(){return .999}});
+ game.activate();
+ mock.Math=priorMath;
+ const fx=game.getFeverFx();
+ assert.ok(fx,'Resisted MYTHIC fish must still trigger Fever visuals');
+ assert.equal(fx.caught.length,1,'Resisted rare fish must still enter pull-up slots');
+ const pulled=fx.caught[0];
+ assert.equal(pulled.willEscape,true,'Rare resistance should be resolved at the mouth');
+ assert.equal(pulled.sourceFish,rare,'Resisted rare creature must retain original ecosystem identity');
+ assert.equal(fx.resisted,1,'One rare fish resisting still counts as resistance');
+ assert.equal(save.coins,beforeCoins,'Resisted rare fish must not grant coins');
+ assert.equal(save.catches,beforeCatches,'Resisted rare fish must not count as caught');
+ assert.equal(save.owned[sp.id]||0,beforeOwned,'Resisted rare fish must not enter inventory');
+ assert.ok(fx.duration>fx.reelStart+.82+1.9,
+  'Fever must remain alive for the rare mouth-escape and dive');
+ const now=clock/1000,releaseAt=fx.reelStart+.82;
+ const gathering=game.toss(pulled,{...fx,elapsed:.45},0,now);
+ const lifting=game.toss(pulled,{...fx,elapsed:fx.reelStart+.40},0,now);
+ assert.equal(gathering.phase,'gather');
+ assert.equal(lifting.phase,'held');
+ assert.ok(lifting.y<gathering.y-30,'Resisted rare fish must be hauled upwards visibly');
+ const gate=releaseAt+.72*.96;
+ const justBefore=game.toss(pulled,{...fx,elapsed:gate-.00001},0,now);
+ const justAfter=game.toss(pulled,{...fx,elapsed:gate},0,now);
+ assert.equal(justBefore.phase,'throw');
+ assert.equal(justAfter.phase,'escape');
+ assert.ok(Math.hypot(justAfter.x-justBefore.x,justAfter.y-justBefore.y)<.15,
+  'Rare creature must break away from mouth without a one-frame position jump');
+ assert.ok(Math.abs(justAfter.scale-justBefore.scale)<.005,
+  'Rare fish must retain whole-body scale at the mouth-escape handoff');
+ const submerged=game.toss(pulled,{...fx,elapsed:gate+.64},0,now);
+ assert.ok(submerged.y>293+50,'Failed rare should dive back underwater after mouth escape');
+ assert.ok(Math.abs(submerged.x-justAfter.x)>100,
+  'Resisted rare fish must sprint away from octopus after breaking loose');
+ fx.elapsed=gate+.79;
+ game.feverReturnRare(fx,now);
+ assert.equal(pulled.escapeReleased,true,
+  'Escaped rare fish must transition from Fever sprite to world actor');
+ assert.ok(game.getFish().includes(rare)&&!rare.feverCaptured,
+  'Rare fish should survive the failed Fever and remain in the ecosystem');
+ assert.ok(rare.escapeNoCatchUntil>game.getEco().t,
+  'Immediately after escaping, rare fish must be temporarily uncatchable');
+ fx.elapsed=fx.duration;
+ step(2);
+ assert.equal(game.getFeverFx(),null,'Fever should finish after rare fish escapes');
+ save.fever.ready=beforeFever;
+ mock.window.HumanFishingArt=priorArt;
+}
+console.log('PASS: rare Fever targets visibly reel up, evade at mouth, return alive; giant fish weak spots and bait are smaller');
 console.log('PASS: Blue Tang now uses individual F123.png only; animated player disabled');
 
 console.log('PASS: aquarium fish touch-to-turn, independent swimmers and random wriggle timelines');
