@@ -493,33 +493,50 @@ function pointer(type,x,y){
  listeners[type](e);
 }
 const stick=element('virtualJoystick');
-// Air phase: a touch must NOT summon a joystick before splashdown.
-step(57); // 0.95 seconds, still airborne
-pointer('pointerdown',1060,350);
-assert.equal(stick.classList.contains('visible'),false,'Joystick should be locked in air');
-pointer('pointerup',1060,350);
-// After water entry (at ~1.4s), allow input well before the full 3.25s descent.
-step(46); // 1.72 seconds total
+// Fast forward throw: touch cannot interrupt flight, surface shake or
+// gradual mid-water return. The far-right splash and its haptic must happen.
+step(57); // ~0.95 seconds: fast throw is still airborne
+pointer('pointerdown',1060,560);
+assert.equal(stick.classList.contains('visible'),false,'Joystick must stay locked in air');
+pointer('pointerup',1060,560);
+step(46); // ~1.72 seconds: impact tremor has passed, bait is drifting back
+assert.equal(game.getCast().landing,true,'The bait should already have splashed down');
+assert.ok(game.getBob().x>650,'The bait must land farther right before returning');
+pointer('pointerdown',1070,560);
+assert.equal(stick.classList.contains('visible'),false,
+ 'Cannot interrupt the post-splash drift before the original rest point');
+pointer('pointerup',1070,560);
+// The new cast is ~3.65 seconds total. At rest, joystick begins wherever
+// the player touches in the BOTTOM half, never in the upper half.
+step(120);
+assert.equal(game.getCast().active,false,'Casting must finish before input');
+assert.equal(game.getBob().x,640,'The bait should return to the original horizontal position');
+assert.equal(game.getBob().y,436,'The bait should settle at its original depth');
+pointer('pointerdown',1070,220);
+assert.equal(stick.classList.contains('visible'),false,
+ 'Touches in the upper half must not start fishing control');
+pointer('pointerup',1070,220);
 const beforeX=game.getBob().x;
-pointer('pointerdown',1070,360); // far away from lure (~640, 295), should still work
-assert.equal(stick.classList.contains('visible'),true,'Any underwater touch should open the joystick');
+pointer('pointerdown',1070,560); // distant touch becomes the origin, not a teleport
+assert.equal(stick.classList.contains('visible'),true,
+ 'Touches in the lower half should open a floating joystick');
 assert.equal(element('virtualKnob').style.left,'50%','Knob should start centered');
 step(2);
 assert.ok(game.getBob().x<750,'Touching distant water must not teleport the lure');
 // Releasing an unmoved stick should not catch.
-pointer('pointerup',1070,360);
+pointer('pointerup',1070,560);
 assert.equal(stick.classList.contains('visible'),false,'Joystick should close on touch release');
 const stillX=game.getBob().x;
 step(2);
 assert.ok(Math.abs(game.getBob().x-stillX)<25,'Tap-only gesture should leave bait in place');
-// Control from arbitrary screen position and move bait while held.
-pointer('pointerdown',1120,360);
-pointer('pointermove',1190,360);
+// Touch another point in the lower half, then steer freely in all directions.
+pointer('pointerdown',1120,560);
+pointer('pointermove',1190,560);
 step(18);
 assert.ok(game.getBob().x>beforeX+24,'Rightward joystick tilt must move the lure');
 assert.ok(game.getBob().x<900,'Joystick must move relative to bait, never teleport to touch position');
 assert.equal(stick.classList.contains('visible'),true,'Joystick must remain visible during drag');
-pointer('pointerup',1190,360);
+pointer('pointerup',1190,560);
 assert.equal(stick.classList.contains('visible'),false,'Joystick must hide on release');
 step(10);
 assert.equal(typeof frame,'function');
