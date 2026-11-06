@@ -4016,7 +4016,7 @@ function feverTossPoint(entity,fx,index,now){
   // At t=.96 it breaks loose, plunges back to water, then accelerates
   // outwards. Position and scale are continuous at the phase change.
   var breakT=.96;
-  if(t>=breakT){
+  if(t>=breakT-1e-8){
    var q=1-breakT;
    var startX=q*q*sx+2*q*breakT*cx+breakT*breakT*mouth.x;
    var startY=q*q*sy+2*q*breakT*cy+breakT*breakT*mouth.y;
