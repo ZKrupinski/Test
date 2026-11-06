@@ -64,8 +64,13 @@ for(const name of ['octofever_suction_A_16f.webp',
 }
 assert.ok(active.indexOf('drawFeverSuctionParticles(fx,time);')>launched,
  'Water droplets and foam must render above captured and swimming fish');
-assert.ok(source.includes('var rotationTravel=turn+(mass<1.4?Math.PI*2:0);'),
- 'Small fish must circle through the suction faster than larger creatures');
+assert.ok(source.includes('var rotationTravel=turn+(mass<1.35?Math.PI*2:0);'),
+ 'Small fish must orbit clockwise one extra turn while larger fish resist');
+assert.ok(source.includes('var waveA=.5-.5*Math.cos(t*9.1);')&&
+ source.includes('var waveB=.5-.5*Math.cos(t*7.4-1.27);'),
+ 'Both vortex bitmap layers must breathe smoothly instead of jumping on loop reset');
+assert.ok(source.includes('var alpha=appear*fade*Math.sin(Math.PI*flow)'),
+ 'Suction droplets must fade in and out individually rather than pop at the perimeter');
 assert.ok(source.includes('Math.max(endRadius,38+mass*13)'),
  'Inhaled fish must retain a safe distance around the bait instead of overlapping the center');
 
