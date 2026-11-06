@@ -1805,8 +1805,7 @@ function success(){
  if(!aquariumSale&&human&&save.humanPlaced.length===0)save.humanPlaced.push(id);
  if(!aquariumSale&&!human&&save.placed.length===0)save.placed.push(id);
  persist();updateStats();beep('catch');spawnParticles(645,290,extra?50:32,'gold');
- startPlayerOctoReaction('swallow_success');
- triggerRedLureReaction('gulp');
+ beginLureRecovery('swallow_success');
  playCatchFx(o,human,aquariumSale?name+' · 판매':name,reward,extra,!aquariumSale&&fresh);
  if(window.octoSidekicksCatch)window.octoSidekicksCatch(time,{rare:!!(fresh||extra||human||(o.sp&&['EPIC','LEGEND','MYTHIC'].indexOf(o.sp.rarity)>=0))});
  triggerRodRecoil(time);
@@ -1850,12 +1849,50 @@ function advanceIntroEntrance(dt){
   startCast(); // First actual bait throw begins only AFTER everyone arrives.
  }
 }
+// Shared, uninterrupted mouth-drop / player reaction / line-retract sequence.
+// Applies identically to normal fishing and OCTO FEVER.
+var lureRecovery={active:false};
+function beginLureRecovery(result){
+ if(lureRecovery.active)return;
+ var kind=result==='swallow_failure'?'swallow_failure':'swallow_success';
+ lureRecovery={active:true,kind:kind,start:time,fromX:bob.x,fromY:bob.y,
+  dropDuration:.33,dropHeight:84,reactionDuration:kind==='swallow_success'?.86:1.16,
+  retractStart:-1,retractX:0,retractY:0};
+ hideVirtualJoystick();
+ startPlayerOctoReaction(kind);
+ triggerRedLureReaction(kind==='swallow_success'?'gulp':'fail');
+}
+function updateLureRecovery(dt){
+ if(!lureRecovery.active||view!=='fish')return;
+ var r=lureRecovery,age=Math.max(0,time-r.start),p;
+ if(age<r.dropDuration){
+  // Drop instantly from the mouth, accelerate naturally under gravity.
+  p=clamp(age/r.dropDuration,0,1);
+  bob.x=r.fromX+9*p*p*(3-2*p);
+  bob.y=r.fromY+r.dropHeight*p*p;
+  return;
+ }
+ if(age<r.reactionDuration||octoGroggy>0){
+  // Gentle dangling motion during the full reaction or human groggy.
+  var d=age-r.dropDuration;
+  bob.x=r.fromX+9+4*Math.sin(d*8)*(1-Math.exp(-d*10));
+  bob.y=r.fromY+r.dropHeight+Math.min(13,d*25)+2*Math.sin(d*10);
+  return;
+ }
+ if(r.retractStart<0){r.retractStart=time;r.retractX=bob.x;r.retractY=bob.y}
+ p=clamp((time-r.retractStart)/.32,0,1);
+ var tip=rodTip(time),toX=tip.x-18,toY=tip.y+13,snap=1-Math.pow(1-p,2.2);
+ // Lift back on the connected line. Endpoint equals the cast start exactly.
+ bob.x=mix(r.retractX,toX,snap);
+ bob.y=mix(r.retractY,toY,snap)-21*Math.sin(Math.PI*p);
+ if(p>=1){r.active=false;if(view==='fish'&&!hook&&!cast.active)startCast()}
+}
 function startCast(){
  if(introEntrance.active)return; // No rod cast before the arrival is complete.
  playerOctoCueState=null;playerOctoIdleState=null;
  if(window.octoSidekicksSignal)window.octoSidekicksSignal('cast',time);
- hideVirtualJoystick();rodRecoil.at=-100;cast.active=true;cast.elapsed=0;cast.landing=false;drag=false;dragPointer=null;dragQualified=false;
- bob.x=rodTip(time).x-10;bob.y=rodTip(time).y+18;
+ hideVirtualJoystick();lureRecovery.active=false;rodRecoil.at=-100;cast.active=true;cast.elapsed=0;cast.landing=false;drag=false;dragPointer=null;dragQualified=false;
+ bob.x=rodTip(time).x-18;bob.y=rodTip(time).y+13;
  $('hintTitle').textContent='낚싯대를 휘둘러 찌를 던지는 중…';
  $('hint').textContent='미끼를 오른쪽으로 던지고 수면에서 떨린 뒤, 천천히 중앙으로 가라앉으면 화면 아래쪽 절반에서 조작할 수 있습니다.';
 }
@@ -1928,7 +1965,7 @@ function onBaitPointerDown(e){
  if(view==='tank'){aquariumTapFish(e);return;}
  // Touch control starts only AFTER the full cast, splash and slow settle.
  // As before, the lower half sets the virtual joystick center.
- if(view!=='fish'||introEntrance.active||hook||feverFx||catchFx||escapeFx||octoGroggy>0||joystick.active||cast.active)return;
+ if(view!=='fish'||introEntrance.active||hook||feverFx||catchFx||escapeFx||octoGroggy>0||joystick.active||cast.active||lureRecovery.active)return;
  var p=resizePointer(e);
  // Touch/pen gestures only begin in the bottom half of the 16:9 game view.
  // Do not interrupt sinking or create a stick from a touch above this boundary.
@@ -2783,7 +2820,7 @@ function vibrationOffset(layer){
  return{x:clamp(x,-limit,limit),y:clamp(y,-limit,limit)};
 }
 function checkBaitBrush(){
- if(view!=='fish'||cast.active||hook||feverFx||escapeFx||catchFx)return;
+ if(view!=='fish'||cast.active||hook||feverFx||escapeFx||catchFx||lureRecovery.active)return;
  for(var i=0;i<fish.length;i++){
   var f=fish[i];if(f.feverCaptured||isFishFleeing(f))continue;
   var rx=15+36*(f.size||1),ry=12+21*(f.size||1);
@@ -2802,7 +2839,7 @@ function checkBaitBrush(){
 // A finger can start in the lower half and then keep moving in any direction.
 function checkBaitWeakspot(){
  if(view!=='fish'||!joystick.active||cast.active||hook||feverFx||
-    escapeFx||catchFx||time-vibrations.lastWeakspot<.26)return;
+    escapeFx||catchFx||lureRecovery.active||time-vibrations.lastWeakspot<.26)return;
  for(var i=0;i<fish.length;i++){
   var f=fish[i];if(!f||f.feverCaptured||isFishFleeing(f))continue;
   if(!fishMouthOverlapsLure(f,bob,time))continue;
@@ -3159,8 +3196,7 @@ function drawCatchFx(dt){
  ctx.fillText('◈ +'+fx.reward,mouth.x+108,mouth.y+1);
  ctx.restore();
  if(fx.elapsed>=fx.duration){
-  catchFx=null;
-  if(view==='fish')startCast();
+  catchFx=null; // Recovery is synchronized with the character reaction.
  }
 }
 
@@ -3801,9 +3837,8 @@ function escapeHook(){
  o.feverCaptured=true;
  triggerRodRecoil(time);
  hook=null;hideVirtualJoystick();
- var tip=rodTip(time);bob.x=tip.x-9;bob.y=tip.y+19;
- startPlayerOctoReaction('swallow_failure');
- triggerRedLureReaction('fail');
+ // Do not teleport to rod tip: fall from the exact mouth position.
+ beginLureRecovery('swallow_failure');
  vibrationPulse('escape');
  if(window.octoSidekicksFail)window.octoSidekicksFail(time);
  beep('hit');spawnParticles(escapeFx.x,escapeFx.y,13,'water');
@@ -4007,15 +4042,14 @@ function drawEscapeFx(dt){
  var offscreen=pose.stage==='flee'&&(pose.x>W+125||pose.x< -125);
  if(offscreen||fx.elapsed>=fx.duration+1){
   escapeFx=null;buildFish();buildHum();
-  if(view==='fish'){
-   if(octoGroggy<=0)startCast();else pendingEscapeRestart=true;
-  }
+  // Do not interrupt an already running recovery or new cast.
+  if(view==='fish'&&!lureRecovery.active&&!cast.active&&!hook&&!feverFx)startCast();
  }
 }
 
 var oldReleaseForDifficulty=release;
 release=function(){
- if(view!=='fish'||hook||cast.active||feverFx||escapeFx||octoGroggy>0)return;
+ if(view!=='fish'||hook||cast.active||feverFx||escapeFx||octoGroggy>0||lureRecovery.active)return;
  if(save.fever.ready){activateOctoFever();return}
  // A fast one-shot opening/closing of the EXISTING red octopus PNG sheet
  // fires on every ordinary release, even if the fish was missed.
