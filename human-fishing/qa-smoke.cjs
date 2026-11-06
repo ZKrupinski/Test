@@ -70,6 +70,7 @@ window.__hfTest={
  fishSprite:fishSprite,
  getFish:function(){return fish},
  mouthWeakspot:fishMouthWeakspot,
+ rarityMovement:fishRarityMovement,
  mouthHit:fishMouthOverlapsLure,
  baitCenterRadius:baitCenterRadius,
  isFishFleeing:isFishFleeing,
@@ -964,7 +965,7 @@ for(let i=0;i<2200;i++){
  for(const f of live){
   assert.ok(f.y>=game.depthMin(f)-.01&&f.y<=game.depthMax(f)+.01,
    'Fish body has left its permitted underwater depth range');
-  assert.ok(Math.abs(f.vx)<=85.01,'Wild fish is moving faster than the controlled maximum');
+  assert.ok(Math.abs(f.vx)<=330.01,'Wild fish exceeded its controlled rarity/dash/flee maximum');
  }
 }
 assert.ok(game.getFish().some(f=>!startIds.has(f.ecoId)),
@@ -1566,6 +1567,102 @@ console.log('PASS: rare Fever targets visibly reel up, evade at mouth, return al
   'The human-only filter must exclude fish thumbnails');
 }
 console.log('PASS: codex displays 304 original high-res fish PNGs in landscape cards, black silhouettes for unowned and one-line captions');
+// Difficulty is driven by true movement decisions, not by a label or
+// reduced capture probability alone. Rarity increases speed, turning,
+// unsynchronized dashes and awareness of the player's approaching lure.
+{
+ const tiers=['COMMON','UNCOMMON','RARE','EPIC','LEGEND','MYTHIC'];
+ const specs=tiers.map(tier=>game.species.find(sp=>sp.rarity===tier));
+ assert.ok(specs.every(Boolean),'Movement tiers must have real fish species');
+ const ai=specs.map(game.rarityMovement);
+ for(let i=1;i<tiers.length;i++){
+  assert.ok(ai[i].cruise>ai[i-1].cruise,
+   'Cruise speed must strictly increase with rarity '+tiers[i]);
+  assert.ok(ai[i].steer>ai[i-1].steer,
+   'Rarer fish must steer more responsively '+tiers[i]);
+  assert.ok(ai[i].turnMax<ai[i-1].turnMax,
+   'Rarer fish must change directions more frequently '+tiers[i]);
+  assert.ok(ai[i].dashMax<ai[i-1].dashMax,
+   'Rarer fish must schedule more frequent bursts '+tiers[i]);
+  assert.ok(ai[i].dashPower>ai[i-1].dashPower,
+   'Rarer fish must have stronger dart accelerations '+tiers[i]);
+ }
+ assert.equal(ai[0].lureSense,0,'COMMON should not proactively dodge the bait');
+ assert.ok(ai[5].lureSense>ai[2].lureSense+60,
+  'MYTHIC must perceive an approaching bait substantially farther away');
+ assert.ok(ai[5].cap>ai[0].cap*2,
+  'Rarity-specific actual speed clamp must support fast rare sprints');
+ const initialCast=game.getCast().active,initialBait={...game.getBob()};
+ game.setHook(null);game.switchView('fish');game.getCast().active=true;
+ const eco=game.getEco(),priorMath=mock.Math;
+ mock.Math=Object.assign(Object.create(Math),{random(){return .999;}});
+ const measured=[];
+ for(let i=0;i<tiers.length;i++){
+  const f=game.makeFish(specs[i],700,470,1,false,0);
+  f.speed=22;f.agility=1;f.vx=22;f.vy=0;f.dir=1;
+  f.swimMode='cruise';f.swimFreq=0;f.swimAmp=0;f.phase=0;
+  f.nextDart=eco.t+100;f.nextTurn=eco.t+100;
+  f.panicUntil=0;f.fightUntil=0;f.hunter=false;
+  f.homeY=f.y;f.dartUntil=0;f.dartPrepUntil=0;
+  game.setFish([f]);eco.fishTimer=0;eco.humanTimer=0;
+  for(let step=0;step<12;step++)game.ecoTick(.04);
+  measured.push(Math.abs(f.vx));
+  assert.ok(f.x>700,'Swimming fish should continue moving toward its chosen direction');
+  assert.notEqual(f.behavior,'flee','Routine rare movement must not trigger catch-disabled panic');
+ }
+ assert.ok(measured[5]>measured[0]*1.75,
+  'MYTHIC fish must actually traverse substantially faster than COMMON');
+ assert.ok(measured[3]>measured[1]*1.35,
+  'EPIC fish must be noticeably harder to track than UNCOMMON');
+ // Lure awareness: 65 px away is outside the previous incidental spook
+ // threshold (44px) but well inside MYTHIC sensory distance.
+ const mythic=game.makeFish(specs[5],710,475,1,false,0);
+ mythic.speed=22;mythic.agility=1;mythic.vx=22;mythic.hunter=false;
+ mythic.swimMode='cruise';mythic.swimFreq=0;mythic.swimAmp=0;
+ mythic.nextDart=eco.t+100;mythic.nextTurn=eco.t+100;
+ mythic.dartUntil=0;mythic.dartPrepUntil=0;mythic.panicUntil=0;
+ game.setFish([mythic]);eco.fishTimer=0;eco.humanTimer=0;
+ game.getCast().active=false;
+ const bait=game.getBob();bait.x=775;bait.y=475;
+ for(let n=0;n<8;n++)game.ecoTick(.04);
+ assert.equal(mythic.behavior,'evade',
+  'MYTHIC fish should actively move away from bait before it touches them');
+ assert.ok(mythic.vx<0,'Approaching the mouth of a MYTHIC fish should cause active reversal');
+ assert.equal(game.isFishFleeing(mythic),false,
+  'Evasion must not remove mouth hit zone: skillful players can still catch it');
+ // With the same lure placement, a COMMON fish should remain predictable.
+ const normal=game.makeFish(specs[0],710,475,1,false,0);
+ normal.speed=22;normal.agility=1;normal.vx=22;normal.hunter=false;
+ normal.swimMode='cruise';normal.swimFreq=0;normal.swimAmp=0;
+ normal.nextDart=eco.t+100;normal.nextTurn=eco.t+100;
+ game.setFish([normal]);eco.fishTimer=0;eco.humanTimer=0;
+ for(let n=0;n<8;n++)game.ecoTick(.04);
+ assert.ok(normal.vx>0&&normal.behavior!=='evade',
+  'COMMON fish must not use high-rarity lure-dodging AI');
+ // High-rarity fish should hesitate briefly then rocket away, without
+ // becoming automatically uncapturable or using body-miss flee flags.
+ game.setFish([mythic]);eco.fishTimer=0;eco.humanTimer=0;
+ game.getCast().active=true;mythic.x=690;mythic.y=470;
+ mythic.dir=1;mythic.vx=22;mythic.nextTurn=eco.t+100;
+ mythic.nextDart=eco.t-.1;mythic.dartUntil=0;mythic.dartPrepUntil=0;
+ game.ecoTick(.025);
+ assert.equal(mythic.behavior,'feint',
+  'Mythic fish must briefly pause to telegraph its quick burst');
+ for(let n=0;n<8;n++)game.ecoTick(.04);
+ assert.equal(mythic.behavior,'dart','Mythic fish must begin a powerful dart');
+ assert.ok(Math.abs(mythic.vx)>100,
+  'High-rarity dart must accelerate to a genuinely hard-to-track speed');
+ assert.ok(Math.abs(mythic.vx)<=ai[5].cap+.01,
+  'Rarity dash must still obey controlled simulation limits');
+ assert.equal(game.isFishFleeing(mythic),false,
+  'An ordinary high-rarity dart must not incorrectly hide the catch weak point');
+ assert.match(script,/state='evade'/,'Passive rare lure avoidance must be enabled');
+ assert.match(script,/state='feint'/,'Rare fish should be able to feint');
+ assert.match(script,/state='dart'/,'Rare fish should execute fast bursts');
+ mock.Math=priorMath;game.getCast().active=initialCast;
+ bait.x=initialBait.x;bait.y=initialBait.y;
+}
+console.log('PASS: rare fish have independent cruise/turn/dart/feint/dodge AI and remain catchable while evading');
 console.log('PASS: Blue Tang now uses individual F123.png only; animated player disabled');
 
 console.log('PASS: aquarium fish touch-to-turn, independent swimmers and random wriggle timelines');
