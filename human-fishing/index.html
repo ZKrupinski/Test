@@ -4093,12 +4093,32 @@ if(typeof Image!=='undefined'){
 }
 // A SEPARATE transparent whirlpool sprite; no white fog and no dynamic
 // vector vortex. The 16 real bitmap frames keep the approved swirl shapes.
-var feverVortexArt=null;
+// The source bitmap remains untouched. Build a display-only version that
+// normalizes its very translucent painted pixels to an opaque swirl.
+var feverVortexArt=null,feverVortexOpaque=null;
+function makeFeverVortexOpaque(im){
+ try{
+  var canvas=document.createElement('canvas');
+  canvas.width=im.naturalWidth;canvas.height=im.naturalHeight;
+  var g=canvas.getContext('2d',{willReadFrequently:true});
+  g.drawImage(im,0,0);
+  var pixels=g.getImageData(0,0,canvas.width,canvas.height),data=pixels.data;
+  // Artwork peaks near alpha 98/255. Brighten opacity only, preserving
+  // smooth antialiased edges and the original RGB colors and shapes.
+  for(var i=3;i<data.length;i+=4)
+   if(data[i])data[i]=Math.min(255,Math.round(data[i]*2.6));
+  g.putImageData(pixels,0,0);
+  return canvas;
+ }catch(e){return null}
+}
 if(typeof Image!=='undefined'){
  feverVortexArt=new Image();
  feverVortexArt.ready=false;
  feverVortexArt.decoding='async';
- feverVortexArt.onload=function(){feverVortexArt.ready=true};
+ feverVortexArt.onload=function(){
+   feverVortexOpaque=makeFeverVortexOpaque(feverVortexArt);
+   feverVortexArt.ready=true;
+  };
  feverVortexArt.onerror=function(){feverVortexArt.ready=false};
  feverVortexArt.src='./assets/octopus/bait/octofever_vortex_soft_v2.webp?v=20261105-approved-soft-v2';
 }
@@ -4139,24 +4159,37 @@ function drawFeverMouthSprite(fx,reel){
 }
 function drawFeverVortex(fx,reel){
  if(!feverVortexArt||!feverVortexArt.ready)return false;
- var p=clamp(fx.elapsed/fx.duration,0,1);
- // Only visible while the painted mouth is OPEN: fade on while it opens,
- // maintain a soft circular inward swirl, fade off before full closure.
- var appear=clamp(fx.elapsed/.10,0,1),disappear=clamp((fx.suctionEnd-fx.elapsed)/.18,0,1);
- var opacity=.95*Math.min(appear,disappear);
- if(opacity<=0)return false;
- var frame=fx.elapsed<.22?Math.min(4,Math.floor(fx.elapsed/.22*5)):5+Math.floor((fx.elapsed-.22)*16)%8;
- var image=feverVortexArt,sw=image.naturalWidth/4,sh=image.naturalHeight/4;
+ var releaseAt=fx.reelStart+.82,arrivalAt=releaseAt+.72,t=fx.elapsed;
+ // 100% when the effect appears, 90% after .10-.27 s underwater.
+ var opacity=1-.10*castEasing((t-.10)/.17);
+ // After crossing the REAL water surface, hold at 80%.
+ if(t>=fx.surfaceAt)opacity=.80;
+ // Keep the vortex visible throughout lifting AND the arc to the
+ // protagonist's mouth, then vanish quickly upon arrival.
+ opacity*=1-castEasing((t-arrivalAt)/.16);
+ if(opacity<=.001)return false;
+ var travel=clamp((t-releaseAt)/.72,0,1);
+ var center={x:reel.x,y:reel.y},tilt=reel.tilt*.65;
+ if(t>=releaseAt){
+  // Follow the flying catch to the mouth rather than leaving the sprite
+  // behind at the fishing rod tip after the underwater reel is complete.
+  var tip=rodTip(time);
+  center=swallowPoint(tip.x-48,tip.y+12,mouthPos(time),travel);
+  tilt=0;
+ }
+ var frame=t<.22?Math.min(4,Math.floor(t/.22*5)):
+  5+Math.floor((t-.22)*16)%8;
+ var image=feverVortexOpaque||feverVortexArt,
+  sw=image.width/4,sh=image.height/4;
  var dx=frame%4*sw,dy=Math.floor(frame/4)*sh;
  ctx.save();
  ctx.globalAlpha=opacity;
- ctx.translate(reel.x,reel.y);
- ctx.rotate(reel.tilt*.65);
- // The original bitmap mouth cavity is a little right-and-up of body center.
- // Source alpha already caps at 98/255; retain that transparency without
- // multiplying it down to an invisible haze. Keep the face legible.
- // Paint is ~55% of each padded tile: visible radius matches capture radius.
- var d=fx.radius*2/.55;
+ ctx.translate(center.x,center.y);
+ ctx.rotate(tilt);
+ // The powerful vortex remains wide while collecting underwater, but
+ // tightens around the mouth so it does not hide the character's face.
+ var scale=1-.73*castEasing(travel);
+ var d=fx.radius*2/.55*scale;
  ctx.drawImage(image,dx,dy,sw,sh,-d/2,-d/2,d,d);
  ctx.restore();
  return true;
@@ -4329,7 +4362,7 @@ function activateOctoFever(){
   suctionEnd:suctionEnd,reelStart:suctionEnd+.32,
   // Keep Fever active until the last resistant rare fish finishes
   // escaping from the protagonist's mouth, rather than cutting it off.
-  duration:suctionEnd+.32+.82+(targets.some(function(z){return z.willEscape})?2.08:.80),
+  duration:suctionEnd+.32+.82+(targets.some(function(z){return z.willEscape})?2.08:.98),
   swallowSpacing:swallowSpacing,reelProgress:0,reelFrame:0,reeling:false
  };
  feverFx.surfaceAt=feverSurfaceTime(feverFx,time);
@@ -4338,7 +4371,17 @@ function activateOctoFever(){
 }
 // Keep line attached to stationary suction bait, then retrieve the closed bait.
 function feverSurfaceTime(fx,now){
- return fx.reelStart+.82;
+ // Find the actual moment that the eased lure trajectory breaks water,
+ // rather than using the end of the reel as the crossing timestamp.
+ var start=fx.y,end=rodTip(now).y+12,water=WATER_SURFACE_Y+2;
+ if(start<=water)return fx.reelStart;
+ if(end>=water)return fx.reelStart+.82;
+ var ratio=clamp((water-start)/(end-start),0,1),lo=0,hi=1;
+ for(var i=0;i<13;i++){
+  var mid=(lo+hi)*.5,ease=mid*mid*(3-2*mid);
+  if(ease<ratio)lo=mid;else hi=mid;
+ }
+ return fx.reelStart+.82*(lo+hi)*.5;
 }
 function feverReelState(fx,now){
  var raw=clamp((fx.elapsed-fx.reelStart)/.82,0,1);
