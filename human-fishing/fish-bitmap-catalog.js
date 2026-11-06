@@ -16,7 +16,16 @@
   {habitat:10,names:['구리빛 심해아귀','사파이어 심해아귀','블랙 크라운아귀','갈색 송곳니고기','암흑 펠리컨장어','에메랄드 배럴아이','붉은빛 바이퍼피시','청색발광 해치피시'],sizes:['SPECIAL','SPECIAL','SPECIAL','MEDIUM','SPECIAL','SPECIAL','MEDIUM','SMALL']},
   {habitat:7,names:['황금 가시해마','청금 해마','루비 해마','노랑 피그미해마','바이올렛 시드래곤','올리브 리피시드래곤','백가시 복어','황금점 복어'],sizes:['SPECIAL','SPECIAL','SPECIAL','SMALL','SPECIAL','SPECIAL','SPECIAL','SPECIAL']}
  ];
- var tiers=['UNCOMMON','UNCOMMON','UNCOMMON','RARE','RARE','EPIC','EPIC','LEGEND'];
+ var groupTiers=[
+  ['EPIC','RARE','EPIC','EPIC','EPIC','UNCOMMON','UNCOMMON','UNCOMMON'],
+  ['RARE','RARE','UNCOMMON','COMMON','UNCOMMON','UNCOMMON','UNCOMMON','RARE'],
+  ['UNCOMMON','UNCOMMON','RARE','UNCOMMON','UNCOMMON','UNCOMMON','RARE','UNCOMMON'],
+  ['UNCOMMON','UNCOMMON','RARE','UNCOMMON','UNCOMMON','EPIC','RARE','EPIC'],
+  ['RARE','RARE','RARE','RARE','UNCOMMON','UNCOMMON','UNCOMMON','UNCOMMON'],
+  ['UNCOMMON','COMMON','UNCOMMON','COMMON','UNCOMMON','COMMON','UNCOMMON','UNCOMMON'],
+  ['RARE','LEGEND','LEGEND','RARE','EPIC','EPIC','EPIC','RARE'],
+  ['RARE','RARE','EPIC','RARE','EPIC','LEGEND','EPIC','RARE']
+ ];
  var installed=false,loaded=Object.create(null),preload=Object.create(null),created={};
  var enabled=!!window.HumanFishingFishAssetsReady;
  function imageFor(id){
@@ -53,7 +62,7 @@
     var id='F'+String(241+g*8+j).padStart(3,'0');
     if(list.some(function(x){return x.id===id}))return;
     list.push({id:id,name:name,habitat:group.habitat,index:11+j,
-      rarity:tiers[j],level:Math.min(75,12+group.habitat*3+j*3),
+      rarity:groupTiers[g][j],level:Math.min(75,12+group.habitat*3+j*3),
       artSizeClass:group.sizes[j],artVariant:true});
    });
   });
