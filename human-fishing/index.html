@@ -462,59 +462,124 @@ function fishSprite(sp){
  // No procedural fish generation, even during image load or image failure.
  return sp&&window.HumanFishingArt?window.HumanFishingArt.bitmap(sp.id)||null:null;
 }
-function fishAnimatorFor(sp){
- // All fish, including the updated F123 Blue Tang, use the same
- // single-PNG renderer; the old 8-frame sprite player is retired.
- return null;
-}
-function drawFish(a,now,alpha){
- var player=fishAnimatorFor(a&&a.sp);
- if(player){
-  var nearBait=0;
-  if(view==='fish'&&!cast.active&&!hook&&!feverFx&&!escapeFx&&!catchFx)
-   nearBait=Math.hypot(a.x-bob.x,a.y-bob.y);
-  // Species with dedicated sprites (e.g. Blue Tang) use their actual
-  // hooked/lift/last_resist/slip/reentry/flee frames, never a generic idle.
-  if(player.draw(ctx,a,now,alpha,nearBait))return;
+// Non-destructive fish deformation: original RGBA PNGs are never modified.
+// The eight overlapping display strips bend only at render time. Movement,
+// collision, rarity and catch calculations continue using the original actor.
+var fishMotionGlobal={enabled:true,amp:1,tempo:1,turn:1,flap:1};
+if(!save.fishMotionOverrides||typeof save.fishMotionOverrides!=='object')save.fishMotionOverrides={};
+function fishMotionSettings(sp){
+ var profile=fishVisualProfile(sp),shape=profile.shape,size=profile.category;
+ var base={frequency:size==='SMALL'?2.5:size==='LARGE'?.86:size==='SPECIAL'?1.45:1.65,
+  amplitude:size==='SMALL'?2.15:size==='LARGE'?3.6:2.75,
+  flex:1,tail:1,prep:.17,turn:.27,recover:.15,strips:10};
+ if(shape==='eel'||shape==='pipe'||shape==='knife'){
+  base.frequency*=.85;base.amplitude*=2.1;base.flex=1.3;base.strips=12;
+ }else if(shape==='ray'||shape==='flying'){
+  base.frequency*=.78;base.amplitude*=.75;base.flex=.72;
+ }else if(shape==='puffer'||shape==='sunfish'||shape==='discus'||shape==='horse'){
+  base.frequency*=1.05;base.amplitude*=.44;base.flex=.65;
+ }else if(shape==='shark'||shape==='hammer'||shape==='sturgeon'){
+  base.frequency*=.82;base.amplitude*=1.22;
  }
- var sp=a.sp;if(!sp)return;
- var sprite=fishSprite(sp);if(!sprite)return;
- var sz=.5*(a.size||fishVisualProfile(sp).baseScale)*(sprite._hfScale||1),
-  phase=a.phase||0,action=a.spriteAction||'',
-  struggling=action==='bite'||action==='hooked'||action==='last_resist'||action==='slip',
-  escaping=action==='reentry'||action==='flee';
- if(alpha!==undefined)ctx.globalAlpha=alpha;
- ctx.save();
- ctx.translate(a.x,a.y+Math.sin(now*2+phase)*Math.min(3,1.8+sz));
+ var o=save.fishMotionOverrides[sp.id]||{};
+ return{frequency:base.frequency*fishMotionGlobal.tempo*clamp(Number(o.tempo)||1,.3,2.8),
+  amplitude:base.amplitude*fishMotionGlobal.amp*clamp(Number(o.amp)||1,.0,3),
+  flex:base.flex*clamp(Number(o.tail)||1,.0,3),
+  prep:base.prep*fishMotionGlobal.turn*clamp(Number(o.prep)||1,.2,3),
+  turn:base.turn*fishMotionGlobal.turn*clamp(Number(o.turn)||1,.25,3),
+  recover:base.recover,strips:base.strips,
+  flap:fishMotionGlobal.flap*clamp(Number(o.flap)||1,.0,3),
+  shape:shape};
+}
+function fishMotionPose(a,now,sourceFacing,settings){
+ var action=a.spriteAction||'',forced=!!action;
+ var velocity=Number(a.vx)||0;
+ var desired=forced?(velocity<0?-1:1):
+  (a.dir===-1||a.dir===1?a.dir:Math.abs(velocity)>1?(velocity<0?-1:1):(a._hfFacing||sourceFacing));
+ if(!a._hfFacing)a._hfFacing=Math.abs(velocity)>1?(velocity<0?-1:1):desired;
+ if(!fishMotionGlobal.enabled||forced){
+  a._hfFacing=desired;a._hfTarget=desired;a._hfTurnStart=-100;
+  return{sx:desired/sourceFacing,bend:0,tilt:0,kick:0};
+ }
+ if(!a._hfTarget)a._hfTarget=a._hfFacing;
+ var prep=settings.prep,turn=settings.turn,recover=settings.recover,total=prep+turn+recover;
+ if(a._hfTarget!==desired&&(!(Number.isFinite(a._hfTurnStart))||now-a._hfTurnStart>=total)){
+  a._hfTurnStart=now;a._hfTurnFrom=a._hfFacing;
+  a._hfTarget=desired;
+ }
+ var elapsed=now-(Number.isFinite(a._hfTurnStart)?a._hfTurnStart:-100);
+ if(elapsed>=0&&elapsed<total){
+  var from=a._hfTurnFrom||a._hfFacing,progress,cosine,bend,tilt;
+  if(elapsed<prep){
+   progress=elapsed/prep;
+   return{sx:from/sourceFacing,bend:-from*4.0*progress,
+    tilt:-from*.038*progress,kick:progress*.7};
+  }
+  if(elapsed<prep+turn){
+   progress=(elapsed-prep)/turn;progress=progress*progress*(3-2*progress);
+   cosine=Math.cos(progress*Math.PI);
+   if(Math.abs(cosine)<.065)cosine=cosine<0?-.065:.065;
+   return{sx:from/sourceFacing*cosine,
+    bend:from*7*Math.sin(progress*Math.PI),tilt:from*.045*Math.sin(progress*Math.PI),kick:1};
+  }
+  progress=(elapsed-prep-turn)/recover;
+  return{sx:a._hfTarget/sourceFacing,
+   bend:a._hfTarget*3.2*(1-progress),
+   tilt:a._hfTarget*.024*(1-progress),kick:1-progress};
+ }
+ a._hfFacing=a._hfTarget||desired;
+ return{sx:a._hfFacing/sourceFacing,bend:0,tilt:0,kick:0};
+}
+function drawFishStripWarp(g,image,w,h,now,phase,settings,pose,action){
+ if(!fishMotionGlobal.enabled){g.drawImage(image,-w/2,-h/2,w,h);return}
+ var n=settings.strips,sourceWidth=image.width,sourceHeight=image.height;
+ var sourceStep=sourceWidth/n,drawScale=w/sourceWidth;
+ var flail=action==='last_resist'||action==='hooked'||action==='slip'||action==='bite';
+ var escaping=action==='flee'||action==='reentry';
+ var boost=flail?2.0:escaping?1.4:1;
+ var wave=now*settings.frequency*Math.PI*2+phase*2.1;
+ for(var i=0;i<n;i++){
+  var sx=Math.max(0,i*sourceStep-.7),ex=Math.min(sourceWidth,(i+1)*sourceStep+.7);
+  var t=(i+.5)/n,tailWeight=Math.pow(1-t,1.85);
+  var ripple=Math.sin(wave-t*2.3)*settings.amplitude*settings.flex*tailWeight*boost;
+  // Rarity/art stays intact: no new tail image, no alpha cutting, no seam gaps.
+  var side=(t-.5)*Math.sin(wave*.85)*settings.flap*settings.amplitude*.18;
+  var bend=pose.bend*tailWeight;
+  var dy=ripple+side+bend;
+  g.drawImage(image,sx,0,ex-sx,sourceHeight,
+   -w/2+sx*drawScale,-h/2+dy,(ex-sx)*drawScale,h);
+ }
+}
+function drawFishOnContext(g,a,now,alpha){
+ var sp=a&&a.sp;if(!sp)return;
+ var image=fishSprite(sp);if(!image)return;
+ var size=.5*(a.size||fishVisualProfile(sp).baseScale)*(image._hfScale||1),
+  w=image.width*size,h=image.height*size,phase=a.phase||0,
+  action=a.spriteAction||'',settings=fishMotionSettings(sp);
+ var sourceFacing=image._hfFacingRight?1:-1;
+ var pose=fishMotionPose(a,now,sourceFacing,settings);
+ g.save();
+ if(alpha!==undefined)g.globalAlpha*=clamp(alpha,0,1);
+ g.translate(a.x,a.y+Math.sin(now*2+phase)*Math.min(3,1.8+size));
  if(a.shakeUntil>now){
   var fade=clamp((a.shakeUntil-now)/.14,0,1),strength=(a.shakePower||1.4)*fade;
-  ctx.translate(Math.sin(now*63+phase)*strength,Math.cos(now*83+phase)*strength*.6);
-  ctx.rotate(Math.sin(now*46+phase)*strength*.023);
+  g.translate(Math.sin(now*63+phase)*strength,Math.cos(now*83+phase)*strength*.6);
+  g.rotate(Math.sin(now*46+phase)*strength*.023);
  }
+ var struggling=action==='bite'||action==='hooked'||action==='last_resist'||action==='slip';
+ var escaping=action==='reentry'||action==='flee';
  if(struggling){
-  // Bitmap fallback for fish without bespoke 8-frame struggle animations:
-  // a visibly irregular flail with no replacement/alteration of original art.
   var rate=action==='last_resist'?48:action==='slip'?38:31,
-   wriggle=Math.sin(now*rate+phase*1.7),
-   kick=Math.cos(now*(rate*.77)+phase*2.1);
-  ctx.translate(wriggle*(action==='last_resist'?5:3),kick*2.2);
-  ctx.rotate(wriggle*(action==='last_resist'?.20:.145));
-  ctx.scale(1+kick*.065,1-kick*.040);
- }else if(escaping){
-  var burst=Math.sin(now*(action==='flee'?32:25)+phase*1.8);
-  ctx.rotate(burst*(action==='flee'?.082:.13));
-  ctx.scale(1+burst*.043,1-burst*.025);
- }
- // Original 304 PNG fish face RIGHT; procedural placeholders face LEFT.
- // Persist the last actual swim heading across near-zero velocity frames.
- var sourceFacing=sprite._hfFacingRight?1:-1;
- if(Math.abs(a.vx||0)>.5)a._hfFacing=a.vx>0?1:-1;
- var swimFacing=a._hfFacing||sourceFacing;
- if(swimFacing!==sourceFacing)ctx.scale(-1,1);
- ctx.drawImage(sprite,-sprite.width*.5*sz,-sprite.height*.5*sz,
-  sprite.width*sz,sprite.height*sz);
- ctx.restore();ctx.globalAlpha=1;
+   kick=Math.cos(now*(rate*.77)+phase*2.1),wriggle=Math.sin(now*rate+phase*1.7);
+  g.translate(wriggle*3,kick*2.2);g.rotate(wriggle*.11);
+ }else if(escaping)g.rotate(Math.sin(now*32+phase*1.8)*.065);
+ if(a._hfExtraBend)pose.bend+=a._hfExtraBend;
+ g.rotate(pose.tilt);
+ g.scale(pose.sx,1);
+ drawFishStripWarp(g,image,w,h,now,phase,settings,pose,action);
+ g.restore();
 }
+function drawFish(a,now,alpha){drawFishOnContext(ctx,a,now,alpha)}
 function drawOcto(now){ctx.save();ctx.translate(102,448+Math.sin(now*1.2)*8);ctx.drawImage(octo,0,0,260,236);ctx.restore()}
 function drawLine(){var anchor={x:352,y:548+Math.sin(time*1.2)*5},end=hook?{x:hook.obj.x,y:hook.obj.y}:bob;ctx.lineCap='round';ctx.lineJoin='round';var sag=drag?55:hook?0:105;ctx.beginPath();ctx.moveTo(anchor.x,anchor.y);ctx.bezierCurveTo(anchor.x+170,anchor.y-210+sag,end.x-130,end.y+sag,end.x,end.y);ctx.strokeStyle='#053945b8';ctx.lineWidth=5;ctx.stroke();ctx.strokeStyle='#f7e8c8';ctx.lineWidth=2.4;ctx.stroke();ctx.beginPath();ctx.moveTo(end.x-6,end.y-3);ctx.lineTo(end.x+7,end.y+8);ctx.strokeStyle='#fff7dc';ctx.lineWidth=2;ctx.stroke()}
 function drawBob(){var x=bob.x,y=bob.y;circle(x,y,28,drag?'#fff6be2c':'#ffeaad15');ctx.strokeStyle=drag?'#f4e49daa':'#efffff33';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y,27+Math.sin(time*4)*3,11,0,0,7);ctx.stroke();ctx.fillStyle='#ffe9ba';ctx.beginPath();ctx.ellipse(x,y,11,18,0,0,7);ctx.fill();ctx.fillStyle='#ed736d';ctx.beginPath();ctx.ellipse(x,y-5,11,11,0,Math.PI,Math.PI*2);ctx.fill();ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.stroke();circle(x-3,y-7,2,'#ffffff')}
