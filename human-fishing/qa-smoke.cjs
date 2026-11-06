@@ -74,6 +74,8 @@ window.__hfTest={
  mouthHit:fishMouthOverlapsLure,
  getBaitTip:function(t){return danglingBaitPosition(t===undefined?time:t)},
  getBaitSwing:baitSwingStats,
+ getBaitTrait:baitTrait,
+ getOctoStats:octoStats,
  baitCenterRadius:baitCenterRadius,
  isFishFleeing:isFishFleeing,
  bodyHit:fishBodyContact,
@@ -1755,3 +1757,38 @@ console.log('PASS: localized fish and octopus shake, gentle contact, bite, sucti
 
 
 
+
+{
+ // All ten actual fishing hook baits use the same atlas eyelet position.
+ // An old 6-item save still resolves its equipped IDs and upgrades.
+ const ids=['worm','shrimp','tentacle','cheese','spoon','drumstick',
+  'catdoll','coral','star','void'];
+ assert.deepEqual(game.shopModels.bait.map(item=>item[0]),ids,
+  'Bait shop must offer exactly 10 named hook-pierced gear models');
+ const saved=game.getSave(),before=saved.gearEquipped.bait;
+ const traits=['none','commonCatch','fleeDamping','gentleAttract','rareEncounter',
+  'largeCatch','humanEncounter','rareCatch','pearlBonus','feverCharge'];
+ let previousRadius=Infinity,previousSwing=Infinity;
+ for(let i=0;i<ids.length;i++){
+  const id=ids[i],gear={id,tier:i},
+   stats=game.getBaitSwing(gear,0),trait=game.getBaitTrait(gear,0);
+  assert.equal(trait.type,traits[i],id+' skill must have its own live behavior');
+  assert.ok(stats.contactRadius<previousRadius,id+' must have a smaller capture region than lower tier');
+  assert.ok(stats.angle<previousSwing,id+' must swing LESS than lower tier');
+  assert.ok(stats.contactRadius<=5.8&&stats.contactRadius>=2.9,'Hit circle must fit bait bitmap');
+  previousRadius=stats.contactRadius;previousSwing=stats.angle;
+ }
+ const hi={id:'void',tier:9};
+ assert.ok(game.getBaitSwing(hi,10).angle<game.getBaitSwing(hi,0).angle,
+  'Leveling steadies the hook on top of its tier improvement');
+ assert.ok(game.getBaitSwing(hi,10).contactRadius<game.getBaitSwing(hi,0).contactRadius,
+  'Leveling tightens the real fishing weakspot accuracy requirement');
+ assert.equal(game.getOctoStats(0,0).radius,100,
+  'Baby FEVER octopus must start at 100px radius');
+ assert.ok(game.getOctoStats(5,0).radius>=300,
+  'King FEVER octopus must have distinctly larger AOE than the baby');
+ assert.match(script,/var center=\{x:bob\.x,y:bob\.y\};/,
+  'Fever AOE center stays fixed to the red octopus, NOT the dangling hook bait');
+ saved.gearEquipped.bait=before;
+}
+console.log('PASS: 10 unique hooked bait models, preserved legacy IDs, shrinking precision, upgradeable stability and octopus-centered Fever');
