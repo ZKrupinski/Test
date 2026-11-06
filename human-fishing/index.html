@@ -3809,6 +3809,70 @@ function ecoCrowd(f,dt){
  return{count:count,cx:cx,cy:cy,ax:ax,ay:ay,
   sepX:sepX,sepY:sepY,prey:prey,predator:predator,rival:rival};
 }
+
+function ecoTrafficGuide(f,wantX){
+ // Separate steering problem from physical spacing: adjacent fish can share
+ // a little visual overlap while one commits to going ABOVE or BELOW the jam.
+ // Do not override fishing pulls, miss-release escape, predator panic or fights.
+ if(f.feverCaptured||f.fleeBurstUntil>eco.t||
+  f.panicUntil>eco.t||f.fightUntil>eco.t||
+  (hook&&hook.obj===f))return null;
+ var heading=wantX>2?1:wantX< -2?-1:(f.dir||1);
+ var obstacle=null,nearest=Infinity,nearby=0;
+ for(var i=0;i<fish.length;i++){
+  var g=fish[i];
+  if(g===f||g.feverCaptured||g=== (hook&&hook.obj))continue;
+  var space=ecoPairSpace(f,g),ahead=(g.x-f.x)*heading,
+   lateral=Math.abs(g.y-f.y);
+  if(ahead< -space.x*.22||ahead>space.x*1.75||
+   lateral>space.y*1.32)continue;
+  var relative=heading*(g.vx||0),ownSpeed=Math.abs(wantX);
+  // Fish moving away faster are not blockers. Opposing and close-packed
+  // slow traffic both require a lane choice.
+  if(ahead>space.x*.60&&relative>ownSpeed*.96)continue;
+  nearby++;
+  var score=ahead/space.x+lateral/space.y*.34;
+  if(score<nearest){nearest=score;obstacle=g}
+ }
+ var active=(f.trafficUntil||0)>eco.t;
+ if(obstacle&&!active){
+  var passSpace=ecoPairSpace(f,obstacle),offset=Math.max(52,passSpace.y*1.10),
+   naturalSide=obstacle.y>f.y+9?-1:obstacle.y<f.y-9?1:
+    ((f.ecoId||0)%2?1:-1);
+  // Check both lanes against nearby fish + water surface/seafloor; do not
+  // pick a blocked side simply because the other fish is directly ahead.
+  function laneCost(side){
+   var proposed=ecoSafeDepth(f,f.y+side*offset);
+   var loss=Math.abs(proposed-f.y),cost=loss<offset*.55?30:0;
+   for(var j=0;j<fish.length;j++){
+    var n=fish[j];if(n===f||n.feverCaptured)continue;
+    var s=ecoPairSpace(f,n),dx=Math.abs(n.x-f.x);
+    if(dx<s.x*1.7){
+     var dy=Math.abs(n.y-proposed);
+     if(dy<s.y*1.05)cost+=(1-dy/(s.y*1.05))*Math.max(.1,1-dx/(s.x*2))*5;
+    }
+   }
+   if(side!==naturalSide)cost+=.60;
+   if(f.trafficLastSide===side)cost-=.35;
+   return cost;
+  }
+  f.trafficSide=laneCost(-1)<laneCost(1)?-1:1;
+  f.trafficLastSide=f.trafficSide;
+  f.trafficY=ecoSafeDepth(f,f.y+f.trafficSide*offset);
+  f.trafficUntil=eco.t+1.7;
+  f.trafficPassUntil=eco.t+1.2;
+  f.trafficAvoidCount=(f.trafficAvoidCount||0)+1;
+  active=true;
+ }
+ if(!active)return null;
+ // Pass under/over the opposing body rather than stalling head-on. Gently
+ // allow short overlap once committed, instead of pushing both fish back.
+ var dy=clamp((f.trafficY-f.y)*2.8,-86,86);
+ var pass=Math.abs(f.trafficY-f.y)<40||nearby>2;
+ return{y:dy,x:heading*Math.max(38,Math.abs(wantX))*(pass?1.22:.76),
+  active:true,pass:pass,nearby:nearby};
+}
+
 // Resolve existing overlaps smoothly, with a strict distance-per-frame cap.
 function ecoResolveFishSpacing(dt){
  var locked=hook&&hook.obj;
@@ -3821,16 +3885,24 @@ function ecoResolveFishSpacing(dt){
    var space=ecoPairSpace(f,g),
     dx=g.x-f.x,dy=g.y-f.y,
     nx=dx/space.x,ny=dy/space.y,dist=Math.hypot(nx,ny);
-   if(dist>=1)continue;
+   // Pass-through traffic is deliberately softer than ordinary personal
+   // space. The head and fins can briefly overlap, never fully stack.
+   var passing=((f.trafficPassUntil||0)>eco.t||
+    (g.trafficPassUntil||0)>eco.t)&&
+    f.fleeBurstUntil<=eco.t&&g.fleeBurstUntil<=eco.t;
+   var threshold=passing?.66:1;
+   if(dist>=threshold)continue;
    var ux=dist>.001?nx/dist:((f.ecoId||i)<(g.ecoId||j)?1:-1);
    var uy=dist>.001?ny/dist:((i+j)%2?.30:-.30);
-   var push=Math.min(57*dt,(1-dist)*23);
+   var push=Math.min((passing?39:57)*dt,
+    (threshold-dist)*(passing?20:23));
    var moveF=f===locked?0:g===locked?2:1;
    var moveG=g===locked?0:f===locked?2:1;
-   f.x=clamp(f.x-ux*push*moveF,0,W);
-   g.x=clamp(g.x+ux*push*moveG,0,W);
-   f.y=ecoSafeDepth(f,f.y-uy*push*moveF);
-   g.y=ecoSafeDepth(g,g.y+uy*push*moveG);
+   var xWeight=passing?.19:1,yWeight=passing?1.18:1;
+   f.x=clamp(f.x-ux*push*moveF*xWeight,0,W);
+   g.x=clamp(g.x+ux*push*moveG*xWeight,0,W);
+   f.y=ecoSafeDepth(f,f.y-uy*push*moveF*yWeight);
+   g.y=ecoSafeDepth(g,g.y+uy*push*moveG*yWeight);
   }
  }
 }
@@ -4040,21 +4112,33 @@ function updateEcosystem(dt){
   }
   f.homeY=ecoSafeDepth(f,f.homeY);
   wantY+=clamp((f.homeY-f.y)*.22,-11,11);
-  // Prioritize separation after AI behavior, without spoiling the
-  // distinct high-speed escape burst triggered by a missed catch.
-  var avoidance=f.fleeBurstUntil>eco.t?0:1;
-  wantX+=clamp(crowd.sepX*avoidance,-96,96);
-  wantY+=clamp(crowd.sepY*avoidance,-73,73);
+  // Resolve head-on congestion using a committed upper/lower passing lane.
+  // During a pass the fish keep forward momentum and briefly share visual
+  // space instead of freezing and pushing one another back indefinitely.
+  var traffic=state==='flee'||state==='fight'||state==='hunt'?
+   null:ecoTrafficGuide(f,wantX);
+  if(traffic){
+   wantX=traffic.x;
+   wantY+=traffic.y;
+   if(state!=='dart'&&state!=='feint')state='pass';
+  }
+  // Missed-catch panic still outranks traffic. Lane-changers soften the
+  // horizontal repulsion so a dense school can actually clear a bottleneck.
+  var avoidance=f.fleeBurstUntil>eco.t?0:1,
+   passScale=traffic?.16:1;
+  wantX+=clamp(crowd.sepX*avoidance*passScale,-96,96);
+  wantY+=clamp(crowd.sepY*avoidance*(traffic?.52:1),-73,73);
   // All velocities are pixels per second. Swimmers are calm unless threatened.
   var fleeingFast=f.fleeBurstUntil>eco.t;
   var wildSteer=state==='dart'?rarity.steer*2.7:
+   state==='pass'?Math.max(4.5,rarity.steer*2.2):
    state==='evade'?rarity.steer*2:rarity.steer;
   var steer=Math.min(1,dt*(fleeingFast?18:state==='flee'?3.8:
    state==='fight'?3.1:wildSteer));
   var wildCap=fleeingFast?330:state==='flee'?85:rarity.cap;
   f.vx=mix(f.vx,clamp(wantX,-wildCap,wildCap),steer);
-  f.vy=mix(f.vy,clamp(wantY,fleeingFast?-100:-70,
-   fleeingFast?100:70),Math.min(1,steer*(fleeingFast?1:.85)));
+  f.vy=mix(f.vy,clamp(wantY,fleeingFast?-100:traffic?-102:-70,
+   fleeingFast?100:traffic?102:70),Math.min(1,steer*(fleeingFast?1:traffic?1.25:.85)));
   f.x+=f.vx*dt;f.y+=f.vy*dt;
   if(f.missScareStayVisible){
    var contained=missScareScreenLimits(f);
@@ -4074,7 +4158,7 @@ function updateEcosystem(dt){
   // the existing strip-warped tail kicks harder during dart and evade,
   // smoothly blending back without abruptly swapping sprite frames.
   var swimBoost=state==='dart'?clamp(1.35+rarity.cruise*.22,1.4,2):
-   state==='evade'?1.28:state==='feint'?.76:1;
+   state==='pass'?1.18:state==='evade'?1.28:state==='feint'?.76:1;
   f._hfWarpBoost=mix(Number.isFinite(f._hfWarpBoost)?f._hfWarpBoost:1,
    swimBoost,Math.min(1,dt*8));
   f.phase+=dt*(state==='flee'?2.2:state==='dart'?1.6+rarity.cruise*.35:

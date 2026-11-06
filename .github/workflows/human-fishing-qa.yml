@@ -39,6 +39,8 @@ jobs:
         run: node human-fishing/qa-boot.cjs
       - name: Run game startup, input and shop smoke test
         run: node human-fishing/qa-smoke.cjs
+      - name: Verify congested fish disperse, choose lanes and pass safely
+        run: node human-fishing/qa-ecology-traffic.cjs
       - name: Verify context-driven 16-frame companion animation states
         run: node human-fishing/qa-octo-sidekicks.cjs
       - name: Verify calm main octopus idle, fishing reactions and timing
