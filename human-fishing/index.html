@@ -1340,8 +1340,10 @@ function aquariumTapFish(event){
   if(!a.sp||!a.sprite)return;
   var animated=!!fishAnimatorFor(a.sp);
   var art=animated?null:fishSprite(a.sp);
-  var rx=(animated?60*a.size:art.width*(art._hfScale||1)*.25*a.size)+18;
-  var ry=(animated?30*a.size:art.height*(art._hfScale||1)*.25*a.size)+17;
+  // The bitmap may still be loading. Never dereference a missing image;
+  // use conservative touch geometry, not the old vector fish renderer.
+  var rx=(animated?60*a.size:art?art.width*(art._hfScale||1)*.25*a.size:60*a.size)+18;
+  var ry=(animated?30*a.size:art?art.height*(art._hfScale||1)*.25*a.size:30*a.size)+17;
   // Touch geometry matches the actual bitmap, with a generous mobile margin.
   var dx=(p.x-a.x)/Math.max(34,rx),dy=(p.y-a.y)/Math.max(28,ry);
   var d=dx*dx+dy*dy;
