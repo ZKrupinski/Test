@@ -42,7 +42,7 @@ assert.match(src,/if\(view!=='tank'&&\(pose\.action==='toss'\|\|pose\.action==='
  'Final protagonist renderer must block the barrel and duplicate-rod sprites outside aquarium');
 assert.match(src,/var action=cycle<2\.6\?'toss':cycle<5\.2\?'gorge':cycle<7\.8\?'snack':'idle_alt'/,
  'The original painted rod and bucket animations must remain playable in aquarium');
-env.cast={active:true,elapsed:2.32,duration:3.25,landing:true};
+env.cast={active:true,elapsed:2.32,duration:3.65,impactAt:1.02,splashHold:.30,landing:true};
 const sinking=pose(300.1);
 assert.equal(sinking.action,'bait_sinking',
  'New bowed-head sprite must appear ONLY while the lure is actually sinking underwater');
