@@ -1652,6 +1652,10 @@ console.log('PASS: codex displays 304 original high-res fish PNGs in landscape c
  assert.equal(mythic.behavior,'dart','Mythic fish must begin a powerful dart');
  assert.ok(Math.abs(mythic.vx)>100,
   'High-rarity dart must accelerate to a genuinely hard-to-track speed');
+ assert.ok(mythic._hfWarpBoost>1.15,
+  'Fast rarity dashes must visibly quicken the original fish PNG tail animation');
+ assert.ok(Math.abs(normal._hfWarpBoost-1)<.06,
+  'Common fish must retain the original calm bitmap swimming motion');
  assert.ok(Math.abs(mythic.vx)<=ai[5].cap+.01,
   'Rarity dash must still obey controlled simulation limits');
  assert.equal(game.isFishFleeing(mythic),false,
