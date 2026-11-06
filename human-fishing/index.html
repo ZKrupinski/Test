@@ -1155,7 +1155,7 @@ function renderBook(filter,query){
  visibleFish.map(function(sp){
   var n=save.owned[sp.id]||0,visual=fishVisualProfile(sp);
   var className={SMALL:'소형',MEDIUM:'중형',LARGE:'대형',SPECIAL:'특수형'}[visual.category];
-  return '<div class="card '+(n?'':'locked')+'" data-name="'+escapeHtml(sp.name)+'"><div class="face">'+(n?'🐟':'◈')+'</div><div class="name">'+(n?escapeHtml(sp.name):'???')+'</div><div class="meta">'+escapeHtml(habitats[sp.habitat])+' · '+escapeHtml(sp.rarity)+' Lv.'+sp.level+(n?' · '+className:'')+'</div><div class="num">'+(n?'보유 '+n+'마리':sp.id+' 미발견')+'</div></div>';
+  return '<div class="card '+(n?'':'locked')+'" data-name="'+escapeHtml(sp.name)+'"><div class="face">'+(n?'🐟':'◈')+'</div><div class="name">'+(n?escapeHtml(sp.name):'???')+'</div><div class="meta">'+escapeHtml(habitats[sp.habitat])+(n?' · '+className:'')+'</div><div class="num">'+(n?'보유 '+n+'마리':sp.id+' 미발견')+'</div></div>';
  }).join('')+'</div>';
  openPanel('통합 생물 도감','물고기 '+count+'/'+species.length+' · 인간 '+hCount+'/24 · '+(species.length+humans.length)+'종 컬렉션',tool+cards);
  $('search').oninput=function(){
@@ -3558,7 +3558,7 @@ release=function(){
   hook.escapeAt=.85+rnd(0,.065);
   if(hook.willEscape){
    $('hintTitle').textContent='격렬한 저항! 줄이 끊어질 듯 흔들려요';
-   $('hint').textContent=(h?'ELITE / BOSS':tierLabels[target.rarity]+' Lv.'+target.level)+' · 포획률 '+(chance*100).toFixed(1)+'%';
+   $('hint').textContent=(h?'ELITE / BOSS':'물고기')+' · 포획률 '+(chance*100).toFixed(1)+'%';
   }
  }
 };
