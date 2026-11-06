@@ -72,6 +72,8 @@ window.__hfTest={
  mouthWeakspot:fishMouthWeakspot,
  rarityMovement:fishRarityMovement,
  mouthHit:fishMouthOverlapsLure,
+ getBaitTip:function(t){return danglingBaitPosition(t===undefined?time:t)},
+ getBaitSwing:baitSwingStats,
  baitCenterRadius:baitCenterRadius,
  isFishFleeing:isFishFleeing,
  bodyHit:fishBodyContact,
@@ -876,8 +878,10 @@ assert.ok(near.y<269,'Approaching fish must pass the waterline without stopping'
 assert.ok(Math.abs(finish.x-mouth.x)<.001&&Math.abs(finish.y-mouth.y)<.001,'Path must end in the octopus mouth');
 assert.match(runtimeTick,/var point=swallowPoint\(hook\.startX,hook\.startY,mouthPos\(time\),p\)/,
  'Hook motion must aim at the updated animated mouth, not a stale coordinate');
-assert.match(runtimeTick,/bob\.x=o\.x;bob\.y=o\.y/,
- 'The red bait must follow the reeled-in fish along that same mouth trajectory');
+assert.match(runtimeTick,/var baitOffset=danglingBaitPosition\(time\)/,
+ 'The small dangling bait, NOT the octopus body, must follow the hook to the player mouth');
+assert.match(runtimeTick,/bob\.x=o\.x-\(baitOffset\.x-bob\.x\)/,
+ 'Carrier must stay above the bait's fish-mouth pivot while reeling');
 assert.match(runtimeTick,/drawBaitAbovePlayer\(time\)/,
  'Bait must remain layered above protagonist and fishing line until swallowing');
 assert.match(script,/if\(!fx\.swallowed\)drawSwallowCreature/,'Reward animation must not replay a second flight');
@@ -888,6 +892,9 @@ game.setHook({obj:actual,kind:'fish',elapsed:0,startX:origin.x,startY:origin.y,w
 step(45);
 assert.ok(game.getHook(),'Live hooked creature must be flying before arriving at mouth');
 assert.ok(actual.y<269,'Live hook should have crossed waterline on a direct arc');
+const hanging=game.getBaitTip(clock/1000);
+assert.ok(Math.hypot(hanging.x-actual.x,hanging.y-actual.y)<2.5,
+ 'During reeling the small bait should share the fish-mouth joint');
 assert.ok(game.mouthOpen()>.75,'Octopus should open wide before the creature arrives');
 step(35);
 assert.equal(game.getHook(),null,'Hook must finish at the mouth and release the live creature');
