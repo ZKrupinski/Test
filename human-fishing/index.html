@@ -2187,7 +2187,7 @@ var rodBitmapSprites={};
 });
 // Rod elasticity is calculated once mathematically for the current game state.
 // Source PNG pixels stay unchanged. Grip and reel keep their rigid shape;
-// the upper blank gets 16 smoothly joined, affine-warped display strips.
+// the full blank gets 24 smoothly joined, affine-warped display strips.
 if(!save.rodMotionOverrides||typeof save.rodMotionOverrides!=='object')save.rodMotionOverrides={};
 var rodRecoil={at:-100,displacement:0};
 var rodMotionPresets={
@@ -2209,10 +2209,10 @@ function rodMotionSettings(gear){
  return out;
 }
 function rodCurve(mode,elapsed,now,settings,weight){
- var hang=5.2*settings.hang,t=Math.max(0,elapsed||0),bend=hang,angle=0;
+ var hang=5.8*settings.hang,t=Math.max(0,elapsed||0),bend=hang,angle=0;
  var smooth=function(v){v=clamp(v,0,1);return v*v*(3-2*v)};
  if(mode==='cast'){
-  var rear=38*settings.back,snap=-17*settings.elastic;
+  var rear=44*settings.back,snap=-19*settings.elastic;
   if(t<.19){var p=smooth(t/.19);bend=mix(hang,rear,p);angle=-.18*p}
   else if(t<.48){bend=rear+Math.sin((t-.19)*11)*1.5;angle=-.18}
   else if(t<.82){
@@ -2227,7 +2227,7 @@ function rodCurve(mode,elapsed,now,settings,weight){
  }else if(mode==='reel'||mode==='fever'){
   var p=clamp(t,0,1),rise=smooth(p/.13),resist=mode==='fever'?1.18:(weight||1);
   var load=Math.sin(Math.PI*(.86*p))*rise;
-  bend=hang+30*settings.reel*resist*load;
+  bend=hang+36*settings.reel*resist*load;
   angle=-.045*load;
   // Short resistance pulses only while a fish is still pulling the line.
   if(mode==='reel'&&load>0)bend+=Math.sin(now*24)*2.2*load*resist;
@@ -2243,15 +2243,21 @@ function rodCurve(mode,elapsed,now,settings,weight){
 }
 // Source rod artwork uses an APPROVED 210×160 logical frame, where
 // the reel/handle root is (536,191), tip is (640,141) in scene space.
-// The first third of the rod is fixed. At the tip, both displacement and
-// tangent must match the very same formula used by the fishing line.
+// The blank begins flexing halfway between the gripped handle and reel.
+// The reel's image core stays fixed; flex accumulates continuously across the
+// WHOLE shaft, not just its outer third. The tip and line share this curve.
+var ROD_FLEX_START_X=-23,ROD_FLEX_TIP_X=104,ROD_FLEX_POWER=1.55;
 function rodWarpAt(localX,bend){
- if(localX<=36||bend===0)return{dx:0,dy:0,sx:0,sy:0};
- var z=Math.max(0,(localX-36)/68);
- var magnitude=z<=1?z*z:2*z-1;
- var slope=z<=1?2*z/68:2/68;
- return{dx:-.28*bend*magnitude,dy:.92*bend*magnitude,
-  sx:-.28*bend*slope,sy:.92*bend*slope};
+ if(localX<=ROD_FLEX_START_X||bend===0)return{dx:0,dy:0,sx:0,sy:0};
+ var span=ROD_FLEX_TIP_X-ROD_FLEX_START_X;
+ var z=(localX-ROD_FLEX_START_X)/span;
+ // Smooth mid-shaft bow; beyond the tip, extend tangent without a kink.
+ var magnitude=z<=1?Math.pow(z,ROD_FLEX_POWER):
+  1+ROD_FLEX_POWER*(z-1);
+ var slope=z<=1?ROD_FLEX_POWER*Math.pow(z,ROD_FLEX_POWER-1)/span:
+  ROD_FLEX_POWER/span;
+ return{dx:-.34*bend*magnitude,dy:1.04*bend*magnitude,
+  sx:-.34*bend*slope,sy:1.04*bend*slope};
 }
 function evaluateRodPose(now,gearOverride,preview){
  var gear=gearOverride||selectedGear('rod'),settings=rodMotionSettings(gear);
@@ -2282,12 +2288,12 @@ function evaluateRodPose(now,gearOverride,preview){
 }
 function triggerRodRecoil(now){
  // Capture the tension BEFORE clearing the hook; no one-frame jump.
- var pose=evaluateRodPose(now),hang=5.2*rodMotionSettings().hang;
+ var pose=evaluateRodPose(now),hang=5.8*rodMotionSettings().hang;
  rodRecoil.at=now;rodRecoil.displacement=clamp(pose.bend-hang,-28,48);
 }
 function drawRodWarped(g,image,pose,rootX,rootY,previewScale){
  if(!image||!image.ready)return;
- var n=16,imageW=image.naturalWidth||image.width,imageH=image.naturalHeight||image.height;
+ var n=24,imageW=image.naturalWidth||image.width,imageH=image.naturalHeight||image.height;
  if(!imageW||!imageH)return;
  var scale=previewScale||1;
  g.save();
