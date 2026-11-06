@@ -953,7 +953,8 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
 {
  const aquariumSave=game.getSave();
  const oldOwned={...aquariumSave.owned};
- aquariumSave.owned={'F123':1,'F002':1}; // F123 = Blue Tang / 블루탱
+ aquariumSave.owned={'F123':1}; // F123 = Blue Tang / 블루탱
+ for(let i=2;i<=10;i++)aquariumSave.owned['F'+String(i).padStart(3,'0')]=1;
  game.aquariumReset();
  game.setTime(40);
  game.aquariumEnsure(40);
