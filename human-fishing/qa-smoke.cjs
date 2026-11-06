@@ -652,7 +652,7 @@ for(const [i,entity] of fxStart.caught.entries()){
  assert.ok(delivered.done,'Only main octopus swallows after group retrieval');
  assert.equal(delivered.x,game.getMouthPos(clock/1000).x);
 }
-assert.match(script,/var d=fx.radius\*2\/\.55/,'Visible whirlpool must scale to gameplay capture radius');
+assert.match(script,/var d=fx.radius\*2\*scale;/,'Visible whirlpool must match the gameplay capture diameter without oversizing');
 for(const [elapsed,lo,hi] of [[0,0,0],[.1,0,4],[.3,5,11],[fxStart.suctionEnd-.1,5,11],[fxStart.reelStart,15,15]]){
  const f=game.feverMouthFrame({...fxStart,elapsed});assert.ok(f>=lo&&f<=hi);
 }
