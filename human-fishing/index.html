@@ -1164,7 +1164,7 @@ function renderTankSide(){
  save.humanPlaced.forEach(function(id){humanUsed[id]=(humanUsed[id]||0)+1});
  var fishOptions=Object.keys(save.owned).filter(function(id){return save.owned[id]>(fishUsed[id]||0)});
  var humanOptions=Object.keys(save.human).filter(function(id){return save.human[id]>(humanUsed[id]||0)});
- var html='<h3>🐙 생물 아쿠아리움</h3><p>물고기 '+save.placed.length+'/30 · 인간 '+save.humanPlaced.length+'/8<br>🐟 물고기를 터치하면 방향을 바꾸고 가끔 발버둥 칩니다.</p>';
+ var html='<h3>🐙 생물 아쿠아리움</h3><p>보유 도감에서 물고기 '+aquariumExhibitTarget+'마리를 랜덤 전시합니다.<br>퇴장한 수만큼 다른 보유 어종이 등장합니다. 터치하면 방향을 바꿉니다.<br>수동 등록 '+save.placed.length+'/30 · 인간 '+save.humanPlaced.length+'/8</p>';
  html+='<div class="slot"><span>수조 테마</span><button id="decorChange">변경</button></div>';
  html+='<h3>🧑 인간 배치</h3>';
  if(!humanOptions.length)html+='<p>낚시터에서 엘리트 인간을 잡으면 배치할 수 있어요.</p>';
@@ -1233,25 +1233,47 @@ function humanIcon(a,now){
 // Aquarium inhabitants have stable identities and independent swim states.
 // Old aquarium code recreated a static fish every frame, making taps impossible.
 var aquariumFishActors=[],aquariumFishSignature='',aquariumLastTime=0;
+var aquariumExhibitTarget=10,aquariumPreserveReturn=false;
+function aquariumResetExhibit(){
+ aquariumFishActors=[];
+ aquariumFishSignature='';
+ aquariumLastTime=0;
+}
+function aquariumMakeExhibitActor(now,available,inView){
+ var present=Object.create(null);
+ aquariumFishActors.forEach(function(a){if(a.sp)present[a.sp.id]=true});
+ var fresh=available.filter(function(sp){return !present[sp.id]});
+ var pool=fresh.length?fresh:available;
+ var sp=pool[Math.floor(Math.random()*pool.length)];
+ var dir=Math.random()<.5?1:-1,visual=fishVisualProfile(sp);
+ var size=rnd(visual.minScale,visual.maxScale);
+ var x=inView?rnd(105,1175):(dir>0?-160:W+160);
+ var y=rnd(WATER_SURFACE_Y+88,615);
+ if(inView)for(var trial=0;trial<18;trial++){
+  var near=aquariumFishActors.some(function(a){
+   return Math.abs(a.x-x)<110&&Math.abs(a.y-y)<54;
+  });
+  if(!near)break;
+  x=rnd(105,1175);y=rnd(WATER_SURFACE_Y+88,615);
+ }
+ var speed=rnd(34,57),phase=rnd(0,Math.PI*2);
+ return {id:sp.id,sp:sp,x:x,y:y,baseY:y,dir:dir,speed:speed,
+  size:size,phase:phase,turnStart:-100,turnFrom:dir,
+  turnDuration:rnd(.63,.80),lastTap:-100,
+  struggleStart:-100,struggleEnd:-100,strugglePower:0,
+  nextStruggle:now+rnd(5,15),
+  sprite:{sp:sp,x:0,y:0,vx:dir*speed,size:size,phase:phase}};
+}
 function aquariumEnsureFish(now){
- var signature=save.placed.join('|');
- if(signature===aquariumFishSignature&&aquariumFishActors.length===save.placed.length)return;
- aquariumFishSignature=signature;
- aquariumLastTime=now;
- aquariumFishActors=save.placed.map(function(id,i){
-  var sp=species.find(function(z){return z.id===id});
-  var seed=now*.31+i;
-  return {id:id,sp:sp,x:clamp(100+(i*151)%1070+Math.sin(seed)*45,95,1170),
-   y:clamp(220+(i*89)%370,WATER_SURFACE_Y+62,633),baseY:clamp(220+(i*89)%370,WATER_SURFACE_Y+62,633),
-   dir:i%2===0?1:-1,speed:11+(i%6)*2.7+Math.random()*5,
-   size:1.05+(i%4)*.2,phase:i*1.6+Math.random()*2.3,
-   turnStart:-100,turnFrom:i%2===0?1:-1,
-   turnDuration:.63+(i%4)*.045,lastTap:-100,
-   struggleStart:-100,struggleEnd:-100,strugglePower:0,
-   nextStruggle:now+4.5+Math.random()*10,
-   // Keep the same source raster and torso pivot across both headings.
-   sprite:sp?{sp:sp,x:0,y:0,vx:-22,size:1.05+(i%4)*.2,phase:i*1.6}:null};
- });
+ var available=aquariumKnownSpecies();
+ var signature=available.map(function(sp){return sp.id}).join('|');
+ if(signature!==aquariumFishSignature){
+  aquariumFishSignature=signature;aquariumFishActors=[];aquariumLastTime=now;
+ }
+ if(!available.length){aquariumFishActors=[];return}
+ var initial=aquariumFishActors.length===0&&aquariumLastTime===now;
+ while(aquariumFishActors.length<aquariumExhibitTarget)
+  aquariumFishActors.push(aquariumMakeExhibitActor(now,available,initial));
 }
 function aquariumStartTurn(a,now){
  if(!a||now-a.lastTap<.24)return false;
@@ -1290,21 +1312,18 @@ function aquariumUpdateFish(now){
  aquariumEnsureFish(now);
  var dt=aquariumLastTime>0?clamp(now-aquariumLastTime,0,.05):0;
  aquariumLastTime=now;
- aquariumFishActors.forEach(function(a){
-  if(!a.sp)return;
-  // Each fish can react independently, not an identical schooling wave.
+ // Never bounce at screen edges: replace each completely departed fish
+ // with one newly selected owned species entering from outside the image.
+ aquariumFishActors=aquariumFishActors.filter(function(a){
+  if(!a.sp)return false;
   if(now>=a.nextStruggle)aquariumStartStruggle(a,now,.54+Math.random()*.35);
   var wriggling=a.struggleStart<=now&&a.struggleEnd>now;
-  var surge=wriggling?1.15:1;
-  a.x+=a.dir*a.speed*dt*surge;
-  if(a.x<92||a.x>1177){
-   a.x=clamp(a.x,92,1177);
-   if(now-a.turnStart>a.turnDuration) {
-    a.turnFrom=a.dir;a.dir=-a.dir;a.turnStart=now;
-   }
-  }
-  a.y=clamp(a.baseY+Math.sin(now*(.55+(a.phase%3)*.08)+a.phase)*12,WATER_SURFACE_Y+54,633);
+  a.x+=a.dir*a.speed*dt*(wriggling?1.15:1);
+  a.y=clamp(a.baseY+Math.sin(now*(.55+(a.phase%3)*.08)+a.phase)*12,
+   WATER_SURFACE_Y+54,633);
+  return a.x>=-190&&a.x<=W+190;
  });
+ aquariumEnsureFish(now);
 }
 function aquariumTapFish(event){
  if(view!=='tank')return false;
