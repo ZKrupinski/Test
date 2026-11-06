@@ -1582,7 +1582,10 @@ function tick(stamp){
 
 // ALPHA 0.4 — centered octopus casting, slow sinking bait, strict lure-only dragging,
 // and a 24-item (4 tabs × 6 models) purchasable/equippable 10-level equipment shop.
-var cast={active:false,elapsed:0,duration:3.25,landing:false};
+// Cast: quick rightward throw, short splash tremor, then slow leftward
+// sink towards the original x=640 / y=436 rest point.
+var cast={active:false,elapsed:0,duration:3.65,landing:false,
+ impactAt:1.02,impactX:820,splashHold:.30};
 var dragPointer=null,dragStart=null,dragOffset=null,dragQualified=false,shopCategory='rod',shopSort='tier';
 if(!save.gearOwned||typeof save.gearOwned!=='object')save.gearOwned={};
 if(!save.gearLevels||typeof save.gearLevels!=='object')save.gearLevels={};
@@ -1854,27 +1857,44 @@ function startCast(){
  hideVirtualJoystick();rodRecoil.at=-100;cast.active=true;cast.elapsed=0;cast.landing=false;drag=false;dragPointer=null;dragQualified=false;
  bob.x=rodTip(time).x-10;bob.y=rodTip(time).y+18;
  $('hintTitle').textContent='낚싯대를 휘둘러 찌를 던지는 중…';
- $('hint').textContent='수면에 닿은 미끼가 천천히 가라앉습니다. 물속에 들어오면 화면 아래쪽 절반을 터치해 조이스틱으로 움직이세요.';
+ $('hint').textContent='미끼를 오른쪽으로 던지고 수면에서 떨린 뒤, 천천히 중앙으로 가라앉으면 화면 아래쪽 절반에서 조작할 수 있습니다.';
 }
 function castEasing(p){p=clamp(p,0,1);return p*p*(3-2*p)}
 function castMotion(dt){
  if(!cast.active||view!=='fish')return;
- cast.elapsed+=dt;var u=cast.elapsed,tip=rodTip(time);
- if(u<.58){
+ cast.elapsed+=dt;
+ var u=cast.elapsed,tip=rodTip(time),impact=cast.impactAt,
+  surface=WATER_SURFACE_Y+3;
+ if(u<.26){
   bob.x=tip.x-18;bob.y=tip.y+13;
- }else if(u<1.4){
-  var p=castEasing((u-.58)/.82);
-  bob.x=mix(tip.x-16,640,p);
-  bob.y=mix(tip.y+13,WATER_SURFACE_Y+3,p)-72*Math.sin(Math.PI*p);
+ }else if(u<impact){
+  // Fast airborne throw toward the right, never teleporting the bait.
+  var p=clamp((u-.26)/(impact-.26),0,1);
+  bob.x=mix(tip.x-18,cast.impactX,1-Math.pow(1-p,1.85));
+  bob.y=mix(tip.y+13,surface,p)-76*Math.sin(Math.PI*p);
  }else{
   if(!cast.landing){
-   cast.landing=true;ripple(640,WATER_SURFACE_Y+3);beep('hit');spawnParticles(640,WATER_SURFACE_Y+3,14,'water');
+   cast.landing=true;
+   ripple(cast.impactX,surface);beep('hit');
+   spawnParticles(cast.impactX,surface,24,'water');
+   vibrationPulse('splash');
   }
-  var p=castEasing((u-1.4)/(cast.duration-1.4));
-  bob.x=640; // Sink directly beneath the shortened rod tip.
-  bob.y=(WATER_SURFACE_Y+3)+(436-(WATER_SURFACE_Y+3))*p+Math.sin((u-1.4)*14)*4*(1-p);
-  if(Math.floor(u*9)%3===0&&Math.random()<dt*25)
-   particles.push({x:bob.x+rnd(-7,7),y:bob.y+rnd(-3,7),vx:rnd(-.3,.3),vy:rnd(-.7,-.2),life:.55,size:rnd(2,5),kind:'water'});
+  var after=u-impact;
+  if(after<cast.splashHold){
+   // Rapid impact shake before any horizontal recovery.
+   var fade=1-after/cast.splashHold;
+   bob.x=cast.impactX+Math.sin(after*64)*5*fade;
+   bob.y=surface+Math.sin(after*73)*3*fade;
+  }else{
+   // Deliberately slow drift back LEFT and down after water contact.
+   var p=castEasing((after-cast.splashHold)/
+    (cast.duration-impact-cast.splashHold));
+   bob.x=mix(cast.impactX,640,p);
+   bob.y=mix(surface,436,p)+Math.sin((after-cast.splashHold)*13)*2*(1-p);
+   if(Math.random()<dt*10)
+    particles.push({x:bob.x+rnd(-7,7),y:bob.y+rnd(-3,7),
+     vx:rnd(-.3,.3),vy:rnd(-.7,-.2),life:.55,size:rnd(2,5),kind:'water'});
+  }
  }
  if(u>=cast.duration){
   cast.active=false;bob.x=640;bob.y=436;
@@ -1906,20 +1926,16 @@ function moveVirtualJoystick(p){
 }
 function onBaitPointerDown(e){
  if(view==='tank'){aquariumTapFish(e);return;}
- // Keep the natural air-cast. Once the bait has touched water (u >= 1.4),
- // a touch in the LOWER half starts a virtual joystick at that position, NOT a teleport.
- if(view!=='fish'||introEntrance.active||hook||feverFx||catchFx||escapeFx||octoGroggy>0||joystick.active||cast.active&&!cast.landing)return;
+ // Touch control starts only AFTER the full cast, splash and slow settle.
+ // As before, the lower half sets the virtual joystick center.
+ if(view!=='fish'||introEntrance.active||hook||feverFx||catchFx||escapeFx||octoGroggy>0||joystick.active||cast.active)return;
  var p=resizePointer(e);
  // Touch/pen gestures only begin in the bottom half of the 16:9 game view.
  // Do not interrupt sinking or create a stick from a touch above this boundary.
  // Once started, moving the finger anywhere remains valid for all directions.
  // Mouse behavior remains unchanged for desktop play.
  if((e.pointerType==='touch'||e.pointerType==='pen')&&p.y<H*.5)return;
- if(cast.active&&cast.landing){
-   cast.active=false; // interrupt sinking at its CURRENT depth without snapping to y=436
-   $('hintTitle').textContent='가상 조이스틱으로 미끼 조작 중';
-   $('hint').textContent='터치한 위치를 중심으로 상하좌우 이동 · 놓으면 포획 판정';
- }
+
  joystick.active=true;joystick.id=e.pointerId;joystick.x=p.x;joystick.y=p.y;
  joystick.dx=0;joystick.dy=0;joystick.engaged=false;joystick.traveled=0;
  var centerX=clamp(p.x,76,W-76),centerY=clamp(p.y,76,H-76);
@@ -2287,8 +2303,9 @@ function playerOctoPose(now){
   // Once the bait touches water, the red octopus sinks in a straight line.
   // The new painted down-looking sheet watches the bait until the sink ends;
   // touching to steer cancels casting and immediately returns to normal idle.
-  if(cast.elapsed>=1.4){
-   var sink=clamp((cast.elapsed-1.4)/Math.max(.1,cast.duration-1.4),0,.999);
+  if(cast.elapsed>=cast.impactAt){
+   var sinkAt=cast.impactAt+cast.splashHold;
+    var sink=clamp((cast.elapsed-sinkAt)/Math.max(.1,cast.duration-sinkAt),0,.999);
    return{action:'bait_sinking',frame:Math.min(15,Math.floor(sink*16))};
   }
   // Keep the earlier sky-cast clear of the old TOSS barrel/extra-rod artwork.
@@ -2705,7 +2722,8 @@ var vibrationPresets={
  swallow:{screen:3.7,octo:4.5,lure:0,duration:.29},
  escape:{screen:4.7,octo:5.7,lure:2.0,duration:.36},
  counter:{screen:5.6,octo:6.4,lure:0,duration:.40},
- fever:{screen:3.0,octo:2.8,lure:3.4,duration:.27}
+ fever:{screen:3.0,octo:2.8,lure:3.4,duration:.27},
+ splash:{screen:.95,octo:.28,lure:3.1,duration:.24}
 };
 var deviceHapticPatterns={
  brush:[8],weakspot:[12],bite:[92,25,48],
@@ -2713,9 +2731,9 @@ var deviceHapticPatterns={
  swallow:[102,62,17,54,12,58,9],
  // Failure: intense at first, then progressively shorter pulses.
  escape:[115,27,76,40,43,56,14],
- counter:[95,32,63,45,19],fever:[55]
+ counter:[95,32,63,45,19],fever:[55],splash:[112,22,41]
 };
-var deviceHapticPriority={brush:1,weakspot:1,bite:4,pull:2,swallow:6,escape:6,counter:5,fever:4};
+var deviceHapticPriority={brush:1,weakspot:1,bite:4,pull:2,swallow:6,escape:6,counter:5,fever:4,splash:5};
 var deviceHaptics={until:-10,priority:0,lastReel:-10};
 function deviceVibrate(pattern,priority){
  if(typeof navigator==='undefined'||typeof navigator.vibrate!=='function')return false;
