@@ -366,7 +366,7 @@ function scareFishOnMiss(point){
   // Do not drag incoming offscreen spawns into the scene.
   if(f.x<0||f.x>W)return;
   var dx=f.x-point.x,dy=f.y-point.y,dist=Math.hypot(dx,dy);
-  if(dist>radius)return;
+  if(dist>radius&&!fishBodyContact(f,point))return;
   var dir=Math.abs(dx)>8?(dx>0?1:-1):
    ((f.vx||f.dir||1)<0?-1:1);
   var bounds=missScareScreenLimits(f);
