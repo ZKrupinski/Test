@@ -81,6 +81,10 @@ assert.doesNotMatch(idleMix,/Math\.random\(|playerOctoIdleBag\.pop\(/,
 assert.ok(player.includes("PLAYER_ANIM_RATE=.91"),'Main octopus animation needs slightly slower playback');
 assert.ok(player.includes('var opening=clamp((ascent-.045)/.58'),'Main octopus should begin opening before the catch reaches the surface');
 assert.ok(player.includes("fishAction==='hooked'"),'Hooked fish should have continuous flailing frames');
-assert.ok(player.includes("action:'swallow_success'")||player.includes("startPlayerOctoReaction('swallow_success')"),'New success animation must be triggered');
-assert.ok(player.includes("startPlayerOctoReaction('swallow_failure')"),'New failure animation must be triggered');
+assert.ok(player.includes("beginLureRecovery('swallow_success')")&&
+ player.includes('startPlayerOctoReaction(kind)'),
+ 'Successful mouth delivery must start the protagonist reaction through the shared drop sequence');
+assert.ok(player.includes("beginLureRecovery('swallow_failure')")&&
+ player.includes('startPlayerOctoReaction(kind)'),
+ 'Failed mouth delivery must start the complete failure reaction before automatic rethrow');
 console.log('PASS: purple cheering companion removed, red cheerleader retained, all approved purple PLAYER art unchanged');
