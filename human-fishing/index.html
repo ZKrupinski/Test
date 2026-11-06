@@ -4010,15 +4010,41 @@ function feverTossPoint(entity,fx,index,now){
  var sx=launch.x+offsetX+slot.x,sy=launch.y+offsetY+slot.y,
   mouth=mouthPos(now),t=clamp((fx.elapsed-releaseAt)/.72,0,1),inv=1-t;
  var cx=(sx+mouth.x)*.5,cy=Math.min(sy,mouth.y)-50-index%3*14;
+ if(entity.willEscape){
+  // Follow the exact same delivery parabola all the way to the main
+  // octopus's mouth, without the shrink reserved for swallowed fish.
+  // At t=.96 it breaks loose, plunges back to water, then accelerates
+  // outwards. Position and scale are continuous at the phase change.
+  var breakT=.96;
+  if(t>=breakT){
+   var q=1-breakT;
+   var startX=q*q*sx+2*q*breakT*cx+breakT*breakT*mouth.x;
+   var startY=q*q*sy+2*q*breakT*cy+breakT*breakT*mouth.y;
+   var sec=Math.max(0,fx.elapsed-(releaseAt+.72*breakT));
+   var dive=clamp(sec/.62,0,1),ease=dive*dive*(3-2*dive);
+   var outDir=entity.escapeDir||1;
+   return{x:startX+outDir*(46*sec+395*sec*sec),
+    y:mix(startY,Math.max(385,WATER_SURFACE_Y+90),ease)+
+      Math.sin(sec*18+(entity.phase||0))*8*dive,
+    rotation:Math.sin(Math.PI*breakT)*.22+
+      outDir*.38*Math.sin(Math.PI*dive),
+    scale:mix(slot.scale,1,clamp(sec/.24,0,1)),
+    done:sec>=1.33,phase:'escape',attached:false,facing:outDir};
+  }
+ }
  return{x:inv*inv*sx+2*inv*t*cx+t*t*mouth.x,
   y:inv*inv*sy+2*inv*t*cy+t*t*mouth.y,
   rotation:Math.sin(Math.PI*t)*.22,
-  scale:slot.scale*(t<.84?1:Math.max(.02,(1-t)/.16)),
+  scale:entity.willEscape?slot.scale:
+   slot.scale*(t<.84?1:Math.max(.02,(1-t)/.16)),
   done:t>=1,phase:'throw',attached:false};
 }
 function drawFeverTossCreature(entity,fx,index,now,layer){
  var pose=feverTossPoint(entity,fx,index,now);
- if(pose.phase==='throw'&&pose.scale<.16&&!entity.vibrationLanded){entity.vibrationLanded=true;vibrationPulse('swallow')}
+ if(pose.phase==='throw'&&!entity.willEscape&&pose.scale<.16&&!entity.vibrationLanded){entity.vibrationLanded=true;vibrationPulse('swallow')}
+ if(pose.phase==='escape'&&!entity.vibrationLanded){
+  entity.vibrationLanded=true;vibrationPulse('escape');
+ }
  if(pose.done||((layer==='attached')!==!!pose.attached))return;
  ctx.save();
  ctx.translate(pose.x,pose.y);ctx.rotate(pose.rotation);
@@ -4026,8 +4052,11 @@ function drawFeverTossCreature(entity,fx,index,now,layer){
  if(entity.human){
   humanIcon({id:entity.id,x:0,y:0,phase:entity.phase||0,size:entity.size||1},now);
  }else{
-  drawFish({sp:entity.sp,x:0,y:0,vx:entity.vx||1,size:entity.size||1.3,
-    phase:entity.phase||0,spriteAction:pose.phase==='throw'?'slip':'last_resist',
+  drawFish({sp:entity.sp,x:0,y:0,
+    vx:pose.phase==='escape'?pose.facing*180:entity.vx||1,
+    size:entity.size||1.3,phase:entity.phase||0,
+    spriteAction:pose.phase==='escape'?'flee':
+      pose.phase==='throw'?'slip':'last_resist',
     spriteFrame:Math.floor(fx.elapsed*17+index)%8},now);
  }
  ctx.restore();
@@ -4080,13 +4109,16 @@ function drawFeverFx(dt){
  var label=fx.caught.some(function(z){return z.human})?' · HUMAN':'';
  ctx.fillText('OCTO FEVER'+label,fx.x,Math.max(230,fx.y-115)-35*Math.min(1,p*2));
  ctx.font='900 17px system-ui';ctx.fillStyle='#f6ffea';
- ctx.fillText(fx.caught.length+' CATCH · '+fx.resisted+' RESIST · ◈ '+fx.coins,fx.x,Math.max(255,fx.y-84)-35*Math.min(1,p*2));
+ var confirmed=fx.caught.filter(function(z){return !z.willEscape}).length;
+ ctx.fillText(fx.caught.length+' LIFT · '+confirmed+' CATCH · '+fx.resisted+' RESIST · ◈ '+fx.coins,
+  fx.x,Math.max(255,fx.y-84)-35*Math.min(1,p*2));
  ctx.restore();
  // Fever fish sit IN FRONT of the sprite in all subphases, just like a
  // single hooked fish during ordinary fishing; keep the suction trajectory.
 
  if(fx.elapsed>=fx.duration){
-  if(fx.caught.length)startPlayerOctoReaction('swallow_success');
+  if(fx.caught.some(function(z){return !z.willEscape}))startPlayerOctoReaction('swallow_success');
+  else if(fx.caught.length)startPlayerOctoReaction('swallow_failure');
   triggerRodRecoil(time);
   feverFx=null;buildFish();buildHum();
   if(view==='fish')startCast();
