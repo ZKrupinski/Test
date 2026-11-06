@@ -75,8 +75,16 @@ for(const name of ['octofever_suction_A_16f.webp',
  assert.equal(bytes.toString('ascii',8,12),'WEBP','Invalid WebP header: '+name);
  assert.ok(source.includes(name),'Game must load the real atlas: '+name);
 }
-assert.ok(active.indexOf('drawFeverSuctionParticles(fx,time);')>launched,
- 'Water droplets and foam must render above captured and swimming fish');
+const drops=active.indexOf('drawFeverSuctionParticles(feverFx,time);');
+const lastFx=active.indexOf('drawCatchFx(dt);drawEscapeFx(dt);drawGroggyFx(dt);');
+assert.ok(drops>launched&&drops>lastFx,
+ 'Water droplet bitmap overlay must render after ALL fish and other canvas effects');
+assert.equal(active.split('drawFeverSuctionParticles(feverFx,time);').length-1,1,
+ 'Fever droplet sprites must have exactly one final overlay pass');
+assert.ok(source.includes('feverSuctionArt.dropsVisible=makeFeverDropletsVisible(im)'),
+ 'Displayed drops must alpha-correct translucent approved bitmap cells');
+assert.ok(source.includes('var im=feverSuctionArt.dropsVisible||feverSuctionArt.drops'),
+ 'Drop renderer must use the brighter display-only source with raw fallback');
 assert.ok(source.includes('var rotationTravel=turn+(mass<1.35?Math.PI*2:0);'),
  'Small fish must orbit clockwise one extra turn while larger fish resist');
 assert.ok(source.includes('var waveA=.5-.5*Math.cos(t*9.1);')&&

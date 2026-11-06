@@ -3110,8 +3110,8 @@ function tick(stamp){
  fx.caught.forEach(function(entity,i){
   drawFeverTossCreature(entity,fx,i,time,'released');
  });
- // Droplets are painted AFTER ambient and captured fish: a true overlay.
- drawFeverSuctionParticles(fx,time);
+ // Suction bitmap overlay is rendered in the LAST dedicated scene pass,
+ // after fish, bubbles and every other effect, so it can never be buried.
   }
   if(view==='fish'&&!introEntrance.active&&hook){
    // A single reeled-in fish still covers the bait; the line is already
@@ -3135,6 +3135,10 @@ function tick(stamp){
  });
  particleFrame(dt);
  drawCatchFx(dt);drawEscapeFx(dt);drawGroggyFx(dt);
+ // Dedicated topmost BITMAP pass: vortex/effect < caught fish < drops.
+ // Keep above ordinary particles and all creature/escape overlays.
+ if(view==='fish'&&!introEntrance.active&&feverFx)
+  drawFeverSuctionParticles(feverFx,time);
   if(!escapeFx&&octoGroggy===0&&pendingEscapeRestart){pendingEscapeRestart=false;if(view==='fish')startCast()}
  if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}
  ctx.restore();
@@ -4468,12 +4472,34 @@ function drawFeverMouthSprite(fx,reel){
 // New illustrated 16-frame bitmap atlas sources. Each atlas is a 4x4 sheet
 // with transparent source cells; original octopus assets remain untouched.
 var feverSuctionArt={};
+// Display-only alpha correction: the supplied droplet art is translucent,
+// so its source pixels otherwise disappear over bright fish and vortex art.
+// The approved bitmap shapes/colors are retained; original file unchanged.
+function makeFeverDropletsVisible(im){
+ try{
+  var canvas=document.createElement('canvas');
+  canvas.width=im.naturalWidth;canvas.height=im.naturalHeight;
+  var g=canvas.getContext('2d',{willReadFrequently:true});
+  g.drawImage(im,0,0);
+  var pixels=g.getImageData(0,0,canvas.width,canvas.height),
+   data=pixels.data;
+  for(var i=3;i<data.length;i+=4)
+   if(data[i])data[i]=Math.min(255,Math.round(data[i]*3.5));
+  g.putImageData(pixels,0,0);
+  canvas.ready=true;
+  return canvas;
+ }catch(e){return null}
+}
 if(typeof Image!=='undefined'){
  [['front','octofever_suction_A_16f.webp'],
   ['back','octofever_suction_B_16f.webp'],
   ['drops','octofever_suction_drops_16f.webp']].forEach(function(entry){
   var im=new Image();im.decoding='async';im.ready=false;
-  im.onload=function(){im.ready=true};
+  im.onload=function(){
+   if(entry[0]==='drops')
+    feverSuctionArt.dropsVisible=makeFeverDropletsVisible(im);
+   im.ready=true;
+  };
   im.onerror=function(){im.ready=false};
   im.src='./assets/octopus/bait/'+entry[1]+'?v=20261106-spiral-vfx';
   feverSuctionArt[entry[0]]=im;
@@ -4481,7 +4507,7 @@ if(typeof Image!=='undefined'){
 }
 function feverSuctionAtlasFrame(im,frame,x,y,d,rotation,alpha){
  if(!im||!im.ready||alpha<=0)return false;
- var sw=im.naturalWidth/4,sh=im.naturalHeight/4;
+ var sw=(im.naturalWidth||im.width)/4,sh=(im.naturalHeight||im.height)/4;
  var n=((Math.floor(frame)%16)+16)%16;
  ctx.save();
  ctx.globalAlpha=clamp(alpha,0,1);
@@ -4543,14 +4569,16 @@ function drawFeverVortex(fx,reel){
 function drawFeverSuctionParticles(fx,now){
  if(!fx||!feverSuctionArt.drops||!feverSuctionArt.drops.ready||
    fx.elapsed>=fx.suctionEnd||lureRecovery.active)return;
- var im=feverSuctionArt.drops,p=clamp(fx.elapsed/fx.suctionEnd,0,1);
+ var im=feverSuctionArt.dropsVisible||feverSuctionArt.drops,
+  p=clamp(fx.elapsed/fx.suctionEnd,0,1);
  var appear=castEasing(fx.elapsed/.16),
   fade=1-castEasing((p-.88)/.12);
  for(var i=0;i<22;i++){
   var flow=(fx.elapsed*(.96+(i%4)*.17)+i*.61803398875)%1;
   // Same clockwise flow as the front bitmap and sucked-in fish.
   var theta=i*2.39996+now*.28+flow*(5.0+(i%4)*.33);
-  var d=(15+(i%5)*6)*(1-.73*flow);
+  // Painted drops remain distinct even at the minimum 100px catch radius.
+  var d=(19+(i%5)*6)*(1-.65*flow);
   // Entire droplet sprite (not just its center) must stay inside AOE.
   var radius=Math.max(0,fx.radius-d*.5-2)*
    (.93*Math.pow(1-flow,1.45));
@@ -4558,7 +4586,7 @@ function drawFeverSuctionParticles(fx,now){
   var y=fx.y+Math.sin(theta)*radius*.87;
   // Each droplet is born, contracts and disappears individually: no
   // synchronous bubbles popping back at the vortex perimeter.
-  var alpha=appear*fade*Math.sin(Math.PI*flow)*(.75-.23*flow);
+  var alpha=appear*fade*Math.sin(Math.PI*flow)*(.99-.16*flow);
   feverSuctionAtlasFrame(im,(i*7+Math.floor(now*11))%16,
    x,y,d,theta+Math.PI*.25,alpha);
  }
