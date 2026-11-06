@@ -214,12 +214,11 @@ var WATER_SURFACE_Y=293,PLAYER_STAGE_DROP=46;
 // was baked to Y=(293/720) of its image height; draw the WHOLE image at once
 // to prevent a double seam or aspect-ratio distortion on mobile.
 // All 12 established region names mapped to their matching painted habitats.
-// Alpine water is shared temporarily by the polar biome until dedicated ice
-// artwork is approved. Keep the previous ruins environment asset in the repo.
+// All 12 habitat regions now use distinct scenery; unused ruins art is retained.
 var fishingBackgroundZoneKeys=[
  'freshwater_planted', 'amazon', 'african_lake', 'asian_wetland',
  'alpine_lake', 'east_asia', 'tropical', 'seagrass',
- 'harbor', 'open_ocean', 'moonlight', 'alpine_lake'
+ 'harbor', 'open_ocean', 'moonlight', 'polar_ice'
 ];
 var fishingBitmapBackgrounds={};
 Array.from(new Set(fishingBackgroundZoneKeys)).forEach(function(name){

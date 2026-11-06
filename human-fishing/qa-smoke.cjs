@@ -230,20 +230,29 @@ const backgroundZones=[...bgMap[1].matchAll(/'([^']+)'/g)].map(x=>x[1]);
 assert.deepEqual(backgroundZones,[
  'freshwater_planted','amazon','african_lake','asian_wetland',
  'alpine_lake','east_asia','tropical','seagrass',
- 'harbor','open_ocean','moonlight','alpine_lake'
+ 'harbor','open_ocean','moonlight','polar_ice'
 ],'Background scene must match the established creature habitat names');
+assert.equal(new Set(backgroundZones).size,12,
+ 'All twelve habitats must map to distinct background asset names');
 assert.match(script,/if\(!under&&drawFishingBitmapBackground\(\)\)return;/,
  'Fishing scene must render prepared bitmap instead of old vector mountains');
 assert.match(script,/ctx\.drawImage\(item\.image,0,0,W,H\)/,
  'The entire bitmap frame must use uniform 1280×720 scaling');
 assert.match(script,/if\(view!=='tank'&&fishingBitmapReady\(\)\)return;/,
  'Legacy procedural sea plants must not draw over finished bitmap plants');
+const sceneDigests=new Map();
 for(const name of [...new Set([...backgroundZones,'ruins'])]){
  const path='human-fishing/assets/backgrounds/bg_'+name+'.webp';
  const buf=fs.readFileSync(path);
  assert.ok(buf.length>100000, 'Missing high-quality bitmap: '+name);
  assert.equal(buf.toString('ascii',0,4),'RIFF','Bitmap WebP RIFF header missing: '+name);
  assert.equal(buf.toString('ascii',8,12),'WEBP','Background image is not WebP: '+name);
+ if(backgroundZones.includes(name)){
+  const sha=require('node:crypto').createHash('sha256').update(buf).digest('hex');
+  assert.ok(!sceneDigests.has(sha),
+   'Two mapped regions share identical bitmap contents: '+sceneDigests.get(sha)+' / '+name);
+  sceneDigests.set(sha,name);
+ }
 }
 const redSidekick=fs.readFileSync('human-fishing/assets/octopus/octopus-sidekicks.js','utf8');
 assert.match(redSidekick,/cleanDetachedRedPixels\(data,sw,sh\)/,

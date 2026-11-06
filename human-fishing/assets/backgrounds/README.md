@@ -19,9 +19,9 @@
 8 온대 연안 → bg_harbor.webp (previously approved)
 9 외양·대형 어종 → bg_open_ocean.webp
 10 심해·발광 → bg_moonlight.webp (previously approved)
-11 한대·냉해 → bg_alpine_lake.webp (temporary shared cold-water background; future dedicated polar scene recommended)
+11 한대·냉해 → bg_polar_ice.webp (exclusive polar ice and glacier scenery)
 
-Previous `bg_ruins.webp` remains available in source control, but is not assigned to an unrelated habitat.
+All 12 habitats now have distinct scene files, with SHA-256 uniqueness verified by automated QA. Previous `bg_ruins.webp` remains available for future special locations.
 
 ## Artwork
 
