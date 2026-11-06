@@ -101,6 +101,7 @@ window.__hfTest={
  aquariumActors:function(){return aquariumFishActors},
  aquariumTurnScale:aquariumTurnScale,
  aquariumStruggle:aquariumStartStruggle,
+ raritySparkles:raritySparklesFor,
  aquariumReset:aquariumResetExhibit,
  aquariumBegin:aquariumBeginPlay,
  aquariumReturn:aquariumReturnToExhibit,
@@ -569,10 +570,49 @@ for(const dir of [-1,1]){
  const fleeing=game.fishHeading(diver,1.40);
  assert.ok(Math.abs(fleeing)<.18,'Fish must level its body for high-speed horizontal swimming');
 }
+// Sparse independent bitmap twinkles: individual stars appear at different
+// locations and moments, with no old packed five-star image or text badge.
+{
+ const previousArt=mock.window.HumanFishingArt;
+ const bitmap={width:224,height:144,_hfFacingRight:true,_hfScale:1};
+ mock.window.HumanFishingArt={bitmap(){return bitmap;}};
+ const rare=game.species.find(sp=>sp.rarity==='RARE');
+ assert.ok(rare,'Rare species required for sparkle testing');
+ const fish={sp:rare,x:640,y:435,size:1.2,phase:.3,ecoId:215};
+ let zero=0,lit=0,max=0;
+ for(let i=0;i<280;i++){
+  const lights=game.raritySparkles(fish,i*.061);
+  max=Math.max(max,lights.length);
+  if(lights.length===0)zero++;
+  if(lights.length>0)lit++;
+  assert.ok(lights.every(p=>p.size>=12&&p.size<=30&&p.alpha>=0&&p.alpha<=1),
+   'Transparent bitmap twinkle instances should stay small and fade');
+  assert.ok(lights.every(p=>Math.abs(p.x-fish.x)<115&&Math.abs(p.y-fish.y)<70),
+   'Sparks should scatter along the real fish silhouette, not a detached cluster');
+ }
+ assert.ok(max<=2,'No rarity should show an overcrowded pile of sparkles');
+ assert.ok(zero>50&&lit>10,
+  'Sparse twinkles must have visible gaps rather than being constantly illuminated');
+ for(const rarity of ['EPIC','LEGEND','MYTHIC']){
+  const sp=game.species.find(f=>f.rarity===rarity);
+  assert.ok(sp);
+  fish.sp=sp;
+  for(let i=0;i<90;i++)assert.ok(game.raritySparkles(fish,i*.22).length<=2);
+ }
+ mock.window.HumanFishingArt=previousArt;
+}
 // Failed fish must almost reach the mouth, then thrash, slip back, dive and flee.
 game.switchView('fish');game.getCast().active=false;
 game.setHook({obj:{sp:ordinary,x:480,y:187,vx:.2,size:1,phase:0},kind:'fish',elapsed:.6,startX:660,startY:470,willEscape:true,escapeAt:.88});
 game.triggerEscape();
+const startPose=game.escapePose(game.getEscape(),0);
+const laterPose=game.escapePose(game.getEscape(),.41);
+assert.ok(Math.abs(startPose.x-game.getMouthPos(0).x)<8,
+ 'Escaping fish must emerge from inside the octopus mouth');
+assert.ok(startPose.scale<.5&&laterPose.scale>.9,
+ 'Fish must visibly grow out of the mouth instead of appearing fully free');
+assert.ok(Math.abs(laterPose.x-startPose.x)>25,
+ 'Escape frames must visibly travel away from the mouth');
 assert.equal(game.getHook(),null,'Resistant hooked fish must escape and clear the hook');
 assert.equal(game.getEscape().kind,'fish','Fish failure must use a visible escape animation');
 step(23);
