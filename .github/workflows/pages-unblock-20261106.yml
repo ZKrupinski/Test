@@ -1,0 +1,32 @@
+name: Unblock stuck GitHub Pages deployment
+on:
+  push:
+    paths:
+      - '.github/workflows/pages-unblock-20261106.yml'
+permissions:
+  contents: read
+  pages: write
+jobs:
+  release-stuck-deployment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Cancel obsolete stuck Pages deployment
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version='1740ff399c238f919c7bb6c34818701d934246e5'
+          endpoint="https://api.github.com/repos/${GITHUB_REPOSITORY}/pages/deployments/${version}/cancel"
+          status=$(curl --retry 2 --max-time 20 --silent --show-error --output /tmp/pages-cancel.json --write-out '%{http_code}' \
+            --request POST --header 'Accept: application/vnd.github+json' \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header 'X-GitHub-Api-Version: 2026-03-10' "${endpoint}")
+          echo "Pages cancel API returned HTTP ${status}"
+          if [[ "${status}" == '204' ]]; then
+            echo 'Obsolete deployment cancellation accepted by GitHub API.'
+          else
+            cat /tmp/pages-cancel.json
+            exit 1
+          fi
