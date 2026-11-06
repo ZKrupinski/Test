@@ -101,6 +101,12 @@ window.__hfTest={
  aquariumActors:function(){return aquariumFishActors},
  aquariumTurnScale:aquariumTurnScale,
  aquariumStruggle:aquariumStartStruggle,
+ aquariumReset:aquariumResetExhibit,
+ aquariumBegin:aquariumBeginPlay,
+ aquariumReturn:aquariumReturnToExhibit,
+ aquariumSpawn:aquariumSpawnCodexFish,
+ aquariumPlaying:function(){return aquariumFishingActive},
+ aquariumSaleValue:aquariumUnitSalePrice,
 
  chance:catchProbability,
  record:recordFeverCapture,
@@ -836,51 +842,118 @@ assert.match(script,/vibrationPulse\('escape'\)/,'Failed catches must rebound vi
 assert.match(script,/vibrationPulse\('fever'\)/,'Fever catches must vibrate');
 assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibration\.y\)/,'Camera shake must move the entire fishing scene');
 
-// Aquarium regression: target the touched fish, rotate 180 degrees and keep
-// other inhabitants undisturbed. Wriggling must have an independent timer.
+// Aquarium regression: exhibit random OWNED species, leave the view, refill
+// by an equal count, and start fishing with the very same on-screen fish.
 {
  const aquariumSave=game.getSave();
- const originalPlaced=aquariumSave.placed.slice();
- const originalView='fish';
- aquariumSave.placed=['F001','F002'];
+ const previousOwned={...aquariumSave.owned};
+ const previousPlaced=aquariumSave.placed.slice();
+ aquariumSave.owned={'F001':1,'F002':1,'F003':1};
+ aquariumSave.placed=[];
+ game.aquariumReset();
+ game.setTime(10);
  game.aquariumEnsure(10);
- const fishActors=game.aquariumActors();
- assert.equal(fishActors.length,2,'Two placed species need two stable tank actors');
- assert.notEqual(fishActors[0].phase,fishActors[1].phase,
+ let actors=game.aquariumActors();
+ assert.equal(actors.length,10,'Aquarium must auto-fill ten visible exhibits');
+ assert.ok(actors.every(a=>aquariumSave.owned[a.sp.id]>0),
+  'Only species already owned in the codex may appear in aquarium');
+ assert.equal(new Set(actors.map(a=>a.sp.id)).size,3,
+  'All available species should appear before repeating an owned species');
+ assert.notEqual(actors[0].phase,actors[1].phase,
   'Aquarium fish need independent animation phases');
- const beforeDirection=fishActors[0].dir,otherDirection=fishActors[1].dir;
+ const beforeDirection=actors[0].dir,otherDirection=actors[1].dir;
  game.switchView('tank');
  element('panel').classList.remove('open');
  element('aquaSaleReceipt').classList.remove('visible');
- const tap={clientX:fishActors[0].x,clientY:fishActors[0].y,
+ const tap={clientX:actors[0].x,clientY:actors[0].y,
   defaultPrevented:false,preventDefault(){this.defaultPrevented=true}};
  assert.equal(game.aquariumTap(tap),true,'Tapping a displayed fish must register');
- assert.equal(fishActors[0].dir,-beforeDirection,
-  'The selected fish must reverse its swim direction');
- assert.equal(fishActors[1].dir,otherDirection,
-  'Other fish must not simultaneously reverse');
- assert.equal(tap.defaultPrevented,true,
-  'Captured aquarium taps should not trigger fishing gestures');
- const turnStart=fishActors[0].turnStart,turnDuration=fishActors[0].turnDuration;
- assert.equal(game.aquariumTurnScale(fishActors[0],turnStart),-beforeDirection,
-  'Turn must begin in the original facing');
- assert.ok(Math.abs(game.aquariumTurnScale(fishActors[0],
-  turnStart+turnDuration*.5))<.08,'Halfway through turn should show side-on silhouette');
- assert.equal(game.aquariumTurnScale(fishActors[0],turnStart+turnDuration+.01),
-  beforeDirection,'The 180-degree turn must end facing the opposite direction');
- game.aquariumStruggle(fishActors[0],turnStart+1,1);
- assert.ok(fishActors[0].struggleEnd>turnStart+1,
-  'Wriggling must be scheduled independently from fish direction');
- aquariumSave.placed=originalPlaced;
- game.switchView(originalView);
+ assert.equal(actors[0].dir,-beforeDirection,'Touched fish must turn around');
+ assert.equal(actors[1].dir,otherDirection,'Other fish must not turn');
+ assert.equal(tap.defaultPrevented,true,'Aquarium touch must not cast the lure');
+ const turnStart=actors[0].turnStart,turnDuration=actors[0].turnDuration;
+ assert.equal(game.aquariumTurnScale(actors[0],turnStart),-beforeDirection);
+ assert.ok(Math.abs(game.aquariumTurnScale(actors[0],
+  turnStart+turnDuration*.5))<.08,'Turn midpoint must show a thin silhouette');
+ assert.equal(game.aquariumTurnScale(actors[0],turnStart+turnDuration+.01),
+  beforeDirection,'The turn must end in the opposite direction');
+ game.aquariumStruggle(actors[0],turnStart+1,1);
+ assert.ok(actors[0].struggleEnd>turnStart+1);
+ const gone=actors[2];
+ gone.x=1280+195;
+ game.aquariumUpdate(10.04);
+ actors=game.aquariumActors();
+ assert.equal(actors.length,10,'One departure must produce one new fish');
+ assert.ok(!actors.includes(gone),'The departed actor must be removed');
+ assert.ok(actors.at(-1).x<0||actors.at(-1).x>1280,
+  'Replacement must enter naturally from outside the screen');
+ assert.ok(actors.every(a=>aquariumSave.owned[a.sp.id]>0),
+  'Every replacement must be an already owned species');
+ // Allow a few swim steps, then snapshot the aquarium immediately before play.
+ game.aquariumUpdate(10.08);
+ const beforePlay=game.aquariumActors().map(a=>({
+  id:a.sp.id,x:a.x,y:a.y,size:a.size,dir:a.dir,phase:a.phase
+ }));
+ game.setTime(10.08);
+ game.aquariumBegin();
+ assert.ok(game.aquariumPlaying(),'The aquarium Play button must enter fishing');
+ const swimmers=game.getFish();
+ assert.equal(swimmers.length,beforePlay.length,
+  'Starting aquarium fishing must not create a different fish population');
+ for(let i=0;i<beforePlay.length;i++){
+  assert.equal(swimmers[i].sp.id,beforePlay[i].id);
+  assert.equal(swimmers[i].x,beforePlay[i].x,'Fish x must not teleport');
+  assert.equal(swimmers[i].y,beforePlay[i].y,'Fish y must not teleport');
+  assert.equal(swimmers[i].size,beforePlay[i].size,'Fish scale must persist');
+  assert.equal(Math.sign(swimmers[i].vx),beforePlay[i].dir,
+   'Fish must keep facing its swimming direction');
+  assert.equal(swimmers[i].phase,beforePlay[i].phase,
+   'Fish animation phase must persist');
+ }
+ // A successful aquarium catch is a sale only: save.owned never changes.
+ const sold=swimmers[0],previousInventory={...aquariumSave.owned};
+ const previousCoins=aquariumSave.coins;
+ game.setHook({obj:sold,kind:'fish',elapsed:.8,startX:sold.x,startY:sold.y});
+ game.catchNow();
+ assert.deepEqual(aquariumSave.owned,previousInventory,
+  'Aquarium catches must never award new specimens');
+ const saleIncome=aquariumSave.coins-previousCoins;
+ const unit=game.aquariumSaleValue(sold.sp);
+ assert.ok(saleIncome===unit||saleIncome===unit*2,
+  'Aquarium sale income must follow species tier and net catch quantity');
+ assert.ok(!game.getFish().includes(sold),'The caught swimmer must leave the scene');
+ // Fever has the same sell-only rule as regular aquarium fishing.
+ step(34);
+ aquariumSave.fever.ready=true;
+ const targets=game.getFish();
+ assert.ok(targets.length>0);
+ const at=targets.find(f=>f.sp.rarity==='COMMON')||targets[0];
+ const bait=game.getBob();bait.x=at.x;bait.y=at.y;
+ const feverOwned={...aquariumSave.owned},beforeFeverCoins=aquariumSave.coins;
+ const previousMath=mock.Math;
+ mock.Math=Object.assign(Object.create(Math),{random(){return 0}});
+ game.activate();
+ mock.Math=previousMath;
+ assert.deepEqual(aquariumSave.owned,feverOwned,
+  'Aquarium OCTO FEVER must award coins only, not inventory fish');
+ assert.ok(aquariumSave.coins>beforeFeverCoins,
+  'Successful aquarium Fever catches must pay shop currency');
+ game.aquariumReturn();
+ assert.equal(game.aquariumPlaying(),false);
+ assert.ok(game.aquariumActors().length>0,
+  'Returning to the exhibit must preserve surviving swimmers');
+ aquariumSave.owned=previousOwned;
+ aquariumSave.placed=previousPlaced;
+ game.switchView('fish');
 }
 
 // An animated species must use its official sprite player instead of the
 // aquarium fallback's procedural rotation and scale.
 {
  const aquariumSave=game.getSave();
- const oldPlaced=aquariumSave.placed.slice();
- aquariumSave.placed=['F123','F002']; // F123 = Blue Tang / 블루탱
+ const oldOwned={...aquariumSave.owned};
+ aquariumSave.owned={'F123':1,'F002':1}; // F123 = Blue Tang / 블루탱
+ game.aquariumReset();
  game.setTime(40);
  game.aquariumEnsure(40);
  const fishActors=game.aquariumActors();
@@ -924,7 +997,7 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  assert.ok(Number.isFinite(calls.at(-1).frame),
   'Official struggle animation must advance through sprite sheet frames');
  mock.window.BlueTangSprites=prev;
- aquariumSave.placed=oldPlaced;
+ aquariumSave.owned=oldOwned;
  game.switchView('fish');
 }
 console.log('PASS: Blue Tang aquarium uses official swim, 8-frame turn and struggle sprite playback');
