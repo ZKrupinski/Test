@@ -2246,6 +2246,7 @@ function rodCurve(mode,elapsed,now,settings,weight){
 // The first third of the rod is fixed. At the tip, both displacement and
 // tangent must match the very same formula used by the fishing line.
 function rodWarpAt(localX,bend){
+ if(localX<=36||bend===0)return{dx:0,dy:0,sx:0,sy:0};
  var z=Math.max(0,(localX-36)/68);
  var magnitude=z<=1?z*z:2*z-1;
  var slope=z<=1?2*z/68:2/68;
