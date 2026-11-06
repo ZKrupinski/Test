@@ -111,6 +111,7 @@ window.__hfTest={
  hideStick:hideVirtualJoystick,
  getJoystick:function(){return joystick},
  getSave:function(){return save},
+ renderCodex:renderBook,
  aquariumEnsure:aquariumEnsureFish,
  aquariumTap:aquariumTapFish,
  aquariumUpdate:aquariumUpdateFish,
@@ -1503,6 +1504,58 @@ console.log('PASS: mouth-only regular fishing, tier-dependent weak points, super
 }
 console.log('PASS: bait quick-mouth snap and mouth-pivot fish pendulum follows lure inertia');
 console.log('PASS: rare Fever targets visibly reel up, evade at mouth, return alive; giant fish weak spots and bait are smaller');
+// Every codex species gets its own original tightly-cropped alpha PNG
+// maximized in a landscape card. Uncaught fish must be a SOLID BLACK
+// alpha-preserving silhouette, never an icon, label or blurred substitute.
+{
+ assert.match(html,/#panelBody \.book-cards\{[\s\S]*?grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/,
+  'The codex should display wide four-column picture-first cards');
+ assert.match(html,/#panelBody \.book-cards \.card\{[\s\S]*?aspect-ratio:1\.78\/1/,
+  'Each codex card must have a landscape footprint');
+ assert.match(html,/#panelBody \.book-fish-thumb img\{[\s\S]*?object-fit:contain/,
+  'Fish illustrations must fill the available thumbnail area without cropping');
+ assert.match(html,/#panelBody \.book-cards \.book-fish-card\.locked \.book-fish-thumb img\{\s*filter:brightness\(0\);opacity:1/,
+  'Locked species must display a clean black silhouette preserving PNG transparency');
+ assert.match(html,/#panelBody \.book-fish-caption\{[\s\S]*?white-space:nowrap/,
+  'Species name and detail must share one unwrapped line beneath the image');
+ game.renderCodex(-1,'');
+ const markup=element('panelBody').innerHTML;
+ const thumbs=[...markup.matchAll(/<img src="\.\/assets\/fish\/individual\/(F\d{3})\.png\?v=20261106-fish304"[^>]+>/g)];
+ assert.equal(thumbs.length,game.species.length,
+  'Every species, including the 64 variants, must have an actual codex PNG thumbnail');
+ assert.equal(thumbs.length,304,'The codex must render the full 304 original fish PNGs');
+ for(const [,id] of thumbs){
+  assert.ok(fs.existsSync('human-fishing/assets/fish/individual/'+id+'.png'),
+   'Fish codex thumbnail must resolve to an existing original raster '+id);
+ }
+ assert.match(markup,/loading="lazy" decoding="async" draggable="false"/,
+  'Large codex inventory should lazy-load offscreen PNGs');
+ assert.doesNotMatch(markup,/class="face">🐟|class="face">◈/,
+  'Fish thumbnail cards must not use emoji or vector placeholders');
+ assert.match(markup,/class="card book-fish-card locked"/,
+  'Fish not yet acquired must remain visible as silhouetted artwork');
+ const target=game.species[0],owned=game.getSave().owned,prior=owned[target.id];
+ owned[target.id]=2;
+ game.renderCodex(-1,'');
+ const obtained=element('panelBody').innerHTML;
+ const captureCard=obtained.match(new RegExp('<div class="card book-fish-card ([^"]*)" data-name="'+target.name+'"'));
+ assert.ok(captureCard&&!captureCard[1].includes('locked'),
+  'Acquired fish must show their original full-color bitmap without black filter');
+ assert.match(obtained,/×2/,'Acquired count should be in the single-line caption');
+ if(prior===undefined)delete owned[target.id];else owned[target.id]=prior;
+ game.renderCodex(0,'');
+ const habitatHtml=element('panelBody').innerHTML;
+ const expected=game.species.filter(z=>z.habitat===0).length;
+ assert.equal((habitatHtml.match(/class="book-fish-thumb"/g)||[]).length,expected,
+  'Habitat filtering must still work with picture-first cards');
+ game.renderCodex(-2,'');
+ const humanHtml=element('panelBody').innerHTML;
+ assert.ok(humanHtml.includes('book-human-card'),
+  'The human collection must remain available and use landscape cards');
+ assert.ok(!humanHtml.includes('book-fish-thumb'),
+  'The human-only filter must exclude fish thumbnails');
+}
+console.log('PASS: codex displays 304 original high-res fish PNGs in landscape cards, black silhouettes for unowned and one-line captions');
 console.log('PASS: Blue Tang now uses individual F123.png only; animated player disabled');
 
 console.log('PASS: aquarium fish touch-to-turn, independent swimmers and random wriggle timelines');
