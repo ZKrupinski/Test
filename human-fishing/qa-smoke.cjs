@@ -701,6 +701,35 @@ for(const sourceFacing of [-1,1])for(const swimFacing of [-1,1]){
  assert.ok(!element('motionTunePanel').classList.contains('visible'),
   'The adjustment tool must close without affecting the game');
 }
+// Regression: after the octopus-mouth escape, neither a dive/flee stage
+// switch nor the fading swimming kick may teleport the fish one frame.
+for(const dir of [-1,1])for(const phase of [0,.65,1.6,3.3,5.7]){
+ const fx={x:482,y:214,dir,phase,human:false,size:1.1};
+ for(const edge of [.42,.74,1.19]){
+  const before=game.escapePose(fx,edge-.00001);
+  const after=game.escapePose(fx,edge);
+  assert.ok(Math.hypot(after.x-before.x,after.y-before.y)<.15,
+   'Escaping fish must not jump at stage '+edge+' with phase '+phase+' and dir '+dir);
+  assert.ok(Math.abs(after.scale-before.scale)<.001,
+   'Fish scale must stay continuous across escape stage '+edge);
+ }
+ const a=game.escapePose(fx,1.19-.0005),b=game.escapePose(fx,1.19),
+  c=game.escapePose(fx,1.19+.0005);
+ const speedBefore=(b.x-a.x)/.0005,speedAfter=(c.x-b.x)/.0005;
+ assert.ok(Math.abs(speedAfter-speedBefore)<10,
+  'Fast escape must inherit the dive velocity without a one-frame acceleration spike');
+ assert.ok(Math.abs(game.fishHeading(fx,1.1899)-game.fishHeading(fx,1.1901))<.025,
+  'Fish body angle must not snap at the high-speed escape handoff');
+ for(let t=1.20;t<2.6;t+=.035){
+  const a=game.escapePose(fx,t),b=game.escapePose(fx,t+.0001);
+  assert.ok(Math.hypot(b.x-a.x,b.y-a.y)<.25,
+   'Fast escaping fish must never teleport mid-run; phase '+phase+', time '+t);
+ }
+}
+assert.match(script,/var bobRamp=1-Math\.exp\(-run\/\.10\)/,
+ 'Fast-escape oscillation must fade in from the previous exact position');
+assert.match(script,/var driftAge=run\/\.46,drift=34\*\(1-\(1\+driftAge\)/,
+ 'Escape depth drift should be smooth without an abrupt cap');
 for(const dir of [-1,1]){
  const diver={x:483,y:191,dir:dir,human:false,size:1};
  const p1=game.escapePose(diver,.79),p2=game.escapePose(diver,.81);
