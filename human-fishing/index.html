@@ -1969,11 +1969,12 @@ function onBaitPointerMove(e){
 }
 function onBaitPointerUp(e){
  if(!joystick.active||joystick.id!==e.pointerId)return;
- // Do not catch on a tap. Only a deliberately tilted joystick can release the lure.
- var moved=joystick.engaged;
+ // Ordinary fishing still needs a deliberate joystick drag. READY Fever
+ // must work even when the player simply taps and releases without moving.
+ var moved=joystick.engaged,feverReady=!!(save.fever&&save.fever.ready);
  hideVirtualJoystick();
  e.preventDefault();
- if(moved&&view==='fish'&&!cast.active&&!hook){
+ if((moved||feverReady)&&view==='fish'&&!cast.active&&!hook){
   playerOctoCue('excited',.72/PLAYER_ANIM_RATE);
   release();
  }
@@ -2871,8 +2872,10 @@ species.forEach(function(sp){
  sp.level=Math.min(75,1+sp.habitat*3+Math.floor(k/3)*3+(k>=15?(k-13)*2:0));
 });
 if(!save.fever||typeof save.fever!=='object')save.fever={count:0,ready:false,total:0,activations:0};
-save.fever.count=clamp(Number(save.fever.count)||0,0,16);
-save.fever.ready=!!save.fever.ready;
+// Legacy saves could have 6/6 visually full while never becoming READY.
+// Restore readiness rather than leave the player stranded at full gauge.
+save.fever.count=clamp(Number(save.fever.count)||0,0,6);
+save.fever.ready=!!save.fever.ready||save.fever.count>=6;
 save.fever.total=Math.max(0,Number(save.fever.total)||0);
 save.fever.activations=Math.max(0,Number(save.fever.activations)||0);
 function octoStats(tier,lv){
@@ -2886,7 +2889,7 @@ function octoStats(tier,lv){
 function octoStatHtml(tier,lv){
  var q=octoStats(tier,lv);
  return '<div class="shop-octo-stats"><span>크기 '+q.size+'px</span><span>광역 반경 '+q.radius+'px</span>'+
-  '<span>충전 후 발동 '+Math.round(q.chance*100)+'%</span><span>광역 포획 보정 +'+Math.round(q.bonus*100)+'%p</span></div>';
+  '<span>조기 발동 '+Math.round(q.chance*100)+'%</span><span>광역 포획 보정 +'+Math.round(q.bonus*100)+'%p</span></div>';
 }
 function updateFeverHud(){
  var h=$('feverHud'),q=save.fever,g=selectedGear('octopus'),lv=gearLevel('octopus',g.id),v=octoStats(g.tier,lv);
@@ -2895,18 +2898,21 @@ function updateFeverHud(){
  h.style.display=view==='fish'?'':'none';
  $('feverNum').textContent=ready?'READY':q.count+' / 6';
  $('feverFill').style.width=ready?'100%':Math.min(100,q.count/6*100)+'%';
- $('feverDetail').textContent=ready?'문어 미끼 변신! 손을 떼면 반경 '+v.radius+'px 광역 포획':
- (q.count<6?'물고기 포획 '+Math.max(0,6-q.count)+'회 후 발동 판정':'발동 확률 '+Math.round(v.chance*100)+'% · 최대 16회 충전');
+ $('feverDetail').textContent=ready?'변신 준비! 터치 후 손을 떼면 반경 '+v.radius+'px 광역 포획':
+ '포획 '+Math.max(0,6-q.count)+'회 남음 · 6회 확정 / 3회부터 조기 발동 '+Math.round(v.chance*100)+'%';
 }
 function recordFeverCapture(qty){
  if(save.fever.ready)return;
- save.fever.count=Math.min(16,save.fever.count+Math.max(1,qty||1));
- save.fever.total+=Math.max(1,qty||1);
+ var gained=Math.max(1,Math.floor(Number(qty)||1));
+ save.fever.count=Math.min(6,save.fever.count+gained);
+ save.fever.total+=gained;
  var gear=selectedGear('octopus'),lv=gearLevel('octopus',gear.id),q=octoStats(gear.tier,lv);
- if(save.fever.count>=6&&(Math.random()<q.chance||save.fever.count>=16)){
+ // The displayed 6/6 gauge is a GUARANTEED READY state.
+ // Octopus upgrades still grant an early activation roll at 3-5 captures.
+ if(save.fever.count>=6||(save.fever.count>=3&&Math.random()<q.chance)){
   save.fever.ready=true;
   $('hintTitle').textContent='🐙 OCTO FEVER 준비 완료!';
-  $('hint').textContent='다음 투척에서 미끼가 문어로 변신합니다. 반경 안 물고기를 한 번에 낚아요.';
+  $('hint').textContent='미끼를 놓으면 문어가 변신해 반경 안 물고기를 한 번에 낚아요.';
   spawnParticles(bob.x,bob.y,24,'gold');
  }
  updateFeverHud();

@@ -429,18 +429,42 @@ element('navShop').onclick();
 const sort=element('shopSort');assert.equal(typeof sort.onchange,'function');
 sort.value='level';sort.onchange();step(12);
 assert.ok(element('panelBody').innerHTML.includes('shop-card'),'Shop should remain rendered');
-// Fever must trigger at or before the guarantee threshold and activate 8-tentacle AOE.
-state.fever.count=15;state.fever.ready=false;
+// FULL 6/6 must always become READY, regardless of random results.
+const oldFeverMath=mock.Math,unluckyMath=Object.create(Math);
+unluckyMath.random=()=>.999;mock.Math=unluckyMath;
+state.fever.count=5;state.fever.ready=false;
 game.record(1);
-assert.equal(state.fever.ready,true,'Fever should be guaranteed by 16 fish captures');
-assert.equal(element('feverNum').textContent,'READY','Fever gauge must show ready');
+assert.equal(state.fever.count,6,'Fever meter must cap at 6/6');
+assert.equal(state.fever.ready,true,'Six captures MUST make fever READY even with unlucky RNG');
+assert.equal(element('feverNum').textContent,'READY','Fever gauge must show READY when full');
+assert.equal(element('feverFill').style.width,'100%','READY gauge must be filled');
+assert.match(script,/save\.fever\.ready=!!save\.fever\.ready\|\|save\.fever\.count>=6/,
+ 'Legacy saved 6/6 or higher must auto-repair into READY');
+// Gear chance is now an early-roll benefit, never hidden failure after 6/6.
+const luckyFeverMath=Object.create(Math);
+luckyFeverMath.random=()=>0;mock.Math=luckyFeverMath;
+state.fever.count=2;state.fever.ready=false;
+game.record(1);
+assert.equal(state.fever.count,3,'Early proc becomes eligible at three');
+assert.equal(state.fever.ready,true,'Successful early proc should enable READY before 6');
+state.fever.count=6;state.fever.ready=true;
+mock.Math=oldFeverMath;
 const bob=game.getBob();
 const caughtFish=game.species[0];
 game.setFish([{sp:caughtFish,x:bob.x+10,y:bob.y+10,vx:.2,size:1,phase:0}]);
 game.setHum([{id:3,x:bob.x+24,y:bob.y+24,vx:.12,size:1,phase:0}]);
 const riggedMath=Object.create(Math);riggedMath.random=()=>0;mock.Math=riggedMath;
-game.switchView('fish');game.activate();
-assert.equal(game.getFeverFx().caught.length,2,'Fever must capture multiple fish and elite humans when rolls succeed');
+game.switchView('fish');game.getCast().active=false;game.setHook(null);game.hideStick();
+const readyTap={pointerId:77,clientX:650,clientY:440,preventDefault(){}};
+assert.equal(typeof listeners.pointerdown,'function','Bait pointerdown handler required');
+assert.equal(typeof listeners.pointerup,'function','Bait pointerup handler required');
+listeners.pointerdown(readyTap);
+assert.equal(game.getJoystick().active,true,'Tap should start virtual joystick');
+assert.equal(game.getJoystick().engaged,false,'A stationary tap cannot pass 10px threshold');
+listeners.pointerup(readyTap);
+assert.equal(game.getJoystick().active,false,'Tap must release virtual joystick');
+assert.ok(game.getFeverFx(),'READY Fever must activate on a stationary tap release');
+assert.equal(game.getFeverFx().caught.length,2,'Fever must catch multiple fish and elite humans when rolls succeed');
 assert.equal(state.fever.ready,false,'Activation must consume stored fever');
 assert.equal(state.fever.count,0,'Fever gauge must reset');
 assert.ok(game.getFeverFx(),'Octo Fever mouth suction must start');
