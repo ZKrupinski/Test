@@ -3642,10 +3642,10 @@ function ecoResolveFishSpacing(dt){
  var locked=hook&&hook.obj;
  for(var i=0;i<fish.length;i++){
   var f=fish[i];
-  if(f.feverCaptured||f.x<0||f.x>W)continue;
+  if(f.feverCaptured||f.fleeBurstUntil>eco.t||f.x<0||f.x>W)continue;
   for(var j=i+1;j<fish.length;j++){
    var g=fish[j];
-   if(g.feverCaptured||g.x<0||g.x>W)continue;
+   if(g.feverCaptured||g.fleeBurstUntil>eco.t||g.x<0||g.x>W)continue;
    var space=ecoPairSpace(f,g),
     dx=g.x-f.x,dy=g.y-f.y,
     nx=dx/space.x,ny=dy/space.y,dist=Math.hypot(nx,ny);
@@ -3856,7 +3856,7 @@ function updateEcosystem(dt){
   wantY+=clamp((f.homeY-f.y)*.22,-11,11);
   // Prioritize separation after AI behavior, without spoiling the
   // distinct high-speed escape burst triggered by a missed catch.
-  var avoidance=f.fleeBurstUntil>eco.t?.30:1;
+  var avoidance=f.fleeBurstUntil>eco.t?0:1;
   wantX+=clamp(crowd.sepX*avoidance,-96,96);
   wantY+=clamp(crowd.sepY*avoidance,-73,73);
   // All velocities are pixels per second. Swimmers are calm unless threatened.
