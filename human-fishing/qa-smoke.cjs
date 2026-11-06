@@ -1476,6 +1476,8 @@ console.log('PASS: mouth-only regular fishing, tier-dependent weak points, super
  const f=game.makeFish(sp,630,460,1,false,0);
  f.behavior='cruise';f.panicUntil=0;f.dir=1;f.vx=25;
  const bait=game.getBob();
+ // This isolated rig test bypasses the UI transition/reset on purpose.
+ game.getRecovery().active=false;
  game.switchView('fish');game.getCast().active=false;game.setHook(null);
  game.setFish([f]);game.setHum([]);
  game.getSave().fever.ready=false;
