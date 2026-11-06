@@ -1,0 +1,5 @@
+Human Fishing GitHub Pages publish retry
+Requested build: 1740ff399c238f919c7bb6c34818701d934246e5
+Octo Fever suction A/B particle atlases verified in main branch.
+
+This marker is to trigger a fresh Pages build/deployment after a stuck updating_pages backend deployment.
