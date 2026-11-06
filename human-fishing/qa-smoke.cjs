@@ -1841,6 +1841,9 @@ console.log('PASS: missed releases return centrally within 0.4s at randomized sa
   'Starter bait must swing significantly more than the old .28 radians');
  for(const a of [-.6,0,.6]){
   hang.angle=a;const pt=game.getBaitTip(0),depth=game.getJointDepth();
+  assert.equal(depth,0,'Upper hook eyelet must share the octopus center');
+  assert.equal(pt.jointX,b.x);
+  assert.equal(pt.jointY,b.y);
   assert.ok(Math.abs(pt.jointX-(b.x-Math.sin(a)*depth))<1e-8);
   assert.ok(Math.abs(pt.jointY-(b.y+Math.cos(a)*depth))<1e-8);
   // Canvas rotation of the painted bait center (local 1.46, 41).
@@ -1849,4 +1852,4 @@ console.log('PASS: missed releases return centrally within 0.4s at randomized sa
  }
  hang.angle=oldAngle;s.gearEquipped.bait=oldBait;
 }
-console.log('PASS: stronger starter hook swing, rotating leg joint and bitmap-aligned capture point');
+console.log('PASS: stronger starter hook swing, shared octopus/eyelet center and bitmap-aligned capture point');

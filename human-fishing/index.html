@@ -2806,7 +2806,7 @@ if(typeof Image!=='undefined'){
 function drawDanglingBait(now){
  var pt=danglingBaitPosition(now),gear=selectedGear('bait');
  var tier=clamp(gear.tier,0,9),hit=vibrationOffset('lure');
- // The eyelet sits behind the central legs, with no exposed connector gap.
+ // The upper eyelet sits behind the octopus center, sharing its pivot.
  ctx.save();
  if(hangingBaitAtlas&&hangingBaitAtlas.ready){
   var sw=hangingBaitAtlas.naturalWidth/10,
@@ -4572,17 +4572,8 @@ function octopusSwingStats(gear,level){
   idle:.060-.038*q,damping:6.5+4*q,maxTurn:1.8-.65*q};
 }
 function lureLegJointDepth(){
- if(feverFx&&!lureRecovery.active){
-  var p=clamp(feverFx.elapsed/feverFx.duration,0,1);
-  if(!redFeverMouthArt||!redFeverMouthArt.ready)return 84*.29;
-  return 94*(.385+.015*Math.sin(Math.PI*p));
- }
- var d=hook?64:76;
- if(!hook&&save.fever.ready){
-  var g=selectedGear('octopus');
-  d=Math.max(75,Math.min(94,octoStats(g.tier,gearLevel('octopus',g.id)).size));
- }
- return d*.29;
+ // The upper hook eyelet shares the octopus body/FEVER center exactly.
+ return 0;
 }
 function lureLineAnchor(){
  var shake=vibrationOffset('lure');
@@ -4971,7 +4962,7 @@ function drawFeverFx(dt){
  // Separate, already-translucent painted whirlpool in front of the mouth
  // but BELOW all ordinary/captured fish, in the normal bait depth layer.
  drawFeverVortex(fx,reel);
- // The body occludes the eyelet; Fever AOE stays at the body center.
+ // Body pivot, upper hook eyelet and Fever AOE share the same center.
  ctx.shadowBlur=0;
  ctx.globalAlpha=Math.max(0,1-p*.85);
  ctx.textAlign='center';ctx.shadowColor='#021820';ctx.shadowBlur=7;
