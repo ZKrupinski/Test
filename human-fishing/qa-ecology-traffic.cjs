@@ -13,9 +13,9 @@ assert.match(code,/function ecoTrafficGuide\(f,wantX\)/);
 assert.match(code,/var traffic=state==='flee'/);
 assert.match(code,/var passing=\(\(f.trafficPassUntil/);
 let now=0,id=0;
-const W=1280,fish=[];
+const W=1280,fish=[],hum=[];
 const env={
- console,Math,W,fish,hook:null,view:'fish',aquariumFishingActive:true,
+ console,Math,W,fish,hum,hook:null,view:'fish',aquariumFishingActive:true,
  aquariumSpawnTimer:0,aquariumExhibitTarget:0,cast:{active:true},
  feverFx:null,escapeFx:null,catchFx:null,bob:{x:640,y:450},time:0,
  eco:{t:0,fishTimer:0,humanTimer:0,next:100,school:0,contests:0},
