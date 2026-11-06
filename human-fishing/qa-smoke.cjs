@@ -89,6 +89,14 @@ window.__hfTest={
  getBaitBounds:baitHorizontalBounds,
  moveBait:updateJoystick,
  rodHandling:rodHandling,
+ rodTip:rodTip,
+ rodPose:evaluateRodPose,
+ rodCurve:rodCurve,
+ rodWarp:rodWarpAt,
+ rodSettings:rodMotionSettings,
+ rodDraw:drawRodWarped,
+ rodRecoil:triggerRodRecoil,
+ rodBitmapSprites:rodBitmapSprites,
  getRodMotion:function(){return rodMotion},
  hideStick:hideVirtualJoystick,
  getJoystick:function(){return joystick},
@@ -209,8 +217,76 @@ assert.match(script,/CATCH_MOUTH_X=482,CATCH_MOUTH_LOCAL_Y=168/,
  'The open-mouth catch target must track the slightly higher, more rightward cavity');
 assert.equal(game.getMouthPos(0).x,482,'Bait target X must sit inside the open mouth');
 assert.equal(game.getMouthPos(0).y,214,'Bait target Y must sit inside the open mouth after player drop');
-assert.match(script,/worldTip=rodTip\(now\),tip=\{x:worldTip\.x,y:worldTip\.y-PLAYER_STAGE_DROP\}/,
- 'Rod tip physics must match the translated rod artwork');
+assert.match(script,/function rodTip\(now\)\{return evaluateRodPose\(now\)\.tip\}/,
+ 'Physical rod and line must share the identical bent-tip pose');
+assert.match(script,/drawRodWarped\(ctx,image,pose,pose\.root\.x,pose\.root\.y,1\)/,
+ 'Approved rod PNG must be rendered using the deformable pose instead of a rigid pivot');
+assert.match(script,/var tip=rodTip\(time\),/,
+ 'Fishing line must connect directly to the pose-calculated rod tip');
+// Six original rod PNGs are flexed non-destructively, with fixed reel root,
+// release spring, normal hanging-load, reel-load and identical line anchor.
+{
+ const gear={id:'cork',tier:0},settings=game.rodSettings(gear);
+ const at=(mode,elapsed,weight=1)=>game.rodPose(20,gear,{mode,elapsed,weight});
+ const rest=at('hang',0),back=at('cast',.29),released=at('cast',.82),hanging=at('cast',1.6);
+ assert.ok(back.bend>rest.bend+20,
+  'Casting must deeply bend the tip backwards after the loading phase');
+ assert.ok(released.bend<0,
+  'The cast release must overshoot past neutral for an elastic whip');
+ assert.ok(hanging.bend>0&&hanging.bend<back.bend*.35,
+  'Sinking bait must leave a small, downward-loaded, stable tip');
+ const reel=at('reel',.42,1),heavy=at('reel',.42,1.55);
+ assert.ok(reel.bend>rest.bend+12,
+  'A caught fish must bend the rod more than its hanging load');
+ assert.ok(heavy.bend>reel.bend+5,
+  'Large fish and humans should visibly load the rod harder');
+ const recovery=at('recover',.4,28),recoveryEnd=at('recover',1.0,28);
+ assert.ok(Math.abs(recoveryEnd.bend-rest.bend)<Math.abs(recovery.bend-rest.bend),
+  'Releasing a fish must spring back with decreasing amplitude');
+ assert.deepEqual(game.rodWarp(34,35),{dx:0,dy:0,sx:0,sy:0},
+  'Grip and reel region must stay completely rigid');
+ assert.ok(game.rodWarp(104,35).dy>25,
+  'The blank must bend progressively towards its tip');
+ const warp=game.rodWarp(104,back.bend);
+ assert.ok(Math.abs(back.localTip.x-(104+warp.dx))<1e-8);
+ assert.ok(Math.abs(back.localTip.y-(-50+warp.dy))<1e-8);
+ const angle=back.angle,drop=46,c=Math.cos(angle),si=Math.sin(angle);
+ assert.ok(Math.abs(back.tip.x-(536+back.localTip.x*c-back.localTip.y*si))<1e-8);
+ assert.ok(Math.abs(back.tip.y-(191+back.localTip.x*si+back.localTip.y*c+drop))<1e-8);
+ assert.match(script,/ctx\.moveTo\(tip\.x,tip\.y\)/,
+  'Line geometry must start at the calculated flexible tip, not old constants');
+ const rodIds=['cork','bamboo','marine','carbon','titan','abyss'];
+ const rearValues=rodIds.map((id,tier)=>game.rodPose(20,{id,tier},{mode:'cast',elapsed:.25}).bend);
+ assert.equal(new Set(rearValues.map(n=>Math.round(n))).size,6,
+  'Six rods need different material stiffness and casting arcs');
+ const image={ready:true,naturalWidth:1050,naturalHeight:800};
+ const segments=[],testCtx={
+  save(){},restore(){},translate(){},rotate(){},scale(){},
+  transform(){},drawImage(){segments.push([...arguments]);}
+ };
+ game.rodDraw(testCtx,image,back,536,191,1);
+ assert.equal(segments.length,16,
+  'Rod bend must use sixteen runtime display strips from its existing PNG');
+ assert.ok(segments.every(x=>x[0]===image),
+  'All deforming strips must sample one and the same unmodified PNG');
+ const tuna=element('rodTuneToggle'),panel=element('rodTunePanel');
+ tuna.onclick();
+ assert.ok(panel.classList.contains('visible'),'In-game rod tuning must open');
+ element('rodTuneSpecies').value='bamboo';element('rodTuneSpecies').onchange();
+ element('rodTuneBack').value='175';element('rodTuneBack').oninput();
+ assert.equal(game.getSave().rodMotionOverrides.bamboo.back,1.75,
+  'Each rod must save its own tuning values');
+ assert.ok(game.rodSettings({id:'bamboo',tier:1}).back>settings.back,
+  'Tuning updates should affect the render pose immediately');
+ element('rodTuneReelTest').onclick();
+ element('rodTuneBig').onclick();
+ element('rodTuneSnap').onclick();
+ element('rodTuneReset').onclick();
+ assert.equal(game.getSave().rodMotionOverrides.bamboo,undefined,
+  'Rod tuning resets only the selected equipment');
+ element('rodTuneClose').onclick();
+ assert.ok(!panel.classList.contains('visible'),'Rod tuning must close');
+}
 const idleBlock=script.slice(script.indexOf('function nextPlayerOctoIdle(){'),
  script.indexOf('function playerOctoCue(',script.indexOf('function nextPlayerOctoIdle(){')));
 assert.doesNotMatch(idleBlock,/['"]gorge['"]|['"]snack['"]/,
