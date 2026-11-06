@@ -47,12 +47,6 @@
    await new Promise(function(r){setTimeout(r,100);});
   }
   if(document.fonts)await document.fonts.ready;
-  var fishStatus=window.BlueTangSprites&&window.BlueTangSprites.status();
-  if(fishStatus&&Object.values(fishStatus).some(function(v){return v==='error';})){
-   status.textContent='물고기 리소스 준비 실패 · 다시 불러와주세요';
-   button.textContent='다시 불러오기';button.hidden=false;button.disabled=false;
-   button.onclick=function(){location.reload();};return;
-  }
   status.textContent='모든 리소스 준비 완료';
   document.getElementById('bootProgress').value=1;
   button.textContent='터치하여 시작';button.hidden=false;button.disabled=false;
