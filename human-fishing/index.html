@@ -2769,35 +2769,40 @@ function drawRodTunerPreview(now){
 // Fever has its own topmost pass and intentionally skips this normal bait pass.
 // Original octopus bait atlas stays unchanged; the six separately painted
 // 96x96 bitmap lure cells sit on a short line below its lower tentacles.
+// Ten isolated transparent bitmap hook-and-bait illustrations. The fish
+// hook is PAINTED into each cell; no procedural vector hook is generated.
 var hangingBaitAtlas=null;
 if(typeof Image!=='undefined'){
  hangingBaitAtlas=new Image();hangingBaitAtlas.decoding='async';
  hangingBaitAtlas.ready=false;
  hangingBaitAtlas.onload=function(){hangingBaitAtlas.ready=true};
  hangingBaitAtlas.onerror=function(){hangingBaitAtlas.ready=false};
- hangingBaitAtlas.src='./assets/octopus/bait/hanging_baits_6types.webp?v=20261107-bait-tiers1';
+ hangingBaitAtlas.src='./assets/octopus/bait/hanging_baits10_v2.webp?v=20261107-hook-pierced-v2';
 }
 function drawDanglingBait(now){
  var pt=danglingBaitPosition(now),gear=selectedGear('bait');
- var tier=clamp(gear.tier,0,5),hit=vibrationOffset('lure');
- var tipX=pt.x+hit.x,tipY=pt.y+hit.y;
- // Short, real fishing line: from the octopus's underside to the small
- // bait eyelet. Its endpoint is the exact mouth-hook collision pivot.
+ var tier=clamp(gear.tier,0,9),hit=vibrationOffset('lure');
+ // Only the short line BETWEEN the octopus legs and the metal eyelet
+ // is vector, matching the game's longstanding fishing-line exception.
  ctx.save();ctx.lineCap='round';
- ctx.beginPath();ctx.moveTo(pt.jointX+hit.x,pt.jointY+hit.y-1);
- ctx.quadraticCurveTo(pt.jointX+hit.x+Math.sin(pt.angle)*9,
-  pt.jointY+hit.y+12,tipX,tipY-11);
- ctx.lineWidth=2.4;ctx.strokeStyle='#082736a8';ctx.stroke();
- ctx.lineWidth=1.2;ctx.strokeStyle='#d6f7f1da';ctx.stroke();
- // Painted bitmap only; no vector substitute if the artwork isn't loaded.
+ ctx.beginPath();
+ ctx.moveTo(bob.x+hit.x,bob.y+21+hit.y);
+ ctx.quadraticCurveTo(bob.x+hit.x+Math.sin(pt.angle)*4,
+   bob.y+25+hit.y,pt.jointX+hit.x,pt.jointY+hit.y);
+ ctx.lineWidth=2.2;ctx.strokeStyle='#082736ac';ctx.stroke();
+ ctx.lineWidth=1.2;ctx.strokeStyle='#d6f7f1ee';ctx.stroke();
  if(hangingBaitAtlas&&hangingBaitAtlas.ready){
-  var size=50-tier*1.1,source=hangingBaitAtlas.naturalWidth/6;
-  ctx.translate(tipX,tipY);ctx.rotate(pt.angle*.6);
-  ctx.drawImage(hangingBaitAtlas,tier*source,0,source,
-   hangingBaitAtlas.naturalHeight,-size/2,-size/2,size,size);
+  var sw=hangingBaitAtlas.naturalWidth/10,
+   sh=hangingBaitAtlas.naturalHeight,d=82;
+  // Atlas source eyelet center (80,16) in a 168x168 cell.
+  // Every cell rotates around exactly that upper metal eyelet. The
+  // PAINTED bait mass at y~101 matches danglingBaitPosition()'s hitpoint.
+  ctx.translate(pt.jointX+hit.x,pt.jointY+hit.y);
+  ctx.rotate(pt.angle);
+  ctx.drawImage(hangingBaitAtlas,sw*tier,0,sw,sh,
+   -(80/168)*d,-(16/168)*d,d,d);
  }
- ctx.restore();
- return pt;
+ ctx.restore();return pt;
 }
 function drawBaitAbovePlayer(now){
  if(hook)drawRedLure(now,bob.x,bob.y,64);
@@ -4589,7 +4594,7 @@ function drawRedLure(now,x,y,diameter){
 var priorRedLureDrawBob=drawBob;
 drawBob=function(){
  if(feverFx&&!lureRecovery.active)return;
- var lure=selectedGear('bait'),diam=73+lure.tier*2;
+ var diam=76; // The carrier octopus is NOT enlarged by the bait tier.
  if(!drawRedLure(time,bob.x,bob.y,diam))priorRedLureDrawBob();
 };
 var priorBobForFever=drawBob;
