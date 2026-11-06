@@ -368,7 +368,7 @@ function baitSwingStats(gear,level){
  var quality=clamp(g.tier/9*.84+lv/10*.16,0,1);
  return{quality:quality,
   // High-grade bait is steadier but has a smaller precision contact circle.
-  angle:.28*(1-.84*quality),
+  angle:.52*(1-.86*quality),
   contactRadius:clamp(5.8-g.tier*.26-lv*.045,2.9,5.8)};
 }
 function baitCenterRadius(){return baitSwingStats().contactRadius}
@@ -380,12 +380,16 @@ function danglingBaitPosition(now){
   inertia*stats.angle*1.20;
  if(hook)angle*=.62;
  if(feverFx)angle*=.72;
- angle=clamp(angle,-.40,.40);
+ angle=clamp(angle,-.78,.78);
+ var bodyAngle=lureHangState.angle;
+ angle+=bodyAngle;
  // All 10 PNG-like bitmap cells have the hook eye at x≈80,y≈16.
  // The piercing bait center sits about 41 game pixels below the eye.
- var jointX=bob.x,jointY=bob.y+30,length=41,localX=1.46;
- return{x:jointX+Math.sin(angle)*length+Math.cos(angle)*localX,
-  y:jointY+Math.cos(angle)*length-Math.sin(angle)*localX,
+ var jointDepth=lureLegJointDepth(),length=41,localX=1.46;
+ var jointX=bob.x-Math.sin(bodyAngle)*jointDepth,
+  jointY=bob.y+Math.cos(bodyAngle)*jointDepth;
+ return{x:jointX-Math.sin(angle)*length+Math.cos(angle)*localX,
+  y:jointY+Math.cos(angle)*length+Math.sin(angle)*localX,
   jointX:jointX,jointY:jointY,angle:angle,length:length};
 }
 function isFishFleeing(f){
@@ -2802,15 +2806,8 @@ if(typeof Image!=='undefined'){
 function drawDanglingBait(now){
  var pt=danglingBaitPosition(now),gear=selectedGear('bait');
  var tier=clamp(gear.tier,0,9),hit=vibrationOffset('lure');
- // Only the short line BETWEEN the octopus legs and the metal eyelet
- // is vector, matching the game's longstanding fishing-line exception.
- ctx.save();ctx.lineCap='round';
- ctx.beginPath();
- ctx.moveTo(bob.x+hit.x,bob.y+21+hit.y);
- ctx.quadraticCurveTo(bob.x+hit.x+Math.sin(pt.angle)*4,
-   bob.y+25+hit.y,pt.jointX+hit.x,pt.jointY+hit.y);
- ctx.lineWidth=2.2;ctx.strokeStyle='#082736ac';ctx.stroke();
- ctx.lineWidth=1.2;ctx.strokeStyle='#d6f7f1ee';ctx.stroke();
+ // The eyelet sits behind the central legs, with no exposed connector gap.
+ ctx.save();
  if(hangingBaitAtlas&&hangingBaitAtlas.ready){
   var sw=hangingBaitAtlas.naturalWidth/10,
    sh=hangingBaitAtlas.naturalHeight,d=82;
@@ -2825,9 +2822,9 @@ function drawDanglingBait(now){
  ctx.restore();return pt;
 }
 function drawBaitAbovePlayer(now){
+ drawDanglingBait(now);
  if(hook)drawRedLure(now,bob.x,bob.y,64);
  else drawBob();
- drawDanglingBait(now);
 }
 function drawLine(){
  var tip=rodTip(time),
@@ -3020,7 +3017,9 @@ function tick(stamp){
     }
    }
    updateLureRecovery(dt);
-   updateJoystick(dt);checkBaitBrush();checkBaitWeakspot();
+   updateJoystick(dt);
+   updateLureHang(time,rodTip(time),lureLineAnchor());
+   checkBaitBrush();checkBaitWeakspot();
   }
   // 1) Advance lure and hooked-fish WORLD positions before any rendering.
   // This keeps the bitmap lure and the reel path synchronized to the same frame.
@@ -4460,7 +4459,7 @@ function drawFeverMouthSprite(fx,reel){
  ctx.save();
  ctx.globalAlpha=mixIn;
  ctx.translate(reel.x,reel.y);
- ctx.rotate(reel.tilt*.65);
+ ctx.rotate(lureHangState.angle);
  ctx.drawImage(image,col*tileW,row*tileH,tileW,tileH,
   -tileW*.5*scale,-tileH*.5*scale,tileW*scale,tileH*scale);
  ctx.restore();
@@ -4563,8 +4562,28 @@ function drawFeverSuctionParticles(fx,now){
 }
 // A softly damped pendulum for the actual octopus BAIT, not the player.
 // Keep physics independent of image changes; even a harsh joystick movement
-// cannot snap the sprite more than 0.8 radians/sec.
-var lureHangState={angle:0,lastTime:null,lastX:null,lastY:null};
+// follows a tier-scaled angular spring while keeping a nonzero idle sway.
+var lureHangState={angle:0,angularVelocity:0,lastTime:null,lastX:null,lastY:null};
+function octopusSwingStats(gear,level){
+ var g=gear||selectedGear('octopus');
+ var lv=level===undefined?gearLevel('octopus',g.id):level;
+ var q=clamp(g.tier/5*.85+lv/10*.15,0,1);
+ return{gain:1.55-1.05*q,limit:.70-.47*q,
+  idle:.060-.038*q,damping:6.5+4*q,maxTurn:1.8-.65*q};
+}
+function lureLegJointDepth(){
+ if(feverFx&&!lureRecovery.active){
+  var p=clamp(feverFx.elapsed/feverFx.duration,0,1);
+  if(!redFeverMouthArt||!redFeverMouthArt.ready)return 84*.29;
+  return 94*(.385+.015*Math.sin(Math.PI*p));
+ }
+ var d=hook?64:76;
+ if(!hook&&save.fever.ready){
+  var g=selectedGear('octopus');
+  d=Math.max(75,Math.min(94,octoStats(g.tier,gearLevel('octopus',g.id)).size));
+ }
+ return d*.29;
+}
 function lureLineAnchor(){
  var shake=vibrationOffset('lure');
  return{x:bob.x+shake.x,y:bob.y+shake.y};
@@ -4582,12 +4601,15 @@ function updateLureHang(now,tip,end){
  // the octopus trail during sudden lateral joystick motions, then settle.
  var ropeAngle=Math.atan2((end.x-tip.x)*.72,
   Math.max(125,end.y-tip.y+38));
- var target=clamp(ropeAngle-velocityX*.00031,-.36,.36);
- var difference=target-h.angle;
- var easing=1-Math.exp(-5.4*dt);
- var maxTurn=.80*dt;
- h.angle+=clamp(difference*easing,-maxTurn,maxTurn);
- h.angle=clamp(h.angle,-.36,.36);
+ var stats=octopusSwingStats();
+ var target=clamp(ropeAngle*stats.gain-velocityX*.00065*stats.gain+
+  Math.sin(now*2.15)*stats.idle,-stats.limit,stats.limit);
+ // Damped angular spring: the low tier trails and rebounds noticeably.
+ h.angularVelocity=(h.angularVelocity||0)+
+  ((target-h.angle)*24-(h.angularVelocity||0)*stats.damping)*dt;
+ h.angularVelocity=clamp(h.angularVelocity,-stats.maxTurn,stats.maxTurn);
+ h.angle+=h.angularVelocity*dt;
+ if(Math.abs(h.angle)>.72){h.angle=clamp(h.angle,-.72,.72);h.angularVelocity=0}
  h.lastTime=now;h.lastX=end.x;h.lastY=end.y;
  return h.angle;
 }
@@ -4944,13 +4966,12 @@ function drawFeverFx(dt){
  ctx.save();
  ctx.shadowColor=fx.color;
  ctx.shadowBlur=6+8*Math.sin(Math.PI*clamp(p,0,1));
+ if(!lureRecovery.active)drawDanglingBait(time);
  if(!lureRecovery.active)drawFeverMouthSprite(fx,reel);
  // Separate, already-translucent painted whirlpool in front of the mouth
  // but BELOW all ordinary/captured fish, in the normal bait depth layer.
  drawFeverVortex(fx,reel);
- // Fever's large octopus BODY remains the vortex center. The tiny bait
- // still dangles beneath it, but is NOT used as the fever AOE origin.
- if(!lureRecovery.active)drawDanglingBait(time);
+ // The body occludes the eyelet; Fever AOE stays at the body center.
  ctx.shadowBlur=0;
  ctx.globalAlpha=Math.max(0,1-p*.85);
  ctx.textAlign='center';ctx.shadowColor='#021820';ctx.shadowBlur=7;

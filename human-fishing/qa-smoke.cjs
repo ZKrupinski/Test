@@ -74,6 +74,8 @@ window.__hfTest={
  mouthHit:fishMouthOverlapsLure,
  getBaitTip:function(t){return danglingBaitPosition(t===undefined?time:t)},
  getBaitSwing:baitSwingStats,
+ getLureHang:function(){return lureHangState},
+ getJointDepth:lureLegJointDepth,
  getBaitTrait:baitTrait,
  getOctoStats:octoStats,
  baitCenterRadius:baitCenterRadius,
@@ -1828,3 +1830,23 @@ console.log('PASS: 10 unique hooked bait models, preserved legacy IDs, shrinking
  assert.ok(ys[0]<ys[1]&&ys[1]<ys[2],'Each miss must resample the return depth');
 }
 console.log('PASS: missed releases return centrally within 0.4s at randomized safe depths; duplicate inputs blocked and next release enabled');
+
+{
+ const s=game.getSave(),oldBait=s.gearEquipped.bait;
+ const hang=game.getLureHang(),oldAngle=hang.angle;
+ game.switchView('fish');game.setHook(null);game.getRecovery().active=false;
+ s.fever.ready=false;s.gearEquipped.bait='worm';
+ const b=game.getBob();b.x=640;b.y=430;
+ assert.ok(game.getBaitSwing({id:'worm',tier:0},0).angle>=.5,
+  'Starter bait must swing significantly more than the old .28 radians');
+ for(const a of [-.6,0,.6]){
+  hang.angle=a;const pt=game.getBaitTip(0),depth=game.getJointDepth();
+  assert.ok(Math.abs(pt.jointX-(b.x-Math.sin(a)*depth))<1e-8);
+  assert.ok(Math.abs(pt.jointY-(b.y+Math.cos(a)*depth))<1e-8);
+  // Canvas rotation of the painted bait center (local 1.46, 41).
+  assert.ok(Math.abs(pt.x-(pt.jointX+1.46*Math.cos(pt.angle)-41*Math.sin(pt.angle)))<1e-8);
+  assert.ok(Math.abs(pt.y-(pt.jointY+1.46*Math.sin(pt.angle)+41*Math.cos(pt.angle)))<1e-8);
+ }
+ hang.angle=oldAngle;s.gearEquipped.bait=oldBait;
+}
+console.log('PASS: stronger starter hook swing, rotating leg joint and bitmap-aligned capture point');

@@ -9,6 +9,7 @@ const begin=source.indexOf('var lureHangState=');
 const end=source.indexOf("['open','gulp','fail'].forEach(function(action){",begin);
 assert.ok(begin>0&&end>begin,'Lure rotation controller missing');
 const env={
+ selectedGear:()=>({id:'baby',tier:0}),gearLevel:()=>0,
  Math,console,bob:{x:590,y:460},
  clamp:(x,a,b)=>Math.max(a,Math.min(b,x)),
  vibrationOffset:()=>({x:2.4,y:-1.5}),
@@ -38,8 +39,8 @@ for(let i=1;i<=90;i++){
  const endPos={x:592.4+Math.sin(t*2.7)*150,y:458.5+Math.cos(t)*4};
  const angle=env.updateLureHang(t,tip,endPos);
  assert.ok(Number.isFinite(angle));
- assert.ok(Math.abs(angle)<=.36+1e-8,'Excessive body rotation');
- assert.ok(Math.abs(angle-previous)<=.80/60+1e-7,'Rotation snapped rather than easing');
+ assert.ok(Math.abs(angle)<=.72+1e-8,'Excessive body rotation');
+ assert.ok(Math.abs(angle-previous)<=1.8/60+1e-7,'Rotation snapped rather than easing');
  assert.equal(env.updateLureHang(t,tip,endPos),angle,'Multiple draws in a frame must not turn twice');
  previous=angle;
 }
@@ -48,11 +49,11 @@ const before=env.lureHangState.angle;
 env.bob.x-=380; // Abrupt mobile joystick movement
 const jumpPos=env.lureLineAnchor();
 const after=env.updateLureHang(91/60,tip,jumpPos);
-assert.ok(Math.abs(after-before)<.02,'Sudden lateral move snapped bait rotation');
+assert.ok(Math.abs(after-before)<=1.8/60+1e-7,'Sudden lateral move snapped bait rotation');
 // Even when lure velocity stops, rope angle should recover gently, not oscillate.
 for(let i=92;i<160;i++){
  const angle=env.updateLureHang(i/60,tip,jumpPos);
- assert.ok(Number.isFinite(angle)&&Math.abs(angle)<=.36);
+ assert.ok(Number.isFinite(angle)&&Math.abs(angle)<=.72);
 }
 // Check the actual sprite draw path is pivoted at the string's endpoint.
 const dBegin=source.indexOf('function drawRedLure(now,x,y,diameter){');
@@ -87,4 +88,24 @@ env.drawLine();
 assert.ok(curve,'The vector fishing line must still be drawn');
 assert.equal(curve[4],env.bob.x+2.4,'Line X endpoint != bait center');
 assert.equal(curve[5],env.bob.y-1.5,'Line Y endpoint != bait center');
-console.log('PASS: fishing line ends at illustrated bait center; angle follows rope slope with <=0.8 rad/s turns and no sudden jerk.');
+// Compare all grades on identical physical trajectories; highest grade still moves.
+function amplitude(tier,level,idle){
+ env.selectedGear=()=>({id:'test',tier});env.gearLevel=()=>level;
+ env.lureHangState={angle:0,angularVelocity:0,lastTime:null,lastX:null,lastY:null};
+ let peak=0;
+ for(let i=0;i<600;i++){
+  const t=i/60,pos={x:tip.x+(idle?0:Math.sin(t*2)*220),y:460};
+  const a=env.updateLureHang(t,tip,pos);
+  if(i>120)peak=Math.max(peak,Math.abs(a));
+ }
+ return peak;
+}
+let last=Infinity;
+for(let tier=0;tier<6;tier++){
+ const a=amplitude(tier,0,false);
+ assert.ok(a<last,'Each octopus grade must swing less on the same rope movement');last=a;
+}
+assert.ok(amplitude(0,0,false)>.38,'Starter octopus should visibly lean more than before');
+assert.ok(amplitude(5,10,true)>.01,'Fully upgraded octopus must retain idle movement');
+assert.ok(amplitude(5,10,false)<amplitude(5,0,false),'Levels should also improve stability');
+console.log('PASS: continuous rope attachment, bounded spring motion, decreasing tier sway and nonzero max-tier idle');

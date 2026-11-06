@@ -22,10 +22,11 @@ const hookedFish=where('drawHookSwallow(time);');
 const fever=where("if(view==='fish'&&!introEntrance.active&&feverFx)drawFeverFx(dt);");
 assert.ok(stateUpdate<hero&&hero<=rod&&rod<line&&line<fever&&fever<ordinaryBack&&ordinaryBack<bait,
  'Both normal and FEVER bait MUST render above the rod/line, beneath fish');
-assert.match(source,/function drawBaitAbovePlayer\(now\)\{\s*if\(hook\)drawRedLure\(now,bob\.x,bob\.y,64\);\s*else drawBob\(\);\s*drawDanglingBait\(now\);\s*\}/,
- 'Normal and reeled octopus MUST draw the separate pierced hook-bait bitmap in the same under-fish pass');
-assert.ok(source.includes('var jointX=bob.x,jointY=bob.y+30,length=41,localX=1.46;'),
- 'The upper metal eyelet must be the swing pivot, with the bait center below');
+const pass=source.slice(source.indexOf('function drawBaitAbovePlayer(now){'),source.indexOf('function drawLine(){',source.indexOf('function drawBaitAbovePlayer(now){')));
+assert.ok(pass.indexOf('drawDanglingBait(now)')<pass.indexOf('drawRedLure(now'),
+ 'Hook eyelet must be occluded by the octopus legs');
+assert.ok(source.includes('jointX=bob.x-Math.sin(bodyAngle)*jointDepth'),
+ 'Hook joint must follow rotating lower-center legs');
 assert.ok(source.includes('var center={x:bob.x,y:bob.y};'),
  'OCTO FEVER still targets the red octopus body center, never the small hanging bait');
 const baitAtlas='human-fishing/assets/octopus/bait/hanging_baits10_v2.webp';
@@ -51,6 +52,7 @@ const feverCode=source.slice(source.lastIndexOf('function drawFeverFx(dt){'));
 const spritePaint=feverCode.indexOf('drawFeverMouthSprite(fx,reel);');
 const held=active.indexOf("drawFeverTossCreature(entity,fx,i,time,'attached')");
 const launched=active.indexOf("drawFeverTossCreature(entity,fx,i,time,'released')");
+assert.ok(feverCode.indexOf('drawDanglingBait(time)')<spritePaint,'Fever legs must occlude hook eyelet');
 assert.ok(spritePaint>=0&&held>ambient&&held>fever&&launched>held,
  'Fever bitmap must stay behind all held and released creatures even when reeling');
 assert.equal(active.split("drawFeverTossCreature(entity,fx,i,time,'released')").length-1,1,
