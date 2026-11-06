@@ -3550,6 +3550,16 @@ function spawnWildFish(startInView,forceSolo,visualClass){
   var x=startInView?clamp(baseX+i*34*dir,73,1207):baseX-dir*i*46+rnd(-7,7);
   var y=baseY+(i-(group-1)/2)*22+rnd(-13,13);
   var f=makeWildFish(sp,x,y,dir,small,schoolId);
+  // A new resident cannot spawn directly on top of a neighbor.
+  if(startInView)for(var attempt=0;attempt<16;attempt++){
+   var blocked=fish.some(function(g){
+    var space=ecoPairSpace(f,g);
+    return Math.hypot((f.x-g.x)/space.x,(f.y-g.y)/space.y)<1.16;
+   });
+   if(!blocked)break;
+   f.x=clamp(f.x+rnd(-160,160),75,W-75);
+   f.y=ecoSafeDepth(f,f.y+rnd(-95,95));
+  }
   fish.push(f);added++;
  }
  return added;
@@ -3581,15 +3591,38 @@ function buildHum(){
  eco.humanZone=zone;eco.humanTimer=0;hum=[];
  // Rare visitors arrive from offscreen on their own schedules, never in a wave.
 }
+// Approximate painted body footprints for ALL fish, regardless of school.
+function ecoBodyRadius(f){
+ var category=f.sizeClass||(f.sp?fishVisualProfile(f.sp).category:'MEDIUM');
+ var scale=clamp(f.size||1,.6,2);
+ var w=category==='LARGE'?69:category==='SPECIAL'?56:
+  category==='MEDIUM'?51:35;
+ var h=category==='LARGE'?40:category==='SPECIAL'?36:
+  category==='MEDIUM'?32:25;
+ var adjust=clamp(.88+scale*.12,.92,1.13);
+ return{x:w*adjust,y:h*adjust};
+}
+function ecoPairSpace(f,g){
+ var a=ecoBodyRadius(f),b=ecoBodyRadius(g);
+ return{x:Math.max(70,a.x+b.x+6),y:Math.max(44,a.y+b.y+6)};
+}
 function ecoCrowd(f,dt){
  var cx=0,cy=0,count=0,ax=0,ay=0,sepX=0,sepY=0;
  var prey=null,predator=null,rival=null,predDist=1e9,preyDist=1e9,rivalDist=1e9;
  for(var j=0;j<fish.length;j++){
   var g=fish[j];if(g===f||g.feverCaptured||g=== (hook&&hook.obj))continue;
   var dx=g.x-f.x,dy=g.y-f.y,dist=Math.hypot(dx,dy)||1;
+  var bounds=ecoPairSpace(f,g);
+  var nx=dx/bounds.x,ny=dy/bounds.y,norm=Math.hypot(nx,ny);
+  if(norm<1.32){
+   // Start avoidance BEFORE contact, including fish in unrelated schools.
+   var sign=(f.ecoId||0)<(g.ecoId||0)?1:-1;
+   var ux=norm>.02?nx/norm:sign,uy=norm>.02?ny/norm:sign*.34;
+   var force=Math.pow((1.32-norm)/1.32,1.5);
+   sepX-=ux*force*94;sepY-=uy*force*70;
+  }
   if(f.schoolId&&f.schoolId===g.schoolId&&dist<240){
    cx+=g.x;cy+=g.y;ax+=g.vx;ay+=g.vy;count++;
-   if(dist<39){sepX-=dx/dist*(39-dist);sepY-=dy/dist*(39-dist)}
   }
   if(f.hunter&&g.hunter&&dist<106&&dist<rivalDist&&g.size>.85){
    rival=g;rivalDist=dist;
@@ -3603,6 +3636,31 @@ function ecoCrowd(f,dt){
  }
  return{count:count,cx:cx,cy:cy,ax:ax,ay:ay,
   sepX:sepX,sepY:sepY,prey:prey,predator:predator,rival:rival};
+}
+// Resolve existing overlaps smoothly, with a strict distance-per-frame cap.
+function ecoResolveFishSpacing(dt){
+ var locked=hook&&hook.obj;
+ for(var i=0;i<fish.length;i++){
+  var f=fish[i];
+  if(f.feverCaptured||f.x<0||f.x>W)continue;
+  for(var j=i+1;j<fish.length;j++){
+   var g=fish[j];
+   if(g.feverCaptured||g.x<0||g.x>W)continue;
+   var space=ecoPairSpace(f,g),
+    dx=g.x-f.x,dy=g.y-f.y,
+    nx=dx/space.x,ny=dy/space.y,dist=Math.hypot(nx,ny);
+   if(dist>=1)continue;
+   var ux=dist>.001?nx/dist:((f.ecoId||i)<(g.ecoId||j)?1:-1);
+   var uy=dist>.001?ny/dist:((i+j)%2?.30:-.30);
+   var push=Math.min(57*dt,(1-dist)*23);
+   var moveF=f===locked?0:g===locked?2:1;
+   var moveG=g===locked?0:f===locked?2:1;
+   f.x=clamp(f.x-ux*push*moveF,0,W);
+   g.x=clamp(g.x+ux*push*moveG,0,W);
+   f.y=ecoSafeDepth(f,f.y-uy*push*moveF);
+   g.y=ecoSafeDepth(g,g.y+uy*push*moveG);
+  }
+ }
 }
 function updateEcosystem(dt){
  if(view!=='fish')return;
@@ -3654,8 +3712,10 @@ function updateEcosystem(dt){
   if(crowd.count){
    // Loose schools drift together but never lock into identical rows and speeds.
    var px=crowd.cx/crowd.count-f.x,py=crowd.cy/crowd.count-f.y;
-   wantX+=clamp(px*.11,-8,8)+clamp(crowd.ax/crowd.count-f.vx,-6,6)*.12+crowd.sepX*.60;
-   wantY+=clamp(py*.14,-7,7)+crowd.sepY*.65;
+   // School cohesion is weaker than personal space. Never synchronize speed.
+   wantX+=clamp(px*.035,-3,3)+
+    clamp(crowd.ax/crowd.count-f.vx,-5,5)*.045;
+   wantY+=clamp(py*.05,-3,3);
   }
   if(crowd.predator){
    f.panicUntil=Math.max(f.panicUntil,eco.t+.60);
@@ -3794,6 +3854,11 @@ function updateEcosystem(dt){
   }
   f.homeY=ecoSafeDepth(f,f.homeY);
   wantY+=clamp((f.homeY-f.y)*.22,-11,11);
+  // Prioritize separation after AI behavior, without spoiling the
+  // distinct high-speed escape burst triggered by a missed catch.
+  var avoidance=f.fleeBurstUntil>eco.t?.30:1;
+  wantX+=clamp(crowd.sepX*avoidance,-96,96);
+  wantY+=clamp(crowd.sepY*avoidance,-73,73);
   // All velocities are pixels per second. Swimmers are calm unless threatened.
   var fleeingFast=f.fleeBurstUntil>eco.t;
   var wildSteer=state==='dart'?rarity.steer*2.7:
@@ -3831,6 +3896,7 @@ function updateEcosystem(dt){
   f.behavior=state;
   if(!f.missScareStayVisible&&(f.x< -185||f.x>W+185))fish.splice(i,1);
  }
+ ecoResolveFishSpacing(dt);
  for(var h=hum.length-1;h>=0;h--){
   var person=hum[h];
   if(person.feverCaptured){hum.splice(h,1);continue}
