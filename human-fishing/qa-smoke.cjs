@@ -102,6 +102,9 @@ window.__hfTest={
  aquariumTurnScale:aquariumTurnScale,
  aquariumStruggle:aquariumStartStruggle,
  raritySparkles:raritySparklesFor,
+ motionSettings:fishMotionSettings,
+ motionPose:fishMotionPose,
+ motionDraw:drawFishOnContext,
  aquariumReset:aquariumResetExhibit,
  aquariumBegin:aquariumBeginPlay,
  aquariumReturn:aquariumReturnToExhibit,
@@ -540,16 +543,15 @@ assert.ok(game.getCast().active);
 mock.Math=Math;
 const currentCatchCount=state.catches,currentCoins=state.coins;
 const ordinary=game.species[0];
-// Installed fish PNGs face RIGHT, while procedural backup fish face LEFT.
-// Both must face their actual movement direction; aquarium turns must not
-// apply the sprite mirror twice.
+// Individual fish PNGs face RIGHT; deformation must preserve orientation
+// with the same aquarium double-flip protection.
 const artLoader=fs.readFileSync('human-fishing/fish-bitmap-catalog.js','utf8');
 assert.match(artLoader,/img\._hfFacingRight=true/,
  'Individual fish PNGs must declare their native rightward orientation');
-assert.match(script,/var sourceFacing=sprite\._hfFacingRight\?1:-1/,
- 'Fish renderer must read each source sprite orientation');
-assert.match(script,/if\(swimFacing!==sourceFacing\)ctx\.scale\(-1,1\)/,
- 'Fish must flip only when its movement disagrees with source facing');
+assert.match(script,/var sourceFacing=image\._hfFacingRight\?1:-1/,
+ 'Fish renderer must read each original PNG orientation');
+assert.match(script,/g\.scale\(pose\.sx,1\)/,
+ 'The facing and yaw must use the shared non-destructive sprite transform');
 assert.match(script,/a\.sprite\.vx=sourceFacing\*22/,
  'Aquarium must preserve source facing within the nested renderer');
 assert.match(script,/aquariumTurnScale\(a,now\)\*\(-sourceFacing\)/,
@@ -559,6 +561,59 @@ for(const sourceFacing of [-1,1])for(const swimFacing of [-1,1]){
  assert.equal(mirrored? -sourceFacing:sourceFacing,swimFacing,
   'Rendered fish must point '+(swimFacing>0?'right':'left')+
   ' for source facing '+sourceFacing);
+}
+// Non-destructive fish motion must support all 304 original PNGs, with
+// preparation before reversing, 10-12 screen-only display strips, and
+// independent species sliders persisted in the existing game save.
+{
+ assert.match(script,/function drawFishStripWarp\(g,image,w,h/,
+  'Fish images must bend at render time without altering their source PNG');
+ assert.ok(!/createImageData\(|putImageData\(/.test(
+  script.slice(script.indexOf('function drawFishStripWarp('),
+   script.indexOf('function drawOcto(now)',script.indexOf('function drawFishStripWarp(')))),
+  'Render-time motion must not destructively rewrite image pixels');
+ const proto=game.species.find(sp=>sp.name==='블루탱');
+ const setting=game.motionSettings(proto),actor={sp:proto,dir:1,vx:24,x:600,y:440,size:1,phase:.25};
+ const initial=game.motionPose(actor,15,1,setting);
+ assert.equal(initial.sx,1,'Initial fish orientation must match its travel direction');
+ actor.dir=-1;
+ const prep=game.motionPose(actor,15.01,1,setting);
+ assert.equal(prep.sx,1,'A fish must hold its old facing while preparing to turn');
+ assert.ok(prep.bend!==0,'The fish must visibly coil before it turns');
+ const halfway=game.motionPose(actor,15.01+setting.prep+setting.turn*.5,1,setting);
+ assert.ok(Math.abs(halfway.sx)<.08,'A 180-degree body turn passes through a narrow frontal pose');
+ const recovered=game.motionPose(actor,15.02+setting.prep+setting.turn+setting.recover,1,setting);
+ assert.equal(recovered.sx,-1,'A prepared fish ends in the new heading');
+ const original=mock.window.HumanFishingArt;
+ const image={width:800,height:400,_hfScale:.28,_hfFacingRight:true};
+ mock.window.HumanFishingArt={bitmap(){return image;}};
+ const calls=[],g={
+  save(){},restore(){},translate(){},rotate(){},scale(){},
+  drawImage(){calls.push([...arguments]);}
+ };
+ const sample={sp:proto,x:130,y:60,phase:0,size:1,dir:1,vx:20};
+ game.motionDraw(g,sample,25);
+ assert.equal(calls.length,setting.strips,
+  'Every fish must use runtime display strips rather than a replaced animation sheet');
+ assert.ok(calls.every(call=>call[0]===image),
+  'Every strip must come from the same original, unmodified PNG');
+ mock.window.HumanFishingArt=original;
+ element('motionTuneToggle').onclick();
+ assert.ok(element('motionTunePanel').classList.contains('visible'),
+  'Motion-tuning controls must open inside the game');
+ element('motionSpecies').value=proto.id;
+ element('motionSpecies').onchange();
+ element('motionAmp').value='0';element('motionAmp').oninput();
+ assert.equal(game.getSave().fishMotionOverrides[proto.id].amp,0,
+  'The per-species tuning tool must persist individual slider changes');
+ assert.equal(game.motionSettings(proto).amplitude,0,
+  'Setting the swim amplitude to zero must actually disable that motion');
+ element('motionReset').onclick();
+ assert.equal(game.getSave().fishMotionOverrides[proto.id],undefined,
+  'Per-species reset must restore its original tuning preset');
+ element('motionClose').onclick();
+ assert.ok(!element('motionTunePanel').classList.contains('visible'),
+  'The adjustment tool must close without affecting the game');
 }
 for(const dir of [-1,1]){
  const diver={x:483,y:191,dir:dir,human:false,size:1};
