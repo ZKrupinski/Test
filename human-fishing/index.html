@@ -3668,7 +3668,15 @@ function updateEcosystem(dt){
   }
   if(f.y<top){f.y=top;f.vy=Math.max(0,f.vy*.28)}
   if(f.y>bottom){f.y=bottom;f.vy=Math.min(0,f.vy*.28)}
-  f.phase+=dt*(state==='flee'?2.2:state==='hunt'||state==='fight'?1.6:.65);
+  // Make rarity behaviour READABLE in the approved individual PNGs:
+  // the existing strip-warped tail kicks harder during dart and evade,
+  // smoothly blending back without abruptly swapping sprite frames.
+  var swimBoost=state==='dart'?clamp(1.35+rarity.cruise*.22,1.4,2):
+   state==='evade'?1.28:state==='feint'?.76:1;
+  f._hfWarpBoost=mix(Number.isFinite(f._hfWarpBoost)?f._hfWarpBoost:1,
+   swimBoost,Math.min(1,dt*8));
+  f.phase+=dt*(state==='flee'?2.2:state==='dart'?1.6+rarity.cruise*.35:
+   state==='evade'?1.1:state==='hunt'||state==='fight'?1.6:.65);
   f.behavior=state;
   if(!f.missScareStayVisible&&(f.x< -185||f.x>W+185))fish.splice(i,1);
  }
