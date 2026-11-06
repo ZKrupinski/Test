@@ -174,7 +174,6 @@ nav{flex-wrap:nowrap}
 <div id="bootOverlay" role="dialog" aria-modal="true" aria-label="게임 준비"><h2>인간낚시</h2><p id="bootStatus" role="status">리소스 로딩 중</p><progress id="bootProgress" max="1" value="0"></progress><button id="bootStart" type="button" hidden disabled>터치하여 시작</button></div>
 </div>
 <script src="./boot.js?v=20261106-fullscreen1"></script>
-<script src="./blue-tang-raster.js?v=2.11"></script>
 <script src="./assets/fish/ready.js?v=20261106-fish304"></script>
 <script src="./fish-bitmap-catalog.js?v=20261106-fish304"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
@@ -976,16 +975,8 @@ function fishSprite(sp){
  sprites[key]=c;return c;
 }
 function fishAnimatorFor(sp){
- if(!sp)return null;
- var players=window.FishSpritePlayers||[];
- // Also handle providers loaded by older game builds or test stubs.
- if(window.BlueTangSprites&&players.indexOf(window.BlueTangSprites)<0)
-  players=[window.BlueTangSprites].concat(players);
- for(var i=0;i<players.length;i++){
-  var player=players[i];
-  if(player&&player.supports&&player.ready&&player.ready()&&player.supports(sp))
-   return player;
- }
+ // All fish, including the updated F123 Blue Tang, use the same
+ // single-PNG renderer; the old 8-frame sprite player is retired.
  return null;
 }
 function drawFish(a,now,alpha){
@@ -4202,43 +4193,8 @@ $('navFish').onclick=function(){
  aquariumFishingActive=false;eco.zone=-1;eco.humanZone=-1;setMode('fish');chooseZone();
 };
 
-// Optional non-destructive showcase: ?bluetang=1 starts in the tropical reef
-// and guarantees a medium blue tang for testing every fishing stage.
-var blueTangShowcase=typeof location!=='undefined'&&/(?:\?|&)bluetang=1(?:&|$)/.test(location.search||'');
-if(blueTangShowcase){zone=2;eco.zone=-1;eco.humanZone=-1;}
+// The old Blue Tang animation QA preview is no longer required.
 buildFish();buildHum();
-if(blueTangShowcase){
-  var previewSpecies=species.find(function(s){return s.name==='블루탱'});
-  if(previewSpecies){
-    fish=fish.filter(function(f){return f.sp.name!=='블루탱'});
-    var previewFish=makeWildFish(previewSpecies,825,453,-1,false,0);
-    previewFish.size=1.65;previewFish.speed=15;previewFish.swimMode='wander';
-    previewFish._btDemo=true;
-    fish.unshift(previewFish);
-    // Animation inspection UI exists only in the ?bluetang=1 test session.
-    var qa=document.createElement('div');
-    qa.id='blueTangSpriteQA';
-    qa.style.cssText='position:fixed;left:12px;bottom:12px;z-index:1200;max-width:calc(100vw - 24px);padding:8px 12px;border-radius:9px;background:#081e2be8;color:#f7f7ef;border:1px solid #7ac9d4;font:700 13px sans-serif;display:flex;align-items:center;gap:9px';
-    var qaLabel=document.createElement('label');
-    qaLabel.textContent='블루탱 8프레임 테스트';
-    qaLabel.htmlFor='blueTangActionSelect';
-    var qaSelect=document.createElement('select');
-    qaSelect.id='blueTangActionSelect';
-    qaSelect.style.cssText='background:#133c50;color:#fff;border:1px solid #72bacb;border-radius:5px;padding:5px;max-width:55vw';
-    var names=[['','자동 전투 상태'],['idle','제자리 유영'],['swim','일반 이동'],
-      ['burst','급가속'],['uturn','유턴 반복 테스트'],['notice','미끼 발견'],['inspect','경계 탐색'],
-      ['graze','미끼 스침'],['bite','입질'],['hooked','물린 상태 발버둥'],
-      ['lift','수면 위로 끌림'],['last_resist','입 직전 발버둥'],['slip','미끄러짐'],
-      ['reentry','재진입'],['flee','패닉 도주']];
-    names.forEach(function(pair){var opt=document.createElement('option');
-      opt.value=pair[0];opt.textContent=pair[1];qaSelect.appendChild(opt)});
-    qaSelect.onchange=function(){
-      if(window.BlueTangSprites)window.BlueTangSprites.setPreviewAction(qaSelect.value);
-      previewFish._btAction='';previewFish._btStart=0;
-    };
-    qa.appendChild(qaLabel);qa.appendChild(qaSelect);document.body.appendChild(qa);
-  }
-}
 updateStats();setMode('fish');
 // Queue every deferred action before opening the resource gate.
 loadRemainingPlayerAtlases();
