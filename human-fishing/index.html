@@ -3015,8 +3015,28 @@ function chooseWildSpecies(){
  var selected=species[zone*20+ecoPickSpeciesIndex(lo,hi)];
  var art=window.HumanFishingArt;
  if(art&&art.enabled){
-  var extras=art.variantsFor(species,zone,selected.rarity);
-  if(extras.length&&Math.random()<.45)return extras[Math.floor(Math.random()*extras.length)];
+  // Once original art is installed, catch tiers follow each named species,
+  // never the original arbitrary 4x5 sprite-sheet cell order.
+  var targetTier=hi===19?'MYTHIC':hi===18?'LEGEND':hi===17?'EPIC':
+   lo===15?'RARE':lo===11?'UNCOMMON':'COMMON';
+  var tierOrder=['COMMON','UNCOMMON','RARE','EPIC','LEGEND','MYTHIC'];
+  var wanted=tierOrder.indexOf(targetTier),options=[];
+  while(wanted>=0&&!options.length){
+   var tier=tierOrder[wanted--];
+   options=species.filter(function(sp){return sp.habitat===zone&&sp.rarity===tier});
+  }
+  if(options.length){
+   var variants=options.filter(function(sp){return sp.artVariant});
+   var natural=options.filter(function(sp){return !sp.artVariant});
+   var pool=variants.length&&natural.length?(Math.random()<.32?variants:natural):options;
+   var weights=pool.map(function(sp){
+    var alive=fish.filter(function(f){return f.sp.id===sp.id&&!f.feverCaptured}).length;
+    return 1/Math.pow(1+alive*4,2);
+   });
+   var total=weights.reduce(function(a,b){return a+b},0),draw=Math.random()*total;
+   for(var i=0;i<pool.length;i++){draw-=weights[i];if(draw<=0)return pool[i]}
+   return pool[pool.length-1];
+  }
  }
  return selected;
 }
@@ -3050,8 +3070,9 @@ function makeWildFish(sp,x,y,dir,small,schoolId){
 function ecoVisualRepresentative(category){
  // Visual variety uses only common and uncommon habitat residents; rare
  // encounter/catch probabilities remain separate from the size categories.
- var candidates=species.slice(zone*20,zone*20+15).filter(function(sp){
-  return fishVisualProfile(sp).category===category;
+ var candidates=species.filter(function(sp){
+  return sp.habitat===zone&&(sp.rarity==='COMMON'||sp.rarity==='UNCOMMON')&&
+   fishVisualProfile(sp).category===category;
  });
  if(!candidates.length)return null;
  var available=candidates.filter(function(sp){
