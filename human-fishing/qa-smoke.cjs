@@ -221,18 +221,24 @@ assert.match(script,/idle_alt:'purple_idle_v2\.webp'/,
  'Original old idle atlas remains available only to other contexts');
 assert.match(script,/purple_sinking_original_pixel_16f\.webp/,
  'Sinking pose must use the original-character pixel sheet');
-// Four themed bitmap backdrops, prealigned at the SAME gameplay waterline.
+// Eleven distinct high-quality zone bitmaps for all 12 established regions.
 assert.match(script,/var WATER_SURFACE_Y=293,PLAYER_STAGE_DROP=46/,
  'Sea interface must remain locked to the established 293px physics line');
-assert.match(script,/var fishingBackgroundZoneKeys=\[[\s\S]*?'moonlight', 'moonlight'/,
- 'All twelve creature habitats must map to themed background PNG paintings');
+const bgMap=script.match(/var fishingBackgroundZoneKeys=\[([^\]]+)\]/);
+assert.ok(bgMap,'Expected painted environment map for all regions');
+const backgroundZones=[...bgMap[1].matchAll(/'([^']+)'/g)].map(x=>x[1]);
+assert.deepEqual(backgroundZones,[
+ 'freshwater_planted','amazon','african_lake','asian_wetland',
+ 'alpine_lake','east_asia','tropical','seagrass',
+ 'harbor','open_ocean','moonlight','alpine_lake'
+],'Background scene must match the established creature habitat names');
 assert.match(script,/if\(!under&&drawFishingBitmapBackground\(\)\)return;/,
  'Fishing scene must render prepared bitmap instead of old vector mountains');
 assert.match(script,/ctx\.drawImage\(item\.image,0,0,W,H\)/,
  'The entire bitmap frame must use uniform 1280×720 scaling');
 assert.match(script,/if\(view!=='tank'&&fishingBitmapReady\(\)\)return;/,
  'Legacy procedural sea plants must not draw over finished bitmap plants');
-for(const name of ['tropical','harbor','moonlight','ruins']){
+for(const name of [...new Set([...backgroundZones,'ruins'])]){
  const path='human-fishing/assets/backgrounds/bg_'+name+'.webp';
  const buf=fs.readFileSync(path);
  assert.ok(buf.length>100000, 'Missing high-quality bitmap: '+name);

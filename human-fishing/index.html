@@ -213,20 +213,23 @@ var WATER_SURFACE_Y=293,PLAYER_STAGE_DROP=46;
 // Four hand-painted, pre-aligned 16:9 bitmap scenes. Each WebP's sea horizon
 // was baked to Y=(293/720) of its image height; draw the WHOLE image at once
 // to prevent a double seam or aspect-ratio distortion on mobile.
+// All 12 established region names mapped to their matching painted habitats.
+// Alpine water is shared temporarily by the polar biome until dedicated ice
+// artwork is approved. Keep the previous ruins environment asset in the repo.
 var fishingBackgroundZoneKeys=[
- 'tropical', 'ruins', 'tropical', 'ruins',
- 'harbor', 'ruins', 'tropical', 'ruins',
- 'harbor', 'tropical', 'moonlight', 'moonlight'
+ 'freshwater_planted', 'amazon', 'african_lake', 'asian_wetland',
+ 'alpine_lake', 'east_asia', 'tropical', 'seagrass',
+ 'harbor', 'open_ocean', 'moonlight', 'alpine_lake'
 ];
 var fishingBitmapBackgrounds={};
-['tropical','harbor','moonlight','ruins'].forEach(function(name){
+Array.from(new Set(fishingBackgroundZoneKeys)).forEach(function(name){
  var item={ready:false,image:null};fishingBitmapBackgrounds[name]=item;
  if(typeof Image==='undefined')return;
  var img=new Image();item.image=img;img.decoding='async';
  img.fetchPriority=name===fishingBackgroundZoneKeys[zone]?'high':'low';
  img.onload=function(){item.ready=true};
  img.onerror=function(){item.ready=false}; // Original sky/ocean fallback
- img.src='./assets/backgrounds/bg_'+name+'.webp?v=20261105-scene-art1';
+ img.src='./assets/backgrounds/bg_'+name+'.webp?v=20261106-zones-final2';
 });
 function fishingBackgroundKey(){
  return fishingBackgroundZoneKeys[clamp(zone|0,0,11)]||'tropical';
