@@ -981,12 +981,10 @@ function aquariumTapFish(event){
  var p=resizePointer(event),best=null,dist=2;
  aquariumFishActors.forEach(function(a){
   if(!a.sp||!a.sprite)return;
-  var animated=!!fishAnimatorFor(a.sp);
-  var art=animated?null:fishSprite(a.sp);
-  // The bitmap may still be loading. Never dereference a missing image;
-  // use conservative touch geometry, not the old vector fish renderer.
-  var rx=(animated?60*a.size:art?art.width*(art._hfScale||1)*.25*a.size:60*a.size)+18;
-  var ry=(animated?30*a.size:art?art.height*(art._hfScale||1)*.25*a.size:30*a.size)+17;
+  var art=fishSprite(a.sp);
+  // All fish, including Blue Tang, use the same one-image geometry.
+  var rx=(art?art.width*(art._hfScale||1)*.25*a.size:60*a.size)+18;
+  var ry=(art?art.height*(art._hfScale||1)*.25*a.size:30*a.size)+17;
   // Touch geometry matches the actual bitmap, with a generous mobile margin.
   var dx=(p.x-a.x)/Math.max(34,rx),dy=(p.y-a.y)/Math.max(28,ry);
   var d=dx*dx+dy*dy;
@@ -1026,29 +1024,7 @@ function drawingTank(now){
  aquariumFishActors.forEach(function(a){
   if(!a.sprite)return;
   var wriggle=a.struggleStart<=now&&a.struggleEnd>now;
-  var player=fishAnimatorFor(a.sp);
-  // Official animation takes precedence. No aquarium-specific scaling,
-  // shaking, rotation or frame distortion is applied to these fish.
-  if(player){
-   var sprite=a.sprite;
-   sprite.x=a.x;sprite.y=a.y;
-   sprite.vx=a.dir*22;
-   sprite.spriteAquarium=true;
-   sprite.spriteTurnStart=a.turnStart;
-   sprite.spriteTurnFrom=a.turnFrom;
-   sprite.spriteTurnDuration=a.turnDuration;
-   sprite.spriteAction=wriggle?(a.struggleAction||'last_resist'):'swim';
-   if(wriggle){
-    var progress=Math.max(0,now-a.struggleStart);
-    sprite.spriteFrame=Math.floor(progress*1000/
-      (sprite.spriteAction==='hooked'?73:64))%8;
-   }else delete sprite.spriteFrame;
-   drawFish(sprite,now);
-   drawFishRankTag(a);
-   return;
-  }
-  // Fallback for fish that do not have dedicated turn/struggle sprite
-  // sheets yet. Their standard original bitmap remains unchanged.
+  // One-PNG render path for every fish: no legacy 8-frame player.
   ctx.save();
   ctx.translate(a.x,a.y);
   // The U-turn width curve is shared; its horizontal sign depends on
