@@ -76,6 +76,8 @@ window.__hfTest={
  bodyHit:fishBodyContact,
  targetOnRelease:ordinaryFishingTarget,
  scareOnMiss:scareFishOnMiss,
+ scareRadius:missScareRadius,
+ scareScreenLimits:missScareScreenLimits,
  releaseNow:function(){return release()},
  getEco:function(){return eco},
  buildFish:buildFish,
@@ -1217,6 +1219,17 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  const common=game.species.find(sp=>sp.rarity==='COMMON'),
        mythic=game.species.find(sp=>sp.rarity==='MYTHIC');
  assert.ok(common&&mythic,'Both common and mythic species must exist');
+ // Wrong-body failure should scare a notably smaller random local zone
+ // than the old fixed 215px area; ~30% of misses are extra localized.
+ assert.equal(game.scareRadius(0),62);
+ assert.ok(game.scareRadius(.29)<101);
+ assert.ok(game.scareRadius(.30)>=110);
+ assert.ok(game.scareRadius(1)<=150);
+ const sampled=[0,.08,.16,.24,.32,.44,.56,.68,.8,.92,1].map(game.scareRadius);
+ assert.ok(new Set(sampled.map(Math.round)).size>=9,
+  'Each body miss should have a genuinely variable effective radius');
+ assert.ok(sampled.every(x=>x>=62&&x<=150),
+  'Body-miss scare radius must be narrower than the previous 215px');
  const bait=game.getBob();
  game.switchView('fish');game.getCast().active=false;game.setHook(null);
  save.fever.ready=false;
@@ -1255,7 +1268,7 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
   'Body contact must be detected for a failed non-mouth release');
  assert.equal(game.mouthHit(commonFish,bait,57.1),false,
   'Putting the lure in the middle of a fish must NOT count as a mouth hit');
- const companion=game.makeFish(common,690,455,-1,false,0),
+ const companion=game.makeFish(common,625,455,-1,false,0),
        distant=game.makeFish(common,1100,470,-1,false,0);
  game.setFish([commonFish,companion,distant]);
  game.setHum([]);
@@ -1292,6 +1305,24 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  bait.x=commonFish.x;bait.y=commonFish.y;
  assert.equal(game.targetOnRelease(),null,
   'Fleeing fish must never become eligible for another catch');
+ // A wrong-body miss near the stage edge launches INWARD, stays at full
+ // bitmap width inside 1280px, and never despawns when it reaches the wall.
+ const nearEdge=game.makeFish(common,1200,445,1,false,0);
+ nearEdge.panicUntil=0;nearEdge.behavior='cruise';
+ game.setFish([nearEdge]);
+ bait.x=nearEdge.x;bait.y=nearEdge.y;
+ assert.ok(game.scareOnMiss(bait)>=1,
+  'Touching a fish body must trigger panic even at minimal scare radius');
+ assert.ok(nearEdge.vx<=-285,
+  'A fish next to the right edge must immediately flee inward');
+ const limits=game.scareScreenLimits(nearEdge);
+ for(let i=0;i<300;i++){
+  game.ecoTick(.016);
+  assert.ok(nearEdge.x>=limits.left-.01&&nearEdge.x<=limits.right+.01,
+   'Affected fish must remain wholly inside screen edges after panic');
+  assert.ok(game.getFish().includes(nearEdge),
+   'Affected fish must not despawn while recovering from a missed catch');
+ }
  // Restore a normal catchable state and check the exact mouth actually
  // produces a fish hook via the full normal release path.
  commonFish.panicUntil=0;commonFish.fleeBurstUntil=0;
