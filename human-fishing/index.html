@@ -4,8 +4,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#092a39">
 <title>인간낚시 · HUMAN FISHING α 2.4</title>
-<!-- Load only the two startup animations at HIGH priority; all other sprites
-     are deferred until the synchronized 1.8-second entrance has begun. -->
+<!-- All runtime artwork is decoded behind the startup gate before gameplay. -->
 <link rel="preload" as="image" fetchpriority="high" href="./assets/octopus/atlases/purple_swim_intro.webp?v=20261105-fast-intro1">
 <link rel="preload" as="image" fetchpriority="high" href="./assets/octopus/atlases/red_intro_swim.webp?v=20261105-fast-intro1">
 <style>
@@ -46,10 +45,10 @@ canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}canvas
 .mini{color:#b1d5d5;font-size:12px;margin-top:6px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .stat{background:#174655;border:1px solid #5b8c92;border-radius:17px;padding:22px}.stat h3{font-size:19px;margin:0 0 8px;color:#ffda9d}.stat p{color:#b9dcdc}.stat button{background:#edc586;color:#243840;border:0;border-radius:9px;padding:10px 16px;font-weight:900}
 footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:#799da4;font-size:11px;margin-top:10px}
-@media(max-width:760px){.wrap{padding:7px 6px 20px}header{min-height:90px;align-items:flex-start;flex-wrap:wrap;gap:6px;padding:3px 3px 6px}.seal{height:35px;width:35px;font-size:21px;border-radius:10px}h1{font-size:19px}.sub{font-size:8px}nav{width:100%;justify-content:space-between;gap:3px}nav button{padding:6px 8px;font-size:11px;flex:1}.stage{border-radius:10px}.top{top:5px;left:6px;right:6px}.tag,.coins{font-size:10px;padding:5px 8px;border-radius:7px}.tag small{font-size:8px}.bottom{bottom:5px;left:6px;right:6px}.guide{padding:5px 8px;border-radius:8px}.guide b{font-size:10px}.guide small{font-size:9px}.action{width:70px;height:46px;font-size:11px;border-radius:12px;box-shadow:0 3px 0 #a56042,0 5px 12px #0006}.panel{padding:11px}.panel h2{font-size:19px}.minor{font-size:10px}.cards{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.card{min-height:90px;padding:6px 3px;border-radius:8px}.card .face{font-size:26px}.card .name{font-size:10px}.card .meta{font-size:8px}.card .num{font-size:9px}.sideinfo{top:46px;right:5px;max-height:calc(100% - 52px);width:170px;padding:8px}.sideinfo h3{font-size:12px}.slot{min-height:30px}.slot span{font-size:10px}.slot button{font-size:10px}.stats{grid-template-columns:1fr;gap:8px}.stat{padding:10px}.stat h3{font-size:15px}.stat p{margin:3px 0}}
-@media(max-height:480px) and (orientation:landscape){header{min-height:35px;flex-wrap:nowrap;padding-bottom:4px}.brand{gap:6px}.seal{width:29px;height:29px;font-size:18px}h1{font-size:16px}.sub{display:none}nav{width:auto;flex:0 0 auto}nav button{padding:5px 9px}.wrap{max-width:calc(100vh * 1.78 + 14px)}.stage{max-height:calc(100dvh - 58px);margin:auto}footer{display:none}}
 
-.shop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:11px}.shop-card{background:linear-gradient(135deg,#16485b,#0b2938);border:1px solid #578d9f;border-radius:16px;padding:15px;display:flex;gap:12px;align-items:flex-start}.shop-icon{background:#1a6273;border:1px solid #7ac7d1;border-radius:12px;min-width:64px;height:64px;display:grid;place-items:center;font-size:35px}.shop-detail{min-width:0;flex:1}.shop-detail h3{margin:0 0 3px;color:#ffe0a1;font-size:17px}.shop-detail p{color:#b9dae1;font-size:12px;line-height:1.4;margin:5px 0}.shop-detail .level{font-size:12px;color:#a6f0ee;font-weight:850}.shop-detail button{background:#efc67e;border:0;color:#233840;border-radius:9px;padding:10px 12px;font-weight:900;margin-top:6px;width:100%;font-size:13px}.shop-detail button:disabled{background:#596b70;color:#b8c5c5}.shop-progress{background:#09222c;border-radius:8px;height:7px;margin-top:10px;overflow:hidden}.shop-progress i{display:block;background:linear-gradient(90deg,#59d4cc,#ffe0a7);height:100%;border-radius:8px}@media(max-width:760px){.shop-grid{grid-template-columns:1fr;gap:6px}.shop-card{padding:8px;gap:8px}.shop-icon{min-width:41px;height:41px;font-size:23px}.shop-detail h3{font-size:14px}.shop-detail p{font-size:11px}.shop-detail button{padding:6px;margin-top:4px}}
+
+
+.shop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:11px}.shop-card{background:linear-gradient(135deg,#16485b,#0b2938);border:1px solid #578d9f;border-radius:16px;padding:15px;display:flex;gap:12px;align-items:flex-start}.shop-icon{background:#1a6273;border:1px solid #7ac7d1;border-radius:12px;min-width:64px;height:64px;display:grid;place-items:center;font-size:35px}.shop-detail{min-width:0;flex:1}.shop-detail h3{margin:0 0 3px;color:#ffe0a1;font-size:17px}.shop-detail p{color:#b9dae1;font-size:12px;line-height:1.4;margin:5px 0}.shop-detail .level{font-size:12px;color:#a6f0ee;font-weight:850}.shop-detail button{background:#efc67e;border:0;color:#233840;border-radius:9px;padding:10px 12px;font-weight:900;margin-top:6px;width:100%;font-size:13px}.shop-detail button:disabled{background:#596b70;color:#b8c5c5}.shop-progress{background:#09222c;border-radius:8px;height:7px;margin-top:10px;overflow:hidden}.shop-progress i{display:block;background:linear-gradient(90deg,#59d4cc,#ffe0a7);height:100%;border-radius:8px}
 
 /* Fishing cast and item-catalog UI: canvas graphics remain bitmap except fine fishing line. */
 #game{cursor:default}#game.dragging{cursor:grabbing}
@@ -62,7 +61,7 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 .shop-buttons{display:flex;gap:5px;align-items:center;flex-wrap:wrap}.shop-buttons button{flex:1;min-width:84px}
 .shop-card.equipped{border-color:#f3d29a;box-shadow:0 0 18px #ecbd6b18}
 .shop-hint{font-size:12px;color:#aacbd2}
-@media(max-width:760px){.shop-tabs button{padding:6px 9px;font-size:11px}.shop-sort select{padding:5px}.shop-badge{font-size:10px}.shop-buttons button{min-width:76px}.shop-controls{gap:4px}}
+
 
 
 
@@ -71,7 +70,7 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 .shop-icon.rod-bitmap-preview{width:95px;min-width:95px;height:74px;overflow:hidden;background:#103e4c;display:grid;place-items:center}
 .shop-icon.rod-bitmap-preview img{width:112%;height:118%;object-fit:contain;pointer-events:none}
 .loadout-rod-img{display:block;width:66px;max-width:100%;height:48px;object-fit:contain;pointer-events:none}
-@media(max-width:760px){.shop-icon.rod-bitmap-preview{width:76px;min-width:76px;height:58px}.loadout-rod-img{width:46px;height:36px}}
+
 
 /* Dedicated equipment, loadout and stat comparison UI */
 .loadout-slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin:10px 0 13px}
@@ -90,14 +89,14 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 .loadout-next,.loadout-hint{font-size:11px;color:#b8d9da;margin:7px 0}
 .loadout-actions{display:flex;gap:6px;margin-top:8px}.loadout-actions button{flex:1;min-width:0;background:#edc783;color:#243a40;border:0;padding:9px 6px;border-radius:8px;font-weight:850}
 .loadout-actions button:last-child:not(:disabled){background:#9be1d7}.loadout-actions button:disabled{background:#526e77;color:#b1c7c8;cursor:default}
-@media(max-width:760px){.loadout-slots{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.loadout-slot{padding:7px}.loadout-slot .loadout-icon{font-size:20px}.loadout-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.loadout-stat{padding:6px}.loadout-stat strong{font-size:14px}.loadout-heading h3{font-size:16px}}
-@media(max-height:480px) and (orientation:landscape){.loadout-slots{grid-template-columns:repeat(5,minmax(0,1fr))}.loadout-stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+
 /* Floating analogue joystick, rendered as a textured CSS control. */
 #virtualJoystick{position:absolute;z-index:5;left:50%;top:50%;width:10.8%;aspect-ratio:1;max-width:170px;min-width:72px;transform:translate(-50%,-50%);display:none;pointer-events:none;opacity:.94;border-radius:50%;border:2px solid #afecf0b8;background:radial-gradient(circle at 34% 28%,#b1e9e533 0%,#133c59bd 33%,#041a2cd9 72%,#071626eb 100%);box-shadow:inset 0 0 0 9px #b0f5fa10,inset 0 0 12px #75cddd70,0 6px 28px #000a}
 #virtualJoystick:after{content:"";position:absolute;inset:23%;border:1px dashed #d5faf85e;border-radius:50%}
 #virtualKnob{position:absolute;z-index:1;left:50%;top:50%;transform:translate(-50%,-50%);width:44%;aspect-ratio:1;border-radius:50%;border:2px solid #d8fff0b8;background:radial-gradient(circle at 28% 24%,#e7ffec,#6ebec2 38%,#285d77 81%);box-shadow:0 5px 13px #001522b8,inset 0 2px 8px #fff7}
 #virtualJoystick.visible{display:block}
-@media(max-width:760px){#virtualJoystick{min-width:56px;border-width:1px}#virtualKnob{border-width:1px}}
+
 /* Compact, unobtrusive FEVER HUD: key state remains in the count and fill. */
 .fever-hud{position:absolute;z-index:3;left:5px;top:5px;bottom:auto;width:min(148px,24%);padding:4px 6px;border-radius:8px;border:1px solid #a6d6d075;background:linear-gradient(125deg,#0b3444e0,#112a3bde);box-shadow:0 2px 9px #0006;pointer-events:none;color:#c4eeec;box-sizing:border-box}
 .fever-hud .fever-top{display:flex;align-items:center;justify-content:space-between;gap:3px;font-size:9px;line-height:1.1;white-space:nowrap;font-weight:950}
@@ -107,7 +106,7 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 .fever-hud .fever-detail{position:absolute;width:1px;height:1px;margin:0;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .fever-hud.ready{border-color:#ffd28f;box-shadow:0 0 10px #ffc36b50,0 2px 9px #0006;background:linear-gradient(120deg,#563343dd,#0a5762df)}
 .fever-hud.ready .fever-top span:first-child{color:#ffe4ab}
-.shop-octo-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:7px 0}.shop-octo-stats span{font-size:11px;color:#d8f7ea;background:#0d3846;border-radius:5px;padding:3px 5px}@media(max-width:760px){.fever-hud{left:4px;top:4px;bottom:auto;width:min(116px,29%);padding:3px 5px;border-radius:6px}.fever-hud .fever-top{font-size:8px;gap:2px;letter-spacing:-.15px}.fever-meter{height:4px;margin-top:2px}.shop-octo-stats span{font-size:9px;padding:2px 3px}}
+.shop-octo-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:7px 0}.shop-octo-stats span{font-size:11px;color:#d8f7ea;background:#0d3846;border-radius:5px;padding:3px 5px}
 /* Compact receipt shown only on entering the aquarium; not a shop screen. */
 .aqua-sale-overlay{position:absolute;inset:0;z-index:12;display:none;place-items:center;padding:clamp(8px,2vw,20px);background:#031922a8;backdrop-filter:blur(3px)}
 .aqua-sale-overlay.visible{display:grid}
@@ -125,18 +124,34 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 .aqua-sale-total{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:15px;font-weight:850}
 .aqua-sale-total strong{font-size:24px;color:#ffcf82;font-variant-numeric:tabular-nums}
 .aqua-sale-close{display:block;margin-top:12px;width:100%;min-height:43px;border:0;border-radius:9px;color:#14333b;background:#f2cd8f;font-size:16px;font-weight:900}
-@media(max-width:760px){.aqua-sale-head{padding:11px 14px 5px}.aqua-sale-list{padding:2px 14px 8px}.aqua-sale-row{padding:7px 0;font-size:12px}.aqua-sale-bottom{padding:9px 14px 11px}.aqua-sale-total strong{font-size:20px}.aqua-sale-close{min-height:40px;margin-top:8px}}
+
 
 .aqua-controls{position:absolute;z-index:7;right:12px;top:63px;display:none;flex-direction:column;align-items:flex-end;gap:7px;pointer-events:none}
 .aqua-controls.visible{display:flex}
 .aqua-controls button{pointer-events:auto;border:1px solid #9bd4dabd;border-radius:9px;padding:8px 12px;color:#f7f9ec;background:linear-gradient(150deg,#173e61ed,#09283fe8);box-shadow:0 4px 13px #0008;font:900 13px system-ui;white-space:nowrap}
 .aqua-controls #aquaPlay{color:#253442;background:linear-gradient(150deg,#ffe3ac,#dba569);border-color:#fff0c8}
 .aqua-controls #aquaManage{padding:7px 10px;font-size:11px}
-@media(max-width:760px){.aqua-controls{right:5px;top:34px;gap:4px}.aqua-controls button{padding:5px 7px;font-size:10px;border-radius:6px}.aqua-controls #aquaManage{padding:5px 7px;font-size:9px}}
+
+
+/* Full-screen background; the header floats over the game, never above it. */
+html,body{width:100%;height:100%;overflow:hidden;background:#020c12;overscroll-behavior:none}
+.wrap{position:fixed;left:50%;top:50%;width:1536px;height:864px;margin:0;padding:0;transform-origin:center;isolation:isolate}
+header{position:absolute;z-index:20;top:0;left:0;right:0;height:86px;min-height:86px;padding:12px 16px;flex-wrap:nowrap;background:linear-gradient(#031923d9,#03192370,transparent);pointer-events:none}
+header .brand,header nav{pointer-events:auto}
+nav{flex-wrap:nowrap}
+.stage{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:16/9;border:0;border-radius:0;box-shadow:none}
+.panel{inset:86px 16px 16px;border:1px solid #4d939c;border-radius:20px;padding:25px}
+.top{top:94px}.fever-hud{top:94px;left:17px}.aqua-controls{top:146px}.sideinfo{top:146px}
+#bootOverlay{position:absolute;inset:0;z-index:100;display:grid;place-content:center;justify-items:center;gap:22px;background:#061923;color:#eafffa;text-align:center}
+#bootOverlay[hidden],#bootStart[hidden]{display:none}
+#bootOverlay h2{font-size:38px;margin:0;color:#ffdda0}
+#bootStatus{font-size:20px;margin:0}
+#bootProgress{width:460px;height:15px;accent-color:#8ee4e2}
+#bootStart{min-width:280px;min-height:64px;padding:12px 32px;border:1px solid #ffecc9;border-radius:12px;background:#f5cb81;color:#19333d;font-size:24px;font-weight:900}
 </style></head><body><div class="wrap">
-<header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 2.3</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
+<header inert><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 2.3</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navGear">🎒 장비</button><button id="navShop">🛒 상점</button></nav></header>
-<div class="stage" id="stage"><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 어디든 터치해 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
+<div class="stage" id="stage" inert><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 어디든 터치해 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
 <div class="hud top"><div class="tag" style="display:none" aria-hidden="true"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins" style="margin-left:auto">◈ 0　🐟 0/240</div></div>
 <div id="feverHud" class="fever-hud"><div class="fever-top"><span>🐙 OCTO FEVER</span><span id="feverNum">0 / 6</span></div><div class="fever-meter"><i id="feverFill"></i></div><div id="feverDetail" class="fever-detail">물고기 포획으로 충전</div></div>
 <div class="center-banner" id="banner"><div class="emoji" id="bannerIcon">🐟</div><strong id="bannerTitle">첫 포획!</strong><p id="bannerSub">새로운 물고기 발견</p></div>
@@ -156,7 +171,9 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 <section class="panel" id="panel"><div class="panelhead"><div><h2 id="panelTitle">도감</h2><div class="minor" id="panelDesc">240종 수집 도전</div></div><button class="smallbtn" id="closePanel">✕ 닫기</button></div><div id="panelBody"></div></section>
 </div>
 
+<div id="bootOverlay" role="dialog" aria-modal="true" aria-label="게임 준비"><h2>인간낚시</h2><p id="bootStatus" role="status">리소스 로딩 중</p><progress id="bootProgress" max="1" value="0"></progress><button id="bootStart" type="button" hidden disabled>터치하여 시작</button></div>
 </div>
+<script src="./boot.js?v=20261106-fullscreen1"></script>
 <script src="./blue-tang-raster.js?v=2.11"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
 <script>
@@ -184,11 +201,11 @@ try{var old=JSON.parse(localStorage.getItem(key)||'null');if(old){save=Object.as
 function persist(){try{localStorage.setItem(key,JSON.stringify(save))}catch(e){}}
 var removedBottomUi={textContent:'',innerHTML:'',style:{},classList:{add:function(){},remove:function(){},toggle:function(){}},onclick:null};
 function $(id){return document.getElementById(id)||((id==='hintTitle'||id==='hint'||id==='action')?removedBottomUi:null)}
-var canvas=$('game'),ctx=canvas.getContext('2d'),W=1280,H=720,view='fish',zone=save.zone||0,fish=[],hum=[],bubbles=[],particles=[],ripples=[];
+var canvas=$('game'),ctx=canvas.getContext('2d'),W=1280,H=720,view='fish',zone=Number.isInteger(save.zone)&&save.zone>=0&&save.zone<12?save.zone:0,fish=[],hum=[],bubbles=[],particles=[],ripples=[];
 var bob={x:680,y:390},drag=false,hook=null,time=0,last=performance.now(),bannerTimer=0,random=Math.random,decor=save.decor||0;
 var colors=['#ffbd75','#fa8196','#69e7df','#e8d574','#90b6ef','#b191eb','#67c68e','#f89767','#f7d88a','#ff9eba','#ace38d','#96dbed'];
 function rnd(a,b){return a+random()*(b-a)}function clamp(v,a,b){return Math.max(a,Math.min(b,v))}function mix(a,b,t){return a+(b-a)*t}function ease(t){return 1-Math.pow(1-clamp(t,0,1),3)}
-function resizePointer(e){var rect=canvas.getBoundingClientRect();return {x:(e.clientX-rect.left)/rect.width*W,y:(e.clientY-rect.top)/rect.height*H}}
+function resizePointer(e){if(window.HumanFishingBoot)return window.HumanFishingBoot.point(e,canvas,W,H);var rect=canvas.getBoundingClientRect();return {x:(e.clientX-rect.left)/rect.width*W,y:(e.clientY-rect.top)/rect.height*H}}
 function setMode(m){view=m;hook=null;drag=false;canvas.classList.remove('dragging');$('panel').classList.remove('open');$('sideinfo').classList.toggle('show',m==='tank');['Fish','Human','Tank','Book','Grow'].forEach(function(n){$('nav'+n).classList.toggle('active',({Fish:'fish',Human:'human',Tank:'tank',Book:'book',Grow:'grow'})[n]===m)});$('action').style.display=m==='fish'||m==='human'?'':'none';$('guide')?.classList.remove('x');$('hintTitle').textContent=m==='tank'?'내가 잡은 물고기가 살아 움직여요':m==='human'?'인간을 향해 찌를 던져보세요':'찌를 물고기 가까이 드래그!';$('hint').textContent=m==='tank'?'우측 전시 목록에서 물고기를 배치하세요.':m==='human'?'아기 같은 인간 캐리커처를 유혹해요.':'손을 떼면 주변 물고기가 낚여 올라옵니다.';$('stageName').textContent=m==='human'?'인간의 부두':m==='tank'?'나의 아쿠아리움':habitats[zone];$('stageNo').textContent=m==='human'?'SPECIAL FISHING':m==='tank'?'MY AQUARIUM':'STAGE '+String(zone+1).padStart(2,'0')+' / 12';bob={x:680,y:390};if(m==='book')renderBook();if(m==='grow')renderGrow();if(m==='tank')renderTankSide();updateStats()}
 function updateStats(){var count=Object.keys(save.owned).length;var h=Object.keys(save.human).length;$('coins').textContent='◈ '+save.coins.toLocaleString()+'　🐟 '+count+'/240'+(h?'　🧑 '+h+'/24':'')}
 function buildFish(){fish=[];for(var i=0;i<16;i++){var idx=Math.floor(rnd(0,20));if(i<5)idx=i+Math.floor(rnd(0,3));var sp=species[zone*20+idx];fish.push({sp:sp,x:rnd(300,1180),y:rnd(290,600),vx:rnd(.24,.65)*(random()<.5?-1:1),phase:rnd(0,6.28),size:sp.index>=18?1.65:sp.index>=14?1.28:rnd(.76,1.18)})} }
@@ -1025,7 +1042,7 @@ particleFrame(dt);if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner'
 if(!Array.isArray(save.humanPlaced))save.humanPlaced=[];
 if(!save.human||typeof save.human!=='object')save.human={};
 $('navHuman').style.display='none';
-$('navFish').textContent='🎣 통합 낚시';
+$('navFish').textContent='🎣 스테이지 선택';
 $('navTank').textContent='🐠 생물 아쿠아리움';
 $('navBook').textContent='📖 통합 도감';
 $('action').innerHTML='찌 놓기<br>포획';
@@ -4034,9 +4051,15 @@ if(blueTangShowcase){
   }
 }
 updateStats();setMode('fish');
-// The entrance is signaled only after BOTH sprites are decoded in
-// advanceIntroEntrance(). Starting the red friend at boot desynchronized it.
-requestAnimationFrame(tick);
+// Queue every deferred action before opening the resource gate.
+loadRemainingPlayerAtlases();
+if(window.octoSidekicksStartFullLoad)window.octoSidekicksStartFullLoad();
+function beginLoadedGame(){
+ document.querySelectorAll('[inert]').forEach(function(el){el.removeAttribute('inert');});
+ last=performance.now();requestAnimationFrame(tick);
+}
+if(window.HumanFishingBoot)window.HumanFishingBoot.begin(beginLoadedGame);
+else requestAnimationFrame(tick);
 })();
 </script></body></html>
 

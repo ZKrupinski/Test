@@ -35,6 +35,8 @@ jobs:
           }
           console.log('PASS: JavaScript parses, all 240 fish are present, gameplay handlers exist.');
           NODE
+      - name: Verify resource gate and fixed landscape coordinates
+        run: node human-fishing/qa-boot.cjs
       - name: Run game startup, input and shop smoke test
         run: node human-fishing/qa-smoke.cjs
       - name: Verify context-driven 16-frame companion animation states
