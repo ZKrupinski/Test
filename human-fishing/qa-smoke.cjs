@@ -69,6 +69,14 @@ window.__hfTest={
  fishAppearance:fishSpeciesAppearance,
  fishSprite:fishSprite,
  getFish:function(){return fish},
+ mouthWeakspot:fishMouthWeakspot,
+ mouthHit:fishMouthOverlapsLure,
+ baitCenterRadius:baitCenterRadius,
+ isFishFleeing:isFishFleeing,
+ bodyHit:fishBodyContact,
+ targetOnRelease:ordinaryFishingTarget,
+ scareOnMiss:scareFishOnMiss,
+ releaseNow:function(){return release()},
  getEco:function(){return eco},
  buildFish:buildFish,
  buildHum:buildHum,
@@ -1196,6 +1204,105 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  game.switchView('tank');game.aquariumDraw(40.3);
  aquariumSave.owned=oldOwned;game.switchView('fish');
 }
+// Non-Fever fishing: only the original fish PNG's invisible mouth region
+// accepts the lure center. Body releases start a shared, temporarily
+// noncatchable fast escape. Fever retains its own AOE and probability.
+{
+ const origArt=mock.window.HumanFishingArt;
+ const art={width:240,height:108,_hfFacingRight:true,_hfScale:1};
+ mock.window.HumanFishingArt={bitmap(){return art}};
+ const save=game.getSave(),oldBait=save.gearEquipped.bait,
+  oldFever=save.fever.ready;
+ const originalOwned=save.owned;
+ const common=game.species.find(sp=>sp.rarity==='COMMON'),
+       mythic=game.species.find(sp=>sp.rarity==='MYTHIC');
+ assert.ok(common&&mythic,'Both common and mythic species must exist');
+ const bait=game.getBob();
+ game.switchView('fish');game.getCast().active=false;save.fever.ready=false;
+ save.gearEquipped.bait='worm';save.shop.bait=0;
+ const baseRadius=game.baitCenterRadius();
+ save.gearEquipped.bait='void';
+ const superiorRadius=game.baitCenterRadius();
+ assert.ok(superiorRadius>baseRadius+6,
+  'High-quality bait must have a visibly larger invisible center contact area');
+ save.gearEquipped.bait='worm';
+ const commonFish=game.makeFish(common,580,440,1,false,0);
+ commonFish.behavior='cruise';commonFish.panicUntil=0;
+ const rareFish=game.makeFish(mythic,580,440,1,false,0);
+ rareFish.size=commonFish.size;rareFish.behavior='cruise';rareFish.panicUntil=0;
+ game.setTime(57);
+ const mouth=game.mouthWeakspot(commonFish,57),rareMouth=game.mouthWeakspot(rareFish,57);
+ assert.ok(mouth&&rareMouth,'Fish mouth weak point should be derived from original bitmap');
+ assert.ok(mouth.x>commonFish.x+10,
+  'Right-facing fish must have its mouth in front of the body');
+ assert.ok(rareMouth.rx<mouth.rx*.4,
+  'Mythic fish must have a much smaller catchable mouth area');
+ assert.ok(rareMouth.ry<mouth.ry*.4);
+ commonFish.dir=-1;commonFish.vx=-26;
+ commonFish._hfFacing=-1;commonFish._hfTarget=-1;commonFish._hfTurnStart=-100;
+ const leftMouth=game.mouthWeakspot(commonFish,57.1);
+ assert.ok(leftMouth.x<commonFish.x-10,
+  'Mouth geometry must follow the displayed facing direction when reversed');
+ commonFish.dir=1;commonFish.vx=26;commonFish._hfFacing=1;
+ commonFish._hfTarget=1;commonFish._hfTurnStart=-100;
+ const head=game.mouthWeakspot(commonFish,57.1);
+ bait.x=head.x;bait.y=head.y;
+ assert.equal(game.mouthHit(commonFish,bait,57.1),true,
+  'Center-on-mouth contact should overlap both invisible areas');
+ bait.x=commonFish.x;bait.y=commonFish.y;
+ assert.equal(game.bodyHit(commonFish,bait),true,
+  'Body contact must be detected for a failed non-mouth release');
+ assert.equal(game.mouthHit(commonFish,bait,57.1),false,
+  'Putting the lure in the middle of a fish must NOT count as a mouth hit');
+ const companion=game.makeFish(common,690,455,-1,false,0),
+       distant=game.makeFish(common,1100,470,-1,false,0);
+ game.setFish([commonFish,companion,distant]);
+ game.setHum([]);
+ const bodyBlocked=game.targetOnRelease();
+ assert.equal(bodyBlocked,null,'Body contact should not hook by proximity');
+ // The actual release handler must activate the group escape when the
+ // bait is released on the fish body.
+ game.releaseNow();
+ assert.equal(game.getHook(),null,
+  'A body-only release must NOT create a fishing hook');
+ const eco=game.getEco();
+ assert.ok(commonFish.fleeBurstUntil>eco.t&&companion.fleeBurstUntil>eco.t,
+  'Touching the body must scare all fish in the nearby shoal');
+ assert.ok(!distant.fleeBurstUntil,
+  'Fish well outside the local scare radius must not panic');
+ assert.equal(game.isFishFleeing(commonFish),true);
+ assert.equal(game.mouthWeakspot(commonFish,57.1),null,
+  'Fleeing fish must immediately lose the invisible mouth weak spot');
+ game.ecoTick(.15);
+ assert.equal(commonFish.behavior,'flee');
+ assert.equal(companion.behavior,'flee');
+ assert.ok(Math.abs(commonFish.vx)>110&&Math.abs(companion.vx)>110,
+  'The missed release must send nearby fish sprinting faster than ambient speed');
+ bait.x=commonFish.x;bait.y=commonFish.y;
+ assert.equal(game.targetOnRelease(),null,
+  'Fleeing fish must never become eligible for another catch');
+ // Restore a normal catchable state and check the exact mouth actually
+ // produces a fish hook via the full normal release path.
+ commonFish.panicUntil=0;commonFish.fleeBurstUntil=0;
+ commonFish.escapeNoCatchUntil=0;commonFish.behavior='cruise';
+ game.setFish([commonFish]);game.getCast().active=false;
+ const contact=game.mouthWeakspot(commonFish,57.1);
+ assert.ok(contact,'Fish should regain a mouth weak spot after escape ends');
+ bait.x=contact.x;bait.y=contact.y;
+ assert.equal(game.targetOnRelease()?.kind,'fish');
+ game.releaseNow();
+ assert.ok(game.getHook()&&game.getHook().obj===commonFish,
+  'Overlapping bait and mouth must hook the correct fish');
+ game.setHook(null);
+ save.gearEquipped.bait=oldBait;save.fever.ready=oldFever;
+ mock.window.HumanFishingArt=origArt;
+ assert.match(script,/function activateOctoFever\(\)/);
+ assert.match(script,/Math\.hypot\(f\.x-center\.x,f\.y-center\.y\)<=v\.radius/,
+  'Octo Fever continues to use its own AOE, not the mouth weak spot');
+ assert.doesNotMatch(script,/drawFishWeakspot\(|ctx\.arc\(mouth\.x/,
+  'Mouth and bait hit regions must stay invisible during normal gameplay');
+}
+console.log('PASS: mouth-only regular fishing, tier-dependent weak points, superior bait radius, fast noncatchable flee; Fever unchanged');
 console.log('PASS: Blue Tang now uses individual F123.png only; animated player disabled');
 
 console.log('PASS: aquarium fish touch-to-turn, independent swimmers and random wriggle timelines');
