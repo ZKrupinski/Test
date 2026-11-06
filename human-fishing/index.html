@@ -4798,8 +4798,8 @@ function drawFeverSuctionParticles(fx,now){
   // output, details became sub-pixel on a phone. Render visibly at
   // 25-57px while respecting the half-size Fever vortex on every tier.
   var visualRadius=fx.radius*feverSnapScale(fx);
-  var d=Math.min(24+(i%5)*6+Math.min(12,fx.radius*.035),
-   visualRadius*.76)*(1-.19*flow);
+  var d=Math.max(24,Math.min(24+(i%5)*6+Math.min(12,fx.radius*.035),
+   visualRadius*.76)*(1-.19*flow));
   var radius=Math.max(0,visualRadius-d*.53-2)*
    (.94*Math.pow(1-flow,1.35));
   var x=fx.x+Math.cos(theta)*radius;
