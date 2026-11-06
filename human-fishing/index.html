@@ -3214,7 +3214,13 @@ function drawCatchFx(dt){
 }
 
 var previousModeAlpha04=setMode;
-setMode=function(m){previousModeAlpha04(m);if(m==='fish')startCast();else hideVirtualJoystick()};
+setMode=function(m){
+ // Leaving fishing cancels any dangling post-mouth recovery. Returning to
+ // fishing starts the ordinary rod cast from a clean, continuous state.
+ if(m!=='fish')lureRecovery.active=false;
+ previousModeAlpha04(m);
+ if(m==='fish')startCast();else hideVirtualJoystick();
+};
 $('action').onclick=function(){
  // Button supports the same release only when the player has actively dragged the lure.
  if(view==='fish'&&!cast.active)announce('🎣','가상 조이스틱으로 이동!','화면 아무 곳에서나 터치 후 스틱을 밀고 손을 놓으세요.');
