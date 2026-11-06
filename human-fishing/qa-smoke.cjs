@@ -622,6 +622,18 @@ const startingHuman=fxStart.caught[1];
 const earlyToss=game.toss(startingFish,fxStart,0,clock/1000);
 assert.equal(earlyToss.phase,'gather','Before suction, captured fish must drift toward the opening mouth');
 assert.equal(earlyToss.attached,true,'Captured fish must remain associated with the suction mouth');
+// A distant catch is sucked inward while the ring contracts; gathering
+// is complete by .42s, not after the previous .80s slow full orbit.
+const distant={...startingFish,x:fxStart.x+fxStart.radius*.95,y:fxStart.y};
+const beforeSnap=game.toss(distant,{...fxStart,elapsed:.10},0,clock/1000);
+const duringSnap=game.toss(distant,{...fxStart,elapsed:.27},0,clock/1000);
+const afterSnap=game.toss(distant,{...fxStart,elapsed:.43},0,clock/1000);
+const dist=(p)=>Math.hypot(p.x-fxStart.x,p.y-fxStart.y);
+assert.ok(dist(duringSnap)<dist(beforeSnap)*.88,
+ 'Fish must rush toward the bait during the shrinking vortex burst');
+assert.ok(dist(afterSnap)<dist(beforeSnap),
+ 'Fish must be gathered near the center within .43 seconds');
+assert.equal(afterSnap.phase,'held','The fish must settle in its own grip slot after the snap');
 // Suction stays at the exact release point, then retrieves only after swallowing.
 for(const elapsed of [.1,.5,1,fxStart.suctionEnd-.01]){
  const fx={...fxStart,elapsed};const pose=game.reel(fx,clock/1000);
@@ -652,7 +664,7 @@ for(const [i,entity] of fxStart.caught.entries()){
  assert.ok(delivered.done,'Only main octopus swallows after group retrieval');
  assert.equal(delivered.x,game.getMouthPos(clock/1000).x);
 }
-assert.match(script,/var d=fx.radius\*2\*scale;/,'Visible whirlpool must match the gameplay capture diameter without oversizing');
+assert.match(script,/var d=fx.radius\*2\*scale\*feverSnapScale\(fx\);/,'Fever must flash at full capture radius, then shrink to half');
 for(const [elapsed,lo,hi] of [[0,0,0],[.1,0,4],[.3,5,11],[fxStart.suctionEnd-.1,5,11],[fxStart.reelStart,15,15]]){
  const f=game.feverMouthFrame({...fxStart,elapsed});assert.ok(f>=lo&&f<=hi);
 }

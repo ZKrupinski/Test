@@ -85,15 +85,17 @@ assert.ok(source.includes('feverSuctionArt.dropsVisible=makeFeverDropletsVisible
  'Displayed drops must alpha-correct translucent approved bitmap cells');
 assert.ok(source.includes('var im=feverSuctionArt.dropsVisible||feverSuctionArt.drops'),
  'Drop renderer must use the brighter display-only source with raw fallback');
-assert.ok(source.includes('var rotationTravel=turn+(mass<1.35?Math.PI*2:0);'),
- 'Small fish must orbit clockwise one extra turn while larger fish resist');
+assert.ok(source.includes('var rotationTravel=turn+(mass<1.35?Math.PI*2:0);')&&
+ source.includes('var arc=Math.sin(Math.PI*q)*Math.min(21,startRadius*.11)'),
+ 'Gathered fish should follow a short curved snap, not a slow full orbit');
 assert.ok(source.includes('var waveA=.5-.5*Math.cos(t*9.1);')&&
  source.includes('var waveB=.5-.5*Math.cos(t*7.4-1.27);'),
  'Both vortex bitmap layers must breathe smoothly instead of jumping on loop reset');
 assert.ok(source.includes('var alpha=appear*fade*Math.sin(Math.PI*flow)'),
  'Suction droplets must fade in and out individually rather than pop at the perimeter');
-assert.ok(source.includes('Math.max(endRadius,38+mass*13)'),
- 'Inhaled fish must retain a safe distance around the bait instead of overlapping the center');
+assert.ok(source.includes('function feverGripSlot(fx,index)')&&
+ source.includes('radius=[0,64,70,79,88,100,111][n]+ring*111'),
+ 'Inhaled fish must retain separate concentric grip slots around the center');
 
 assert.ok(source.includes('makeFeverVortexOpaque(im)'),
  'Fever bitmap must boost original low-alpha paint without editing source art');

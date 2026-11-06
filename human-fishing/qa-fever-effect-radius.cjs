@@ -11,8 +11,8 @@ const first=source.indexOf('function feverSuctionAtlasFrame(');
 const last=source.indexOf('// A softly damped pendulum',first);
 assert.ok(first>=0&&last>first,'Missing Fever bitmap render functions');
 const drawCode=source.slice(first,last);
-assert.ok(drawCode.includes('var d=fx.radius*2*scale;'),
- 'Vortex diameter must be 2x real catch radius, not overscaled');
+assert.ok(drawCode.includes('var d=fx.radius*2*scale*feverSnapScale(fx);'),
+ 'Vortex must first match real radius, then visually collapse to half');
 assert.doesNotMatch(drawCode,/fx\.radius\*2\/\.55/,
  'The old 1.82x effect overdraw must never come back');
 assert.match(source,/radius:\[100,132,170,215,265,320\]\[clamp\(tier,0,5\)\]\+lv\*3/,
@@ -48,27 +48,34 @@ for(let tier=0;tier<=5;tier++){
   const realRadius=base[tier]+level*3;
   const fx={
    x:610,y:410,radius:realRadius,reelStart:1.37,
-   surfaceAt:99,elapsed:.35,suctionEnd:1.05
+   surfaceAt:99,elapsed:.05,suctionEnd:1.05
   };
-  calls.length=0;
-  assert.equal(scene.drawFeverVortex(fx,{x:610,y:410,tilt:0}),true);
-  assert.equal(calls.length,3,'Vortex base + two illustrated suction rings');
-  for(const item of calls){
-   assert.ok(item.w<=realRadius*2+1e-6&&item.h<=realRadius*2+1e-6,
-    tier+'/'+level+': '+item.image+' grew beyond catch diameter');
-  }
-  assert.equal(calls.find(x=>x.image==='vortex').w,realRadius*2,
-   'Outer vortex artwork must use the actual capture diameter');
-
+  const measure=(at)=>{
+   fx.elapsed=at;calls.length=0;
+   assert.equal(scene.drawFeverVortex(fx,{x:610,y:410,tilt:0}),true);
+   assert.equal(calls.length,3,'Vortex base + two suction rings');
+   for(const item of calls){
+    assert.ok(item.w<=realRadius*2+1e-6&&item.h<=realRadius*2+1e-6,
+     tier+'/'+level+': '+item.image+' grew beyond catch diameter');
+   }
+   return calls.find(x=>x.image==='vortex').w;
+  };
+  const full=measure(.05),middle=measure(.24),half=measure(.50);
+  assert.ok(Math.abs(full-realRadius*2)<1e-6,
+   'Fever must first show the full gameplay capture radius');
+  assert.ok(middle<full&&middle>half,
+   'Fever ring must contract during the capture snap');
+  assert.ok(Math.abs(half-realRadius)<1e-6,
+   'Fever ring must finish at exactly HALF the starting diameter');
   calls.length=0;
   fx.elapsed=.55;
   scene.drawFeverSuctionParticles(fx,.55);
   assert.equal(calls.length,22,'Expected 22 painted suction droplets');
   for(const item of calls){
    const centerDistance=Math.hypot(item.x-fx.x,item.y-fx.y);
-   assert.ok(centerDistance+item.w*.5<=realRadius+1e-6,
-    tier+'/'+level+': suction droplet exceeds capture boundary');
+   assert.ok(centerDistance+item.w*.5<=realRadius*.5+1e-6,
+    tier+'/'+level+': suction droplet exceeds shrunken visual boundary');
   }
  }
 }
-console.log('PASS: tier 0-5 and level 0/1/5/10 use exact catch-radius vortex and in-bound droplets.');
+console.log('PASS: all 6 tiers and 4 upgrade levels flash full-size, snap to half, and constrain droplets to shrinking vortex.');

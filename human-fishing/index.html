@@ -4710,6 +4710,14 @@ function feverSuctionAtlasFrame(im,frame,x,y,d,rotation,alpha){
  ctx.drawImage(im,n%4*sw,Math.floor(n/4)*sh,sw,sh,-d/2,-d/2,d,d);
  ctx.restore();return true;
 }
+// Release burst: hold the REAL capture radius briefly, then collapse the
+// illustrated whirlpool to HALF-size in the same burst that draws fish inward.
+// Pure visual scale: upgrades still capture targets at the original fx.radius.
+function feverSnapProgress(fx){
+ var t=clamp((fx.elapsed-.14)/.28,0,1);
+ return 1-Math.pow(1-t,3); // fast pull, soft stop at the center
+}
+function feverSnapScale(fx){return 1-.5*feverSnapProgress(fx)}
 function drawFeverVortex(fx,reel){
  if(!feverVortexArt||!feverVortexArt.ready)return false;
  var releaseAt=fx.reelStart+.82,arrivalAt=releaseAt+.72,t=fx.elapsed;
@@ -4735,7 +4743,7 @@ function drawFeverVortex(fx,reel){
  var scale=1-.73*castEasing(travel);
  // Diameter is exactly twice the REAL catch radius (tier + level included).
  // The prior /.55 enlarged the vortex beyond the actual catch boundary.
- var d=fx.radius*2*scale;
+ var d=fx.radius*2*scale*feverSnapScale(fx);
  var front=feverSuctionArt.front,back=feverSuctionArt.back;
  var paired=!!(front&&front.ready&&back&&back.ready);
  // The existing approved vortex is the fallback and a faint core
@@ -4774,8 +4782,10 @@ function drawFeverSuctionParticles(fx,now){
   var theta=i*2.39996+now*.28+flow*(5.0+(i%4)*.33);
   // Painted drops remain distinct even at the minimum 100px catch radius.
   var d=(19+(i%5)*6)*(1-.65*flow);
-  // Entire droplet sprite (not just its center) must stay inside AOE.
-  var radius=Math.max(0,fx.radius-d*.5-2)*
+  // Drops ride the collapsing visual vortex; the actual capture radius
+  // stays unchanged. Keep each alpha-cut frame inside the shrinking ring.
+  var visualRadius=fx.radius*feverSnapScale(fx);
+  var radius=Math.max(0,visualRadius-d*.5-2)*
    (.93*Math.pow(1-flow,1.45));
   var x=fx.x+Math.cos(theta)*radius;
   var y=fx.y+Math.sin(theta)*radius*.87;
@@ -5047,28 +5057,31 @@ function feverTossPoint(entity,fx,index,now){
   wobbleY=Math.cos(now*24+index*1.78)*3.2*struggle;
  var hold={x:reel.x+offsetX+slot.x+wobbleX,
   y:reel.y+offsetY+slot.y+wobbleY};
- var gather=clamp(fx.elapsed/.80,0,1),q=gather*gather*(3-2*gather);
- if(fx.elapsed<.80){
-  // Maintain a single clockwise current. Small fish are pulled through
-  // an extra orbit while heavier fish complete a slower partial rotation.
-  // Ease the angular velocity at both ends so they don't pop or stop hard.
+ var q=feverSnapProgress(fx);
+ if(fx.elapsed<.42){
+  // A brief full-radius flash first, then one sudden centripetal pull.
+  // Fish travel to their distinct mouth-side grip slots in the SAME .28s
+  // interval as the vortex shrinks, instead of orbiting for .8s.
   var vx=entity.x-fx.x,vy=entity.y-fx.y,
    startRadius=Math.hypot(vx,vy),startAngle=Math.atan2(vy,vx),
    destX=hold.x-fx.x,destY=hold.y-fx.y,
-   endAngle=Math.atan2(destY,destX),endRadius=Math.hypot(destX,destY),
-   mass=entity.size||1.2;
+   endAngle=Math.atan2(destY,destX),mass=entity.size||1.2;
   var turn=((endAngle-startAngle)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
   var rotationTravel=turn+(mass<1.35?Math.PI*2:0);
-  var a=startAngle+rotationTravel*q;
-  var radius=mix(startRadius,Math.max(endRadius,38+mass*13),q);
-  var x=fx.x+Math.cos(a)*radius,y=fx.y+Math.sin(a)*radius;
-  // Read the instantaneous tangent to orient each sprite as it moves.
-  var qi=Math.min(1,q+.012),ai=startAngle+rotationTravel*qi,
-   ri=mix(startRadius,Math.max(endRadius,38+mass*13),qi);
-  var dx=fx.x+Math.cos(ai)*ri-x,dy=fx.y+Math.sin(ai)*ri-y;
-  var bank=Math.sin(fx.elapsed*15+index*2.1)*.06*q;
-  var tilt=clamp(Math.atan2(dy,Math.max(1,Math.abs(dx)))*.30+bank,
-   -.48,.48);
+  // A short, curved suction arc (not a full extra revolution): keep the
+  // outward-to-inward displacement rapid and visibly directional.
+  var arc=Math.sin(Math.PI*q)*Math.min(21,startRadius*.11)*
+   (rotationTravel>Math.PI?1:-1);
+  var x=mix(entity.x,hold.x,q)-Math.sin(startAngle)*arc,
+   y=mix(entity.y,hold.y,q)+Math.cos(startAngle)*arc;
+  var qi=Math.min(1,q+.018),
+   arcNext=Math.sin(Math.PI*qi)*Math.min(21,startRadius*.11)*
+    (rotationTravel>Math.PI?1:-1),
+   nx=mix(entity.x,hold.x,qi)-Math.sin(startAngle)*arcNext,
+   ny=mix(entity.y,hold.y,qi)+Math.cos(startAngle)*arcNext,
+   dx=nx-x,dy=ny-y;
+  var tilt=clamp(Math.atan2(dy,Math.max(1,Math.abs(dx)))*.30,
+   -.44,.44);
   return{x:x,y:y,rotation:tilt,facing:dx>=0?1:-1,
    scale:mix(1,slot.scale,q),done:false,phase:'gather',attached:true};
  }
