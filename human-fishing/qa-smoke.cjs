@@ -243,10 +243,18 @@ assert.match(script,/var tip=rodTip\(time\),/,
  const recovery=at('recover',.15,28),recoveryEnd=at('recover',1.0,28);
  assert.ok(Math.abs(recoveryEnd.bend-rest.bend)<Math.abs(recovery.bend-rest.bend),
   'Releasing a fish must spring back with decreasing amplitude');
- assert.ok(Object.values(game.rodWarp(34,35)).every(v=>v===0),
-  'Grip and reel region must stay completely rigid');
- assert.ok(game.rodWarp(104,35).dy>25,
-  'The blank must bend progressively towards its tip');
+ assert.ok(Object.values(game.rodWarp(-25,35)).every(v=>v===0),
+  'Gripped handle and reel anchor must stay rigid before the flex begins');
+ const quarter=game.rodWarp(8,35),middle=game.rodWarp(34,35),
+  threeQuarter=game.rodWarp(70,35),outer=game.rodWarp(104,35);
+ assert.ok(quarter.dy>3,'The rod must already bow near its handle/reel midpoint');
+ assert.ok(middle.dy>8,'Middle shaft must visibly bend, not stay rigid');
+ assert.ok(threeQuarter.dy>middle.dy+8,
+  'The flex must build continuously along the entire shaft');
+ assert.ok(outer.dy>threeQuarter.dy+9&&outer.dy>30,
+  'The tip must complete a full-rod curved arc');
+ assert.ok(game.rodWarp(32,35).sy>0,
+  'Mid-blank tangent should lean into the continuous bend');
  const warp=game.rodWarp(104,back.bend);
  assert.ok(Math.abs(back.localTip.x-(104+warp.dx))<1e-8);
  assert.ok(Math.abs(back.localTip.y-(-50+warp.dy))<1e-8);
@@ -265,8 +273,8 @@ assert.match(script,/var tip=rodTip\(time\),/,
   transform(){},drawImage(){segments.push([...arguments]);}
  };
  game.rodDraw(testCtx,image,back,536,191,1);
- assert.equal(segments.length,16,
-  'Rod bend must use sixteen runtime display strips from its existing PNG');
+ assert.equal(segments.length,24,
+  'Rod bend must use twenty-four smoothly joined runtime display strips');
  assert.ok(segments.every(x=>x[0]===image),
   'All deforming strips must sample one and the same unmodified PNG');
  const tuna=element('rodTuneToggle'),panel=element('rodTunePanel');
