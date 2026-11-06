@@ -1218,7 +1218,8 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
        mythic=game.species.find(sp=>sp.rarity==='MYTHIC');
  assert.ok(common&&mythic,'Both common and mythic species must exist');
  const bait=game.getBob();
- game.switchView('fish');game.getCast().active=false;save.fever.ready=false;
+ game.switchView('fish');game.getCast().active=false;game.setHook(null);
+ save.fever.ready=false;
  save.gearEquipped.bait='worm';save.shop.bait=0;
  const baseRadius=game.baitCenterRadius();
  save.gearEquipped.bait='void';
