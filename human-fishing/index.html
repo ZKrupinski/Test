@@ -2894,12 +2894,19 @@ function makeMouthHookRig(f,now,anchor){
  var image=fishSprite(f.sp),size=.5*(f.size||fishVisualProfile(f.sp).baseScale)*
   (image._hfScale||1);
  var bobbing=Math.sin(now*2+(f.phase||0))*Math.min(3,1.8+size);
+ var shape=fishVisualProfile(f.sp).shape;
+ var headFraction=shape==='horse'?.25:shape==='ray'?.33:.395;
+ var spriteW=image.width*size;
+ var turnWidth=clamp(Math.abs((weak.x-f.x)/
+   (weak.facing*spriteW*headFraction||1)),.60,1.0);
  return{
   mouthX:weak.x-f.x,mouthY:weak.y-f.y-bobbing,
   facing:weak.facing,angle:0,angularVelocity:0,
   lastX:anchor.x,lastY:anchor.y,lastVX:0,lastVY:0,
   lastAt:now,
-  // Keep the exact original fish silhouette/scale throughout the lift.
+  // The fish may have been briefly side-squashed while U-turning at bite.
+  // Preserve its precise captured head offset and restore width smoothly.
+  spriteW:spriteW,headFraction:headFraction,turnWidth:turnWidth,
   srcW:image.width,srcH:image.height
  };
 }
@@ -2925,8 +2932,12 @@ function hookedFishMouthPivot(h,now,anchor){
   rig.lastX=anchor.x;rig.lastY=anchor.y;
   rig.lastVX=vx;rig.lastVY=vy;rig.lastAt=now;
  }
+ var settle=clamp(h.elapsed/.16,0,1);
+ settle=settle*settle*(3-2*settle);
+ var widthScale=(rig.turnWidth||1)+(1-(rig.turnWidth||1))*settle;
  return{angle:rig.angle,pivotX:anchor.x,pivotY:anchor.y,
-  mouthX:rig.mouthX,mouthY:rig.mouthY,facing:rig.facing};
+  mouthX:rig.facing*rig.spriteW*rig.headFraction*widthScale,
+  mouthY:rig.mouthY,facing:rig.facing,widthScale:widthScale};
 }
 function drawHookedFishAtMouth(h,now){
  var f=h.obj,rig=h.mouthRig,image=fishSprite(f.sp);
@@ -2943,7 +2954,7 @@ function drawHookedFishAtMouth(h,now){
  // Rotate the drawn fish about its mouth, *not* its image center.
  // The inverse mouth offset is applied before mirroring the original PNG.
  ctx.translate(-joint.mouthX,-joint.mouthY);
- ctx.scale(joint.facing/sourceFacing,1);
+ ctx.scale(joint.facing/sourceFacing*joint.widthScale,1);
  drawFishStripWarp(ctx,image,w,hgt,now,f.phase||0,settings,
   {bend:0,tilt:0,sx:1},'hooked',1.60);
  ctx.restore();
