@@ -1763,7 +1763,7 @@ console.log('PASS: localized fish and octopus shake, gentle contact, bite, sucti
  // An old 6-item save still resolves its equipped IDs and upgrades.
  const ids=['worm','shrimp','tentacle','cheese','spoon','drumstick',
   'catdoll','coral','star','void'];
- assert.deepEqual(game.shopModels.bait.map(item=>item[0]),ids,
+ assert.equal(game.shopModels.bait.map(item=>item[0]).join(','),ids.join(','),
   'Bait shop must offer exactly 10 named hook-pierced gear models');
  const saved=game.getSave(),before=saved.gearEquipped.bait;
  const traits=['none','commonCatch','fleeDamping','gentleAttract','rareEncounter',
