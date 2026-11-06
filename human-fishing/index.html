@@ -3949,7 +3949,7 @@ function aquariumRefreshControls(){
  $('aquaControls').classList.toggle('visible',view==='tank'||aquariumFishingActive);
  $('aquaPlay').textContent=aquariumFishingActive?'↩ 전시로 돌아가기':'🎣 낚시 플레이';
  $('aquaManage').style.display=view==='tank'?'':'none';
- $('aquaManage').setAttribute('aria-expanded',String(aquariumPanelOpen&&view==='tank'));
+ $('aquaManage').ariaExpanded=String(aquariumPanelOpen&&view==='tank');
  if(aquariumFishingActive){
   $('navTank').classList.add('active');$('navFish').classList.remove('active');
   $('stageName').textContent='나의 아쿠아리움 · 낚시 플레이';
