@@ -1888,17 +1888,19 @@ function success(){
  var o=hook.obj,human=hook.kind==='human',id=human?String(o.id):o.sp.id;
  var name=human?humans[o.id]:o.sp.name,owned=human?save.human:save.owned,fresh=!owned[id];
  var power=gearPower('net'),extra=power>0&&Math.random()<Math.min(.85,power*.054),qty=extra?2:1;
- owned[id]=(owned[id]||0)+qty;
+ var aquariumSale=aquariumFishingActive&&!human;
+ // Aquarium catches pay only shop currency, without acquiring or using owned fish.
+ if(!aquariumSale)owned[id]=(owned[id]||0)+qty;
  var base=(human?70:15)+(human?(o.id>=20?180:o.id*5):o.sp.index>=18?85:o.sp.index>=14?35:0)+save.up[2]*4;
- var reward=Math.floor(base*(1+power*.025));
+ var reward=aquariumSale?aquariumUnitSalePrice(o.sp)*qty:Math.floor(base*(1+power*.025));
  save.coins+=reward;save.catches++;
  if(!human)recordFeverCapture(qty);
- if(human&&save.humanPlaced.length===0)save.humanPlaced.push(id);
- if(!human&&save.placed.length===0)save.placed.push(id);
+ if(!aquariumSale&&human&&save.humanPlaced.length===0)save.humanPlaced.push(id);
+ if(!aquariumSale&&!human&&save.placed.length===0)save.placed.push(id);
  persist();updateStats();beep('catch');spawnParticles(645,290,extra?50:32,'gold');
  startPlayerOctoReaction('swallow_success');
  triggerRedLureReaction('gulp');
- playCatchFx(o,human,name,reward,extra,fresh);
+ playCatchFx(o,human,aquariumSale?name+' · 판매':name,reward,extra,!aquariumSale&&fresh);
  if(window.octoSidekicksCatch)window.octoSidekicksCatch(time,{rare:!!(fresh||extra||human||(o.sp&&['EPIC','LEGEND','MYTHIC'].indexOf(o.sp.rarity)>=0))});
  hook=null;
  // Keep every non-caught animal and its movement state across casts.
@@ -3192,7 +3194,7 @@ function updateEcosystem(dt){
  eco.t+=dt;eco.fishTimer+=dt;eco.humanTimer+=dt;
  if(aquariumFishingActive){
   aquariumSpawnTimer+=dt;
-  if(fish.length<12&&aquariumSpawnTimer>=.65){aquariumSpawnTimer=0;aquariumSpawnCodexFish(false)}
+  if(fish.length<aquariumExhibitTarget&&aquariumSpawnTimer>=.65){aquariumSpawnTimer=0;aquariumSpawnCodexFish(false)}
  }else{
   var interval=fish.length<5?1.55:fish.length<11?3.3:fish.length<16?5.8:8.5;
   if(eco.fishTimer>interval){eco.fishTimer=0;spawnWildFish(false)}
@@ -3737,10 +3739,12 @@ function activateOctoFever(){
   var chance=catchProbability(f.sp,false,true);
   if(Math.random()<chance){
    var n=1+(net>0&&Math.random()<Math.min(.7,net*.035)?1:0);
-   save.owned[f.sp.id]=(save.owned[f.sp.id]||0)+n;
-   var reward=Math.floor((14+f.sp.index*5+save.up[2]*4)*(1+net*.025));
+   // OCTO FEVER must never award owned fish in aquarium sale mode either.
+   if(!aquariumFishingActive)save.owned[f.sp.id]=(save.owned[f.sp.id]||0)+n;
+   var reward=aquariumFishingActive?aquariumUnitSalePrice(f.sp)*n:
+    Math.floor((14+f.sp.index*5+save.up[2]*4)*(1+net*.025));
    save.coins+=reward;save.catches+=n;coins+=reward;
-   if(save.placed.length===0)save.placed.push(f.sp.id);
+   if(!aquariumFishingActive&&save.placed.length===0)save.placed.push(f.sp.id);
    f.feverCaptured=true;
    // The individual species sprite remains whole until it reaches the octopus mouth.
    targets.push({x:f.x,y:f.y,sp:f.sp,size:f.size,vx:f.vx,phase:f.phase,quantity:n,human:false});
@@ -3999,7 +4003,7 @@ setMode=function(mode){
  var receipt=entering?aquariumSellDuplicates():null;
  if(mode!=='tank')aquariumCloseSaleReceipt();
  previousModeForAquariumSales(mode);
- if(entering)aquariumShowSaleReceipt(receipt);
+ if(entering&&receipt.quantity>0)aquariumShowSaleReceipt(receipt);
 };
 
 
