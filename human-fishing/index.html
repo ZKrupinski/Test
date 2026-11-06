@@ -3499,7 +3499,9 @@ function buildRaritySparkleAtlas(rarity){
  // One isolated sparkle per transparent 64px frame. No pre-grouped stars:
  // each instance is placed and timed independently around a fish.
  for(var frame=0;frame<4;frame++){
-  var radius=[4.5,9,12,6][frame],cx=frame*64+32,cy=32;
+  // Fill the 64px atlas cell so the four stages retain a visible glint
+  // even when the 1280px game canvas is scaled down on mobile.
+  var radius=[10,15,19,12][frame],cx=frame*64+32,cy=32;
   g.save();g.translate(cx,cy);
   var halo=g.createRadialGradient(0,0,0,0,0,radius*1.65);
   halo.addColorStop(0,colors[1]);halo.addColorStop(.21,colors[0]+'b9');
@@ -3535,16 +3537,20 @@ function raritySparklesFor(f,now){
   var u=h1-Math.floor(h1),v=h2-Math.floor(h2);
   var period=1.75+i*.29+u*.51;
   var moment=(((now+v*period+i*.53)%period)+period)%period;
-  var duration=period*(rarity==='MYTHIC'?.24:.19);
+  var duration=period*(rarity==='MYTHIC'?.28:.23);
   if(moment>=duration)continue;
   var t=moment/duration,opacity=Math.sin(Math.PI*t);
   if(opacity<.06)continue;
-  var size=clamp(12+Math.sqrt(Math.max(1,width))*u*1.1,12,30);
+  // Rarer fish have slightly bolder sparkles, with a mobile-legible
+  // bitmap size while still capping overlap on short silhouettes.
+  var bonus=rarity==='MYTHIC'?10:rarity==='LEGEND'?7:rarity==='EPIC'?4:0;
+  var size=clamp(26+bonus+Math.sqrt(Math.max(1,width))*u*1.4,
+   26+bonus,54+bonus);
   if(result.length>=2)break; // Keep even MYTHIC sparkle clusters airy.
   result.push({
    x:f.x+(places[i][0]+(u-.5)*.18)*width,
    y:f.y+(places[i][1]+(v-.5)*.18)*height,
-   size:size,alpha:opacity*.85,frame:Math.min(3,Math.floor(t*4))
+   size:size,alpha:opacity*.96,frame:Math.min(3,Math.floor(t*4))
   });
  }
  return result;

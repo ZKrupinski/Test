@@ -807,19 +807,32 @@ for(const dir of [-1,1]){
   max=Math.max(max,lights.length);
   if(lights.length===0)zero++;
   if(lights.length>0)lit++;
-  assert.ok(lights.every(p=>p.size>=12&&p.size<=30&&p.alpha>=0&&p.alpha<=1),
-   'Transparent bitmap twinkle instances should stay small and fade');
+  assert.ok(lights.every(p=>p.size>=26&&p.size<=54&&p.alpha>=0&&p.alpha<=1),
+   'Rare sparkle sprites must be large enough for mobile but still fade');
   assert.ok(lights.every(p=>Math.abs(p.x-fish.x)<115&&Math.abs(p.y-fish.y)<70),
    'Sparks should scatter along the real fish silhouette, not a detached cluster');
  }
  assert.ok(max<=2,'No rarity should show an overcrowded pile of sparkles');
+ assert.match(script,/var radius=\[10,15,19,12\]\[frame\]/,
+  'Every raster sparkle frame must use the larger visible artwork');
  assert.ok(zero>50&&lit>10,
   'Sparse twinkles must have visible gaps rather than being constantly illuminated');
  for(const rarity of ['EPIC','LEGEND','MYTHIC']){
   const sp=game.species.find(f=>f.rarity===rarity);
   assert.ok(sp);
   fish.sp=sp;
-  for(let i=0;i<90;i++)assert.ok(game.raritySparkles(fish,i*.22).length<=2);
+  const bonus={EPIC:4,LEGEND:7,MYTHIC:10}[rarity];
+  let largest=0;
+  for(let i=0;i<90;i++){
+   const sparks=game.raritySparkles(fish,i*.22);
+   assert.ok(sparks.length<=2);
+   for(const p of sparks){
+    assert.ok(p.size>=26+bonus&&p.size<=54+bonus,
+     'Higher rarity must retain its tier-specific enlarged sparkle size');
+    largest=Math.max(largest,p.size);
+   }
+  }
+  assert.ok(largest>30+bonus,'Visible high-tier sparkle size never reached');
  }
  mock.window.HumanFishingArt=previousArt;
 }
