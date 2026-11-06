@@ -948,6 +948,26 @@ game.setFish([farSchool1,farSchool2]);
 game.ecoTick(.08);
 assert.equal(farSchool1.behavior,'school','Small fish must flock when safe');
 assert.equal(farSchool2.behavior,'school','Small fish must share a school identity');
+// Separate fish independent of species and schooling. Start two residents at
+// the SAME pixel and verify they separate gradually, never teleporting.
+const overlapA=game.makeFish(spSmall,640,435,1,true,0),
+      overlapB=game.makeFish(spSmall,640,435,1,true,0);
+for(const f of [overlapA,overlapB]){
+ f.hunter=false;f.swimMode='hover';f.speed=18;f.vx=18;f.vy=0;
+ f.swimFreq=0;f.swimAmp=0;f.homeY=435;f.nextTurn=game.getEco().t+30;
+}
+game.setFish([overlapA,overlapB]);
+game.ecoTick(.016);
+const firstSpread=Math.hypot(overlapA.x-overlapB.x,overlapA.y-overlapB.y);
+assert.ok(firstSpread>0&&firstSpread<8,
+ 'Initial exact overlap must separate gently, not jump across the screen');
+for(let frame=0;frame<150;frame++)game.ecoTick(.016);
+const spreadX=(overlapA.x-overlapB.x)/76;
+const spreadY=(overlapA.y-overlapB.y)/56;
+assert.ok(Math.hypot(spreadX,spreadY)>.80,
+ 'Fish must not stay stacked and moving in lockstep after 2.4 seconds');
+assert.match(script,/brush:\[7\],weakspot:\[91,24,61\]/,
+ 'Weakspot device vibration must be distinctly longer and stronger than body contact');
 const rival=game.makeFish(spHunter,710,455,-1,false,0);
 const fighter=game.makeFish(spHunter,628,449,1,false,0);
 fighter.hunter=true;rival.hunter=true;
