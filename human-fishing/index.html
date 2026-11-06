@@ -2610,7 +2610,7 @@ function vibrationOffset(layer){
 function checkBaitBrush(){
  if(view!=='fish'||cast.active||hook||feverFx||escapeFx||catchFx)return;
  for(var i=0;i<fish.length;i++){
-  var f=fish[i];if(f.feverCaptured)continue;
+  var f=fish[i];if(f.feverCaptured||isFishFleeing(f))continue;
   var rx=15+36*(f.size||1),ry=12+21*(f.size||1);
   var dx=(f.x-bob.x)/rx,dy=(f.y-bob.y)/ry;
   var touching=dx*dx+dy*dy<=1;
@@ -3295,8 +3295,18 @@ function updateEcosystem(dt){
   }
   if(f.panicUntil>eco.t){
    var dx=f.x-f.fearX,dy=f.y-f.fearY,dist=Math.hypot(dx,dy)||1;
-   wantX=dx/dist*61+(dx>=0?14:-14);
-   wantY=dy/dist*37;state='flee';
+   var burst=f.fleeBurstUntil>eco.t;
+   if(burst){
+    // Wrong-body contact causes high-speed retreat, retaining its
+    // original direction until the fish has fled the bait.
+    var runDir=f.fleeDir||f.dir||1;
+    wantX=runDir*(158+Math.min(24,f.speed*.5));
+    wantY=clamp(dy/dist*82,-82,82);f.dir=runDir;
+   }else{
+    wantX=dx/dist*61+(dx>=0?14:-14);
+    wantY=dy/dist*37;
+   }
+   state='flee';
   }else if(f.fightUntil>eco.t){
    var rival=fish.find(function(g){return g.ecoId===f.fightTarget});
    if(rival&&!rival.feverCaptured){
@@ -3331,9 +3341,11 @@ function updateEcosystem(dt){
   f.homeY=ecoSafeDepth(f,f.homeY);
   wantY+=clamp((f.homeY-f.y)*.22,-11,11);
   // All velocities are pixels per second. Swimmers are calm unless threatened.
-  var steer=Math.min(1,dt*(state==='flee'?3.8:state==='fight'?3.1:1.65));
-  f.vx=mix(f.vx,clamp(wantX,-85,85),steer);
-  f.vy=mix(f.vy,clamp(wantY,-40,40),Math.min(1,steer*.85));
+  var fleeingFast=f.fleeBurstUntil>eco.t;
+  var steer=Math.min(1,dt*(fleeingFast?12:state==='flee'?3.8:state==='fight'?3.1:1.65));
+  f.vx=mix(f.vx,clamp(wantX,fleeingFast?-195:-85,fleeingFast?195:85),steer);
+  f.vy=mix(f.vy,clamp(wantY,fleeingFast?-84:-40,fleeingFast?84:40),
+   Math.min(1,steer*(fleeingFast?1:.85)));
   f.x+=f.vx*dt;f.y+=f.vy*dt;
   if(f.y<top){f.y=top;f.vy=Math.max(0,f.vy*.28)}
   if(f.y>bottom){f.y=bottom;f.vy=Math.min(0,f.vy*.28)}
