@@ -3917,7 +3917,7 @@ function activateOctoFever(){
   // The approved fish PNG is used both for ascent and the resistance escape.
   targets.push({x:f.x,y:f.y,sp:f.sp,size:f.size,vx:f.vx,phase:f.phase,
    quantity:n,human:false,willEscape:!captured,
-   escapeDir:f.x>=center.x?1:-1});
+   sourceFish:captured?null:f,escapeDir:f.x>=center.x?1:-1});
  });
  // Human elites are exceptionally rare, and harder to hook than rare fish.
  // Boss humans remain immune to AOE harvesting, preserving their individual-boss status.
@@ -4039,7 +4039,31 @@ function feverTossPoint(entity,fx,index,now){
    slot.scale*(t<.84?1:Math.max(.02,(1-t)/.16)),
   done:t>=1,phase:'throw',attached:false};
 }
+// A fish that escaped the main mouth rejoins the living underwater scene
+// without being destroyed or re-rolled. At handoff it is already underwater,
+// full-size and almost level, so the same PNG continues without a jump.
+function feverReturnResistantFish(fx,now){
+ if(!fx||!fx.caught)return;
+ var launch=fx.reelStart+.82+.72*.96;
+ fx.caught.forEach(function(entity,index){
+  if(!entity.willEscape||!entity.sourceFish||entity.escapeReleased||
+     fx.elapsed<launch+.78)return;
+  var pos=feverTossPoint(entity,fx,index,now),f=entity.sourceFish;
+  var dir=entity.escapeDir||1,bounds=missScareScreenLimits(f);
+  f.feverCaptured=false;
+  f.x=clamp(pos.x,bounds.left,bounds.right);
+  f.y=ecoSafeDepth(f,pos.y);
+  f.fleeDir=dir;f.dir=dir;f.vx=dir*285;f.vy=0;
+  f.fearX=fx.x;f.fearY=fx.y;
+  f.panicUntil=eco.t+1.45;f.fleeBurstUntil=eco.t+1.30;
+  f.escapeNoCatchUntil=eco.t+2.1;f.missScareStayVisible=true;
+  f.behavior='flee';f.fightUntil=0;
+  if(fish.indexOf(f)<0)fish.push(f);
+  entity.escapeReleased=true;
+ });
+}
 function drawFeverTossCreature(entity,fx,index,now,layer){
+ if(entity.escapeReleased)return;
  var pose=feverTossPoint(entity,fx,index,now);
  if(pose.phase==='throw'&&!entity.willEscape&&pose.scale<.16&&!entity.vibrationLanded){entity.vibrationLanded=true;vibrationPulse('swallow')}
  if(pose.phase==='escape'&&!entity.vibrationLanded){
@@ -4113,6 +4137,7 @@ function drawFeverFx(dt){
  ctx.fillText(fx.caught.length+' LIFT · '+confirmed+' CATCH · '+fx.resisted+' RESIST · ◈ '+fx.coins,
   fx.x,Math.max(255,fx.y-84)-35*Math.min(1,p*2));
  ctx.restore();
+ feverReturnResistantFish(fx,time);
  // Fever fish sit IN FRONT of the sprite in all subphases, just like a
  // single hooked fish during ordinary fishing; keep the suction trajectory.
 
