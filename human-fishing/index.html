@@ -362,11 +362,11 @@ var FISH_MOUTH_RADIUS={COMMON:14,UNCOMMON:11.5,RARE:8.8,EPIC:6.7,LEGEND:4.7,MYTH
 function baitSwingStats(gear,level){
  var g=gear||selectedGear('bait');
  var lv=level===undefined?gearLevel('bait',g.id):level;
- var quality=clamp(g.tier/5*.83+lv/10*.17,0,1);
+ var quality=clamp(g.tier/9*.84+lv/10*.16,0,1);
  return{quality:quality,
   // High-grade bait is steadier but has a smaller precision contact circle.
-  angle:.23*(1-.82*quality),
-  contactRadius:clamp(5.8-g.tier*.34-lv*.055,3.45,5.8)};
+  angle:.28*(1-.84*quality),
+  contactRadius:clamp(5.8-g.tier*.26-lv*.045,2.9,5.8)};
 }
 function baitCenterRadius(){return baitSwingStats().contactRadius}
 function danglingBaitPosition(now){
@@ -378,9 +378,11 @@ function danglingBaitPosition(now){
  if(hook)angle*=.62;
  if(feverFx)angle*=.72;
  angle=clamp(angle,-.40,.40);
- var jointX=bob.x,jointY=bob.y+27,length=24;
- return{x:jointX+Math.sin(angle)*length,
-  y:jointY+Math.cos(angle)*length,
+ // All 10 PNG-like bitmap cells have the hook eye at x≈80,y≈16.
+ // The piercing bait center sits about 41 game pixels below the eye.
+ var jointX=bob.x,jointY=bob.y+30,length=41,localX=1.46;
+ return{x:jointX+Math.sin(angle)*length+Math.cos(angle)*localX,
+  y:jointY+Math.cos(angle)*length-Math.sin(angle)*localX,
   jointX:jointX,jointY:jointY,angle:angle,length:length};
 }
 function isFishFleeing(f){
@@ -1617,12 +1619,16 @@ var gearCatalog={
  ['titan','티타늄 심해대','고급 장력 제어',1450,'#e4ce91'],
  ['abyss','어비스 전설대','심해 최고 등급',2900,'#ad85ee']],
  bait:[
- ['worm','살랑이는 기본 미끼','기본 입질',0,'#f3c58f'],
- ['shrimp','발광 새우 미끼','발광 유인',100,'#ffd397'],
- ['spoon','반짝이는 스푼','빛 반사',260,'#ccd8e9'],
- ['coral','산호 구슬 미끼','희귀어 유인',620,'#ff9a8f'],
- ['star','심해 별빛 미끼','엘리트 유인',1250,'#7af4de'],
- ['void','블랙홀 미끼','보스 유인',2450,'#c18aff']],
+ ['worm','통통한 지렁이','기본형 · 풍성하게 꿈틀대는 생미끼',0,'#f28b96'],
+ ['shrimp','불꽃 새우','소형·일반어 포획률 +3%p',120,'#ff9b67'],
+ ['tentacle','꿈틀 문어다리','헛입질 뒤 도주속도 -15%',290,'#c78cf1'],
+ ['cheese','구멍 치즈 큐브','호기심 많은 일반어를 천천히 유인',550,'#ffce75'],
+ ['spoon','거울 생선 루어','광택 반사 · 희귀어 출현율 +1.5%p',880,'#9addfc'],
+ ['drumstick','바삭 닭다리','고기 향 · 대형어 포획률 +5%p',1330,'#f7b86d'],
+ ['catdoll','냥냥 인형','인간형 출현 빈도 +40%',1950,'#f8dbba'],
+ ['coral','심해 산호해파리','산호 발광 · 희귀·영웅 어종 포획 +4%p',2850,'#79e9df'],
+ ['star','황금 미니잠수정','탐사 보너스 · 진주 수익 +15%',4100,'#f8d16c'],
+ ['void','금단의 생명체','생명력 흡수 · 포획 4회마다 피버 +1칸',6000,'#e39aff']],
  net:[
  ['linen','기본 어망','추가 수집 기초',0,'#acbeb2'],
  ['mesh','촘촘한 그물','소형어 수집',150,'#92cad0'],
@@ -1645,6 +1651,40 @@ var gearCatalog={
  ['glow','심해 발광문어','희귀 생물 광역 포획 특화',2600,'#7fe7c8'],
  ['king','왕관 괴수문어','최대 크기·발동·포획력',5000,'#ff8db9']]
 };
+// Bait specials are actual game rules, not cosmetics. Legacy IDs stay
+// unchanged when a saved 6-bait collection is upgraded to the 10-bait list.
+var baitTraits={
+ worm:{type:'none',power:0,label:'기본 미끼 · 특수 능력 없음'},
+ shrimp:{type:'commonCatch',power:.03,label:'일반·고급 물고기 포획 확률'},
+ tentacle:{type:'fleeDamping',power:.15,label:'잘못 건드린 물고기 도주 속도 감소'},
+ cheese:{type:'gentleAttract',power:92,label:'일반 물고기가 다가오는 거리'},
+ spoon:{type:'rareEncounter',power:.015,label:'희귀 어종 자연 출현 확률'},
+ drumstick:{type:'largeCatch',power:.05,label:'대형 어종 포획 확률'},
+ catdoll:{type:'humanEncounter',power:.40,label:'인간형 생물 자연 출현 빈도'},
+ coral:{type:'rareCatch',power:.04,label:'희귀·영웅 어종 포획 확률'},
+ star:{type:'pearlBonus',power:.15,label:'진주 보상'},
+ void:{type:'feverCharge',power:4,label:'포획마다 추가 옥토피버 충전'}
+};
+function baitTrait(gear,level){
+ var g=gear||selectedGear('bait'),lv=level===undefined?gearLevel('bait',g.id):level;
+ var raw=baitTraits[g.id]||baitTraits.worm;
+ return{type:raw.type,power:raw.power*(1+lv*.045),
+  chargeEvery:raw.type==='feverCharge'?Math.max(3,4-Math.floor(lv/10)):0,
+  label:raw.label};
+}
+function baitTraitPreview(gear,level){
+ var t=baitTrait(gear,level);
+ if(t.type==='none')return '특수 능력 없음 · 포획 기본기 연습';
+ if(t.type==='gentleAttract')return '주변 일반어를 '+Math.round(t.power)+'px에서 서서히 유인';
+ if(t.type==='feverCharge')return '포획 '+t.chargeEvery+'회마다 옥토피버 +1칸';
+ return t.label+' +'+(t.power*100).toFixed(1)+(t.type==='humanEncounter'||t.type==='pearlBonus'?'%':'%p');
+}
+function baitSpriteCss(tier){
+ return "background-image:url('./assets/octopus/bait/hanging_baits10_v2.webp?v=20261107')";
+}
+function baitSpritePosition(tier){
+ return (clamp(tier,0,9)*100/9).toFixed(4)+'% 50%';
+}
 var gearIcons={rod:'🎣',bait:'🪱',net:'🕸️',helper:'🦑',octopus:'🐙'};
 var gearCategoryNames={rod:'낚싯대',bait:'미끼',net:'어망',helper:'조력자',octopus:'피버 문어'};
 Object.keys(gearCatalog).forEach(function(cat){
