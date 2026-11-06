@@ -22,8 +22,18 @@ const hookedFish=where('drawHookSwallow(time);');
 const fever=where("if(view==='fish'&&!introEntrance.active&&feverFx)drawFeverFx(dt);");
 assert.ok(stateUpdate<hero&&hero<=rod&&rod<line&&line<fever&&fever<ordinaryBack&&ordinaryBack<bait,
  'Both normal and FEVER bait MUST render above the rod/line, beneath fish');
-assert.match(source,/function drawBaitAbovePlayer\(now\)\{\s*if\(hook\)return drawRedLure\(now,bob\.x,bob\.y,64\);\s*return drawBob\(\);\s*\}/,
- 'Normal and individually reeled bait must use the same foreground-over-player pass');
+assert.match(source,/function drawBaitAbovePlayer\(now\)\{\s*if\(hook\)drawRedLure\(now,bob\.x,bob\.y,64\);\s*else drawBob\(\);\s*drawDanglingBait\(now\);\s*\}/,
+ 'Normal and reeled octopus MUST draw the separate pierced hook-bait bitmap in the same under-fish pass');
+assert.ok(source.includes('var jointX=bob.x,jointY=bob.y+30,length=41,localX=1.46;'),
+ 'The upper metal eyelet must be the swing pivot, with the bait center below');
+assert.ok(source.includes('var center={x:bob.x,y:bob.y};'),
+ 'OCTO FEVER still targets the red octopus body center, never the small hanging bait');
+const baitAtlas='human-fishing/assets/octopus/bait/hanging_baits10_v2.webp';
+const baitBytes=fs.readFileSync(baitAtlas);
+assert.equal(baitBytes.toString('ascii',0,4),'RIFF','Hook-bait sprite atlas missing/invalid');
+assert.equal(baitBytes.toString('ascii',8,12),'WEBP','Hook-bait atlas must have transparent WebP format');
+assert.ok(source.includes('hanging_baits10_v2.webp'),
+ 'Game must load all ten original hooked bait art cells');
 assert.ok(bait<ambient&&ambient<human&&human<hookedFish,
  'Normal red bait must stay ABOVE line but BEHIND ambient and singly reeled fish');
 assert.ok(fever<ambient&&fever<human&&fever<hookedFish,
