@@ -500,7 +500,7 @@ function ordinaryFishingTarget(){
    (107+save.up[1]*14+(a.id>=20?35:0)+rod*11+bait*8);
   if(d<lowest){lowest=d;human=a}
  });
- return human?{obj:human,kind:'human'};
+ return human?{obj:human,kind:'human'}:null;
 }
 function nearest(){return ordinaryFishingTarget()}
 function release(){if(hook||view!=='fish'&&view!=='human')return;var found=nearest();ripple(bob.x,bob.y);beep('hit');if(found){hook={obj:found,kind:view,elapsed:0,startX:found.x,startY:found.y,originX:bob.x,originY:bob.y};$('hintTitle').textContent='입질 성공!';$('hint').textContent='당겨 올리는 중…';spawnParticles(bob.x,bob.y,12,'water')}else{announce('💧','앗, 놓쳤다!','움직이는 생물 가까이 찌를 놓아보세요.');$('hintTitle').textContent='다시 찌를 움직여보세요';spawnParticles(bob.x,bob.y,8,'water')}}
