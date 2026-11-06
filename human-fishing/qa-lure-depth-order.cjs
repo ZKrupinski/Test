@@ -51,6 +51,24 @@ assert.ok(source.includes('red_lure_fever_natural_v2.webp'),
  'Fever must use the new natural-size illustrated red bait atlas');
 assert.ok(source.includes('octofever_vortex_soft_v2.webp'),
  'Fever must load a separate soft circular suction atlas');
+// Extra OCTO FEVER suction sprites must be real binary WebP sheets and
+// remain in the repo, not temporary external preview URLs.
+for(const name of ['octofever_suction_A_16f.webp',
+ 'octofever_suction_B_16f.webp','octofever_suction_drops_16f.webp']){
+ const filename='human-fishing/assets/octopus/bait/'+name;
+ assert.ok(fs.existsSync(filename),'Missing painted suction atlas: '+name);
+ const bytes=fs.readFileSync(filename);
+ assert.equal(bytes.toString('ascii',0,4),'RIFF','Not a valid RIFF WebP asset: '+name);
+ assert.equal(bytes.toString('ascii',8,12),'WEBP','Invalid WebP header: '+name);
+ assert.ok(source.includes(name),'Game must load the real atlas: '+name);
+}
+assert.ok(active.indexOf('drawFeverSuctionParticles(fx,time);')>launched,
+ 'Water droplets and foam must render above captured and swimming fish');
+assert.ok(source.includes('var rotationTravel=turn+(mass<1.4?Math.PI*2:0);'),
+ 'Small fish must circle through the suction faster than larger creatures');
+assert.ok(source.includes('Math.max(endRadius,38+mass*13)'),
+ 'Inhaled fish must retain a safe distance around the bait instead of overlapping the center');
+
 assert.ok(source.includes('makeFeverVortexOpaque(im)'),
  'Fever bitmap must boost original low-alpha paint without editing source art');
 assert.ok(source.includes('var opacity=1-.10*castEasing((t-.10)/.17);'),
