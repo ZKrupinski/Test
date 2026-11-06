@@ -47,6 +47,8 @@ jobs:
         run: node human-fishing/qa-lure-line-hang.cjs
       - name: Verify normal and hooked bait is behind fish, Fever above
         run: node human-fishing/qa-lure-depth-order.cjs
+      - name: Verify Fever VFX respects actual capture radius at all tiers and levels
+        run: node human-fishing/qa-fever-effect-radius.cjs
       - name: Verify 128 isolated player sprite frames and aligned foot anchors
         run: node human-fishing/qa-octo-player-geometry.cjs
       - name: Inspect original player octopus frame bounds and foot baselines

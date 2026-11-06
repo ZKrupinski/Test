@@ -4512,7 +4512,9 @@ function drawFeverVortex(fx,reel){
   sw=image.width/4,sh=image.height/4;
  var dx=frame%4*sw,dy=Math.floor(frame/4)*sh;
  var scale=1-.73*castEasing(travel);
- var d=fx.radius*2/.55*scale;
+ // Diameter is exactly twice the REAL catch radius (tier + level included).
+ // The prior /.55 enlarged the vortex beyond the actual catch boundary.
+ var d=fx.radius*2*scale;
  var front=feverSuctionArt.front,back=feverSuctionArt.back;
  var paired=!!(front&&front.ready&&back&&back.ready);
  // The existing approved vortex is the fallback and a faint core
@@ -4548,11 +4550,12 @@ function drawFeverSuctionParticles(fx,now){
   var flow=(fx.elapsed*(.96+(i%4)*.17)+i*.61803398875)%1;
   // Same clockwise flow as the front bitmap and sucked-in fish.
   var theta=i*2.39996+now*.28+flow*(5.0+(i%4)*.33);
-  var radius=20+(i%5)*4+
-   fx.radius*(.93*Math.pow(1-flow,1.45));
+  var d=(15+(i%5)*6)*(1-.73*flow);
+  // Entire droplet sprite (not just its center) must stay inside AOE.
+  var radius=Math.max(0,fx.radius-d*.5-2)*
+   (.93*Math.pow(1-flow,1.45));
   var x=fx.x+Math.cos(theta)*radius;
   var y=fx.y+Math.sin(theta)*radius*.87;
-  var d=(15+(i%5)*6)*(1-.73*flow);
   // Each droplet is born, contracts and disappears individually: no
   // synchronous bubbles popping back at the vortex perimeter.
   var alpha=appear*fade*Math.sin(Math.PI*flow)*(.75-.23*flow);
