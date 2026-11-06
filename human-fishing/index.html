@@ -3072,6 +3072,7 @@ function raritySparklesFor(f,now){
   var t=moment/duration,opacity=Math.sin(Math.PI*t);
   if(opacity<.06)continue;
   var size=clamp(12+Math.sqrt(Math.max(1,width))*u*1.1,12,30);
+  if(result.length>=2)break; // Keep even MYTHIC sparkle clusters airy.
   result.push({
    x:f.x+(places[i][0]+(u-.5)*.18)*width,
    y:f.y+(places[i][1]+(v-.5)*.18)*height,
@@ -3438,7 +3439,7 @@ function escapePose(fx,t){
   if(t<1.19){
    var dive=smooth((t-.74)/.45);
    return{stage:'dive',x:x+d*(152+240*dive),
-    y:mix(y+73,365,dive)-24*Math.sin(Math.PI*dive),
+    y:mix(y+73,365,dive)+12*Math.sin(Math.PI*dive),
     rot:d*(.74-1.0*dive),scale:1};
   }
   var run=t-1.19;
