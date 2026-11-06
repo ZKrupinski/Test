@@ -298,7 +298,9 @@ function baitCenterRadius(){
  var level=gearLevel('bait',bait.id),shop=Number(save.shop.bait)||0;
  // Higher quality lures give a larger center contact area, without
  // moving the bait or changing the species' invisible weak point.
- return clamp(6.5+bait.tier*1.65+level*.40+shop*.22,6.5,20);
+ // The painted lure body is roughly 29-33px across. Its hidden hit circle
+ // stays well WITHIN it even for the strongest fully-upgraded bait.
+ return clamp(3.2+bait.tier*.83+level*.18+shop*.10,3.2,9.2);
 }
 function isFishFleeing(f){
  return !!f&&!f.feverCaptured&&(Number(f.panicUntil)>eco.t||
@@ -318,7 +320,10 @@ function fishMouthWeakspot(f,now){
  var headFraction=shape==='horse'?.25:shape==='ray'?.33:.395;
  var offsetY=shape==='horse'?-.11:shape==='ray'?.07:shape==='angler'?.04:-.025;
  var radius=FISH_MOUTH_RADIUS[f.sp.rarity]||11;
- var sizeFactor=clamp(Math.sqrt(Math.max(.25,h/63)),.73,1.55);
+ // Large bitmaps must have a SMALLER mouth weak point, not an enlarged
+ // target. The image's actual rendered height (after sprite scale) is used,
+ // so a giant fish is meaningfully harder to hit than a tiny one.
+ var sizeFactor=clamp(Math.sqrt(60/Math.max(18,h)),.48,1.30);
  return{x:f.x+facing*w*headFraction*Math.abs(pose.sx),
   y:f.y+Math.sin(now*2+(f.phase||0))*Math.min(3,1.8+size)+h*offsetY,
   rx:radius*sizeFactor,ry:radius*.78*sizeFactor,
