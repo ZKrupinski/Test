@@ -290,7 +290,109 @@ function ripple(x,y){ripples.push({x:x,y,r:6,life:1})}
 function announce(icon,title,sub){$('bannerIcon').textContent=icon;$('bannerTitle').textContent=title;$('bannerSub').textContent=sub;$('banner').classList.add('visible');bannerTimer=2.2}
 var audioCtx;
 function beep(kind){try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();var o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime;o.type=kind==='hit'?'triangle':'sine';o.frequency.setValueAtTime(kind==='hit'?510:kind==='catch'?620:300,t);o.frequency.exponentialRampToValueAtTime(kind==='catch'?960:kind==='hit'?210:180,t+.16);g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(.08,t+.013);g.gain.exponentialRampToValueAtTime(.001,t+.26);o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+.27)}catch(e){}}
-function nearest(){if(view==='human'){var best=null,dist=160*160;hum.forEach(function(a){var d=Math.pow(a.x-bob.x,2)+Math.pow((a.y+70)-bob.y,2);if(d<dist){best=a;dist=d}});return best}var best=null,dist=Math.pow(135+save.up[1]*20,2);fish.forEach(function(a){var d=(a.x-bob.x)**2+(a.y-bob.y)**2;if(d<dist){best=a;dist=d}});return best}
+// Normal fishing only: a hidden, per-fish mouth weak point must overlap
+// the equipped bait's hidden center area. This never alters OCTO FEVER AOE.
+var FISH_MOUTH_RADIUS={COMMON:14,UNCOMMON:11.5,RARE:8.8,EPIC:6.7,LEGEND:4.7,MYTHIC:3.1};
+function baitCenterRadius(){
+ var bait=selectedGear('bait');
+ var level=gearLevel('bait',bait.id),shop=Number(save.shop.bait)||0;
+ // Higher quality lures give a larger center contact area, without
+ // moving the bait or changing the species' invisible weak point.
+ return clamp(6.5+bait.tier*1.65+level*.40+shop*.22,6.5,20);
+}
+function isFishFleeing(f){
+ return !!f&&!f.feverCaptured&&(Number(f.panicUntil)>eco.t||
+  Number(f.escapeNoCatchUntil)>eco.t||f.behavior==='flee');
+}
+function fishMouthWeakspot(f,now){
+ if(!f||!f.sp||f.feverCaptured||isFishFleeing(f))return null;
+ var image=fishSprite(f.sp);
+ if(!image||!image.width||!image.height)return null;
+ var size=.5*(f.size||fishVisualProfile(f.sp).baseScale)*(image._hfScale||1);
+ var w=image.width*size,h=image.height*size,sourceFacing=image._hfFacingRight?1:-1;
+ // Use the exact same heading/width interpolation as the drawn bitmap.
+ var pose=fishMotionPose(f,now,sourceFacing,fishMotionSettings(f.sp));
+ if(Math.abs(pose.sx)<.60)return null; // mouth faces away in the middle of a turn
+ var facing=(pose.sx*sourceFacing)>0?1:-1;
+ var shape=fishVisualProfile(f.sp).shape;
+ var headFraction=shape==='horse'?.25:shape==='ray'?.33:.395;
+ var offsetY=shape==='horse'?-.11:shape==='ray'?.07:shape==='angler'?.04:-.025;
+ var radius=FISH_MOUTH_RADIUS[f.sp.rarity]||11;
+ var sizeFactor=clamp(Math.sqrt(Math.max(.25,h/63)),.73,1.55);
+ return{x:f.x+facing*w*headFraction*Math.abs(pose.sx),
+  y:f.y+Math.sin(now*2+(f.phase||0))*Math.min(3,1.8+size)+h*offsetY,
+  rx:radius*sizeFactor,ry:radius*.78*sizeFactor,
+  facing:facing};
+}
+function fishBodyContact(f,point){
+ if(!f||!f.sp||f.feverCaptured)return false;
+ var image=fishSprite(f.sp);
+ if(!image)return false;
+ var scale=.5*(f.size||fishVisualProfile(f.sp).baseScale)*(image._hfScale||1);
+ var w=image.width*scale,h=image.height*scale;
+ var rx=Math.max(22,w*.48+baitCenterRadius()),ry=Math.max(17,h*.42+baitCenterRadius());
+ var dx=(point.x-f.x)/rx,dy=(point.y-f.y)/ry;
+ return dx*dx+dy*dy<=1;
+}
+function fishMouthOverlapsLure(f,point,now){
+ var mouth=fishMouthWeakspot(f,now);if(!mouth)return false;
+ var radius=baitCenterRadius();
+ var dx=(point.x-mouth.x)/(mouth.rx+radius);
+ var dy=(point.y-mouth.y)/(mouth.ry+radius);
+ return dx*dx+dy*dy<=1;
+}
+function scareFishOnMiss(point){
+ // Release over the fish's body/tail (but outside its mouth) sends the
+ // whole nearby group into fast flight, not just the touched individual.
+ var radius=215,scared=0;
+ fish.forEach(function(f){
+  if(!f||f.feverCaptured||f===(hook&&hook.obj))return;
+  var dx=f.x-point.x,dy=f.y-point.y,dist=Math.hypot(dx,dy);
+  if(dist>radius)return;
+  var dir=Math.abs(dx)>8?(dx>0?1:-1):
+   ((f.vx||f.dir||1)<0?-1:1);
+  f.fearX=point.x;f.fearY=point.y;
+  // Holding a signed direction prevents trapped fish from changing
+  // direction mid-flight when they pass through the release position.
+  f.fleeDir=dir;f.dir=dir;
+  f.panicUntil=Math.max(f.panicUntil||0,eco.t+2.05);
+  f.fleeBurstUntil=Math.max(f.fleeBurstUntil||0,eco.t+2.05);
+  f.escapeNoCatchUntil=Math.max(f.escapeNoCatchUntil||0,eco.t+2.65);
+  f.behavior='flee';f.fightUntil=0;
+  f.vx=dir*Math.max(92,Math.abs(f.vx||0));
+  f.vy=clamp(dy*.24,-36,36);
+  f.shakeUntil=time+.16;f.shakePower=2.2;
+  scared++;
+ });
+ return scared;
+}
+function ordinaryFishingTarget(){
+ var best=null,score=Infinity,blockedByBody=false;
+ fish.forEach(function(f){
+  if(!f||f.feverCaptured)return;
+  if(fishBodyContact(f,bob)&&!fishMouthOverlapsLure(f,bob,time))
+   blockedByBody=true;
+  var mouth=fishMouthWeakspot(f,time);
+  if(!mouth)return;
+  var radius=baitCenterRadius();
+  var dx=(bob.x-mouth.x)/(mouth.rx+radius),
+      dy=(bob.y-mouth.y)/(mouth.ry+radius);
+  var d2=dx*dx+dy*dy;
+  if(d2<=1&&d2<score){best=f;score=d2}
+ });
+ if(best)return{obj:best,kind:'fish'};
+ // An incorrect placement on a fish must never silently hook a nearby
+ // human instead. Human fishing otherwise retains its existing rules.
+ if(blockedByBody)return null;
+ var human=null,lowest=1;
+ hum.forEach(function(a){
+  var d=Math.hypot(a.x-bob.x,a.y+22-bob.y)/
+   (117+save.up[1]*14+(a.id>=20?40:0));
+  if(d<lowest){lowest=d;human=a}
+ });
+ return human?{obj:human,kind:'human'}:null;
+}
+function nearest(){return ordinaryFishingTarget()}
 function release(){if(hook||view!=='fish'&&view!=='human')return;var found=nearest();ripple(bob.x,bob.y);beep('hit');if(found){hook={obj:found,kind:view,elapsed:0,startX:found.x,startY:found.y,originX:bob.x,originY:bob.y};$('hintTitle').textContent='입질 성공!';$('hint').textContent='당겨 올리는 중…';spawnParticles(bob.x,bob.y,12,'water')}else{announce('💧','앗, 놓쳤다!','움직이는 생물 가까이 찌를 놓아보세요.');$('hintTitle').textContent='다시 찌를 움직여보세요';spawnParticles(bob.x,bob.y,8,'water')}}
 function success(){var o=hook.obj, human=hook.kind==='human',id=human?String(o.id):o.sp.id,name=human?humans[o.id]:o.sp.name,owned=human?save.human:save.owned,fresh=!owned[id];owned[id]=(owned[id]||0)+1;var reward=(human?55:15)+(human?o.id*4:o.sp.index>=18?85:o.sp.index>=14?35:0)+save.up[2]*4;save.coins+=reward;save.catches++;if(!human&&save.placed.length===0)save.placed.push(id);persist();updateStats();announce(human?'🧑':'🐟',fresh?'NEW! '+name:name+' 포획!',(fresh?'도감에 새로 등록 · ':'')+'진주 +'+reward);beep('catch');spawnParticles(420,260,28,'gold');hook=null;buildFish();buildHum();$('hintTitle').textContent='다음 대상을 낚아보세요!';$('hint').textContent='찌를 드래그한 뒤 손을 놓으면 자동 포획';}
 canvas.addEventListener('pointerdown',onBaitPointerDown);
@@ -805,9 +907,19 @@ function release(){
   $('hint').textContent=found.kind==='human'?'엘리트는 격렬하게 저항하지만 자동으로 끌려옵니다.':'낚싯줄이 당겨지며 자동으로 올라옵니다.';
   spawnParticles(bob.x,bob.y,found.kind==='human'?24:12,'water');
  }else{
+  // A body/tail miss disturbs all fish around the bait. The escaping fish
+  // immediately lose their mouth weak points until the flight is finished.
+  var bodyMiss=fish.some(function(f){return fishBodyContact(f,bob)});
+  var scared=bodyMiss?scareFishOnMiss(bob):0;
   if(window.octoSidekicksSignal)window.octoSidekicksSignal('miss',time);
-  announce('💧','앗, 놓쳤다!','물고기 또는 헤엄치는 인간 가까이 놓으세요.');
-  $('hintTitle').textContent='찌를 다시 드래그해보세요';spawnParticles(bob.x,bob.y,8,'water');
+  if(scared){
+   $('hintTitle').textContent='입을 놓쳤어! 주변 물고기들이 도망칩니다';
+   $('hint').textContent='물고기 입에 미끼 중심을 맞춰야 해요. 도망가는 동안에는 포획할 수 없습니다.';
+  }else{
+   $('hintTitle').textContent='물고기 입 근처에 미끼를 놓아보세요';
+   $('hint').textContent='물고기 입의 약점 영역에 미끼 중심을 맞춰야 낚입니다.';
+  }
+  spawnParticles(bob.x,bob.y,scared?14:8,'water');
  }
 }
 function success(){
