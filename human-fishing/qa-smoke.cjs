@@ -880,8 +880,8 @@ assert.match(runtimeTick,/var point=swallowPoint\(hook\.startX,hook\.startY,mout
  'Hook motion must aim at the updated animated mouth, not a stale coordinate');
 assert.match(runtimeTick,/var baitOffset=danglingBaitPosition\(time\)/,
  'The small dangling bait, NOT the octopus body, must follow the hook to the player mouth');
-assert.match(runtimeTick,/bob\.x=o\.x-\(baitOffset\.x-bob\.x\)/,
- "Carrier must stay above the bait mouth pivot while reeling");
+assert.match(runtimeTick,/bob\.x\+=o\.x-baitOffset\.x/,
+ "Carrier must converge to keep its hook bait attached to the fish mouth");
 assert.match(runtimeTick,/drawBaitAbovePlayer\(time\)/,
  'Bait must remain layered above protagonist and fishing line until swallowing');
 assert.match(script,/if\(!fx\.swallowed\)drawSwallowCreature/,'Reward animation must not replay a second flight');
@@ -892,7 +892,7 @@ game.setHook({obj:actual,kind:'fish',elapsed:0,startX:origin.x,startY:origin.y,w
 step(45);
 assert.ok(game.getHook(),'Live hooked creature must be flying before arriving at mouth');
 assert.ok(actual.y<269,'Live hook should have crossed waterline on a direct arc');
-const hanging=game.getBaitTip(clock/1000);
+const hanging=game.getBaitTip();
 assert.ok(Math.hypot(hanging.x-actual.x,hanging.y-actual.y)<2.5,
  'During reeling the small bait should share the fish-mouth joint');
 assert.ok(game.mouthOpen()>.75,'Octopus should open wide before the creature arrives');
@@ -1297,6 +1297,13 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  assert.ok(sampled.every(x=>x>=62&&x<=150),
   'Body-miss scare radius must be narrower than the previous 215px');
  const bait=game.getBob();
+ function positionHookBaitAt(point){
+  for(let k=0;k<8;k++){
+   const tip=game.getBaitTip();
+   bait.x+=point.x-tip.x;
+   bait.y+=point.y-tip.y;
+  }
+ }
  // Direct fixture view switches bypass the real UI's setMode()/startCast()
  // reset; explicitly finish any previous bait recovery for this test.
  game.getRecovery().active=false;
@@ -1306,10 +1313,10 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  const baseRadius=game.baitCenterRadius();
  save.gearEquipped.bait='void';
  const superiorRadius=game.baitCenterRadius();
- assert.ok(superiorRadius>baseRadius+3,
-  'High-quality bait must still have a modestly larger center contact area');
- assert.ok(baseRadius<5&&superiorRadius<=9.2,
-  'Even upgraded bait collision radius must stay inside the painted octopus bait body');
+ assert.ok(superiorRadius<baseRadius-2,
+  'Higher-grade bait is steadier but has a smaller hidden catch point');
+ assert.ok(baseRadius<=5.8&&superiorRadius>=2.9,
+  'The hook-bait hit radius stays inside the illustrated bait');
  save.gearEquipped.bait='worm';
  const commonFish=game.makeFish(common,580,440,1,false,0);
  commonFish.behavior='cruise';commonFish.panicUntil=0;
@@ -1339,13 +1346,13 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  commonFish.dir=1;commonFish.vx=26;commonFish._hfFacing=1;
  commonFish._hfTarget=1;commonFish._hfTurnStart=-100;
  const head=game.mouthWeakspot(commonFish,57.1);
- bait.x=head.x;bait.y=head.y;
- assert.equal(game.mouthHit(commonFish,bait,57.1),true,
+ game.setTime(57.1);positionHookBaitAt(head);
+ assert.equal(game.mouthHit(commonFish,game.getBaitTip(),57.1),true,
   'Center-on-mouth contact should overlap both invisible areas');
- bait.x=commonFish.x;bait.y=commonFish.y;
- assert.equal(game.bodyHit(commonFish,bait),true,
+ positionHookBaitAt(commonFish);
+ assert.equal(game.bodyHit(commonFish,game.getBaitTip()),true,
   'Body contact must be detected for a failed non-mouth release');
- assert.equal(game.mouthHit(commonFish,bait,57.1),false,
+ assert.equal(game.mouthHit(commonFish,game.getBaitTip(),57.1),false,
   'Putting the lure in the middle of a fish must NOT count as a mouth hit');
  const companion=game.makeFish(common,625,455,1,false,0),
        distant=game.makeFish(common,1100,470,-1,false,0);
@@ -1381,7 +1388,7 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  assert.equal(companion.behavior,'flee');
  assert.ok(Math.abs(commonFish.vx)>110&&Math.abs(companion.vx)>110,
   'The missed release must send nearby fish sprinting faster than ambient speed');
- bait.x=commonFish.x;bait.y=commonFish.y;
+ positionHookBaitAt(commonFish);
  assert.equal(game.targetOnRelease(),null,
   'Fleeing fish must never become eligible for another catch');
  // A wrong-body miss near the stage edge launches INWARD, stays at full
@@ -1409,7 +1416,7 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  game.setFish([commonFish]);game.getCast().active=false;
  const contact=game.mouthWeakspot(commonFish,57.1);
  assert.ok(contact,'Fish should regain a mouth weak spot after escape ends');
- bait.x=contact.x;bait.y=contact.y;
+ positionHookBaitAt(contact);
  assert.equal(game.targetOnRelease()?.kind,'fish');
  game.releaseNow();
  assert.ok(game.getHook()&&game.getHook().obj===commonFish,
@@ -1423,7 +1430,7 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  assert.doesNotMatch(script,/drawFishWeakspot\(|ctx\.arc\(mouth\.x/,
   'Mouth and bait hit regions must stay invisible during normal gameplay');
 }
-console.log('PASS: mouth-only regular fishing, tier-dependent weak points, superior bait radius, fast noncatchable flee; Fever unchanged');
+console.log('PASS: hook-bait centered fishing, shrinking precision at high tiers, octopus-centered Fever');
 // A MYTHIC fish in OCTO FEVER must be drawn into the whirlpool and
 // carried all the way to the octopus's mouth even on a guaranteed failure.
 // It then visibly breaks free and rejoins the living underwater population.
