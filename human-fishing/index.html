@@ -476,6 +476,10 @@ function scareFishOnMiss(point){
   // Instant panic launch: no gradual takeoff from the former 92 px/s.
   // Both small and large fish burst away on the same release frame.
   f.vx=dir*Math.max(285,Math.abs(f.vx||0));
+  // Preserve the instant violent launch. The later escape run is softened.
+  var missBait=baitTrait();
+  f.fleeSlowMultiplier=missBait.type==='fleeDamping'?
+   clamp(1-missBait.power,.70,1):1;
   f.vy=clamp(dy*.50,-78,78);
   f.shakeUntil=time+.16;f.shakePower=2.2;
   scared++;
@@ -1877,6 +1881,8 @@ function success(){
  if(!aquariumSale)owned[id]=(owned[id]||0)+qty;
  var base=(human?70:15)+(human?(o.id>=20?180:o.id*5):o.sp.index>=18?85:o.sp.index>=14?35:0)+save.up[2]*4;
  var reward=aquariumSale?aquariumUnitSalePrice(o.sp)*qty:Math.floor(base*(1+power*.025));
+ var baitSpecial=baitTrait();
+ if(baitSpecial.type==='pearlBonus')reward=Math.round(reward*(1+baitSpecial.power));
  save.coins+=reward;save.catches++;
  if(!human)recordFeverCapture(qty);
  if(!aquariumSale&&human&&save.humanPlaced.length===0)save.humanPlaced.push(id);
@@ -3398,7 +3404,10 @@ function updateFeverHud(){
 }
 function recordFeverCapture(qty){
  if(save.fever.ready)return;
- var gained=Math.max(1,Math.floor(Number(qty)||1));
+ var gained=Math.max(1,Math.floor(Number(qty)||1)),special=baitTrait();
+ // The forbidden bait adds one earned Fever charge every few catches.
+ if(special.type==='feverCharge'&&save.catches>0&&
+    save.catches%special.chargeEvery===0)gained++;
  save.fever.count=Math.min(6,save.fever.count+gained);
  save.fever.total+=gained;
  var gear=selectedGear('octopus'),lv=gearLevel('octopus',gear.id),q=octoStats(gear.tier,lv);
@@ -3429,6 +3438,18 @@ function catchProbability(target,isHuman,fever){
   chance=bases[target.rarity]??.55;cap=caps[target.rarity]??.75;
  }
  chance=chance-Math.max(0,lev-1)*(isHuman?.00045:.0019)+boost;
+ // Distinct specialties obey the original rarity caps and boss restrictions.
+ var baitSpecial=baitTrait();
+ if(!fever&&!isHuman){
+  if(baitSpecial.type==='commonCatch'&&
+     (target.rarity==='COMMON'||target.rarity==='UNCOMMON'))
+   chance+=baitSpecial.power;
+  if(baitSpecial.type==='rareCatch'&&
+     (target.rarity==='RARE'||target.rarity==='EPIC'))
+   chance+=baitSpecial.power;
+  if(baitSpecial.type==='largeCatch'&&fishVisualProfile(target).category==='LARGE')
+   chance+=baitSpecial.power;
+ }
  if(fever&&!isHuman){
   var g=selectedGear('octopus'),v=octoStats(g.tier,gearLevel('octopus',g.id));
   chance+=v.bonus;
@@ -3537,9 +3558,10 @@ function ecoPickSpeciesIndex(lo,hi){
  return hi;
 }
 function chooseWildSpecies(){
- var p=gearPower('bait'),r=Math.random();
+ var p=gearPower('bait'),r=Math.random(),special=baitTrait();
  var mythic=.00006+p*.00004,legend=.00065+p*.00032,epic=.0026+p*.00075,
   rare=.0175+p*.0021,uncommon=.14+p*.0038;
+ if(special.type==='rareEncounter')rare+=special.power;
  var lo=0,hi=10;
  if(r<mythic){lo=19;hi=19}
  else if(r<mythic+legend){lo=18;hi=18}
@@ -3688,6 +3710,8 @@ function spawnWildHuman(){
  if(hum.length>=2)return false;
  var p=gearPower('bait'),bossChance=.00006+p*.000005,
   eliteChance=.014+p*.00035;
+ var special=baitTrait();
+ if(special.type==='humanEncounter')eliteChance*=1+special.power;
  var roll=Math.random();
  if(roll>bossChance+eliteChance)return false;
  var boss=roll<bossChance,id=boss?20+Math.floor(rnd(0,4)):Math.floor(rnd(0,20));
@@ -3793,7 +3817,8 @@ function updateEcosystem(dt){
   if(eco.fishTimer>interval){eco.fishTimer=0;spawnWildFish(false)}
   if(eco.humanTimer>11){eco.humanTimer=0;spawnWildHuman()}
  }
- var fLocked=hook&&hook.obj;
+ var fLocked=hook&&hook.obj,liveBaitTrait=baitTrait(),
+  liveBaitTip=danglingBaitPosition(time);
  for(var i=fish.length-1;i>=0;i--){
   var f=fish[i];
   if(f.feverCaptured){fish.splice(i,1);continue}
@@ -3829,6 +3854,18 @@ function updateEcosystem(dt){
   var wantX=f.dir*naturalSpeed*pace;
   var wantY=Math.sin(eco.t*f.swimFreq+f.phase)*f.swimAmp;
   var state=f.schoolId?'school':style==='hover'?'hover':'cruise';
+  // Cheese draws only ordinary fish gently toward the painted bait.
+  // It does not auto-hook or override personal-space separation.
+  if(liveBaitTrait.type==='gentleAttract'&&!cast.active&&!hook&&!feverFx&&
+     !isFishFleeing(f)&&f.sp.rarity==='COMMON'){
+   var lureDx=liveBaitTip.x-f.x,lureDy=liveBaitTip.y-f.y,
+    lureDist=Math.hypot(lureDx,lureDy);
+   if(lureDist>18&&lureDist<liveBaitTrait.power){
+    var curiosity=1-lureDist/liveBaitTrait.power;
+    wantX+=clamp(lureDx*.24,-21,21)*curiosity;
+    wantY+=clamp(lureDy*.17,-16,16)*curiosity;
+   }
+  }
   if(crowd.count){
    // Loose schools drift together but never lock into identical rows and speeds.
    var px=crowd.cx/crowd.count-f.x,py=crowd.cy/crowd.count-f.y;
@@ -3870,7 +3907,8 @@ function updateEcosystem(dt){
     // Wrong-body contact causes high-speed retreat, retaining its
     // original direction until the fish has fled the bait.
     var runDir=f.fleeDir||f.dir||1;
-    wantX=runDir*(292+Math.min(28,f.speed*.9));
+    wantX=runDir*(292+Math.min(28,f.speed*.9))*
+     (f.fleeSlowMultiplier||1);
     wantY=clamp(dy/dist*94,-94,94);f.dir=runDir;
    }else{
     wantX=dx/dist*61+(dx>=0?14:-14);
@@ -4634,6 +4672,8 @@ function activateOctoFever(){
    if(!aquariumFishingActive)save.owned[f.sp.id]=(save.owned[f.sp.id]||0)+n;
    var reward=aquariumFishingActive?aquariumUnitSalePrice(f.sp)*n:
     Math.floor((14+f.sp.index*5+save.up[2]*4)*(1+net*.025));
+   var baitSpecial=baitTrait();
+   if(baitSpecial.type==='pearlBonus')reward=Math.round(reward*(1+baitSpecial.power));
    save.coins+=reward;save.catches+=n;coins+=reward;
    if(!aquariumFishingActive&&save.placed.length===0)save.placed.push(f.sp.id);
   }
