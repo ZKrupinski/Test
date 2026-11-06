@@ -1020,7 +1020,12 @@ function drawFish(a,now,alpha){
   ctx.rotate(burst*(action==='flee'?.082:.13));
   ctx.scale(1+burst*.043,1-burst*.025);
  }
- if(a.vx>0)ctx.scale(-1,1);
+ // Original 304 PNG fish face RIGHT; procedural placeholders face LEFT.
+ // Persist the last actual swim heading across near-zero velocity frames.
+ var sourceFacing=sprite._hfFacingRight?1:-1;
+ if(Math.abs(a.vx||0)>.5)a._hfFacing=a.vx>0?1:-1;
+ var swimFacing=a._hfFacing||sourceFacing;
+ if(swimFacing!==sourceFacing)ctx.scale(-1,1);
  ctx.drawImage(sprite,-sprite.width*.5*sz,-sprite.height*.5*sz,
   sprite.width*sz,sprite.height*sz);
  ctx.restore();ctx.globalAlpha=1;
@@ -1375,7 +1380,11 @@ function drawingTank(now){
   // sheets yet. Their standard original bitmap remains unchanged.
   ctx.save();
   ctx.translate(a.x,a.y);
-  ctx.scale(aquariumTurnScale(a,now),1);
+  // The U-turn width curve is shared; its horizontal sign depends on
+  // whether the original artwork looks left (fallback) or right (PNG).
+  var aquariumArt=fishSprite(a.sp);
+  var sourceFacing=aquariumArt._hfFacingRight?1:-1;
+  ctx.scale(aquariumTurnScale(a,now)*(-sourceFacing),1);
   if(wriggle){
    var progressFallback=clamp(
      (now-a.struggleStart)/(a.struggleEnd-a.struggleStart),0,1);
@@ -1385,7 +1394,7 @@ function drawingTank(now){
    ctx.scale(1+Math.sin(progressFallback*55+a.phase)*.035*energy,
      1-Math.sin(progressFallback*55+a.phase)*.027*energy);
   }
-  a.sprite.x=0;a.sprite.y=0;a.sprite.vx=-22;
+  a.sprite.x=0;a.sprite.y=0;a.sprite.vx=sourceFacing*22;
   delete a.sprite.spriteAquarium;
   delete a.sprite.spriteTurnStart;
   delete a.sprite.spriteTurnFrom;
