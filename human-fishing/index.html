@@ -3321,7 +3321,9 @@ function escapePose(fx,t){
   var speedRamp=run-.10*(1-Math.exp(-run/.10));
   var bobRamp=1-Math.exp(-run/.10);
   var wave=(Math.sin(run*18+phase)-Math.sin(phase))*8*bobRamp;
-  var drift=Math.min(34,26*(run-.08*(1-Math.exp(-run/.08))));
+  // Asymptotic vertical drift avoids another velocity kink when the fish
+  // reaches its late-flight depth; no hard Math.min transition.
+  var driftAge=run/.46,drift=34*(1-(1+driftAge)*Math.exp(-driftAge));
   return{stage:'flee',
    x:x+d*(392+600*run+390*speedRamp+175*run*run),
    y:365+wave+drift,
