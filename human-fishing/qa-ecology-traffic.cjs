@@ -75,4 +75,31 @@ const locked=make(650,470,1,12);locked.panicUntil=env.eco.t+1;
 env.fish.splice(0,env.fish.length,locked);
 env.updateEcosystem(.04);
 assert.ok(!locked.trafficAvoidCount,'Panic must override traffic lane logic');
+
+// Regression: previously spawned crowds of identical large bass must not
+// stay stacked forever. Excess animals turn and swim fully out of the frame
+// instead of being abruptly deleted or displacing the rare catches.
+env.aquariumFishingActive=false;
+env.fish.length=0;
+for(let n=0;n<8;n++){
+ const bass=make(880+n*11,424+(n%3)*12,1,n+40);
+ bass.sp={rarity:'COMMON',index:4,name:'라지마우스배스',id:'F091'};
+ env.fish.push(bass);
+}
+const originalCount=env.fish.length;
+for(let n=0;n<24;n++){env.time+=.04;env.updateEcosystem(.04)}
+const exiting=env.fish.filter(f=>f.trafficExit);
+assert.ok(exiting.length>=5,'Existing duplicate bass must be routed out of the crowded scene');
+assert.equal(env.fish.length,originalCount,
+ 'Overcrowding must NOT erase fish instantly, only send them swimming out');
+for(let n=0;n<240;n++){env.time+=.04;env.updateEcosystem(.04)}
+assert.ok(env.fish.length<originalCount,
+ 'Outgoing bass never left the scene despite the clear-water route');
+assert.ok(env.fish.every(f=>Number.isFinite(f.x)&&Number.isFinite(f.y)),
+ 'Crowding recovery must keep positions finite');
+assert.match(script,/function ecoDistinctSpawnSpecies\(preferred\)/,
+ 'Wild spawns must prefer a different fish of the SAME rarity');
+assert.match(script,/if\(!sp\)return 0;/,
+ 'No additional large fish should spawn when the visible budget is full');
+
 console.log('PASS: opposing crowded fish choose distinct lanes, pass with limited overlap and disperse safely');

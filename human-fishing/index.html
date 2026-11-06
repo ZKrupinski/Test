@@ -3696,10 +3696,45 @@ function ecoVisualRepresentative(category){
  var options=available.length?available:candidates;
  return options[Math.floor(Math.random()*options.length)];
 }
+// Preserve encounter rarity while preferring different species/artwork.
+// LARGE or bass-like fish have a smaller visible budget than tiny schooling
+// fish, so a pond never fills with six copies of the same predator sprite.
+function ecoDistinctSpawnSpecies(preferred){
+ if(!preferred)return null;
+ var active=fish.filter(function(f){
+  return !f.feverCaptured&&!f.trafficExit&&f.x> -155&&f.x<W+155;
+ });
+ var large=0,bass=0,counts=Object.create(null);
+ active.forEach(function(f){
+  counts[f.sp.id]=(counts[f.sp.id]||0)+1;
+  if(f.sizeClass==='LARGE'||fishVisualProfile(f.sp).category==='LARGE')large++;
+  if(/배스/.test(f.sp.name))bass++;
+ });
+ function allowed(sp){
+  return (counts[sp.id]||0)<2&&
+   (fishVisualProfile(sp).category!=='LARGE'||large<4)&&
+   (!/배스/.test(sp.name)||bass<3);
+ }
+ if(allowed(preferred))return preferred;
+ // Only same-rarity alternatives: do not secretly upgrade easy fish into
+ // valuable rare fish, nor erase the rarity difference between stages.
+ var pool=species.filter(function(sp){
+  return sp.habitat===zone&&sp.rarity===preferred.rarity&&allowed(sp);
+ });
+ if(!pool.length)return null;
+ var desired=fishVisualProfile(preferred).category;
+ var sameSize=pool.filter(function(sp){return fishVisualProfile(sp).category===desired});
+ if(sameSize.length)pool=sameSize;
+ var unseen=pool.filter(function(sp){return !counts[sp.id]});
+ if(unseen.length)pool=unseen;
+ return pool[Math.floor(Math.random()*pool.length)];
+}
 function spawnWildFish(startInView,forceSolo,visualClass){
  var MAX_FISH=18;
  if(fish.length>=MAX_FISH)return 0;
- var sp=(visualClass&&ecoVisualRepresentative(visualClass))||chooseWildSpecies(),dir=Math.random()<.5?1:-1;
+ var preferred=(visualClass&&ecoVisualRepresentative(visualClass))||chooseWildSpecies(),
+  sp=ecoDistinctSpawnSpecies(preferred),dir=Math.random()<.5?1:-1;
+ if(!sp)return 0;
  var small=ecoCanSchool(sp)&&Math.random()<.34;
  var schoolCount=fish.filter(function(f){return f.schoolId>0}).length;
  var group=!forceSolo&&small&&schoolCount<4&&Math.random()<.13?
@@ -3715,7 +3750,22 @@ function spawnWildFish(startInView,forceSolo,visualClass){
    if(!crowded){baseX=candidate;break}
   }
  }
- var baseY=rnd(329,656),added=0;
+ // Route arrivals into a relatively empty depth band. Otherwise a new
+ // large fish immediately joins a nose-to-tail traffic jam at the edge.
+ var baseY=rnd(329,656),bestLane=Infinity;
+ for(var sample=0;sample<7;sample++){
+  var candidate=sample===0?baseY:329+sample/7*327;
+  var pressure=0;
+  fish.forEach(function(f){
+   if(f.feverCaptured||f.trafficExit)return;
+   var distance=Math.abs(f.y-candidate),
+    edgeWeight=(f.x<170||f.x>W-170)?1.6:1;
+   pressure+=Math.max(0,1-distance/100)*edgeWeight*
+    (f.sizeClass==='LARGE'?1.5:1);
+  });
+  if(pressure<bestLane){bestLane=pressure;baseY=candidate}
+ }
+ var added=0;
  for(var i=0;i<group;i++){
   var x=startInView?clamp(baseX+i*34*dir,73,1207):baseX-dir*i*46+rnd(-7,7);
   var y=baseY+(i-(group-1)/2)*22+rnd(-13,13);
@@ -3873,6 +3923,50 @@ function ecoTrafficGuide(f,wantX){
   active:true,pass:pass,nearby:nearby};
 }
 
+// Exit excess visible big fish without popping or deleting sprites midwater.
+// Existing crowded groups are drained to the side boundaries over time,
+// while the same species may still exist elsewhere or in the codex/tank.
+function ecoManageFishDensity(dt){
+ if(aquariumFishingActive)return;
+ eco.crowdTimer=(eco.crowdTimer||0)+dt;
+ if(eco.crowdTimer<.70)return;
+ eco.crowdTimer=0;
+ var active=fish.filter(function(f){
+  return !f.feverCaptured&&!f.trafficExit&&f.x>0&&f.x<W&&
+   f!==(hook&&hook.obj);
+ });
+ var ids=Object.create(null),large=0,bass=0;
+ active.forEach(function(f){
+  // Never force-evict rare loot, hooked fish, or a panic-escaping animal.
+  if(!f.sp||f.fleeBurstUntil>eco.t||
+   (f.sp.rarity!=='COMMON'&&f.sp.rarity!=='UNCOMMON'))return;
+  var same=ids[f.sp.id]||0;
+  var isLarge=f.sizeClass==='LARGE'||
+   fishVisualProfile(f.sp).category==='LARGE';
+  var isBass=/배스/.test(f.sp.name);
+  var close=active.filter(function(g){
+   return g!==f&&!g.trafficExit&&
+    Math.abs(g.x-f.x)<150&&Math.abs(g.y-f.y)<82;
+  }).length;
+  var overcrowded=same>=2||(isLarge&&large>=4)||
+   (isBass&&bass>=3)||
+   (close>=6&&(f.trafficAvoidCount||0)>=2);
+  if(overcrowded){
+   f.trafficExit=true;
+   f.trafficExitDir=f.x<W/2?-1:1;
+   f.trafficExitY=ecoSafeDepth(f,f.y+
+    ((f.ecoId||0)%2?42:-42));
+   f.trafficUntil=0;
+   f.trafficPassUntil=eco.t+3;
+   f.schoolId=0;
+   return;
+  }
+  ids[f.sp.id]=same+1;
+  if(isLarge)large++;
+  if(isBass)bass++;
+ });
+}
+
 // Resolve existing overlaps smoothly, with a strict distance-per-frame cap.
 function ecoResolveFishSpacing(dt){
  var locked=hook&&hook.obj;
@@ -3887,10 +3981,11 @@ function ecoResolveFishSpacing(dt){
     nx=dx/space.x,ny=dy/space.y,dist=Math.hypot(nx,ny);
    // Pass-through traffic is deliberately softer than ordinary personal
    // space. The head and fins can briefly overlap, never fully stack.
-   var passing=((f.trafficPassUntil||0)>eco.t||
+   var exiting=!!(f.trafficExit||g.trafficExit);
+   var passing=(exiting||(f.trafficPassUntil||0)>eco.t||
     (g.trafficPassUntil||0)>eco.t)&&
     f.fleeBurstUntil<=eco.t&&g.fleeBurstUntil<=eco.t;
-   var threshold=passing?.66:1;
+   var threshold=exiting?.55:passing?.66:1;
    if(dist>=threshold)continue;
    var ux=dist>.001?nx/dist:((f.ecoId||i)<(g.ecoId||j)?1:-1);
    var uy=dist>.001?ny/dist:((i+j)%2?.30:-.30);
@@ -3898,7 +3993,7 @@ function ecoResolveFishSpacing(dt){
     (threshold-dist)*(passing?20:23));
    var moveF=f===locked?0:g===locked?2:1;
    var moveG=g===locked?0:f===locked?2:1;
-   var xWeight=passing?.19:1,yWeight=passing?1.18:1;
+   var xWeight=exiting?.08:passing?.19:1,yWeight=passing?1.18:1;
    f.x=clamp(f.x-ux*push*moveF*xWeight,0,W);
    g.x=clamp(g.x+ux*push*moveG*xWeight,0,W);
    f.y=ecoSafeDepth(f,f.y-uy*push*moveF*yWeight);
@@ -3917,6 +4012,7 @@ function updateEcosystem(dt){
   if(eco.fishTimer>interval){eco.fishTimer=0;spawnWildFish(false)}
   if(eco.humanTimer>11){eco.humanTimer=0;spawnWildHuman()}
  }
+ ecoManageFishDensity(dt);
  var fLocked=hook&&hook.obj,liveBaitTrait=baitTrait(),
   liveBaitTip=danglingBaitPosition(time);
  for(var i=fish.length-1;i>=0;i--){
@@ -4112,10 +4208,17 @@ function updateEcosystem(dt){
   }
   f.homeY=ecoSafeDepth(f,f.homeY);
   wantY+=clamp((f.homeY-f.y)*.22,-11,11);
-  // Resolve head-on congestion using a committed upper/lower passing lane.
-  // During a pass the fish keep forward momentum and briefly share visual
-  // space instead of freezing and pushing one another back indefinitely.
-  var traffic=state==='flee'||state==='fight'||state==='hunt'?
+  // Exit route overrides normal swimming, including the old horizontal
+  // repulsion that could trap an entire stack of large fish.
+  var clearing=!!f.trafficExit;
+  if(clearing){
+   f.dir=f.trafficExitDir;
+   wantX=f.dir*Math.max(110,naturalSpeed*1.9);
+   wantY=clamp((f.trafficExitY-f.y)*1.15,-48,48);
+   state='clear';
+  }
+  // Head-on congestion uses a committed above/below passing lane.
+  var traffic=clearing||state==='flee'||state==='fight'||state==='hunt'?
    null:ecoTrafficGuide(f,wantX);
   if(traffic){
    wantX=traffic.x;
@@ -4125,17 +4228,18 @@ function updateEcosystem(dt){
   // Missed-catch panic still outranks traffic. Lane-changers soften the
   // horizontal repulsion so a dense school can actually clear a bottleneck.
   var avoidance=f.fleeBurstUntil>eco.t?0:1,
-   passScale=traffic?.16:1;
+   passScale=clearing?.06:traffic?.16:1;
   wantX+=clamp(crowd.sepX*avoidance*passScale,-96,96);
-  wantY+=clamp(crowd.sepY*avoidance*(traffic?.52:1),-73,73);
+  wantY+=clamp(crowd.sepY*avoidance*(clearing?.12:traffic?.52:1),-73,73);
   // All velocities are pixels per second. Swimmers are calm unless threatened.
   var fleeingFast=f.fleeBurstUntil>eco.t;
   var wildSteer=state==='dart'?rarity.steer*2.7:
+   state==='clear'?Math.max(8,rarity.steer*2.4):
    state==='pass'?Math.max(4.5,rarity.steer*2.2):
    state==='evade'?rarity.steer*2:rarity.steer;
   var steer=Math.min(1,dt*(fleeingFast?18:state==='flee'?3.8:
    state==='fight'?3.1:wildSteer));
-  var wildCap=fleeingFast?330:state==='flee'?85:rarity.cap;
+  var wildCap=fleeingFast?330:state==='clear'?150:state==='flee'?85:rarity.cap;
   f.vx=mix(f.vx,clamp(wantX,-wildCap,wildCap),steer);
   f.vy=mix(f.vy,clamp(wantY,fleeingFast?-100:traffic?-102:-70,
    fleeingFast?100:traffic?102:70),Math.min(1,steer*(fleeingFast?1:traffic?1.25:.85)));
@@ -4158,7 +4262,8 @@ function updateEcosystem(dt){
   // the existing strip-warped tail kicks harder during dart and evade,
   // smoothly blending back without abruptly swapping sprite frames.
   var swimBoost=state==='dart'?clamp(1.35+rarity.cruise*.22,1.4,2):
-   state==='pass'?1.18:state==='evade'?1.28:state==='feint'?.76:1;
+   state==='clear'?1.28:state==='pass'?1.18:
+   state==='evade'?1.28:state==='feint'?.76:1;
   f._hfWarpBoost=mix(Number.isFinite(f._hfWarpBoost)?f._hfWarpBoost:1,
    swimBoost,Math.min(1,dt*8));
   f.phase+=dt*(state==='flee'?2.2:state==='dart'?1.6+rarity.cruise*.35:
