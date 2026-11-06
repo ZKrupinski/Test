@@ -9,7 +9,11 @@ function where(value){const p=active.indexOf(value);assert.ok(p>=0,'Missing rend
 const stateUpdate=where('hook.elapsed+=dt;');
 const rod=where('drawRod(time);drawHelpers(time);');
 const line=where("if(view==='fish'&&!introEntrance.active)drawLine();");
-const ordinaryBack=where("if(view==='fish'&&!introEntrance.active&&!feverFx){");
+const ordinaryBack=where("if(view==='fish'&&!introEntrance.active&&(!feverFx||lureRecovery.active)){");
+// During Fever's mouth-return phase the normal red lure must replace the
+// giant-mouth atlas in the same foreground-over-player, behind-fish pass.
+assert.match(source,/if\(!lureRecovery\.active\)drawFeverMouthSprite\(fx,reel\)/,
+ 'Fever mouth atlas must yield to the dropping normal lure after arrival');
 const bait=where('drawBaitAbovePlayer(time);');
 const hero=where('drawOcto(time);drawRod(time);drawHelpers(time);');
 const ambient=where('fish.forEach(function(a){');
