@@ -162,6 +162,29 @@ nav{flex-wrap:nowrap}
 #motionTunePanel output{font-size:11px;text-align:right;color:#ffdb97}
 #motionTunePanel .mt-actions{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
 #motionTunePanel .mt-note{font-size:10px;color:#a1c9cb;margin:8px 0 0}
+
+/* Rod adjustment panel uses existing 16:9 layout; independent of fish tuning. */
+#rodTuneToggle{position:absolute;right:132px;bottom:14px;z-index:8;min-height:32px;
+ padding:6px 10px;background:#132c3be3;color:#f4e5c6;border:1px solid #b7ac91b8;
+ border-radius:8px;font-size:11px;font-weight:800}
+#rodTunePanel{position:absolute;right:12px;bottom:55px;z-index:15;width:318px;
+ max-height:calc(100% - 145px);overflow-y:auto;display:none;padding:12px;
+ background:#102633f5;color:#e8f4f2;border:1px solid #a8b6b5;
+ border-radius:12px;box-shadow:0 12px 32px #00171dd7}
+#rodTunePanel.visible{display:block}
+#rodTunePanel .rt-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#rodTunePanel .rt-head strong{font-size:14px;color:#f8d99e}
+#rodTunePanel button,#rodTunePanel select{background:#164353;color:#eaf5ec;
+ border:1px solid #829ca1;border-radius:7px;padding:5px 8px;font-size:12px}
+#rodTunePanel select{width:100%;display:block;margin-top:9px}
+#rodTunePanel canvas{width:100%;height:122px;display:block;touch-action:auto;
+ cursor:default;border-radius:7px;margin:7px 0;background:#0b3440}
+#rodTunePanel .rt-row{display:grid;grid-template-columns:98px 1fr 36px;
+ gap:6px;align-items:center;font-size:11px;margin:7px 0}
+#rodTunePanel input[type=range]{width:100%;accent-color:#e5c081}
+#rodTunePanel output{font-size:11px;color:#f6d6a4;text-align:right}
+#rodTunePanel .rt-actions{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+#rodTunePanel .rt-caption{font-size:10px;color:#b0ced1;margin:8px 0 0}
 </style></head><body><div class="wrap">
 <header inert><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 2.3</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navGear">🎒 장비</button><button id="navShop">🛒 상점</button></nav></header>
@@ -185,6 +208,27 @@ nav{flex-wrap:nowrap}
  <div class="mt-row"><span>지느러미 느낌</span><input id="motionFlap" type="range" min="0" max="240" step="5" value="100"><output id="motionFlapVal">1.00</output></div>
  <div class="mt-actions"><button id="motionTestTurn" type="button">↶ 방향전환 테스트</button><button id="motionTestFlail" type="button">파닥 테스트</button><button id="motionReset" type="button">이 어종 초기화</button></div>
  <p class="mt-note">변경 즉시 게임의 해당 어종에 적용·자동 저장됩니다. 원본 PNG와 낚시 판정은 그대로 유지됩니다.</p>
+</div>
+
+<button id="rodTuneToggle" type="button" aria-expanded="false" aria-controls="rodTunePanel">🎣 낚싯대 조정</button>
+<div id="rodTunePanel" aria-label="낚싯대 모션 조정">
+ <div class="rt-head"><strong>낚싯대 탄성 튜너</strong><button id="rodTuneClose" type="button">닫기</button></div>
+ <select id="rodTuneSpecies" aria-label="조정할 낚싯대"></select>
+ <canvas id="rodTunePreview" width="300" height="145" aria-label="낚싯대 휘어짐 미리보기"></canvas>
+ <div class="rt-row"><span>뒤로 젖히는 강도</span><input id="rodTuneBack" type="range" min="20" max="230" step="5" value="100"><output id="rodTuneBackVal">1.00</output></div>
+ <div class="rt-row"><span>복원 탄성</span><input id="rodTuneElastic" type="range" min="35" max="230" step="5" value="100"><output id="rodTuneElasticVal">1.00</output></div>
+ <div class="rt-row"><span>대기 중 하향 휨</span><input id="rodTuneHang" type="range" min="15" max="220" step="5" value="100"><output id="rodTuneHangVal">1.00</output></div>
+ <div class="rt-row"><span>릴링 장력</span><input id="rodTuneReel" type="range" min="30" max="230" step="5" value="100"><output id="rodTuneReelVal">1.00</output></div>
+ <div class="rt-row"><span>진동 감쇠</span><input id="rodTuneDamping" type="range" min="30" max="220" step="5" value="100"><output id="rodTuneDampingVal">1.00</output></div>
+ <div class="rt-actions">
+ <button id="rodTuneCast" type="button">캐스팅</button>
+ <button id="rodTuneHangTest" type="button">드리움</button>
+ <button id="rodTuneReelTest" type="button">릴링</button>
+ <button id="rodTuneBig" type="button">대물</button>
+ <button id="rodTuneSnap" type="button">반동</button>
+ <button id="rodTuneReset" type="button">현재 장비 초기화</button>
+ </div>
+ <p class="rt-caption">조정값은 장비별 자동 저장되며 실제 게임에도 즉시 반영됩니다. 원본 PNG는 유지하고 낚싯줄은 휘어진 초릿대에 연결됩니다.</p>
 </div>
 <div class="sideinfo" id="sideinfo"></div>
 <div class="aqua-sale-overlay" id="aquaSaleReceipt" role="dialog" aria-modal="true" aria-labelledby="aquaSaleTitle" aria-hidden="true">
@@ -628,6 +672,7 @@ function motionTunerLoad(){
   window.HumanFishingArt.primeHabitat(sp.habitat,species);
 }
 function motionTunerOpen(){
+ $('rodTunePanel').classList.remove('visible');$('rodTuneToggle').ariaExpanded='false';
  $('motionTunePanel').classList.add('visible');
  $('motionTuneToggle').ariaExpanded='true';
  var list=$('motionSpecies');
@@ -2269,6 +2314,76 @@ function drawRod(now){
  var pose=evaluateRodPose(now);
  drawRodWarped(ctx,image,pose,pose.root.x,pose.root.y,1);
 }
+
+var rodTunerPreview={mode:'cast',at:time};
+function rodTunerGear(){
+ var id=$('rodTuneSpecies').value;
+ return gearCatalog.rod.map(function(item){return gearDefinition('rod',item)}).find(function(g){return g.id===id})||
+  selectedGear('rod');
+}
+function rodTunerRefresh(){
+ var gear=rodTunerGear(),changes=save.rodMotionOverrides[gear.id]||{};
+ rodMotionKeys.forEach(function(key){
+  var val=changes[key]===undefined?1:Number(changes[key]);
+  var name=key[0].toUpperCase()+key.slice(1);
+  $('rodTune'+name).value=String(Math.round(val*100));
+  $('rodTune'+name+'Val').textContent=val.toFixed(2);
+ });
+}
+function rodTunerOpen(){
+ $('motionTunePanel').classList.remove('visible');$('motionTuneToggle').ariaExpanded='false';
+ var list=$('rodTuneSpecies');
+ if(!list.innerHTML)list.innerHTML=gearCatalog.rod.map(function(info){
+  return '<option value="'+info[0]+'">'+escapeHtml(info[1])+'</option>';
+ }).join('');
+ if(!list.value||!gearCatalog.rod.some(function(item){return item[0]===list.value}))
+  list.value=selectedGear('rod').id;
+ $('rodTunePanel').classList.add('visible');$('rodTuneToggle').ariaExpanded='true';
+ rodTunerRefresh();
+ rodTunerPreview={mode:'cast',at:time};
+}
+function rodTunerClose(){
+ $('rodTunePanel').classList.remove('visible');$('rodTuneToggle').ariaExpanded='false';
+}
+$('rodTuneToggle').onclick=function(){
+ if($('rodTunePanel').classList.contains('visible'))rodTunerClose();else rodTunerOpen();
+};
+$('rodTuneClose').onclick=rodTunerClose;
+$('rodTuneSpecies').onchange=function(){rodTunerRefresh();rodTunerPreview.at=time};
+rodMotionKeys.forEach(function(key){
+ var name=key[0].toUpperCase()+key.slice(1);
+ $('rodTune'+name).oninput=function(){
+  var id=rodTunerGear().id,value=Number(this.value)/100;
+  if(!save.rodMotionOverrides[id])save.rodMotionOverrides[id]={};
+  save.rodMotionOverrides[id][key]=value;
+  $('rodTune'+name+'Val').textContent=value.toFixed(2);
+  persist();
+ };
+});
+[['rodTuneCast','cast'],['rodTuneHangTest','hang'],['rodTuneReelTest','reel'],
+ ['rodTuneBig','big'],['rodTuneSnap','recover']].forEach(function(pair){
+ $(''+pair[0]).onclick=function(){rodTunerPreview={mode:pair[1],at:time};};
+});
+$('rodTuneReset').onclick=function(){
+ var id=rodTunerGear().id;delete save.rodMotionOverrides[id];persist();rodTunerRefresh();
+};
+function drawRodTunerPreview(now){
+ if(!$('rodTunePanel').classList.contains('visible'))return;
+ var canvas=$('rodTunePreview'),g=canvas.getContext('2d');
+ g.clearRect(0,0,canvas.width,canvas.height);
+ var gear=rodTunerGear(),image=rodBitmapSprites[gear.id],t=Math.max(0,now-rodTunerPreview.at);
+ var mode=rodTunerPreview.mode,stage=mode==='big'?'reel':mode;
+ var elapsed=stage==='cast'?(t%2.4):
+  stage==='reel'?((t%1.7)/1.7):stage==='recover'?(t%1.7):0;
+ var pose=evaluateRodPose(now,gear,{mode:stage,elapsed:elapsed,
+  weight:mode==='big'?1.6:stage==='recover'?36:1});
+ if(image&&image.ready)drawRodWarped(g,image,pose,106,82,.76);
+ else{
+  g.fillStyle='#e8d4aa';g.font='12px sans-serif';g.textAlign='center';
+  g.fillText('낚싯대 PNG 로딩 중',150,72);
+ }
+}
+
 // Dedicated depth layer for the small red fishing BAIT. Never draw it inside
 // drawOcto() or the rod group: it must be IN FRONT of the purple protagonist.
 // Fever has its own topmost pass and intentionally skips this normal bait pass.
@@ -2507,6 +2622,7 @@ function tick(stamp){
  if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}
  ctx.restore();
  drawMotionTunerPreview(time);
+ drawRodTunerPreview(time);
  requestAnimationFrame(tick);
 }
 
