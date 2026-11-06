@@ -244,8 +244,16 @@ assert.match(script,/if\(!under&&drawFishingBitmapBackground\(\)\)return;/,
  'Fishing scene must render prepared bitmap instead of old vector mountains');
 assert.match(script,/ctx\.drawImage\(item\.image,0,0,W,H\)/,
  'The entire bitmap frame must use uniform 1280×720 scaling');
-assert.match(script,/if\(view!=='tank'&&fishingBitmapReady\(\)\)return;/,
- 'Legacy procedural sea plants must not draw over finished bitmap plants');
+assert.match(script,/if\(view!=='tank'\)return;/,
+ 'Legacy procedural sea plants must never draw over bitmap stage art, even during load');
+assert.match(script,/if\(!under\)return;/,
+ 'Legacy vector fishing scenery must never appear while its bitmap loads');
+assert.doesNotMatch(script,/escapeHtml\(sp\.rarity\)\+' Lv\.'/,
+ 'Fish codex cards must not show rarity text or fish levels');
+assert.doesNotMatch(script,/tierLabels\[target\.rarity\]\+' Lv\.'/,
+ 'Fish catch hints must not display rarity or level text');
+assert.match(script,/function drawFishRankTag\(f\)\{[\s\S]*?ctx\.drawImage\(sheet,/,
+ 'Rare fish must use bitmap sparkle frames, not text labels');
 const sceneDigests=new Map();
 for(const name of [...new Set([...backgroundZones,'ruins'])]){
  const path='human-fishing/assets/backgrounds/bg_'+name+'.webp';
