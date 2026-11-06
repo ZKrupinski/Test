@@ -1270,6 +1270,9 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  assert.ok(sampled.every(x=>x>=62&&x<=150),
   'Body-miss scare radius must be narrower than the previous 215px');
  const bait=game.getBob();
+ // Direct fixture view switches bypass the real UI's setMode()/startCast()
+ // reset; explicitly finish any previous bait recovery for this test.
+ game.getRecovery().active=false;
  game.switchView('fish');game.getCast().active=false;game.setHook(null);
  save.fever.ready=false;
  save.gearEquipped.bait='worm';save.shop.bait=0;
