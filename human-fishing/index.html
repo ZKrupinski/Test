@@ -148,6 +148,20 @@ nav{flex-wrap:nowrap}
 #bootStatus{font-size:20px;margin:0}
 #bootProgress{width:460px;height:15px;accent-color:#8ee4e2}
 #bootStart{min-width:280px;min-height:64px;padding:12px 32px;border:1px solid #ffecc9;border-radius:12px;background:#f5cb81;color:#19333d;font-size:24px;font-weight:900}
+
+#motionTuneToggle{position:absolute;z-index:8;bottom:14px;right:14px;min-height:32px;padding:6px 10px;background:#072a39dd;color:#d9f5f2;border:1px solid #85babe;border-radius:8px;font-size:11px;font-weight:800}
+#motionTunePanel{position:absolute;z-index:15;right:12px;bottom:55px;width:310px;max-height:calc(100% - 145px);overflow:auto;display:none;background:#061f2bf2;border:1px solid #8ec5c5;border-radius:12px;padding:12px;box-shadow:0 12px 30px #00151ccc;color:#eef9f4}
+#motionTunePanel.visible{display:block}
+#motionTunePanel .mt-head{display:flex;justify-content:space-between;gap:8px;align-items:center}
+#motionTunePanel .mt-head strong{font-size:14px;color:#ffe0a5}
+#motionTunePanel button,#motionTunePanel select{background:#164351;color:#e6faf4;border:1px solid #6a999f;border-radius:7px;padding:5px 7px;font-size:12px}
+#motionTunePanel select{display:block;width:100%;margin-top:8px}
+#motionPreview{width:100%;height:118px;display:block;background:#0c3742;border-radius:7px;margin:7px 0;touch-action:auto;cursor:default}
+#motionTunePanel .mt-row{display:grid;grid-template-columns:84px 1fr 34px;align-items:center;gap:6px;font-size:11px;margin:7px 0}
+#motionTunePanel input[type=range]{width:100%;height:16px;accent-color:#92e0d0}
+#motionTunePanel output{font-size:11px;text-align:right;color:#ffdb97}
+#motionTunePanel .mt-actions{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+#motionTunePanel .mt-note{font-size:10px;color:#a1c9cb;margin:8px 0 0}
 </style></head><body><div class="wrap">
 <header inert><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 2.3</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navGear">🎒 장비</button><button id="navShop">🛒 상점</button></nav></header>
@@ -157,6 +171,21 @@ nav{flex-wrap:nowrap}
 <div class="center-banner" id="banner"><div class="emoji" id="bannerIcon">🐟</div><strong id="bannerTitle">첫 포획!</strong><p id="bannerSub">새로운 물고기 발견</p></div>
 <div class="aqua-controls" id="aquaControls" aria-label="아쿠아리움">
 <button type="button" id="aquaPlay">🎣 낚시 플레이</button><button type="button" id="aquaManage" aria-controls="sideinfo" aria-expanded="false">⚙ 전시 관리</button></div>
+
+<button type="button" id="motionTuneToggle" aria-controls="motionTunePanel" aria-expanded="false">🐟 모션 조정</button>
+<div id="motionTunePanel" aria-label="어종별 모션 조정">
+ <div class="mt-head"><strong>물고기 모션 튜너</strong><button id="motionClose" type="button">닫기</button></div>
+ <select id="motionSpecies" aria-label="조정할 어종"></select>
+ <canvas id="motionPreview" width="310" height="130" aria-label="물고기 움직임 미리보기"></canvas>
+ <div class="mt-row"><span>유영 진폭</span><input id="motionAmp" type="range" min="0" max="240" step="5" value="100"><output id="motionAmpVal">1.00</output></div>
+ <div class="mt-row"><span>유영 속도</span><input id="motionTempo" type="range" min="35" max="240" step="5" value="100"><output id="motionTempoVal">1.00</output></div>
+ <div class="mt-row"><span>꼬리 탄력</span><input id="motionTail" type="range" min="0" max="220" step="5" value="100"><output id="motionTailVal">1.00</output></div>
+ <div class="mt-row"><span>턴 준비동작</span><input id="motionPrep" type="range" min="25" max="220" step="5" value="100"><output id="motionPrepVal">1.00</output></div>
+ <div class="mt-row"><span>몸 돌리기</span><input id="motionTurn" type="range" min="40" max="220" step="5" value="100"><output id="motionTurnVal">1.00</output></div>
+ <div class="mt-row"><span>지느러미 느낌</span><input id="motionFlap" type="range" min="0" max="240" step="5" value="100"><output id="motionFlapVal">1.00</output></div>
+ <div class="mt-actions"><button id="motionTestTurn" type="button">↶ 방향전환 테스트</button><button id="motionTestFlail" type="button">파닥 테스트</button><button id="motionReset" type="button">이 어종 초기화</button></div>
+ <p class="mt-note">변경 즉시 게임의 해당 어종에 적용·자동 저장됩니다. 원본 PNG와 낚시 판정은 그대로 유지됩니다.</p>
+</div>
 <div class="sideinfo" id="sideinfo"></div>
 <div class="aqua-sale-overlay" id="aquaSaleReceipt" role="dialog" aria-modal="true" aria-labelledby="aquaSaleTitle" aria-hidden="true">
  <div class="aqua-sale-card">
@@ -580,6 +609,72 @@ function drawFishOnContext(g,a,now,alpha){
  g.restore();
 }
 function drawFish(a,now,alpha){drawFishOnContext(ctx,a,now,alpha)}
+
+var motionTunerPreview=null,motionTunerFlailUntil=0;
+var motionTunerFields=[['Amp','amp'],['Tempo','tempo'],['Tail','tail'],['Prep','prep'],['Turn','turn'],['Flap','flap']];
+function motionTunerSelectedSpecies(){return species.find(function(sp){return sp.id===$('motionSpecies').value})||species[0]}
+function motionTunerLoad(){
+ var sp=motionTunerSelectedSpecies(),o=save.fishMotionOverrides[sp.id]||{};
+ motionTunerFields.forEach(function(pair){
+  var v=Object.prototype.hasOwnProperty.call(o,pair[1])?o[pair[1]]:1;
+  $('motion'+pair[0]).value=String(Math.round(v*100));
+  $('motion'+pair[0]+'Val').textContent=Number(v).toFixed(2);
+ });
+ if(!motionTunerPreview||motionTunerPreview.sp.id!==sp.id){
+  motionTunerPreview={sp:sp,x:155,y:65,dir:1,vx:24,size:2.0,phase:.4};
+  motionTunerFlailUntil=0;
+ }
+ if(window.HumanFishingArt&&window.HumanFishingArt.primeHabitat)
+  window.HumanFishingArt.primeHabitat(sp.habitat,species);
+}
+function motionTunerOpen(){
+ $('motionTunePanel').classList.add('visible');
+ $('motionTuneToggle').ariaExpanded='true';
+ var list=$('motionSpecies');
+ if(!list.innerHTML){
+  list.innerHTML=species.map(function(sp){
+   return '<option value="'+sp.id+'">'+escapeHtml(sp.name)+' · '+escapeHtml(habitats[sp.habitat])+'</option>';
+  }).join('');
+ }
+ if(!list.value||!species.some(function(sp){return sp.id===list.value}))
+  list.value=species[0].id;
+ motionTunerLoad();
+}
+function motionTunerClose(){
+ $('motionTunePanel').classList.remove('visible');
+ $('motionTuneToggle').ariaExpanded='false';
+}
+$('motionTuneToggle').onclick=function(){
+ if($('motionTunePanel').classList.contains('visible'))motionTunerClose();else motionTunerOpen();
+};
+$('motionClose').onclick=motionTunerClose;
+$('motionSpecies').onchange=motionTunerLoad;
+motionTunerFields.forEach(function(pair){
+ var input=$('motion'+pair[0]),output=$('motion'+pair[0]+'Val'),key=pair[1];
+ input.oninput=function(){
+  var sp=motionTunerSelectedSpecies(),v=Number(input.value)/100;
+  if(!save.fishMotionOverrides[sp.id])save.fishMotionOverrides[sp.id]={};
+  save.fishMotionOverrides[sp.id][key]=v;
+  output.textContent=v.toFixed(2);persist();
+ };
+});
+$('motionTestTurn').onclick=function(){if(motionTunerPreview)motionTunerPreview.dir*=-1;};
+$('motionTestFlail').onclick=function(){if(motionTunerPreview)motionTunerFlailUntil=time+1;};
+$('motionReset').onclick=function(){
+ var sp=motionTunerSelectedSpecies();delete save.fishMotionOverrides[sp.id];persist();motionTunerLoad();
+};
+function drawMotionTunerPreview(now){
+ if(!$('motionTunePanel').classList.contains('visible')||!motionTunerPreview)return;
+ var g=$('motionPreview').getContext('2d');g.clearRect(0,0,310,130);
+ if(now<motionTunerFlailUntil)motionTunerPreview.spriteAction='last_resist';
+ else delete motionTunerPreview.spriteAction;
+ drawFishOnContext(g,motionTunerPreview,now);
+ if(!fishSprite(motionTunerPreview.sp)){
+  g.fillStyle='#bde6e7';g.textAlign='center';g.font='12px sans-serif';
+  g.fillText('물고기 이미지 불러오는 중',155,70);
+ }
+}
+
 function drawOcto(now){ctx.save();ctx.translate(102,448+Math.sin(now*1.2)*8);ctx.drawImage(octo,0,0,260,236);ctx.restore()}
 function drawLine(){var anchor={x:352,y:548+Math.sin(time*1.2)*5},end=hook?{x:hook.obj.x,y:hook.obj.y}:bob;ctx.lineCap='round';ctx.lineJoin='round';var sag=drag?55:hook?0:105;ctx.beginPath();ctx.moveTo(anchor.x,anchor.y);ctx.bezierCurveTo(anchor.x+170,anchor.y-210+sag,end.x-130,end.y+sag,end.x,end.y);ctx.strokeStyle='#053945b8';ctx.lineWidth=5;ctx.stroke();ctx.strokeStyle='#f7e8c8';ctx.lineWidth=2.4;ctx.stroke();ctx.beginPath();ctx.moveTo(end.x-6,end.y-3);ctx.lineTo(end.x+7,end.y+8);ctx.strokeStyle='#fff7dc';ctx.lineWidth=2;ctx.stroke()}
 function drawBob(){var x=bob.x,y=bob.y;circle(x,y,28,drag?'#fff6be2c':'#ffeaad15');ctx.strokeStyle=drag?'#f4e49daa':'#efffff33';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y,27+Math.sin(time*4)*3,11,0,0,7);ctx.stroke();ctx.fillStyle='#ffe9ba';ctx.beginPath();ctx.ellipse(x,y,11,18,0,0,7);ctx.fill();ctx.fillStyle='#ed736d';ctx.beginPath();ctx.ellipse(x,y-5,11,11,0,Math.PI,Math.PI*2);ctx.fill();ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.stroke();circle(x-3,y-7,2,'#ffffff')}
@@ -2328,6 +2423,7 @@ function tick(stamp){
   if(!escapeFx&&octoGroggy===0&&pendingEscapeRestart){pendingEscapeRestart=false;if(view==='fish')startCast()}
  if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}
  ctx.restore();
+ drawMotionTunerPreview(time);
  requestAnimationFrame(tick);
 }
 
