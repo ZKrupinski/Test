@@ -2412,21 +2412,30 @@ var rodBitmapSprites={};
 // the full blank gets 24 smoothly joined, affine-warped display strips.
 if(!save.rodMotionOverrides||typeof save.rodMotionOverrides!=='object')save.rodMotionOverrides={};
 var rodRecoil={at:-100,displacement:0};
+// Individually balanced against rod material, tier and in-game handling stats.
+ // back=casting preload, elastic=rebound speed, hang=rest sag,
+ // reel=loaded deflection, damping=how quickly post-load oscillation settles.
 var rodMotionPresets={
- cork:{back:1.04,elastic:.88,hang:1.08,reel:1.07,damping:.84},
- bamboo:{back:1.30,elastic:1.20,hang:1.32,reel:1.31,damping:.71},
- marine:{back:.94,elastic:1.00,hang:.90,reel:.96,damping:1.08},
- carbon:{back:.82,elastic:1.40,hang:.75,reel:.85,damping:1.41},
- titan:{back:.75,elastic:1.15,hang:.72,reel:.81,damping:1.26},
- abyss:{back:1.16,elastic:1.53,hang:.82,reel:.97,damping:1.65}
+ cork:{back:1.05,elastic:.90,hang:1.02,reel:1.04,damping:.88},    // forgiving beginner rod
+ bamboo:{back:1.38,elastic:1.24,hang:1.38,reel:1.40,damping:.66}, // supple: deep bow, lingering whip
+ marine:{back:.90,elastic:1.01,hang:.86,reel:.99,damping:1.18},    // weighty and durable
+ carbon:{back:.75,elastic:1.53,hang:.68,reel:.83,damping:1.35},    // light, crisp, fast recovery
+ titan:{back:.67,elastic:1.17,hang:.62,reel:.78,damping:1.53},     // stiff, controlled under heavy load
+ abyss:{back:.77,elastic:1.65,hang:.60,reel:.88,damping:1.75}      // high-end: fast but exceptionally settled
 };
 var rodMotionKeys=['back','elastic','hang','reel','damping'];
 function rodMotionSettings(gear){
  var id=(gear||selectedGear('rod')).id,base=rodMotionPresets[id]||rodMotionPresets.cork;
  var over=save.rodMotionOverrides[id]||{},out={};
+ // Higher rod levels improve precision without making the blank unnaturally rigid.
+ // Existing per-rod user tuner overrides still multiply the tuned default.
+ var lv=gearLevel('rod',id);
  rodMotionKeys.forEach(function(key){
   var mult=over[key]===undefined?1:Number(over[key]);
-  out[key]=base[key]*clamp(Number.isFinite(mult)?mult:1,.15,2.5);
+  var levelFactor=key==='elastic'?1+lv*.011:
+   key==='damping'?1+lv*.012:
+   key==='back'||key==='reel'||key==='hang'?1-lv*.006:1;
+  out[key]=base[key]*levelFactor*clamp(Number.isFinite(mult)?mult:1,.15,2.5);
  });
  return out;
 }
@@ -2434,6 +2443,8 @@ function rodCurve(mode,elapsed,now,settings,weight){
  var hang=5.8*settings.hang,t=Math.max(0,elapsed||0),bend=hang,angle=0;
  var smooth=function(v){v=clamp(v,0,1);return v*v*(3-2*v)};
  if(mode==='cast'){
+  // Quick-recovery rods finish their cast sooner; bamboo remains visibly supple.
+  t*=clamp(.92+.36*(settings.elastic-1)+.10*(settings.damping-1),.78,1.24);
   var rear=44*settings.back,snap=-19*settings.elastic;
   if(t<.19){var p=smooth(t/.19);bend=mix(hang,rear,p);angle=-.18*p}
   else if(t<.48){bend=rear+Math.sin((t-.19)*11)*1.5;angle=-.18}
@@ -2452,13 +2463,17 @@ function rodCurve(mode,elapsed,now,settings,weight){
   bend=hang+36*settings.reel*resist*load;
   angle=-.045*load;
   // Short resistance pulses only while a fish is still pulling the line.
-  if(mode==='reel'&&load>0)bend+=Math.sin(now*24)*2.2*load*resist;
+  if(mode==='reel'&&load>0){
+    // Soft blanks transmit fish tugs; premium damped rods suppress jitter.
+    var tug=2.2*clamp(settings.reel/(settings.damping*.85),.45,1.6);
+    bend+=Math.sin(now*24)*tug*load*resist;
+   }
  }else if(mode==='recover'){
   var dt=t,frequency=22*settings.elastic;
   bend=hang+(weight||0)*Math.exp(-6.4*settings.damping*dt)*Math.cos(frequency*dt);
   angle=-.035*Math.exp(-9*dt)*Math.sin(frequency*dt);
  }else{
-  bend=hang+.7*Math.sin(now*1.7);
+  bend=hang+(.7*clamp(1.05/settings.damping,.48,1.55))*Math.sin(now*1.7);
   angle=.008*Math.sin(now*1.25);
  }
  return{bend:bend,angle:angle,mode:mode};
