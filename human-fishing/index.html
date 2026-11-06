@@ -126,6 +126,13 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 .aqua-sale-total strong{font-size:24px;color:#ffcf82;font-variant-numeric:tabular-nums}
 .aqua-sale-close{display:block;margin-top:12px;width:100%;min-height:43px;border:0;border-radius:9px;color:#14333b;background:#f2cd8f;font-size:16px;font-weight:900}
 @media(max-width:760px){.aqua-sale-head{padding:11px 14px 5px}.aqua-sale-list{padding:2px 14px 8px}.aqua-sale-row{padding:7px 0;font-size:12px}.aqua-sale-bottom{padding:9px 14px 11px}.aqua-sale-total strong{font-size:20px}.aqua-sale-close{min-height:40px;margin-top:8px}}
+
+.aqua-controls{position:absolute;z-index:7;right:12px;top:63px;display:none;flex-direction:column;align-items:flex-end;gap:7px;pointer-events:none}
+.aqua-controls.visible{display:flex}
+.aqua-controls button{pointer-events:auto;border:1px solid #9bd4dabd;border-radius:9px;padding:8px 12px;color:#f7f9ec;background:linear-gradient(150deg,#173e61ed,#09283fe8);box-shadow:0 4px 13px #0008;font:900 13px system-ui;white-space:nowrap}
+.aqua-controls #aquaPlay{color:#253442;background:linear-gradient(150deg,#ffe3ac,#dba569);border-color:#fff0c8}
+.aqua-controls #aquaManage{padding:7px 10px;font-size:11px}
+@media(max-width:760px){.aqua-controls{right:5px;top:34px;gap:4px}.aqua-controls button{padding:5px 7px;font-size:10px;border-radius:6px}.aqua-controls #aquaManage{padding:5px 7px;font-size:9px}}
 </style></head><body><div class="wrap">
 <header><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 2.3</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navGear">🎒 장비</button><button id="navShop">🛒 상점</button></nav></header>
@@ -133,6 +140,8 @@ footer{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:
 <div class="hud top"><div class="tag" style="display:none" aria-hidden="true"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins" style="margin-left:auto">◈ 0　🐟 0/240</div></div>
 <div id="feverHud" class="fever-hud"><div class="fever-top"><span>🐙 OCTO FEVER</span><span id="feverNum">0 / 6</span></div><div class="fever-meter"><i id="feverFill"></i></div><div id="feverDetail" class="fever-detail">물고기 포획으로 충전</div></div>
 <div class="center-banner" id="banner"><div class="emoji" id="bannerIcon">🐟</div><strong id="bannerTitle">첫 포획!</strong><p id="bannerSub">새로운 물고기 발견</p></div>
+<div class="aqua-controls" id="aquaControls" aria-label="아쿠아리움">
+<button type="button" id="aquaPlay">🎣 낚시 플레이</button><button type="button" id="aquaManage" aria-controls="sideinfo" aria-expanded="false">⚙ 전시 관리</button></div>
 <div class="sideinfo" id="sideinfo"></div>
 <div class="aqua-sale-overlay" id="aquaSaleReceipt" role="dialog" aria-modal="true" aria-labelledby="aquaSaleTitle" aria-hidden="true">
  <div class="aqua-sale-card">
@@ -244,6 +253,7 @@ function drawFishingBitmapBackground(){
  return true;
 }
 function sea(under){
+ if((aquariumFishingActive||view==='tank')&&drawAquariumStageBackground())return;
  if(!under&&drawFishingBitmapBackground())return;
 var sky=ctx.createLinearGradient(0,0,0,230);sky.addColorStop(0,under?'#0e3c4e':'#8ac4c3');sky.addColorStop(1,under?'#286f7f':'#d4d6b2');ctx.fillStyle=sky;ctx.fillRect(0,0,W,WATER_SURFACE_Y);circle(1035,82,38,under?'#82b3aa55':'#fff1b0');for(var i=0;i<9;i++){var x=(i*183+90)%1350;ctx.fillStyle=under?'#0a4a5b48':'#43868c47';ctx.beginPath();ctx.moveTo(x,WATER_SURFACE_Y-6);ctx.lineTo(x+95,92+(i%3)*27);ctx.lineTo(x+210,WATER_SURFACE_Y-6);ctx.fill()}
 var ocean=ctx.createLinearGradient(0,WATER_SURFACE_Y,0,720);var palettes=[['#37a5b3','#0c536b','#092e4c'],['#2c92a0','#13516a','#073449'],['#6397a0','#2c626e','#112e45']];var pal=palettes[under?decor%3:zone%3];ocean.addColorStop(0,pal[0]);ocean.addColorStop(.55,pal[1]);ocean.addColorStop(1,pal[2]);ctx.fillStyle=ocean;ctx.fillRect(0,WATER_SURFACE_Y,1280,720-WATER_SURFACE_Y);ctx.strokeStyle='#b5f6e050';ctx.lineWidth=3;ctx.beginPath();for(var k=0;k<1280;k+=8){var y=WATER_SURFACE_Y+Math.sin(k*.024+time*1.7)*3; k===0?ctx.moveTo(k,y):ctx.lineTo(k,y)}ctx.stroke();
@@ -996,7 +1006,7 @@ function drawBob(){var x=bob.x,y=bob.y;circle(x,y,28,drag?'#fff6be2c':'#ffeaad15
 function coral(now){
  // Bitmap seabed and plants are part of the background painting.
  // Keep procedural coral only in the independent aquarium tank/fallback.
- if(view!=='tank'&&fishingBitmapReady())return;
+ if((view!=='tank'&&fishingBitmapReady())||aquariumFishingActive||(view==='tank'&&aquariumStageImage&&aquariumStageImage.ready))return;
  ctx.save();ctx.globalAlpha=.7;for(var i=0;i<18;i++){var x=i*83-30,y=710;ctx.strokeStyle=i%2?'#54a19a':'#a0b885';ctx.lineWidth=7;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x-12,y-52,x+Math.sin(now+i)*18,y-86-(i%3)*16);ctx.stroke()}ctx.restore()}
 function humanIcon(a,now){var x=a.x,y=a.y+Math.sin(now*1.5+a.phase)*4;ctx.save();ctx.translate(x,y);ctx.fillStyle='#91634b';ctx.fillRect(-41,49,82,9);ctx.fillStyle=['#ffdc99','#b4deec','#eaaa86','#f3bd92'][a.id%4];ctx.beginPath();ctx.ellipse(0,8,34,38,0,0,7);ctx.fill();ctx.fillStyle='#c65b55';ctx.beginPath();ctx.ellipse(0,-2,21,15,0,Math.PI,Math.PI*2);ctx.fill();circle(-11,7,4,'#253e48');circle(11,7,4,'#253e48');ctx.fillStyle='#fff8ee';ctx.beginPath();ctx.ellipse(0,29,10,5,0,0,7);ctx.fill();ctx.fillStyle='#e7f1ca';rounded(-18,45,36,23,8,'#e7f1ca');ctx.restore()}
 function backgroundHuman(){sea(false);ctx.fillStyle='#6f6a5a';ctx.fillRect(0,200,1280,22);ctx.fillStyle='#c1a982';ctx.fillRect(0,181,1280,20);for(var i=0;i<13;i++){ctx.fillStyle=i%2?'#564f48':'#866b4a';ctx.fillRect(i*100,208,23,72)}ctx.fillStyle='#4d6a6b';ctx.fillRect(0,190,280,15)}
@@ -1201,7 +1211,7 @@ function aquariumEnsureFish(now){
   var sp=species.find(function(z){return z.id===id});
   var seed=now*.31+i;
   return {id:id,sp:sp,x:clamp(100+(i*151)%1070+Math.sin(seed)*45,95,1170),
-   y:clamp(220+(i*89)%370,155,611),baseY:clamp(220+(i*89)%370,155,611),
+   y:clamp(220+(i*89)%370,WATER_SURFACE_Y+62,633),baseY:clamp(220+(i*89)%370,WATER_SURFACE_Y+62,633),
    dir:i%2===0?1:-1,speed:11+(i%6)*2.7+Math.random()*5,
    size:1.05+(i%4)*.2,phase:i*1.6+Math.random()*2.3,
    turnStart:-100,turnFrom:i%2===0?1:-1,
@@ -1262,7 +1272,7 @@ function aquariumUpdateFish(now){
     a.turnFrom=a.dir;a.dir=-a.dir;a.turnStart=now;
    }
   }
-  a.y=clamp(a.baseY+Math.sin(now*(.55+(a.phase%3)*.08)+a.phase)*12,148,614);
+  a.y=clamp(a.baseY+Math.sin(now*(.55+(a.phase%3)*.08)+a.phase)*12,WATER_SURFACE_Y+54,633);
  });
 }
 function aquariumTapFish(event){
@@ -1304,22 +1314,14 @@ function aquariumKeeperPose(now){
  return{action:action,frame:frame};
 }
 function drawAquariumKeeper(now){
- ctx.save();ctx.translate(14,-20);ctx.scale(.64,.64);
- drawOcto(now,aquariumKeeperPose(now));ctx.restore();
+ ctx.save();ctx.translate(0,PLAYER_STAGE_DROP);
+ if(window.octoSidekicksObserve)window.octoSidekicksObserve({view:'fish',casting:false,lure:false,hook:false,near:false,fever:false},now);
+ if(window.drawOctopusSidekicks)window.drawOctopusSidekicks(ctx,now,octo);
+ drawOcto(now);drawRod(now);drawHelpers(now);
+ ctx.restore();
 }
 function drawingTank(now){
- sea(true);
- ctx.fillStyle='#fffdfa0c';ctx.fillRect(20,25,1240,656);
- ctx.strokeStyle='#c3e3e78b';ctx.lineWidth=20;ctx.strokeRect(20,25,1240,656);
- ctx.strokeStyle='#194451';ctx.lineWidth=6;ctx.strokeRect(20,25,1240,656);
- ctx.fillStyle='#cfb98b';ctx.fillRect(32,656,1216,30);
- for(var i=0;i<20;i++){
-  var x=80+i*58+Math.sin(i*12)*16;
-  ctx.fillStyle=colors[(i+decor*3)%colors.length]+'77';
-  ctx.beginPath();ctx.ellipse(x,638,35,17,0,0,Math.PI*2);ctx.fill();
- }
- coral(now);
- aquariumUpdateFish(now);
+ sea(true);coral(now);aquariumUpdateFish(now);
  aquariumFishActors.forEach(function(a){
   if(!a.sprite)return;
   var wriggle=a.struggleStart<=now&&a.struggleEnd>now;
@@ -1369,7 +1371,7 @@ function drawingTank(now){
  });
  save.humanPlaced.forEach(function(id,i){
   var humanId=Number(id),sx=235+(i%4)*239+Math.sin(now*.6+i)*14;
-  var sy=318+Math.floor(i/4)*208+Math.sin(now*1.3+i)*10;
+  var sy=426+Math.floor(i/4)*160+Math.sin(now*1.3+i)*10;
   circle(sx,sy+24,86,humanId>=20?'#ffd48721':'#93ecff24');
   ctx.beginPath();ctx.ellipse(sx,sy+24,84,108,0,0,Math.PI*2);
   ctx.lineWidth=4;ctx.strokeStyle=humanId>=20?'#ffe3a4a8':'#b0eaffaa';ctx.stroke();
@@ -3106,9 +3108,14 @@ function ecoCrowd(f,dt){
 function updateEcosystem(dt){
  if(view!=='fish')return;
  eco.t+=dt;eco.fishTimer+=dt;eco.humanTimer+=dt;
- var interval=fish.length<5?1.55:fish.length<11?3.3:fish.length<16?5.8:8.5;
- if(eco.fishTimer>interval){eco.fishTimer=0;spawnWildFish(false)}
- if(eco.humanTimer>11){eco.humanTimer=0;spawnWildHuman()}
+ if(aquariumFishingActive){
+  aquariumSpawnTimer+=dt;
+  if(fish.length<12&&aquariumSpawnTimer>=.65){aquariumSpawnTimer=0;aquariumSpawnCodexFish(false)}
+ }else{
+  var interval=fish.length<5?1.55:fish.length<11?3.3:fish.length<16?5.8:8.5;
+  if(eco.fishTimer>interval){eco.fishTimer=0;spawnWildFish(false)}
+  if(eco.humanTimer>11){eco.humanTimer=0;spawnWildHuman()}
+ }
  var fLocked=hook&&hook.obj;
  for(var i=fish.length-1;i>=0;i--){
   var f=fish[i];
@@ -3911,6 +3918,81 @@ setMode=function(mode){
  if(mode!=='tank')aquariumCloseSaleReceipt();
  previousModeForAquariumSales(mode);
  if(entering)aquariumShowSaleReceipt(receipt);
+};
+
+
+/* Aquarium stage and codex-only fishing; normal casts, fever, capture unchanged. */
+var aquariumFishingActive=false,aquariumPanelOpen=false,aquariumSpawnTimer=0,aquariumStageImage=null;
+if(typeof Image!=='undefined'){
+ aquariumStageImage=new Image();aquariumStageImage.ready=false;aquariumStageImage.decoding='async';
+ aquariumStageImage.onload=function(){aquariumStageImage.ready=true};
+ aquariumStageImage.onerror=function(){aquariumStageImage.ready=false};
+ aquariumStageImage.src='./assets/backgrounds/bg_aquarium_stage.webp?v=20261106-play1';
+}
+function drawAquariumStageBackground(){
+ if(!aquariumStageImage||!aquariumStageImage.ready)return false;
+ ctx.drawImage(aquariumStageImage,0,0,W,H);return true;
+}
+function aquariumKnownSpecies(){return species.filter(function(sp){return Number(save.owned[sp.id])>0})}
+function aquariumSpawnCodexFish(inView,preferredId){
+ if(fish.length>=12)return false;
+ var choices=aquariumKnownSpecies();if(!choices.length)return false;
+ var fresh=choices.filter(function(sp){return !fish.some(function(f){return f.sp&&f.sp.id===sp.id&&!f.feverCaptured})});
+ if(!fresh.length)fresh=choices;
+ var selected=preferredId&&fresh.find(function(sp){return sp.id===preferredId});
+ var sp=selected||fresh[Math.floor(Math.random()*fresh.length)];
+ var dir=Math.random()<.5?1:-1,x=inView?rnd(405,1170):(dir>0?-76:W+76);
+ var f=makeWildFish(sp,x,rnd(WATER_SURFACE_Y+95,615),dir,false,0);
+ f.speed=Math.max(39,f.speed*1.7);f.vx=dir*f.speed;f.aquariumResident=true;fish.push(f);return true;
+}
+function aquariumRefreshControls(){
+ $('aquaControls').classList.toggle('visible',view==='tank'||aquariumFishingActive);
+ $('aquaPlay').textContent=aquariumFishingActive?'↩ 전시로 돌아가기':'🎣 낚시 플레이';
+ $('aquaManage').style.display=view==='tank'?'':'none';
+ $('aquaManage').setAttribute('aria-expanded',String(aquariumPanelOpen&&view==='tank'));
+ if(aquariumFishingActive){
+  $('navTank').classList.add('active');$('navFish').classList.remove('active');
+  $('stageName').textContent='나의 아쿠아리움 · 낚시 플레이';
+  $('stageNo').textContent='MY AQUARIUM / PLAY';
+ }
+}
+var aquariumPreviousSetMode=setMode;
+setMode=function(mode){
+ var continuing=mode==='fish'&&aquariumFishingActive;
+ if(!continuing&&aquariumFishingActive){aquariumFishingActive=false;eco.zone=-1;eco.humanZone=-1;}
+ aquariumPanelOpen=false;aquariumPreviousSetMode(mode);
+ if(mode==='tank')$('sideinfo').classList.remove('show');
+ if(mode==='fish'&&!aquariumFishingActive&&eco.zone<0){buildFish();buildHum();}
+ aquariumRefreshControls();
+};
+function aquariumBeginPlay(){
+ if(!aquariumKnownSpecies().length){
+  announce('🐟','도감에 물고기가 없어요','일반 스테이지에서 먼저 물고기를 잡아주세요.');return;
+ }
+ aquariumCloseSaleReceipt();
+ aquariumFishingActive=true;aquariumPanelOpen=false;aquariumSpawnTimer=0;
+ fish=[];hum=[];hook=null;eco.fishTimer=0;eco.humanTimer=0;setMode('fish');
+ var initial=save.placed.filter(function(id){return Number(save.owned[id])>0});
+ for(var i=0;i<initial.length&&fish.length<9;i++)aquariumSpawnCodexFish(true,initial[i]);
+ while(fish.length<9){if(!aquariumSpawnCodexFish(true))break}
+ for(var j=0;j<3;j++)aquariumSpawnCodexFish(false);
+ if(!introEntrance.active)startCast();
+}
+function aquariumReturnToExhibit(){
+ hideVirtualJoystick();cast.active=false;feverFx=null;hook=null;
+ aquariumFishingActive=false;eco.zone=-1;eco.humanZone=-1;setMode('tank');
+}
+$('aquaPlay').onclick=function(){
+ if(aquariumFishingActive)aquariumReturnToExhibit();
+ else if(view==='tank')aquariumBeginPlay();
+};
+$('aquaManage').onclick=function(){
+ if(view!=='tank')return;
+ aquariumPanelOpen=!aquariumPanelOpen;
+ $('sideinfo').classList.toggle('show',aquariumPanelOpen);aquariumRefreshControls();
+};
+$('navFish').onclick=function(){
+ aquariumFishingActive=false;eco.zone=-1;eco.humanZone=-1;setMode('fish');chooseZone();
 };
 
 // Optional non-destructive showcase: ?bluetang=1 starts in the tropical reef
