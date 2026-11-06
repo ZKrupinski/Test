@@ -81,19 +81,23 @@ assert.ok(drops>launched&&drops>lastFx,
  'Water droplet bitmap overlay must render after ALL fish and other canvas effects');
 assert.equal(active.split('drawFeverSuctionParticles(feverFx,time);').length-1,1,
  'Fever droplet sprites must have exactly one final overlay pass');
-assert.ok(source.includes('feverSuctionArt.dropsVisible=makeFeverDropletsVisible(im)')&&
- source.includes('Math.round(a*5.4+14)'),
- 'Displayed drops must aggressively brighten approved 256px bitmap cells');
-assert.ok(source.includes('var im=feverSuctionArt.dropsVisible||feverSuctionArt.drops'),
- 'Drop renderer must use the brighter display-only source with raw fallback');
+assert.ok(source.includes('feverSuctionArt.bubbles=buildFeverBubbleAtlas()')&&
+ source.includes('c.width=384;c.height=384'),
+ 'Game must pre-rasterize actual 96px glass-bubble art, not use blurry foam stamps');
+assert.ok(source.includes('var im=feverSuctionArt.bubbles||')&&
+ source.includes('feverSuctionArt.dropsVisible||feverSuctionArt.drops'),
+ 'Bubble overlay must prefer distinct sprite atlas, retaining old source as fallback');
+assert.ok(source.includes('feverSuctionArt.backSoft=softenFeverWhiteAtlas(im)')&&
+ source.includes('var whiteBreath=.22+.13*'),
+ 'Bright solid vortex must be partially transparent and change opacity over time');
 assert.ok(source.includes('var rotationTravel=turn+(mass<1.35?Math.PI*2:0);')&&
  source.includes('var arc=Math.sin(Math.PI*q)*Math.min(21,startRadius*.11)'),
  'Gathered fish should follow a short curved snap, not a slow full orbit');
 assert.ok(source.includes('var waveA=.5-.5*Math.cos(t*9.1);')&&
  source.includes('var waveB=.5-.5*Math.cos(t*7.4-1.27);'),
  'Both vortex bitmap layers must breathe smoothly instead of jumping on loop reset');
-assert.ok(source.includes('var alpha=appear*fade*(.54+.46*Math.sin(Math.PI*flow))'),
- 'Suction droplets need a nonzero alpha floor on dark and bright backgrounds');
+assert.ok(source.includes('var alpha=appear*fade*(.76+.20*Math.sin(Math.PI*flow))'),
+ 'Clear bubble sprites need high alpha throughout their visible movement');
 assert.ok(source.includes('function feverGripSlot(fx,index)')&&
  source.includes('radius=[0,64,70,79,88,100,111][n]+ring*111'),
  'Inhaled fish must retain separate concentric grip slots around the center');

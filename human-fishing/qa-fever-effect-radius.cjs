@@ -35,7 +35,9 @@ const scene={
  castEasing(x){x=clamp(x,0,1);return x*x*(3-2*x)},
  feverVortexArt:img('vortex'),
  feverVortexOpaque:null,
- feverSuctionArt:{front:img('front'),back:img('back'),drops:img('drops')},
+ feverSuctionArt:{front:img('front'),back:img('back'),drops:img('drops'),
+  bubbles:img('glass-bubble'),backSoft:img('softened-white')},
+ feverReelState(fx){return{x:fx.x,y:fx.y}},
  lureRecovery:{active:false},
  time:0,rodTip(){return{x:490,y:100}},
  mouthPos(){return{x:300,y:200}},
@@ -71,23 +73,33 @@ for(let tier=0;tier<=5;tier++){
   calls.length=0;
   fx.elapsed=.55;
   scene.drawFeverSuctionParticles(fx,.55);
-  assert.equal(calls.length,24,'Expected 24 bright painted suction droplets');
+  const expected=realRadius>=180?18:14;
+  assert.equal(calls.length,expected,'Expected clear glass bubble sprites');
   for(const item of calls){
    const centerDistance=Math.hypot(item.x-fx.x,item.y-fx.y);
    assert.ok(centerDistance+item.w*.55<=realRadius*.5+1e-6,
-    tier+'/'+level+': suction droplet exceeds shrunken visual boundary');
-   assert.ok(item.alpha>=.53&&item.alpha<=1,
-    'Distant and close particles must remain visible on the top layer');
-   assert.ok(item.w>=24,'Droplet bitmap is too small for mobile display');
+    tier+'/'+level+': water bubble exceeds shrunken vortex boundary');
+   assert.equal(item.image,'glass-bubble','Foamy source was used instead of glass bubbles');
+   assert.ok(item.alpha>=.75&&item.alpha<=1,
+    'Every bubble must be clearly visible on the topmost layer');
+   assert.ok(item.w>=36,'Glass bubble bitmap too small for mobile display');
   }
-  for(const early of [.14,.30,.70]){
-   fx.elapsed=early;calls.length=0;
-   scene.drawFeverSuctionParticles(fx,early);
-   assert.equal(calls.length,24,
-    'Droplet overlay must persist visibly through whole suction burst');
-   assert.ok(calls.some(x=>x.alpha>.54&&x.w>24),
-    'Droplet visibility collapsed during the pull-in animation');
+  for(const at of [.14,.30,.70,1.12,1.60]){
+   fx.elapsed=at;calls.length=0;
+   scene.drawFeverSuctionParticles(fx,at);
+   assert.equal(calls.length,expected,
+    'Water bubbles should remain on screen through early bait retrieval');
+   assert.ok(calls.some(x=>x.alpha>.20&&x.w>=36),
+    'Water bubble visibility collapsed during the suction or reel animation');
   }
+  fx.elapsed=fx.reelStart+.69;calls.length=0;
+  scene.drawFeverSuctionParticles(fx,fx.elapsed);
+  assert.equal(calls.length,0,'Water bubbles must vanish before the fish toss');
+  calls.length=0;
+  fx.elapsed=.31;
+  scene.drawFeverVortex(fx,{x:610,y:410,tilt:0});
+  assert.ok(calls.some(x=>x.image==='softened-white'),
+   'Opaque white vortex source must use the softened bitmap instead');
  }
 }
-console.log('PASS: all Fever tiers flash full-size, snap to half, and show 24 high-contrast droplet sprites through suction.');
+console.log('PASS: all Fever tiers show softened pulsating white vortex and 14-18 large glass bubbles through reel.');

@@ -4699,17 +4699,83 @@ function makeFeverDropletsVisible(im){
   return canvas;
  }catch(e){return null}
 }
+
+function softenFeverWhiteAtlas(im){
+ // This source is the nearly solid pale-white spiral. Fade its white pixels
+ // in a pre-rasterized copy; keep saturated blue grooves and existing shapes.
+ try{
+  var c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;
+  var g=c.getContext('2d',{willReadFrequently:true});
+  g.drawImage(im,0,0);
+  var pixels=g.getImageData(0,0,c.width,c.height),a=pixels.data;
+  for(var i=0;i<a.length;i+=4){
+   var brightness=(a[i]+a[i+1]+a[i+2])/3;
+   var white=clamp((brightness-145)/95,0,1);
+   a[i+3]=Math.round(a[i+3]*(.80-.43*white));
+  }
+  g.putImageData(pixels,0,0);c.ready=true;return c;
+ }catch(e){return null}
+}
+// Actual single, glass-clear water bubbles, not reduced foam-cloud patches.
+// Rasterize this 4x4 RGBA atlas only ONCE when its source loads; active frames
+// use ctx.drawImage() exclusively, so the runtime effect remains bitmap art.
+function buildFeverBubbleAtlas(){
+ try{
+  var c=document.createElement('canvas');c.width=384;c.height=384;
+  var g=c.getContext('2d');
+  for(var k=0;k<16;k++){
+   var x=(k%4)*96+48,y=Math.floor(k/4)*96+48,
+    phase=k/16,r=35+2.5*Math.sin(k*1.73),
+    bright=.88+.12*Math.sin(phase*Math.PI*2);
+   // Dark cyan outer silhouette keeps a bubble legible on sunlit water.
+   var shadow=g.createRadialGradient(x,y,r*.57,x,y,r*1.30);
+   shadow.addColorStop(0,'rgba(5,66,107,0)');
+   shadow.addColorStop(.69,'rgba(10,81,123,.04)');
+   shadow.addColorStop(.87,'rgba(9,69,111,.43)');
+   shadow.addColorStop(1,'rgba(7,55,99,0)');
+   g.fillStyle=shadow;g.beginPath();g.arc(x,y,r*1.30,0,Math.PI*2);g.fill();
+   // Full glass globe with a luminous teal/white outer rim.
+   var glass=g.createRadialGradient(x-r*.31,y-r*.40,r*.06,x,y,r);
+   glass.addColorStop(0,'rgba(244,255,255,.25)');
+   glass.addColorStop(.38,'rgba(94,203,237,.12)');
+   glass.addColorStop(.68,'rgba(34,154,204,.22)');
+   glass.addColorStop(.85,'rgba(132,241,255,.74)');
+   glass.addColorStop(1,'rgba(238,255,255,.94)');
+   g.fillStyle=glass;g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fill();
+   g.lineWidth=2.5;g.strokeStyle='rgba(233,254,255,'+(bright*.95)+')';
+   g.beginPath();g.arc(x,y,r*.91,-2.35,.66);g.stroke();
+   g.lineWidth=2.1;g.strokeStyle='rgba(17,98,155,.72)';
+   g.beginPath();g.arc(x,y,r*.84,.67,2.55);g.stroke();
+   // Strong asymmetrical reflective highlights, still inside the PNG cell.
+   g.fillStyle='rgba(255,255,255,.97)';
+   g.beginPath();g.ellipse(x-r*.34,y-r*.43,r*.25,r*.12,-.65,0,Math.PI*2);g.fill();
+   g.fillStyle='rgba(230,255,255,.92)';
+   g.beginPath();g.arc(x+r*.38,y+r*.30,r*.085,0,Math.PI*2);g.fill();
+   g.fillStyle='rgba(131,234,255,.54)';
+   g.beginPath();g.ellipse(x+r*.22,y-r*.10,r*.17,r*.09,.9,0,Math.PI*2);g.fill();
+  }
+  c.ready=true;return c;
+ }catch(e){return null}
+}
 if(typeof Image!=='undefined'){
  [['front','octofever_suction_A_16f.webp'],
   ['back','octofever_suction_B_16f.webp'],
   ['drops','octofever_suction_drops_16f.webp']].forEach(function(entry){
   var im=new Image();im.decoding='async';im.ready=false;
   im.onload=function(){
-   if(entry[0]==='drops')
+   if(entry[0]==='back')
+    feverSuctionArt.backSoft=softenFeverWhiteAtlas(im);
+   if(entry[0]==='drops'){
     feverSuctionArt.dropsVisible=makeFeverDropletsVisible(im);
+    feverSuctionArt.bubbles=buildFeverBubbleAtlas();
+   }
    im.ready=true;
   };
-  im.onerror=function(){im.ready=false};
+  im.onerror=function(){
+   if(entry[0]==='drops')
+    feverSuctionArt.bubbles=buildFeverBubbleAtlas();
+   im.ready=false;
+  };
   im.src='./assets/octopus/bait/'+entry[1]+'?v=20261106-spiral-vfx';
   feverSuctionArt[entry[0]]=im;
  });
@@ -4767,50 +4833,52 @@ function drawFeverVortex(fx,reel){
  ctx.drawImage(image,dx,dy,sw,sh,-d/2,-d/2,d,d);
  ctx.restore();
  if(!paired)return true;
- // Two offset illustrated rings share an INWARD breathing rhythm. Sine
- // envelopes remove the old sawtooth scale reset/pop every revolution.
- // The strongest tightening coincides with the fish circling inside.
+ // Two offset painted rings breathe independently, but the dense WHITE
+ // rear sheet is spatially softened and its opacity pulses in time.
  var suction=castEasing(t/Math.max(.1,fx.suctionEnd));
  var waveA=.5-.5*Math.cos(t*9.1);
  var waveB=.5-.5*Math.cos(t*7.4-1.27);
  var scaleA=1-.10*suction-.085*waveA;
  var scaleB=.95-.085*suction-.11*waveB;
- feverSuctionAtlasFrame(back,Math.floor((t+.12)*18)+5,center.x,center.y,
-  d*scaleB,tilt-t*3.7+.54,opacity*(.59-.10*waveB));
+ var whiteBreath=.22+.13*(.5+.5*Math.sin(t*9.4+1.2));
+ var whiteAlpha=opacity*whiteBreath*(1-.20*feverSnapProgress(fx));
+ feverSuctionAtlasFrame(feverSuctionArt.backSoft||back,
+  Math.floor((t+.12)*18)+5,center.x,center.y,
+  d*scaleB,tilt-t*3.7+.54,whiteAlpha);
+ var frontBreath=.60+.12*Math.sin(t*8.1-.7);
  feverSuctionAtlasFrame(front,Math.floor(t*21),center.x,center.y,
-  d*scaleA,tilt+t*5.1,opacity*(.76-.09*waveA));
+  d*scaleA,tilt+t*5.1,opacity*(frontBreath-.07*waveA));
  return true;
 }
-// Source-painted bubbles and foam pass ABOVE fish while curving inward.
-// Never use procedurally drawn vector drops.
+// A pre-rasterized glass-bubble atlas passes ABOVE all fish and effects;
+// active frames are strictly bitmaps, not per-frame vector circles.
 function drawFeverSuctionParticles(fx,now){
- if(!fx||!feverSuctionArt.drops||!feverSuctionArt.drops.ready||
-   fx.elapsed>=fx.suctionEnd)return;
- var im=feverSuctionArt.dropsVisible||feverSuctionArt.drops,
-  p=clamp(fx.elapsed/fx.suctionEnd,0,1);
- var appear=castEasing(fx.elapsed/.10),
-  fade=1-castEasing((p-.90)/.10);
- for(var i=0;i<24;i++){
-  var flow=(fx.elapsed*(.96+(i%4)*.17)+i*.61803398875)%1;
-  // Same clockwise flow as the front bitmap and sucked-in fish.
-  var theta=i*2.39996+now*.28+flow*(5.0+(i%4)*.33);
-  // Real sprite sheet is only 256px (64px cells). At the old 19-43px
-  // output, details became sub-pixel on a phone. Render visibly at
-  // 25-57px while respecting the half-size Fever vortex on every tier.
-  var visualRadius=fx.radius*feverSnapScale(fx);
-  var d=Math.max(24,Math.min(24+(i%5)*6+Math.min(12,fx.radius*.035),
-   visualRadius*.76)*(1-.19*flow));
-  var radius=Math.max(0,visualRadius-d*.53-2)*
-   (.94*Math.pow(1-flow,1.35));
-  var x=fx.x+Math.cos(theta)*radius;
-  var y=fx.y+Math.sin(theta)*radius*.87;
-  // Each droplet is born, contracts and disappears individually: no
-  // synchronous bubbles popping back at the vortex perimeter.
-  // Keep a clearly visible alpha floor between each sprite's contraction
-  // cycles; previously multiplying by sin(flow) hid most particles.
-  var alpha=appear*fade*(.54+.46*Math.sin(Math.PI*flow));
-  feverSuctionAtlasFrame(im,(i*7+Math.floor(now*11))%16,
-   x,y,d,theta+Math.PI*.25,alpha);
+ if(!fx)return;
+ var im=feverSuctionArt.bubbles||
+  feverSuctionArt.dropsVisible||feverSuctionArt.drops;
+ if(!im||!im.ready||fx.elapsed>=fx.reelStart+.68)return;
+ // Stay over the captured fish into the first reel movement; the previous
+ // <1.05s foam-only pass was too brief for a real mobile player to notice.
+ var appear=castEasing(fx.elapsed/.09),
+  fade=1-castEasing((fx.elapsed-fx.reelStart-.24)/.44);
+ var reel=feverReelState(fx,now);
+ var visualRadius=fx.radius*feverSnapScale(fx)*
+  (1-.55*castEasing((fx.elapsed-fx.reelStart)/.66));
+ var count=fx.radius>=180?18:14;
+ for(var i=0;i<count;i++){
+  var flow=(fx.elapsed*(.67+(i%4)*.13)+i*.61803398875)%1;
+  var theta=i*2.39996+now*.42+flow*(4.8+(i%3)*.27);
+  // One bubble per 96px atlas cell, sized 36-75px in game units.
+  // The clear glass sphere fills most of the frame, unlike old foam blobs.
+  var d=Math.max(36,Math.min(37+(i%4)*10+
+    Math.min(12,fx.radius*.045),visualRadius*.89)*(1-.12*flow));
+  var radius=Math.max(0,visualRadius-d*.55-2)*
+   (.91*Math.pow(1-flow,1.28));
+  var x=reel.x+Math.cos(theta)*radius;
+  var y=reel.y+Math.sin(theta)*radius*.87;
+  var alpha=appear*fade*(.76+.20*Math.sin(Math.PI*flow));
+  feverSuctionAtlasFrame(im,(i*5+Math.floor(now*9))%16,
+   x,y,d,theta*.23,alpha);
  }
 }
 // A softly damped pendulum for the actual octopus BAIT, not the player.
