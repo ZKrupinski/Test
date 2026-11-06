@@ -2959,6 +2959,8 @@ function tick(stamp){
  fx.caught.forEach(function(entity,i){
   drawFeverTossCreature(entity,fx,i,time,'released');
  });
+ // Droplets are painted AFTER ambient and captured fish: a true overlay.
+ drawFeverSuctionParticles(fx,time);
   }
   if(view==='fish'&&!introEntrance.active&&hook){
    // A single reeled-in fish still covers the bait; the line is already
@@ -4211,6 +4213,30 @@ function drawFeverMouthSprite(fx,reel){
  ctx.restore();
  return true;
 }
+// New illustrated 16-frame bitmap atlas sources. Each atlas is a 4x4 sheet
+// with transparent source cells; original octopus assets remain untouched.
+var feverSuctionArt={};
+if(typeof Image!=='undefined'){
+ [['front','octofever_suction_A_16f.webp'],
+  ['back','octofever_suction_B_16f.webp'],
+  ['drops','octofever_suction_drops_16f.webp']].forEach(function(entry){
+  var im=new Image();im.decoding='async';im.ready=false;
+  im.onload=function(){im.ready=true};
+  im.onerror=function(){im.ready=false};
+  im.src='./assets/octopus/bait/'+entry[1]+'?v=20261106-spiral-vfx';
+  feverSuctionArt[entry[0]]=im;
+ });
+}
+function feverSuctionAtlasFrame(im,frame,x,y,d,rotation,alpha){
+ if(!im||!im.ready||alpha<=0)return false;
+ var sw=im.naturalWidth/4,sh=im.naturalHeight/4;
+ var n=((Math.floor(frame)%16)+16)%16;
+ ctx.save();
+ ctx.globalAlpha=clamp(alpha,0,1);
+ ctx.translate(x,y);ctx.rotate(rotation);
+ ctx.drawImage(im,n%4*sw,Math.floor(n/4)*sh,sw,sh,-d/2,-d/2,d,d);
+ ctx.restore();return true;
+}
 function drawFeverVortex(fx,reel){
  if(!feverVortexArt||!feverVortexArt.ready)return false;
  var releaseAt=fx.reelStart+.82,arrivalAt=releaseAt+.72,t=fx.elapsed;
@@ -4218,15 +4244,12 @@ function drawFeverVortex(fx,reel){
  var opacity=1-.10*castEasing((t-.10)/.17);
  // After crossing the REAL water surface, hold at 80%.
  if(t>=fx.surfaceAt)opacity=.80;
- // Keep the vortex visible throughout lifting AND the arc to the
- // protagonist's mouth, then vanish quickly upon arrival.
+ // Keep vortex with the flying catch, vanish quickly at the mouth.
  opacity*=1-castEasing((t-arrivalAt)/.16);
  if(opacity<=.001)return false;
  var travel=clamp((t-releaseAt)/.72,0,1);
  var center={x:reel.x,y:reel.y},tilt=reel.tilt*.65;
  if(t>=releaseAt){
-  // Follow the flying catch to the mouth rather than leaving the sprite
-  // behind at the fishing rod tip after the underwater reel is complete.
   var tip=rodTip(time);
   center=swallowPoint(tip.x-48,tip.y+12,mouthPos(time),travel);
   tilt=0;
@@ -4236,17 +4259,46 @@ function drawFeverVortex(fx,reel){
  var image=feverVortexOpaque||feverVortexArt,
   sw=image.width/4,sh=image.height/4;
  var dx=frame%4*sw,dy=Math.floor(frame/4)*sh;
- ctx.save();
- ctx.globalAlpha=opacity;
- ctx.translate(center.x,center.y);
- ctx.rotate(tilt);
- // The powerful vortex remains wide while collecting underwater, but
- // tightens around the mouth so it does not hide the character's face.
  var scale=1-.73*castEasing(travel);
  var d=fx.radius*2/.55*scale;
+ var front=feverSuctionArt.front,back=feverSuctionArt.back;
+ var paired=!!(front&&front.ready&&back&&back.ready);
+ // The existing approved vortex is the fallback and a faint core
+ // under the new two counter-rotating illustrated sheets.
+ ctx.save();ctx.globalAlpha=opacity*(paired?.23:1);
+ ctx.translate(center.x,center.y);ctx.rotate(tilt);
  ctx.drawImage(image,dx,dy,sw,sh,-d/2,-d/2,d,d);
  ctx.restore();
+ if(!paired)return true;
+ // Layer A spins clockwise, contracts first and loses opacity first.
+ // Layer B rotates counterclockwise with an 0.11s phase delay.
+ var phaseA=(t*1.65)%1,phaseB=((t-.11)*1.40+10)%1;
+ feverSuctionAtlasFrame(front,Math.floor(t*23),center.x,center.y,
+  d*(1-.24*phaseA),tilt+t*6.15,opacity*(.80-.20*phaseA));
+ feverSuctionAtlasFrame(back,Math.floor((t+.12)*19)+5,center.x,center.y,
+  d*.94*(1-.29*phaseB),tilt-t*4.20+.54,opacity*(.68-.24*phaseB));
  return true;
+}
+// Source-painted bubbles and foam pass ABOVE fish while curving inward.
+// Never use procedurally drawn vector drops.
+function drawFeverSuctionParticles(fx,now){
+ if(!fx||!feverSuctionArt.drops||!feverSuctionArt.drops.ready||
+   fx.elapsed>=fx.suctionEnd||lureRecovery.active)return;
+ var im=feverSuctionArt.drops,p=clamp(fx.elapsed/fx.suctionEnd,0,1);
+ var appear=castEasing(fx.elapsed/.16),
+  fade=1-castEasing((p-.88)/.12);
+ for(var i=0;i<22;i++){
+  var flow=(fx.elapsed*(1.4+(i%4)*.14)+i*.61803398875)%1;
+  var theta=i*2.39996+fx.elapsed*(5.2+(i%3)*.7)+flow*(2.1+(i%4)*.32);
+  var radius=Math.max(20+(i%5)*5,
+   fx.radius*(.35+.71*Math.pow(1-flow,1.16)));
+  var x=fx.x+Math.cos(theta)*radius;
+  var y=fx.y+Math.sin(theta)*radius*.85;
+  var d=(15+(i%5)*6)*(1-.70*flow);
+  var alpha=appear*fade*(.75-.43*flow);
+  feverSuctionAtlasFrame(im,(i*7+Math.floor(now*12))%16,
+   x,y,d,theta+Math.PI*.25,alpha);
+ }
 }
 // A softly damped pendulum for the actual octopus BAIT, not the player.
 // Keep physics independent of image changes; even a harsh joystick movement
@@ -4453,11 +4505,11 @@ function feverReelState(fx,now){
   holding:fx.elapsed<fx.reelStart+.82,leftSweep:0,tilt:-.12*Math.sin(Math.PI*smooth),x:x,y:y};
 }
 function feverGripSlot(fx,index){
- // Evenly spaced ring slots spiral inward during collection and ascent.
+ // Stable, independent concentric slots prevent center-piling and overlaps.
  var ring=Math.floor(index/6),n=Math.max(1,Math.min(6,fx.caught.length-ring*6)),
   progress=clamp((fx.elapsed-.15)/Math.max(.1,fx.reelStart+.82-.15),0,1),
   inward=progress*progress*(3-2*progress),
-  radius=[0,61,67,75,84,94,103][n]+ring*100-inward*13,
+  radius=[0,64,70,79,88,100,111][n]+ring*111-inward*11,
   angle=-Math.PI+(index%6)*Math.PI*2/n+ring*.30+inward*.27;
  return{x:Math.cos(angle)*radius,y:Math.sin(angle)*radius,
   scale:fx.caught.length>6?.53:fx.caught.length>=5?.63:.77};
@@ -4481,14 +4533,27 @@ function feverTossPoint(entity,fx,index,now){
   y:reel.y+offsetY+slot.y+wobbleY};
  var gather=clamp(fx.elapsed/.80,0,1),q=gather*gather*(3-2*gather);
  if(fx.elapsed<.80){
-  // Sucked into a whirl with tangential motion, never just lifted in place.
-  var swirl=Math.sin(Math.PI*q)*(12+(index%3)*3),
-   direction=Math.atan2(slot.y,slot.x);
-  return{x:mix(entity.x,hold.x,q)-Math.sin(direction)*swirl,
-   y:mix(entity.y,hold.y,q)+Math.cos(direction)*swirl,
-   rotation:Math.sin(now*27+index*2.2)*.18,
+  // Fish follow an actual polar swirl around the lure. Small fish turn
+  // faster; larger, heavier targets drift in with a slower arc.
+  var vx=entity.x-fx.x,vy=entity.y-fx.y,
+   startRadius=Math.hypot(vx,vy),startAngle=Math.atan2(vy,vx),
+   destX=hold.x-fx.x,destY=hold.y-fx.y,
+   endAngle=Math.atan2(destY,destX),endRadius=Math.hypot(destX,destY),
+   mass=entity.size||1.2;
+  var turn=((endAngle-startAngle+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;
+  var rotationTravel=turn+(mass<1.4?Math.PI*2:0);
+  var a=startAngle+rotationTravel*q;
+  var radius=mix(startRadius,Math.max(endRadius,38+mass*13),q);
+  var x=fx.x+Math.cos(a)*radius,y=fx.y+Math.sin(a)*radius;
+  // Read the instantaneous tangent to orient each sprite as it moves.
+  var qi=Math.min(1,q+.012),ai=startAngle+rotationTravel*qi,
+   ri=mix(startRadius,Math.max(endRadius,38+mass*13),qi);
+  var dx=fx.x+Math.cos(ai)*ri-x,dy=fx.y+Math.sin(ai)*ri-y;
+  var tilt=clamp(Math.atan2(dy,Math.max(1,Math.abs(dx)))*.38,-.48,.48);
+  return{x:x,y:y,rotation:tilt,facing:dx>=0?1:-1,
    scale:mix(1,slot.scale,q),done:false,phase:'gather',attached:true};
  }
+
  if(fx.elapsed<releaseAt)return{x:hold.x,y:hold.y,
   rotation:Math.sin(now*24+index*2.3)*.16,
   scale:slot.scale,done:false,phase:'held',attached:true};
@@ -4563,7 +4628,7 @@ function drawFeverTossCreature(entity,fx,index,now,layer){
   humanIcon({id:entity.id,x:0,y:0,phase:entity.phase||0,size:entity.size||1},now);
  }else{
   drawFish({sp:entity.sp,x:0,y:0,
-    vx:pose.phase==='escape'?pose.facing*180:entity.vx||1,
+    vx:pose.phase==='escape'?pose.facing*180:pose.phase==='gather'?(pose.facing||1)*120:entity.vx||1,
     size:entity.size||1.3,phase:entity.phase||0,
     spriteAction:pose.phase==='escape'?'flee':
       pose.phase==='throw'?'slip':'last_resist',
