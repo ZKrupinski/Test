@@ -25,8 +25,9 @@ assert.ok(stateUpdate<hero&&hero<=rod&&rod<line&&line<fever&&fever<ordinaryBack&
 const pass=source.slice(source.indexOf('function drawBaitAbovePlayer(now){'),source.indexOf('function drawLine(){',source.indexOf('function drawBaitAbovePlayer(now){')));
 assert.ok(pass.indexOf('drawDanglingBait(now)')<pass.indexOf('drawRedLure(now'),
  'Hook eyelet must be occluded by the octopus legs');
-assert.ok(source.includes('jointX=bob.x-Math.sin(bodyAngle)*jointDepth'),
- 'Hook joint must follow rotating lower-center legs');
+assert.ok(source.includes('jointX=bob.x-Math.sin(bodyAngle)*jointDepth')&&
+ source.includes('jointY=bob.y-jointDepth+Math.cos(bodyAngle)*jointDepth'),
+ 'Hook joint must follow rotating body center beneath the head pivot');
 assert.ok(source.includes('var center={x:bob.x,y:bob.y};'),
  'OCTO FEVER still targets the red octopus body center, never the small hanging bait');
 const baitAtlas='human-fishing/assets/octopus/bait/hanging_baits10_v2.webp';

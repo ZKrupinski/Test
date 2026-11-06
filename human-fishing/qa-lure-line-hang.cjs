@@ -1,6 +1,6 @@
 'use strict';
-// Ensure the REAL vector fishing line meets the center of the RED octopus bait
-// and the dangling sprite follows rope slant with a strict angular slew limit.
+// Line ends at the upper head pivot; the red feet push with horizontal motion
+// rather than leaning toward the rod. Confirm bounds and zero-angle geometry.
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const html=fs.readFileSync('human-fishing/index.html','utf8');
 const source=html.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
@@ -10,6 +10,7 @@ const end=source.indexOf("['open','gulp','fail'].forEach(function(action){",begi
 assert.ok(begin>0&&end>begin,'Lure rotation controller missing');
 const env={
  selectedGear:()=>({id:'baby',tier:0}),gearLevel:()=>0,
+ save:{fever:{ready:false}},feverFx:null,lureRecovery:{active:false},hook:null,
  Math,console,bob:{x:590,y:460},
  clamp:(x,a,b)=>Math.max(a,Math.min(b,x)),
  vibrationOffset:()=>({x:2.4,y:-1.5}),
@@ -30,7 +31,7 @@ vm.runInContext(source.slice(begin,end),env,{filename:'lure-hang.js'});
 // Same anchor should be shared by string and bitmap (including hit shake).
 const pos=env.lureLineAnchor();
 assert.equal(pos.x,592.4);
-assert.equal(pos.y,458.5);
+assert.equal(pos.y,458.5-76*.29);
 const tip={x:705,y:146};
 assert.equal(env.updateLureHang(0,tip,pos),0);
 let previous=0;
@@ -39,7 +40,7 @@ for(let i=1;i<=90;i++){
  const endPos={x:592.4+Math.sin(t*2.7)*150,y:458.5+Math.cos(t)*4};
  const angle=env.updateLureHang(t,tip,endPos);
  assert.ok(Number.isFinite(angle));
- assert.ok(Math.abs(angle)<=.72+1e-8,'Excessive body rotation');
+ assert.ok(Math.abs(angle)<=.44+1e-8,'Excessive body rotation');
  assert.ok(Math.abs(angle-previous)<=1.8/60+1e-7,'Rotation snapped rather than easing');
  assert.equal(env.updateLureHang(t,tip,endPos),angle,'Multiple draws in a frame must not turn twice');
  previous=angle;
@@ -53,7 +54,7 @@ assert.ok(Math.abs(after-before)<=1.8/60+1e-7,'Sudden lateral move snapped bait 
 // Even when lure velocity stops, rope angle should recover gently, not oscillate.
 for(let i=92;i<160;i++){
  const angle=env.updateLureHang(i/60,tip,jumpPos);
- assert.ok(Number.isFinite(angle)&&Math.abs(angle)<=.72);
+ assert.ok(Number.isFinite(angle)&&Math.abs(angle)<=.44);
 }
 // Check the actual sprite draw path is pivoted at the string's endpoint.
 const dBegin=source.indexOf('function drawRedLure(now,x,y,diameter){');
@@ -61,18 +62,18 @@ const dEnd=source.indexOf('// Bait uses the already existing rod gear',dBegin);
 assert.ok(dBegin>0&&dEnd>dBegin);
 vm.runInContext(source.slice(dBegin,dEnd),env,{filename:'lure-draw.js'});
 assert.equal(env.drawRedLure(3,env.bob.x,env.bob.y,76),true);
-assert.deepEqual(recorded.translate,[env.bob.x+2.4,env.bob.y-1.5],
- 'Bait bitmap rotation pivot must equal the string endpoint');
+assert.deepEqual(recorded.translate,[env.bob.x+2.4,env.bob.y-1.5-76*.29],
+ 'Bait upper-head pivot must equal the string endpoint');
 assert.equal(recorded.rotate,env.lureHangState.angle,'The bait uses its eased pendulum angle');
 assert.equal(recorded.blit[5],-76/2,'Horizontal bait center must equal the string endpoint');
-assert.equal(recorded.blit[6],-76*.55,'The bait visual center must equal the string endpoint vertically');
+assert.equal(recorded.blit[6],-76*.55+76*.29,'Head pivot must remain inside the painted sprite');
 // Final active line renderer may not refer to the obsolete fish/head offset.
 const lineBegin=source.lastIndexOf('function drawLine(){');
 const lineEnd=source.indexOf('function drawBob(){',lineBegin);
 const drawLine=source.slice(lineBegin,lineEnd);
 assert.match(drawLine,/end=lureLineAnchor\(\)/,'The string endpoint must share the bait pivot');
-assert.match(drawLine,/controlX=end\.x-Math\.sin\(angle\)\*lead/,
- 'String tangent must follow the eased body angle');
+assert.match(drawLine,/controlX=end\.x\+Math\.sin\(angle\)\*lead/,
+ 'Line tip must approach head from above while feet push laterally');
 assert.doesNotMatch(drawLine,/hook\.obj\.y-18|bob\.y-37/,
  'Remove the prior string endpoint floating above the bait');
 // Render a simulated line and verify actual Bezier endpoint on the bait center.
@@ -87,7 +88,7 @@ vm.runInContext(drawLine,env,{filename:'fishing-line.js'});
 env.drawLine();
 assert.ok(curve,'The vector fishing line must still be drawn');
 assert.equal(curve[4],env.bob.x+2.4,'Line X endpoint != bait center');
-assert.equal(curve[5],env.bob.y-1.5,'Line Y endpoint != bait center');
+assert.equal(curve[5],env.bob.y-1.5-76*.29,'Line Y endpoint != head pivot');
 // Compare all grades on identical physical trajectories; highest grade still moves.
 function amplitude(tier,level,idle){
  env.selectedGear=()=>({id:'test',tier});env.gearLevel=()=>level;
@@ -105,7 +106,17 @@ for(let tier=0;tier<6;tier++){
  const a=amplitude(tier,0,false);
  assert.ok(a<last,'Each octopus grade must swing less on the same rope movement');last=a;
 }
-assert.ok(amplitude(0,0,false)>.38,'Starter octopus should visibly lean more than before');
+assert.ok(amplitude(0,0,false)>.30,'Starter octopus should visibly push with its feet');
 assert.ok(amplitude(5,10,true)>.01,'Fully upgraded octopus must retain idle movement');
 assert.ok(amplitude(5,10,false)<amplitude(5,0,false),'Levels should also improve stability');
-console.log('PASS: continuous rope attachment, bounded spring motion, decreasing tier sway and nonzero max-tier idle');
+// A stationary lure at the far edge must remain almost upright; the old
+// rope-slant code made this lean up to 0.7 radians even without movement.
+env.selectedGear=()=>({id:'baby',tier:0});env.gearLevel=()=>0;
+env.lureHangState={angle:0,angularVelocity:0,lastTime:null,lastX:null,lastY:null};
+for(let i=0;i<240;i++)env.updateLureHang(i/60,tip,{x:1150,y:460});
+assert.ok(Math.abs(env.lureHangState.angle)<.065,'Rope slant must not rotate a stationary octopus');
+const feverDrawBegin=source.indexOf('function drawFeverMouthSprite(fx,reel){');
+const feverDrawEnd=source.indexOf('// New illustrated 16-frame bitmap atlas sources',feverDrawBegin);
+assert.match(source.slice(feverDrawBegin,feverDrawEnd),/ctx.translate\(reel.x\+hit.x,reel.y-depth\+hit.y\)/,
+ 'Fever mouth sheet must share the normal upper-head pivot');
+console.log('PASS: hidden head anchor, leg-direction tilt, upright edges and tier sway');

@@ -386,8 +386,9 @@ function danglingBaitPosition(now){
  // All 10 PNG-like bitmap cells have the hook eye at x≈80,y≈16.
  // The piercing bait center sits about 41 game pixels below the eye.
  var jointDepth=lureLegJointDepth(),length=41,localX=1.46;
+ // The hook eye rides below the octopus head at its rotated body center.
  var jointX=bob.x-Math.sin(bodyAngle)*jointDepth,
-  jointY=bob.y+Math.cos(bodyAngle)*jointDepth;
+  jointY=bob.y-jointDepth+Math.cos(bodyAngle)*jointDepth;
  return{x:jointX-Math.sin(angle)*length+Math.cos(angle)*localX,
   y:jointY+Math.cos(angle)*length+Math.sin(angle)*localX,
   jointX:jointX,jointY:jointY,angle:angle,length:length};
@@ -2828,15 +2829,13 @@ function drawBaitAbovePlayer(now){
 }
 function drawLine(){
  var tip=rodTip(time),
-  // The illustrated bait is drawn around this exact center, including shake.
-  // Do not end the line 37px above the bait or 18px above a hooked fish.
+  // The line meets the RED bait's upper head PIVOT, hidden by the bitmap.
   end=lureLineAnchor(),
   angle=updateLureHang(time,tip,end),
   slack=hook?2:feverFx?Math.max(2,14*(1-(feverFx.reelProgress||0))):cast.active?23:drag?12:47;
- // The last part of the rope approaches the bait from above at the same
- // smoothed angle as the dangling body. Keep end.x/y exactly at bait center.
+ // The line approaches from above, not perpendicular to the pushing feet.
  var lead=clamp((end.y-tip.y)*.17,37,75),
-  controlX=end.x-Math.sin(angle)*lead,
+  controlX=end.x+Math.sin(angle)*lead,
   controlY=end.y-Math.cos(angle)*lead;
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
  ctx.beginPath();ctx.moveTo(tip.x,tip.y);
@@ -4456,12 +4455,13 @@ function drawFeverMouthSprite(fx,reel){
   ctx.restore();
  }
  if(mixIn<=.001)return true;
+ var depth=lureHeadPivotDepth(),hit=vibrationOffset('lure');
  ctx.save();
  ctx.globalAlpha=mixIn;
- ctx.translate(reel.x,reel.y);
+ ctx.translate(reel.x+hit.x,reel.y-depth+hit.y);
  ctx.rotate(lureHangState.angle);
  ctx.drawImage(image,col*tileW,row*tileH,tileW,tileH,
-  -tileW*.5*scale,-tileH*.5*scale,tileW*scale,tileH*scale);
+  -tileW*.5*scale,-tileH*.5*scale+depth,tileW*scale,tileH*scale);
  ctx.restore();
  return true;
 }
@@ -4568,16 +4568,28 @@ function octopusSwingStats(gear,level){
  var g=gear||selectedGear('octopus');
  var lv=level===undefined?gearLevel('octopus',g.id):level;
  var q=clamp(g.tier/5*.85+lv/10*.15,0,1);
- return{gain:1.55-1.05*q,limit:.70-.47*q,
-  idle:.060-.038*q,damping:6.5+4*q,maxTurn:1.8-.65*q};
+ return{gain:1.55-1.05*q,limit:.44-.28*q,
+  idle:.055-.035*q,damping:7.3+4*q,maxTurn:1.8-.55*q};
+}
+function lureHeadPivotDepth(){
+ // A shared upper-head pivot, 29% of the painted diameter above center.
+ // This remains INSIDE the octopus silhouette and hides the string end.
+ var d=76;
+ if(feverFx&&!lureRecovery.active)d=84;
+ else if(hook)d=64;
+ else if(save.fever.ready){
+  var g=selectedGear('octopus');
+  d=Math.max(75,Math.min(94,octoStats(g.tier,gearLevel('octopus',g.id)).size));
+ }
+ return d*.29;
 }
 function lureLegJointDepth(){
- // The upper hook eyelet shares the octopus body/FEVER center exactly.
- return 0;
+ // The separate hooked worm hangs from the rotated body center.
+ return lureHeadPivotDepth();
 }
 function lureLineAnchor(){
  var shake=vibrationOffset('lure');
- return{x:bob.x+shake.x,y:bob.y+shake.y};
+ return{x:bob.x+shake.x,y:bob.y-lureHeadPivotDepth()+shake.y};
 }
 function updateLureHang(now,tip,end){
  var h=lureHangState;
@@ -4588,19 +4600,21 @@ function updateLureHang(now,tip,end){
  var dt=clamp(now-h.lastTime,0,.05);
  if(dt<=0)return h.angle; // Repeated draw in one frame is identical.
  var velocityX=clamp((end.x-h.lastX)/Math.max(.008,dt),-420,420);
- // The line is the dominant influence. A small opposite inertial term makes
- // the octopus trail during sudden lateral joystick motions, then settle.
- var ropeAngle=Math.atan2((end.x-tip.x)*.72,
-  Math.max(125,end.y-tip.y+38));
+ var stickVelocity=typeof rodMotion!=='undefined'&&rodMotion?(rodMotion.vx||0):0;
+ // No rope-angle torque: feet push toward actual joystick/translation
+ // direction (right motion -> negative canvas angle -> feet to the right).
+ // At an edge, stopping movement restores a near-vertical octopus.
+ var pushVelocity=Math.abs(velocityX)>8?velocityX:stickVelocity;
  var stats=octopusSwingStats();
- var target=clamp(ropeAngle*stats.gain-velocityX*.00065*stats.gain+
+ var target=clamp(-pushVelocity*.00117*stats.gain+
   Math.sin(now*2.15)*stats.idle,-stats.limit,stats.limit);
- // Damped angular spring: the low tier trails and rebounds noticeably.
  h.angularVelocity=(h.angularVelocity||0)+
-  ((target-h.angle)*24-(h.angularVelocity||0)*stats.damping)*dt;
+  ((target-h.angle)*28-(h.angularVelocity||0)*stats.damping)*dt;
  h.angularVelocity=clamp(h.angularVelocity,-stats.maxTurn,stats.maxTurn);
  h.angle+=h.angularVelocity*dt;
- if(Math.abs(h.angle)>.72){h.angle=clamp(h.angle,-.72,.72);h.angularVelocity=0}
+ if(Math.abs(h.angle)>stats.limit){
+  h.angle=clamp(h.angle,-stats.limit,stats.limit);h.angularVelocity=0;
+ }
  h.lastTime=now;h.lastX=end.x;h.lastY=end.y;
  return h.angle;
 }
@@ -4649,16 +4663,15 @@ function drawRedLure(now,x,y,diameter){
  var cw=img.naturalWidth/4,ch=img.naturalHeight/4,
   sx=(pose.frame%4)*cw,sy=Math.floor(pose.frame/4)*ch,
   d=Math.max(48,diameter||76);
- var hit=vibrationOffset('lure'),
-  anchor={x:x+hit.x,y:y+hit.y},
+ var hit=vibrationOffset('lure'),depth=lureHeadPivotDepth(),
+  anchor={x:x+hit.x,y:y-depth+hit.y},
   angle=updateLureHang(now,rodTip(now),anchor);
  ctx.save();
  ctx.translate(anchor.x,anchor.y);
  ctx.rotate(angle);
- // Source alpha bounds are centered at x=.50 and y=.53-.57 of the frame.
- // Place the rope attach point INSIDE the body's visual midpoint, not above it.
- // Rotate around that same point to mimic weight hanging from the line.
- ctx.drawImage(img,sx,sy,cw,ch,-d/2,-d*.55,d,d);
+ // Upper head rotates around the EXACT string endpoint; the painted head
+ // occludes the rope. The body hangs below and the feet push laterally.
+ ctx.drawImage(img,sx,sy,cw,ch,-d/2,-d*.55+depth,d,d);
  ctx.restore();return true;
 }
 // Bait uses the already existing rod gear and joystick dynamics unchanged.
@@ -4962,7 +4975,7 @@ function drawFeverFx(dt){
  // Separate, already-translucent painted whirlpool in front of the mouth
  // but BELOW all ordinary/captured fish, in the normal bait depth layer.
  drawFeverVortex(fx,reel);
- // Body pivot, upper hook eyelet and Fever AOE share the same center.
+ // Head pivot hides the rope; the bait eyelet follows the body center.
  ctx.shadowBlur=0;
  ctx.globalAlpha=Math.max(0,1-p*.85);
  ctx.textAlign='center';ctx.shadowColor='#021820';ctx.shadowBlur=7;
