@@ -47,8 +47,16 @@ assert.ok(source.includes('red_lure_fever_natural_v2.webp'),
  'Fever must use the new natural-size illustrated red bait atlas');
 assert.ok(source.includes('octofever_vortex_soft_v2.webp'),
  'Fever must load a separate soft circular suction atlas');
-assert.ok(source.includes('var opacity=.95*Math.min(appear,disappear);'),
- 'Keep already-translucent bitmap visible without double-dimming');
+assert.ok(source.includes('makeFeverVortexOpaque(im)'),
+ 'Fever bitmap must boost original low-alpha paint without editing source art');
+assert.ok(source.includes('var opacity=1-.10*castEasing((t-.10)/.17);'),
+ 'Fever vortex must start fully opaque and settle to 90% underwater');
+assert.ok(source.includes('if(t>=fx.surfaceAt)opacity=.80;'),
+ 'Fever vortex must stay at 80% after leaving the surface');
+assert.ok(source.includes('opacity*=1-castEasing((t-arrivalAt)/.16);'),
+ 'Vortex must fade quickly only at player mouth arrival');
+assert.ok(source.includes('center=swallowPoint('),
+ 'Vortex must follow the catch to the player mouth after release');
 assert.ok(source.includes('var scale=.385+.015*Math.sin'),
  'Fever character must match normal bait scale');
 assert.match(source,/function feverMouthSpriteFrame\(fx\)/,
