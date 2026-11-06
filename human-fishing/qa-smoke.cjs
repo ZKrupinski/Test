@@ -1524,7 +1524,12 @@ console.log('PASS: hook-bait centered fishing, shrinking precision at high tiers
  game.setTime(71);
  const weak=game.mouthWeakspot(f,71);
  assert.ok(weak,'The approved PNG must supply a real mouth pivot');
- bait.x=weak.x;bait.y=weak.y;
+ // Position the actual pierced bait belly on the fish mouth.
+  for(let k=0;k<8;k++){
+   const tip=game.getBaitTip();
+   bait.x+=weak.x-tip.x;
+   bait.y+=weak.y-tip.y;
+  }
  assert.equal(game.targetOnRelease()?.obj,f,'The center of the bait must overlap the mouth');
  game.releaseNow();
  assert.ok(game.getHook()&&game.getHook().mouthRig,
