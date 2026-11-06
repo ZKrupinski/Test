@@ -2861,11 +2861,24 @@ function tick(stamp){
  else{
   sea(false);coral(time);
   updateEcosystem(dt);
-  if(view==='fish'){castMotion(dt);updateJoystick(dt);checkBaitBrush();checkBaitWeakspot();if(feverFx){
-   feverFx.elapsed+=dt;
-   var currentReel=feverReelState(feverFx,time);
-   bob.x=currentReel.x;bob.y=currentReel.y;
-  }}
+  if(view==='fish'){
+   castMotion(dt);
+   if(feverFx){
+    feverFx.elapsed+=dt;
+    var currentReel=feverReelState(feverFx,time);
+    if(!lureRecovery.active){bob.x=currentReel.x;bob.y=currentReel.y}
+    var arrival=feverFx.reelStart+.82+.72;
+    if(!feverFx.baitDelivered&&feverFx.elapsed>=arrival){
+     feverFx.baitDelivered=true;
+     bob.x=mouthPos(time).x;bob.y=mouthPos(time).y;
+     beginLureRecovery(feverFx.caught.some(function(z){return !z.willEscape})?
+      'swallow_success':'swallow_failure');
+     triggerRodRecoil(time);
+    }
+   }
+   updateLureRecovery(dt);
+   updateJoystick(dt);checkBaitBrush();checkBaitWeakspot();
+  }
   // 1) Advance lure and hooked-fish WORLD positions before any rendering.
   // This keeps the bitmap lure and the reel path synchronized to the same frame.
   if(view==='fish'&&!introEntrance.active&&hook){
@@ -2925,7 +2938,7 @@ function tick(stamp){
   // protagonist/rod draw group). This must stay AFTER the last drawOcto,
   // drawRod and drawLine call but BEFORE swimming and singly hooked fish.
   // Thus normal: player < rod/line < red bait < fish.
-  if(view==='fish'&&!introEntrance.active&&!feverFx){
+  if(view==='fish'&&!introEntrance.active&&(!feverFx||lureRecovery.active)){
    drawBaitAbovePlayer(time);
   }
   // 3) Draw all ambient creatures IN FRONT of the ordinary lure. The
@@ -4319,13 +4332,13 @@ function drawRedLure(now,x,y,diameter){
 // Bait uses the already existing rod gear and joystick dynamics unchanged.
 var priorRedLureDrawBob=drawBob;
 drawBob=function(){
- if(feverFx)return;
+ if(feverFx&&!lureRecovery.active)return;
  var lure=selectedGear('bait'),diam=73+lure.tier*2;
  if(!drawRedLure(time,bob.x,bob.y,diam))priorRedLureDrawBob();
 };
 var priorBobForFever=drawBob;
 drawBob=function(){
- if(feverFx)return;
+ if(feverFx&&!lureRecovery.active)return;
  if(!save.fever.ready){priorBobForFever();return}
  // Fever-ready glow doesn't replace the RED bait until Fever actually starts.
  var g=selectedGear('octopus'),v=octoStats(g.tier,gearLevel('octopus',g.id)),
@@ -4422,6 +4435,13 @@ function feverReelState(fx,now){
  var raw=clamp((fx.elapsed-fx.reelStart)/.82,0,1);
  var smooth=raw*raw*(3-2*raw),tip=rodTip(now);
  var x=mix(fx.x,tip.x-48,smooth),y=mix(fx.y,tip.y+12,smooth);
+ var releaseAt=fx.reelStart+.82,arrivalAt=releaseAt+.72;
+ if(fx.elapsed>releaseAt&&fx.elapsed<=arrivalAt){
+  // The Fever bait itself follows the same mouth trajectory as the fish.
+  var t=clamp((fx.elapsed-releaseAt)/.72,0,1);
+  var fly=swallowPoint(tip.x-48,tip.y+12,mouthPos(now),t);
+  x=fly.x;y=fly.y;
+ }
  return{progress:raw,folding:raw>0,frame:Math.round(11*(1-smooth)),
   surfaceAt:fx.surfaceAt,underwater:y>WATER_SURFACE_Y+2,
   holding:fx.elapsed<fx.reelStart+.82,leftSweep:0,tilt:-.12*Math.sin(Math.PI*smooth),x:x,y:y};
@@ -4575,14 +4595,14 @@ function drawFeverFx(dt){
  fx.reelProgress=reel.progress;
  fx.reelFrame=reel.frame;
  fx.reeling=reel.folding;
- bob.x=reel.x;bob.y=reel.y;
+ if(!lureRecovery.active){bob.x=reel.x;bob.y=reel.y}
  // FEVER uses EXACTLY the normal bait depth, NOT a foreground effect:
  // protagonist + rod < line < RED FEVER BAIT < ambient and caught fish.
  // All suction droplets, huge opening and closure are painted bitmap frames.
  ctx.save();
  ctx.shadowColor=fx.color;
  ctx.shadowBlur=6+8*Math.sin(Math.PI*clamp(p,0,1));
- drawFeverMouthSprite(fx,reel);
+ if(!lureRecovery.active)drawFeverMouthSprite(fx,reel);
  // Separate, already-translucent painted whirlpool in front of the mouth
  // but BELOW all ordinary/captured fish, in the normal bait depth layer.
  drawFeverVortex(fx,reel);
@@ -4602,11 +4622,8 @@ function drawFeverFx(dt){
  // single hooked fish during ordinary fishing; keep the suction trajectory.
 
  if(fx.elapsed>=fx.duration){
-  if(fx.caught.some(function(z){return !z.willEscape}))startPlayerOctoReaction('swallow_success');
-  else if(fx.caught.length)startPlayerOctoReaction('swallow_failure');
-  triggerRodRecoil(time);
+  // Reaction and rethrow began at mouth arrival, not the delayed FX end.
   feverFx=null;buildFish();buildHum();
-  if(view==='fish')startCast();
  }
 }
 
