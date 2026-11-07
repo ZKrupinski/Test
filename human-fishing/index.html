@@ -401,7 +401,7 @@ font:900 14px system-ui,sans-serif;letter-spacing:.65px}
 <script src="./assets/fish/ready.js?v=20261106-fish304"></script>
 <script src="./fish-bitmap-catalog.js?v=20261106-fish304"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
-<script src="./foley.js?v=20261107-pachinko-rewards-v3"></script>
+<script src="./foley.js?v=20261108-chest-prize-bells-v1"></script>
 <script>
 (function(){
 'use strict';
@@ -3712,10 +3712,10 @@ function updateCatchShowcaseAudio(){
   var i=seq.next++;
   // One distinct dry acoustic pluck per individual Fever trophy.
   // Gentle pitch ascent creates a pachinko rhythm without a loud fanfare.
-  playFoley('feverCard',.62+(i%3)*.07,.93+(i%6)*.045);
+  playFoley('feverCard',.88+(i%3)*.04,.94+(i%6)*.045);
   seq.nextAt=seq.started+seq.next*.52;
  }else if(seq.next>=seq.total&&time>=seq.nextAt-.08){
-  playFoley('feverFinish',.55);
+  playFoley('feverFinish',.89);
   catchShowcaseSequence=null;
  }
 }
@@ -3734,7 +3734,9 @@ function showCatchShowcase(items,fever){
   catchShowcaseSequence={started:time,nextAt:time,total:shown.length,next:0};
   updateCatchShowcaseAudio();
  }else{
-  playFoley('catchFanfare',.66);
+  // NEW gets a fuller, original item-discovery flourish.
+  // Standard catches still get an audible rising bell reward.
+  playFoley(shown.some(function(p){return p.fresh})?'catchNew':'catchFanfare',1.14);
  }
 }
 // CATCH_SHOWCASE_END
