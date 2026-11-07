@@ -266,38 +266,49 @@ font:900 14px system-ui,sans-serif;letter-spacing:.65px}
 #currentArrow{font-size:29px;line-height:18px;color:#c1fbee}
 #currentText{font-size:13px}
 
-/* Catch card uses the approved individual fish PNG in a floating UI above the rod. */
-#catchShowcase{position:absolute;left:572px;top:68px;width:392px;height:115px;z-index:12;pointer-events:none}
-.catch-card{position:absolute;top:0;left:0;box-sizing:border-box;width:382px;height:104px;
- display:flex;align-items:center;gap:12px;padding:9px;border:1px solid #b6eee7a8;
- border-radius:12px;color:#f0fff9;background:linear-gradient(115deg,#143847f5,#102b3bf0);
- box-shadow:0 9px 22px #00172290,inset 0 1px #e6fff52c;opacity:0;
- animation:catchCardSingle 2.45s both ease-out}
-.catch-card.fever{animation:catchCardFever .65s both ease-out}
-.catch-card-thumb{flex:0 0 107px;width:107px;height:85px;display:flex;align-items:center;justify-content:center;
- overflow:hidden;border:1px solid #c6eee338;border-radius:8px;
- background:radial-gradient(ellipse at 50% 50%,#9cead346,#17455c38 70%)}
-.catch-card-thumb img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 4px #05222abb)}
-.catch-card-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
-.catch-card-title{display:flex;align-items:center;gap:7px;min-width:0}
-.catch-card-title strong{font:900 23px/1.15 system-ui,sans-serif;overflow:hidden;
- white-space:nowrap;text-overflow:ellipsis;text-shadow:0 2px #00222a}
-.catch-card-new{flex:none;border-radius:5px;padding:4px 7px;background:#ffda78;
- color:#4a3011;font:1000 14px system-ui,sans-serif;box-shadow:0 0 10px #ffe281a1}
-.catch-card-size{color:#b0e0d8;font:800 14px system-ui,sans-serif}
+/* Catch reveal lives in empty sky to the RIGHT of the hero, below the top HUD.
+   Percentage coordinates retain exactly the same 16:9 layout on phones. */
+#catchShowcase{position:absolute;left:39.4%;top:23.7%;width:36%;height:12.6%;
+ z-index:5;pointer-events:none;overflow:hidden}
+#stage:has(.panel.open) #catchShowcase,
+#stage:has(.sideinfo.show) #catchShowcase,
+#stage:has(#motionTunePanel.visible) #catchShowcase,
+#stage:has(#rodTunePanel.visible) #catchShowcase,
+#stage:has(#banner.visible) #catchShowcase{display:none}
+.catch-card{position:absolute;top:0;left:0;box-sizing:border-box;width:78%;
+ height:100%;min-height:0;display:flex;align-items:center;gap:3%;padding:1.9%;
+ border:1px solid #9cddd099;border-radius:10px;color:#f0fff9;
+ background:linear-gradient(115deg,#133a47dc,#0c303dd2);
+ box-shadow:0 4px 12px #00172273,inset 0 1px #e6fff522;
+ opacity:0;animation:catchCardSingle 2.35s both ease-out;will-change:opacity,transform}
+.catch-card.fever{animation:catchCardFever .65s both linear}
+.catch-card-thumb{flex:0 0 29%;width:29%;height:87%;display:flex;align-items:center;
+ justify-content:center;overflow:hidden;border:1px solid #c6eee329;border-radius:7px;
+ background:radial-gradient(ellipse at 50% 50%,#9cead337,#17455c26 70%)}
+.catch-card-thumb img{width:100%;height:100%;object-fit:contain;
+ filter:drop-shadow(0 2px 3px #05222a80)}
+.catch-card-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.catch-card-title{display:flex;align-items:center;gap:5px;min-width:0}
+.catch-card-title strong{font:900 clamp(11px,1.5vw,22px)/1.14 system-ui,sans-serif;
+ overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-shadow:0 1px #00222a}
+.catch-card-new{flex:none;border-radius:4px;padding:3px 5px;background:#f8d678;
+ color:#4a3011;font:900 clamp(9px,1vw,13px) system-ui,sans-serif;
+ box-shadow:0 0 6px #ffe28170}
+.catch-card-size{color:#b0e0d8;font:800 clamp(9px,1.06vw,14px) system-ui,sans-serif}
 .catch-card-size b{color:#ffe1a0}
 .catch-card.fever .catch-card-title strong{color:#fff0bd}
 @keyframes catchCardSingle{
- 0%{opacity:0;transform:translate(-26px,10px) scale(.91)}
- 10%{opacity:1;transform:translate(4px,-2px) scale(1.03)}
- 18%,74%{opacity:1;transform:translate(0,0) scale(1)}
- 100%{opacity:0;transform:translate(102px,-6px) scale(.95)}
+ 0%{opacity:0;transform:translateX(-30px) scale(.97)}
+ 12%{opacity:1;transform:translateX(0) scale(1)}
+ 72%{opacity:1;transform:translateX(7px) scale(1)}
+ 100%{opacity:0;transform:translateX(106px) scale(.98)}
 }
+/* Pachinko rhythm: deterministic left-to-right transit and smooth fade. */
 @keyframes catchCardFever{
- 0%{opacity:0;transform:translate(-30px,9px) scale(.90)}
- 15%{opacity:1;transform:translate(2px,0) scale(1.02)}
- 35%{opacity:1;transform:translate(0,0) scale(1)}
- 100%{opacity:0;transform:translate(122px,-7px) scale(.92)}
+ 0%{opacity:0;transform:translateX(-49px) scale(.97)}
+ 24%{opacity:1;transform:translateX(0) scale(1)}
+ 57%{opacity:1;transform:translateX(17px) scale(1)}
+ 100%{opacity:0;transform:translateX(126px) scale(.98)}
 }
 </style></head><body><div class="wrap">
 <header inert><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 2.3</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
@@ -581,7 +592,7 @@ canvas.addEventListener('pointercancel',onBaitPointerCancel);
 canvas.addEventListener('lostpointercapture',function(e){if(joystick.active&&joystick.id===e.pointerId)hideVirtualJoystick()});
 window.addEventListener('blur',function(){if(joystick.active)hideVirtualJoystick()});
 $('action').onclick=function(){if(view!=='fish'&&view!=='human')return;if(hook)return;release()};
-function openPanel(title,desc,inner){$('panelTitle').textContent=title;$('panelDesc').textContent=desc;$('panelBody').innerHTML=inner;$('panel').classList.add('open')}
+function openPanel(title,desc,inner){stopCatchShowcase();$('panelTitle').textContent=title;$('panelDesc').textContent=desc;$('panelBody').innerHTML=inner;$('panel').classList.add('open')}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function renderBook(filter,query){filter=filter===undefined?-1:Number(filter);query=query||'';var count=Object.keys(save.owned).length;var tool='<div class="toolbar"><input id="search" placeholder="물고기 이름 검색" value="'+escapeHtml(query)+'"><select id="filter"><option value="-1">전체 서식지 12곳</option>'+habitats.map(function(h,i){return '<option value="'+i+'" '+(i===filter?'selected':'')+'>'+escapeHtml(h)+'</option>'}).join('')+'</select></div>';var visible=species.filter(function(s){return(filter===-1||s.habitat===filter)&&s.name.includes(query)});var cards='<div class="cards">'+visible.map(function(s){var n=save.owned[s.id]||0;return '<div class="card '+(n?'':'locked')+'"><div class="face">'+(n?'🐟':'◈')+'</div><div class="name">'+(n?escapeHtml(s.name):'???')+'</div><div class="meta">'+escapeHtml(habitats[s.habitat])+'</div><div class="num">'+(n?'보유 '+n+'마리':s.id+' · 미발견')+'</div></div>'}).join('')+'</div>';openPanel('물고기 도감','실제 어종 기반 240종 · 발견 '+count+' / 240 · 알파용 임시 아이콘',tool+cards);$('search').oninput=function(){var q=this.value,f=Number($('filter').value),list=species.filter(function(s){return f===-1||s.habitat===f});document.querySelectorAll('#panelBody .cards .card').forEach(function(el,i){el.style.display=!q||list[i]&&list[i].name.includes(q)?'':'none'})};$('filter').onchange=function(){renderBook(Number(this.value),'')}}
 function renderGrow(){var titles=['촉수 파워','찌 감각','진주 보너스'],desc=['포획 속도를 올립니다.','포획 가능한 거리 +20px / 레벨','낚시 보상 +4 / 레벨'];var s='<div class="stats">'+titles.map(function(t,i){var lv=save.up[i],cost=80+(lv*70);return '<div class="stat"><h3>'+t+'　Lv.'+lv+'/5</h3><p>'+desc[i]+'</p><button data-up="'+i+'" '+(lv>=5?'disabled':'')+'>'+(lv>=5?'MAX':'◈ '+cost+' 강화하기')+'</button></div>'}).join('')+'</div>';openPanel('문어 성장','모은 진주로 낚시 능력을 업그레이드',s);document.querySelectorAll('[data-up]').forEach(function(b){b.onclick=function(){var i=Number(this.getAttribute('data-up')),cost=80+save.up[i]*70;if(save.up[i]>=5)return;if(save.coins<cost){playFoley('error');announce('◈','진주가 부족해요','물고기를 낚아서 진주를 모아주세요.');return}save.coins-=cost;save.up[i]++;persist();updateStats();beep('catch');renderGrow()}})}
@@ -1952,7 +1963,7 @@ function success(){
  if(!human)recordFeverCapture(qty);
  if(!aquariumSale&&human&&save.humanPlaced.length===0)save.humanPlaced.push(id);
  if(!aquariumSale&&!human&&save.placed.length===0)save.placed.push(id);
- persist();updateStats();beep('catch');spawnParticles(645,290,extra?50:32,'gold');
+ persist();updateStats();spawnParticles(645,290,extra?50:32,'gold');
  showCatchShowcase([human?catchShowcaseHuman(o.id,qty,fresh):
   catchShowcaseFish(o.sp,qty,fresh,aquariumSale)],false);
  beginLureRecovery('swallow_success');
@@ -3249,7 +3260,9 @@ function autoFishingStep(dt){
 }
 // AUTO_FISHING_END
 function tick(stamp){
- var dt=Math.min((stamp-last)/1000,.045);last=stamp;time+=dt;ctx.clearRect(0,0,W,H);
+ var dt=Math.min((stamp-last)/1000,.045);last=stamp;time+=dt;
+ updateCatchShowcaseAudio();
+ ctx.clearRect(0,0,W,H);
  if(view==='fish')advanceIntroEntrance(dt);
  var cameraVibration=vibrationOffset('screen');ctx.save();
  if(cameraVibration.x||cameraVibration.y){
@@ -3647,7 +3660,7 @@ function catchShowcaseCard(item,fever,index){
  var tag=item.fresh?'<span class="catch-card-new">NEW</span>':'';
  var extra=item.quantity>1?' <b>×'+Math.floor(item.quantity)+'</b>':'';
  var sale=item.forSale?' · 판매':'';
- var delay=fever?(index*.16).toFixed(2):'0';
+ var delay=fever?(index*.52).toFixed(2):'0';
  return '<div class="catch-card'+(fever?' fever':'')+
   '" style="animation-delay:'+delay+'s;z-index:'+index+'">'+
   '<div class="catch-card-thumb">'+thumb+'</div>'+
@@ -3655,13 +3668,48 @@ function catchShowcaseCard(item,fever,index){
   '<strong>'+name+'</strong></div><div class="catch-card-size">SIZE · '+
   size+extra+sale+'</div></div></div>';
 }
+var catchShowcaseSequence=null;
+function stopCatchShowcase(){
+ catchShowcaseSequence=null;
+ var root=$('catchShowcase');
+ if(root)root.innerHTML='';
+}
+function updateCatchShowcaseAudio(){
+ var seq=catchShowcaseSequence;
+ if(!seq)return;
+ if(view!=='fish'||$('panel').classList.contains('open')||
+    $('motionTunePanel').classList.contains('visible')||
+    $('rodTunePanel').classList.contains('visible')){
+  catchShowcaseSequence=null;return;
+ }
+ if(seq.next<seq.total&&time>=seq.nextAt){
+  var i=seq.next++;
+  // One distinct dry acoustic pluck per individual Fever trophy.
+  // Gentle pitch ascent creates a pachinko rhythm without a loud fanfare.
+  playFoley('feverCard',.62+(i%3)*.07,.93+(i%6)*.045);
+  seq.nextAt=seq.started+seq.next*.52;
+ }else if(seq.next>=seq.total&&time>=seq.nextAt-.08){
+  playFoley('feverFinish',.55);
+  catchShowcaseSequence=null;
+ }
+}
 function showCatchShowcase(items,fever){
  var root=$('catchShowcase');
  if(!root||!items||!items.length)return;
- root.innerHTML=items.filter(Boolean).slice(0,36).map(function(item,i){
+ if(view!=='fish'||$('panel').classList.contains('open'))return;
+ var shown=items.filter(Boolean).slice(0,36);
+ if(!shown.length)return;
+ catchShowcaseSequence=null;
+ root.innerHTML=shown.map(function(item,i){
   return catchShowcaseCard(item,!!fever,i);
  }).join('');
- if(root.innerHTML)playFoley(fever?'catchFanfareFever':'catchFanfare');
+ if(fever){
+  // Shared rhythm for sprite fade-in and the distinct sound per prize.
+  catchShowcaseSequence={started:time,nextAt:time,total:shown.length,next:0};
+  updateCatchShowcaseAudio();
+ }else{
+  playFoley('catchFanfare',.66);
+ }
 }
 // CATCH_SHOWCASE_END
 function playCatchFx(caught,isHuman,name,reward,isDouble,isNew){
@@ -3690,7 +3738,7 @@ var previousModeAlpha04=setMode;
 setMode=function(m){
  // Leaving fishing cancels any dangling post-mouth recovery. Returning to
  // fishing starts the ordinary rod cast from a clean, continuous state.
- if(m!=='fish')lureRecovery.active=false;
+ if(m!=='fish'){lureRecovery.active=false;stopCatchShowcase();}
  previousModeAlpha04(m);
  if(m!=='fish')playFoley(m==='tank'?'aquarium':'menuOpen',.72);
  if(m==='fish')startCast();else hideVirtualJoystick();
