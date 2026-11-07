@@ -4987,7 +4987,7 @@ function lureHeadPivotDepth(){
   var g=selectedGear('octopus');
   d=Math.max(75,Math.min(94,octoStats(g.tier,gearLevel('octopus',g.id)).size));
  }
- return d*(polishedRedLureArt.idle&&polishedRedLureArt.idle.ready?.42:.29);
+ return d*(typeof polishedRedLureArt!=='undefined'&&polishedRedLureArt.idle&&polishedRedLureArt.idle.ready?.42:.29);
 }
 function lureLegJointDepth(){
  // The separate hooked worm hangs from the rotated body center.
@@ -5066,15 +5066,18 @@ function redLurePose(now){
 function drawRedLure(now,x,y,diameter){
  var pose=redLurePose(now),mode='idle',frame=0;
  // The same glossy silhouette is used across ordinary and Fever fishing.
- if(pose.action==='gulp'||hook||now-redLureReleasePulseAt<.28){
+ if(pose.action==='gulp'||hook||
+  (typeof redLureReleasePulseAt!=='undefined'&&now-redLureReleasePulseAt<.28)){
   mode='suction';frame=Math.min(7,Math.floor(pose.frame/2));
- }else if(drag||Math.abs(rodMotion.vx||0)>42||
-  Math.abs(rodMotion.vy||0)>60){
+ }else if((typeof drag!=='undefined'&&drag)||
+  (typeof rodMotion!=='undefined'&&rodMotion&&
+  (Math.abs(rodMotion.vx||0)>42||Math.abs(rodMotion.vy||0)>60))){
   mode='swim';frame=Math.floor(now*10)%8;
  }else if(pose.action==='fail'){
   frame=Math.floor(now*11)%8;
  }else frame=Math.floor(now*6)%8;
- var painted=polishedRedLureArt[mode],d=Math.max(48,diameter||76);
+ var painted=typeof polishedRedLureArt==='undefined'?null:polishedRedLureArt[mode],
+  d=Math.max(48,diameter||76);
  if(painted&&painted.ready){
   var cellW=painted.naturalWidth/4,cellH=painted.naturalHeight/2,
    hit=vibrationOffset('lure'),depth=lureHeadPivotDepth(),
