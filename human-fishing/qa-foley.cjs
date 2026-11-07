@@ -23,6 +23,26 @@ for(const [,filename] of entries){
  assert.ok(bytes.length>2000&&bytes.subarray(0,4).toString('ascii')==='OggS',
    'Missing or invalid playable OGG: '+file);
 }
+// Four original offline-produced, chest-style OGG prize melodies must ship
+// locally with the 29 licensed physical samples (no network fallback).
+const prizeFiles=['chest_prize.ogg','chest_prize_new.ogg',
+ 'fever_prize_tick.ogg','fever_prize_finish.ogg'];
+for(const filename of prizeFiles){
+ const asset=path+'assets/foley/'+filename;
+ const bytes=fs.readFileSync(asset);
+ assert.ok(bytes.length>4000&&bytes.length<120000,
+  'Original prize audio must be audible yet lightweight: '+filename);
+ assert.equal(bytes.subarray(0,4).toString('ascii'),'OggS',
+  'Original prize melody is not a valid OGG: '+filename);
+ assert.match(foley,new RegExp(filename.replaceAll('.','\\.')),
+  'Original clip must be registered and preloaded: '+filename);
+}
+assert.match(foley,/catchFanfare:\{gap:\.24,l:\[layer\(\['chestWin'\],\.94,1\)/,
+ 'Ordinary rewards need a front-facing melody, not tiny coin clicks');
+assert.match(foley,/catchNew:\{gap:\.28,l:\[layer\(\['chestNew'\],\.98,1\)/,
+ 'First discoveries deserve a more substantial dedicated treasure stinger');
+assert.match(foley,/feverCard:\{gap:\.24,l:\[layer\(\['feverTick'\],\.79,1\)/,
+ 'Fever prizes must have audible individual notes, distinct from solo reward');
 const eventHandlers={},started=[],fetches=[];
 let ac;
 class MockContext {
@@ -44,13 +64,13 @@ const bus=sandbox.window.HumanFishingFoley;
 assert.ok(bus,'Foley runtime missing');
 (async()=>{
  await bus.prime();
- assert.equal(bus.getState().sampleCount,29);
- assert.ok(bus.getState().cueCount>=39);
- assert.equal(bus.getState().loaded,29);
+ assert.equal(bus.getState().sampleCount,33);
+ assert.ok(bus.getState().cueCount>=40);
+ assert.equal(bus.getState().loaded,33);
  const required=['cast','splash','lureGrab','lureMove','brush','weakspot','bite',
  'miss','panic','reel','rodPump','rodSnap','swallow','catch','feverReady','fever',
  'feverSnap','feverBubbles','fishFlail','escape','escapeSplash','counter',
- 'groggy','catchFanfare','feverCard','feverFinish','menuOpen','menuClose','menuTap','menuNavigate','stage','upgrade',
+ 'groggy','catchFanfare','catchNew','feverCard','feverFinish','menuOpen','menuClose','menuTap','menuNavigate','stage','upgrade',
  'purchase','equip','aquarium','aquariumPlace','aquariumRemove','helperIncome','error'];
  for(const event of required){
   assert.ok(bus.hasCue(event),'Missing action sound: '+event);
@@ -63,9 +83,9 @@ assert.ok(bus,'Foley runtime missing');
  assert.equal(bus.play('bite'),true);
  assert.equal(bus.play('bite'),false,'Fast retrigger should be debounced');
  assert.equal(bus.play('unknown_event'),false,'Unknown sounds must not generate audio');
- assert.equal(fetches.length,29,'Every audio source should be preloaded once');
+ assert.equal(fetches.length,33,'Every audio source should be preloaded once');
  assert.doesNotMatch(foley.slice(foley.indexOf('var CUES='),foley.indexOf('var context=')),/victoryBrass|catchFanfareFever/,
   'Do not play theatrical brass anywhere in reward cues');
- console.log('PASS: 29 natural CC0 OGG samples decode, 39 subdued Foley/reward cues, '+
+ console.log('PASS: 29 natural CC0 OGG clips + 4 original chest/fever melodies decode; 40 cues are audible and responsive, '+
   'each cue starts playable physical sound, rapid retriggers are rate-limited.');
 })().catch(err=>{console.error(err);process.exitCode=1});
