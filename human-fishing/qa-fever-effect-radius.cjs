@@ -85,13 +85,39 @@ for(let tier=0;tier<=5;tier++){
     'Fever bubbles must scatter asynchronously, not appear as a solid crowd');
    assert.ok(calls.every(x=>x.image==='glass-bubble'),
     'Must render distinct glass bubbles, not white foam');
-   assert.ok(calls.every(x=>x.w>=10&&x.w<=78&&x.alpha>0&&x.alpha<=1),
-    'Outside bubbles should shrink progressively while alpha fades');
+   // Every bitmap diameter follows the same current visual radius:
+   // compare against the former middle-tier 200px-radius baseline.
+   const currentScale=scene.feverBubblePose(fx,at,0).visualRadius/100;
+   assert.ok(calls.every(x=>x.w>=11*currentScale-1e-6&&
+     x.w<=78*currentScale+1e-6&&x.alpha>0&&x.alpha<=1),
+    'Bubble sprites must scale with Fever tier and vortex size');
   }
   fx.elapsed=.55;calls.length=0;
   scene.drawFeverSuctionParticles(fx,.55);
   const sizes=new Set(calls.map(x=>Math.round(x.w)));
   assert.ok(sizes.size>=3,'Water bubble sizes cannot all be the same');
+  // At an identical effect phase, tier/level radius must translate 1:1
+  // into bubble diameter, while their individual seeds and transparency
+  // stay untouched. Mid-tier radius 200 is the original visual baseline.
+  const reference={...fx,radius:200};
+  for(const i of [0,3,11]){
+   const actual=scene.feverBubblePose(fx,.55,i);
+   const baseline=scene.feverBubblePose(reference,.55,i);
+   assert.ok(Math.abs(actual.size/baseline.size-realRadius/200)<1e-8,
+    'Bubble size must follow actual Fever tier and level radius');
+  }
+  // Size shrinks in sync with the same 24-90ms snap as caught fish.
+  const start={...fx,elapsed:.024},end={...fx,elapsed:.095};
+  let checked=0;
+  for(let i=0;i<expected;i++){
+   const early=scene.feverBubblePose(start,.024,i);
+   const late=scene.feverBubblePose(end,.095,i);
+   if(early.cycle!==late.cycle)continue;
+   assert.ok(Math.abs(late.startSize/early.startSize-.5)<1e-8,
+    'Each bubble must shrink to half during the Fever vortex snap');
+   checked++;
+  }
+  assert.ok(checked>=12,'Need stable bubble samples across the snap');
   const activePoses=Array.from({length:expected},(_,i)=>
    scene.feverBubblePose(fx,.55,i));
   assert.ok(activePoses.some(p=>p.radius>p.visualRadius*1.20),
