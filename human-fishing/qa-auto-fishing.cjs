@@ -82,7 +82,7 @@ const beforeFever=releases;
 ctx.save.fever.ready=true;ctx.bob.x=750;ctx.autoFishing.target=null;
 step(55.5);
 assert.equal(releases,beforeFever+1,'Ready Fever uses existing release() when in actual radius');
-assert.ok(hideCalls>=2,'Auto joystick detaches before casting and user takeover');
+assert.ok(hideCalls>=1,'Auto joystick detaches on capture; already-idle stick needs no additional detach');
 assert.doesNotMatch(text.slice(begin,end),/save\.coins\s*\+|save\.owned\[/,
  'Autopilot must never grant currency or creatures directly');
 console.log('PASS: 10s exact idle trigger, natural physics steering, real mouth release, Fever, input cancellation, menus and hidden-tab safety.');
