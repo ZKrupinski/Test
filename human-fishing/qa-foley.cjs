@@ -14,7 +14,7 @@ assert.match(html,/playFoley\('rodPump'/);
 assert.match(html,/playFoley\('lureMove'/);
 assert.match(html,/playFoley\('aquarium'/);
 assert.match(html,/playFoley\('escapeSplash'/);
-const entries=[...foley.matchAll(/^\s*\w+:\['([\w-]+\.ogg)','(https:\/\/raw\.githubusercontent\.com\/[^']+)'\],?$/gm)];
+const entries=[...foley.matchAll(/^\s*\w+:\['([\w-]+\.ogg)','(https:\/\/(?:raw\.githubusercontent\.com|opengameart\.org)\/[^']+)'\],?$/gm)];
 assert.equal(entries.length,30,'Expected 29 Foley samples plus a CC0 trumpet fanfare');
 for(const [,filename] of entries){
  const file=path+'assets/foley/'+filename;
