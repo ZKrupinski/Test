@@ -83,14 +83,19 @@ assert.match(root.innerHTML,/class="catch-card-info"><div class="catch-card-kick
 assert.match(root.innerHTML,/class="size-label">SIZE<\/span> <b>대형<\/b> <b>×2<\/b>/,
  'Large thumbnail should be supported by a clearly grouped size label');
 assert.match(root.innerHTML,/animation-delay:0s/);
-assert.deepEqual(sounds.map(s=>s.cue),['catchFanfare']);
-assert.ok(sounds[0].intensity<=.7,
- 'Single catch accent must be restrained and less loud than before');
+assert.deepEqual(sounds.map(s=>s.cue),['catchNew'],
+ 'Newly discovered fish must play the rich dedicated treasure flourish');
+assert.ok(sounds[0].intensity>=1.1,
+ 'Original chest melody must be confidently audible over water/rod effects');
+assert.match(source,/shown\.some\(function\(p\)\{return p\.fresh\}\)\?'catchNew':'catchFanfare'/,
+ 'A normal acquired fish must still have its own clear rising reward chime');
 const aquarium=sandbox.catchShowcaseFish(sp,1,true,true);
 sandbox.showCatchShowcase([aquarium],false);
 assert.doesNotMatch(root.innerHTML,/class="catch-card-new"/,
  'Aquarium sale does not create new owned species');
 assert.match(root.innerHTML,/판매/);
+assert.deepEqual(sounds.map(s=>s.cue),['catchNew','catchFanfare'],
+ 'Regular and first-time species acquisitions must have separate jingles');
 const batch=[sp,{id:'F008',name:'다랑어',artSizeClass:'MEDIUM'},
  {id:'F009',name:'해마',artSizeClass:'SPECIAL'}].map((fish,i)=>
  sandbox.catchShowcaseFish(fish,1,i===0,false));
@@ -114,8 +119,10 @@ assert.equal(sounds.at(-1).cue,'feverFinish',
  'Finishing the sequence should use a soft, distinct reward tail');
 assert.equal(sandbox.catchShowcaseSequence,null,
  'The Fever sequence must stop cleanly when it finishes');
-assert.equal(sounds.filter(s=>s.cue==='catchFanfare').length,2,
- 'Fever wins must never repeat the loud solo win sound');
+assert.equal(sounds.filter(s=>s.cue==='catchFanfare').length,1,
+ 'Fever prizes must not repeat the solo chest-opening melody');
+assert.equal(sounds.filter(s=>s.cue==='catchNew').length,1,
+ 'Fever must not trigger a second first-discovery fanfare');
 assert.match(source,/var freshCatch=captured&&!aquariumFishingActive&&!save\.owned\[f\.sp\.id\]/,
  'Fever NEW must be recorded before modifying ownership');
 assert.match(source,/showcaseFresh:freshCatch,showcaseSale:!!aquariumFishingActive/,
@@ -128,4 +135,4 @@ assert.match(source,/showCatchShowcase\(\[human\?catchShowcaseHuman/,
  'Regular single catch must show showcase at the swallow-success moment');
 assert.doesNotMatch(root.innerHTML,/data:image\/svg\+xml|<svg/,
  'No vector or generated image substituted for original PNG art');
-console.log('PASS: premium unframed original fish PNG, scaled responsive typography, above-water menu clearance, NEW/size, and unchanged Fever pachinko rhythm/audio.');
+console.log('PASS: prize layout, audible separate chest/NEW musical rewards, and independent per-fish Fever sparkle rhythm.');
