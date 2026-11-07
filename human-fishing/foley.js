@@ -32,7 +32,9 @@ var SRC={
  woodB:['wood_b.ogg','https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactWood_medium_003.ogg'],
  woodTap:['wood_tap.ogg','https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactWood_light_001.ogg'],
  touchTap:['touch_tap.ogg','https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactGeneric_light_002.ogg'],
- plank:['plank.ogg','https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactPlank_medium_001.ogg']
+ plank:['plank.ogg','https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactPlank_medium_001.ogg'],
+ // CC0 acoustic trumpet celebration by gchoc, OpenGameArt.
+ victoryBrass:['victory_brass.ogg','https://opengameart.org/sites/default/files/castlefanfare_0.ogg']
 };
 function layer(keys,gain,rate){return {keys:keys,gain:gain,rate:rate||1};}
 var CUES={
@@ -50,6 +52,10 @@ var CUES={
  rodSnap:{gap:.14,l:[layer(['lineSnap'],.45),layer(['woodTap'],.16,1.16)]},
  swallow:{gap:.14,l:[layer(['waterPlop'],.71,.82),layer(['thudA','thudB'],.42,1.1)]},
  catch:{gap:.18,l:[layer(['coinsA','coinsB'],.51,1.03),layer(['softA'],.25,1.04)]},
+ // These are real sampled brass phrases layered with tactile victory rewards,
+ // never WebAudio sine tones or electronic menu beeps.
+ catchFanfare:{gap:.18,l:[layer(['victoryBrass'],.79,1.22),layer(['coinsA','coinsB'],.42,1.06),layer(['softA'],.23,1.10)]},
+ catchFanfareFever:{gap:1.25,l:[layer(['victoryBrass'],.92,.99),layer(['coinsB'],.67,1.14),layer(['plank'],.32,1.02)]},
  feverReady:{gap:.9,l:[layer(['plank'],.44,1.17),layer(['coinsB'],.38,.93)]},
  fever:{gap:.7,l:[layer(['waterSplash'],.78,.8),layer(['thudA','thudB'],.88,.86),layer(['clothB'],.41,.88)]},
  feverSnap:{gap:.16,l:[layer(['punchA','punchB'],.81,.96),layer(['waterSplash'],.61,1.23),layer(['plank'],.24,1.04)]},
