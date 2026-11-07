@@ -4861,12 +4861,10 @@ function feverSnapProgress(fx){
  return 1-Math.pow(1-t,3); // fast pull, soft stop at the center
 }
 function feverSnapScale(fx){return 1-.5*feverSnapProgress(fx)}
-// The vortex retains its full-size initial flash; captured animals do NOT.
-// Move each full-size fish from the FIRST rendered frame of a catch, without
-// the former .14s hold, and settle into separate grip slots within .29s.
+// A 55ms local catch impact is followed by a 145ms explosive pull.
 function feverCatchGatherProgress(fx){
- var p=clamp(fx.elapsed/.29,0,1);
- return 1-Math.pow(1-p,3);
+ var p=clamp((fx.elapsed-.055)/.145,0,1);
+ return 1-Math.pow(1-p,4);
 }
 function drawFeverVortex(fx,reel){
  if(!feverVortexArt||!feverVortexArt.ready)return false;
@@ -5290,31 +5288,24 @@ function feverTossPoint(entity,fx,index,now){
   wobbleY=Math.cos(now*24+index*1.78)*3.2*struggle;
  var hold={x:reel.x+offsetX+slot.x+wobbleX,
   y:reel.y+offsetY+slot.y+wobbleY};
+ // Catch impact belongs to each fish, not an extra camera shake.
+ if(fx.elapsed<.055){
+  var impact=clamp(fx.elapsed/.055,0,1),fall=1-impact,
+   seed=index*1.73,amp=7*fall;
+  return{x:entity.x+Math.sin(fx.elapsed*240+seed)*amp,
+   y:entity.y+Math.cos(fx.elapsed*270+seed)*amp*.55,
+   rotation:Math.sin(fx.elapsed*220+seed)*.13*fall,
+   facing:entity.vx>=0?1:-1,scale:1,done:false,phase:'impact',attached:true};
+ }
  var q=feverCatchGatherProgress(fx);
- if(fx.elapsed<.29){
-  // Fish begin their clockwise pull on the FIRST frame of capture.
-  // They need not wait for the whirlpool to finish its full-size flash.
-  // Retain each animal's original size and distinct final grip position.
-  var vx=entity.x-fx.x,vy=entity.y-fx.y,
-   startRadius=Math.hypot(vx,vy),startAngle=Math.atan2(vy,vx),
-   destX=hold.x-fx.x,destY=hold.y-fx.y,
-   endAngle=Math.atan2(destY,destX),mass=entity.size||1.2;
-  var turn=((endAngle-startAngle)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
-  // One full clockwise orbit plus the angle to its OWN empty grip slot.
-  // A full 2PI addition means q=1 lands exactly at hold (no teleport).
-  var rotationTravel=turn+Math.PI*2;
-  var radius=mix(startRadius,Math.hypot(destX,destY),q),
-   angle=startAngle+rotationTravel*q,
-   x=fx.x+Math.cos(angle)*radius,
-   y=fx.y+Math.sin(angle)*radius;
-  var qi=Math.min(1,q+.012),ri=mix(startRadius,Math.hypot(destX,destY),qi),
-   ai=startAngle+rotationTravel*qi,
-   dx=fx.x+Math.cos(ai)*ri-x,
-   dy=fx.y+Math.sin(ai)*ri-y;
-  var tilt=clamp(Math.atan2(dy,Math.max(1,Math.abs(dx)))*.31,
-   -.44,.44);
-  return{x:x,y:y,rotation:tilt,facing:dx>=0?1:-1,
-   scale:1,done:false,phase:'gather',attached:true};
+ if(fx.elapsed<.20){
+  // A short direct snap replaces the slow full orbit; all fish pull together.
+  var dx=hold.x-entity.x,dy=hold.y-entity.y,length=Math.max(1,Math.hypot(dx,dy)),
+   bend=Math.sin(Math.PI*q)*Math.min(12,length*.06),
+   x=mix(entity.x,hold.x,q)-dy/length*bend,
+   y=mix(entity.y,hold.y,q)+dx/length*bend;
+  return{x:x,y:y,rotation:clamp(Math.atan2(dy,Math.max(1,Math.abs(dx)))*.2,-.28,.28)*(1-q),
+   facing:dx>=0?1:-1,scale:1,done:false,phase:'gather',attached:true};
  }
 
  if(fx.elapsed<releaseAt)return{x:hold.x,y:hold.y,
