@@ -257,12 +257,21 @@ pointer-events:none;padding:7px 12px;border-radius:8px;
 border:1px solid #8ad4c56b;background:#071c27bf;color:#d5f8e9;
 font:900 14px system-ui,sans-serif;letter-spacing:.65px}
 #autoFishStatus.active{display:block}
+#currentHud{position:absolute;left:50%;bottom:17px;transform:translateX(-50%);
+ z-index:8;pointer-events:none;display:none;align-items:center;gap:12px;
+ padding:8px 18px;border:1px solid #a9efdf60;border-radius:20px;
+ background:#092d40c9;box-shadow:0 2px 11px #0008;color:#e2fff2;
+ font:900 16px system-ui,sans-serif;letter-spacing:1px;white-space:nowrap}
+#currentHud.visible{display:flex}
+#currentArrow{font-size:29px;line-height:18px;color:#c1fbee}
+#currentText{font-size:13px}
 </style></head><body><div class="wrap">
 <header inert><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 2.3</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navGear">🎒 장비</button><button id="navShop">🛒 상점</button></nav></header>
 <div class="stage" id="stage" inert><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 아래쪽 절반을 터치해 누른 위치 중심의 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
 <div class="hud top"><div class="tag" style="display:none" aria-hidden="true"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins" style="margin-left:auto">◈ 0　🐟 0/240</div></div>
 <div id="autoFishStatus" role="status" aria-live="polite" aria-hidden="true">🎣 AUTO FISHING</div>
+<div id="currentHud" role="status" aria-hidden="true"><span id="currentText">조류</span><span id="currentArrow">→</span></div>
 <div id="feverHud" class="fever-hud"><div class="fever-top"><span>🐙 OCTO FEVER</span><span id="feverNum">0 / 6</span></div><div class="fever-meter"><i id="feverFill"></i></div><div id="feverDetail" class="fever-detail">물고기 포획으로 충전</div></div>
 <div class="center-banner" id="banner"><div class="emoji" id="bannerIcon">🐟</div><strong id="bannerTitle">첫 포획!</strong><p id="bannerSub">새로운 물고기 발견</p></div>
 <div class="aqua-controls" id="aquaControls" aria-label="아쿠아리움">
@@ -3028,6 +3037,52 @@ function checkBaitWeakspot(){
   f.weakTouching=weak;
  }
 }
+// Intermittent underwater currents: physical drift with clear bottom indicator.
+var waterCurrent={active:false,nextAt:time+rnd(7,14),start:0,
+ duration:0,vx:0,vy:0};
+function waterCurrentArrow(vx,vy){
+ if(vx>=0)return vy>22?'↘':vy< -22?'↗':'→';
+ return vy>22?'↙':vy< -22?'↖':'←';
+}
+function updateWaterCurrent(dt){
+ var hud=$('currentHud');
+ // Currents never interrupt throw, swallowing, a Fever animation, or UI.
+ // Also preserve the cast's autonomous sinking and avoid moving UI scenes.
+ var eligible=view==='fish'&&!introEntrance.active&&!cast.active&&
+  !cast.sinkActive&&!hook&&!feverFx&&!escapeFx&&!catchFx&&
+  !lureRecovery.active&&octoGroggy<=0&&!autoFishingBlocked();
+ if(waterCurrent.active&&time-waterCurrent.start>=waterCurrent.duration){
+  waterCurrent.active=false;
+  waterCurrent.nextAt=time+rnd(10,22);
+ }
+ if(eligible&&!waterCurrent.active&&time>=waterCurrent.nextAt){
+  waterCurrent.active=true;waterCurrent.start=time;
+  waterCurrent.duration=rnd(2.7,4.2);
+  waterCurrent.vx=(Math.random()<.5?-1:1)*rnd(38,78);
+  waterCurrent.vy=rnd(-24,24);
+  $('currentArrow').textContent=waterCurrentArrow(waterCurrent.vx,waterCurrent.vy);
+  playFoley('waterSplash',.25); // If unavailable, other Foley remains unchanged.
+ }
+ if(!eligible||!waterCurrent.active){
+  if(hud){hud.classList.remove('visible');hud.setAttribute('aria-hidden','true')}
+  return;
+ }
+ var age=time-waterCurrent.start;
+ // Soft in/out pulses prevent abrupt pushes at the first and last frame.
+ var fade=clamp(Math.min(age/.47,(waterCurrent.duration-age)/.65),0,1);
+ var vx=waterCurrent.vx*fade,vy=waterCurrent.vy*fade;
+ var bounds=baitHorizontalBounds();
+ bob.x=clamp(bob.x+vx*dt,bounds.min,bounds.max);
+ bob.y=clamp(bob.y+vy*dt,WATER_SURFACE_Y+16,615);
+ // The fish school drifts faintly too, without cancelling each fish's
+ // separate swim behavior or changing capture probabilities.
+ fish.forEach(function(f){
+  if(!f||f.feverCaptured||f.x<0||f.x>W)return;
+  f.x=clamp(f.x+vx*dt*.12,-20,W+20);
+  f.y=clamp(f.y+vy*dt*.10,WATER_SURFACE_Y+24,634);
+ });
+ if(hud){hud.classList.add('visible');hud.setAttribute('aria-hidden','false')}
+}
 // AUTO_FISHING_BEGIN: input-safe idle assistant, never modifies catch odds.
 var autoFishing={active:false,lastInput:time,target:null,kind:'fish',
  targetSince:0,lastAttempt:-100,triggerSeconds:10};
@@ -3201,6 +3256,7 @@ function tick(stamp){
    updateLureRecovery(dt);
    autoFishingStep(dt);
    updateJoystick(dt);
+   updateWaterCurrent(dt);
    updateLureHang(time,rodTip(time),lureLineAnchor());
    checkBaitBrush();checkBaitWeakspot();
   }
