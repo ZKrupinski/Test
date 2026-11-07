@@ -1,6 +1,7 @@
 'use strict';
-// Every bitmap effect, including the separate suction droplets, must remain
-// within the actual OCTO FEVER catch radius, at all octopus tiers/levels.
+// The vortex remains tied to the REAL capture radius. The GLASS BUBBLES
+// alone have half the previous orbit radius and 55% previous bitmap size,
+// consistently across every octopus tier and level.
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
@@ -85,12 +86,12 @@ for(let tier=0;tier<=5;tier++){
     'Fever bubbles must scatter asynchronously, not appear as a solid crowd');
    assert.ok(calls.every(x=>x.image==='glass-bubble'),
     'Must render distinct glass bubbles, not white foam');
-   // Every bitmap diameter follows the same current visual radius:
-   // compare against the former middle-tier 200px-radius baseline.
+   // Only bubble sprites shrink: render diameter is 55% of the former
+   // tier-relative size, independently of unchanged vortex/capture radius.
    const currentScale=scene.feverBubblePose(fx,at,0).visualRadius/100;
-   assert.ok(calls.every(x=>x.w>=11*currentScale-1e-6&&
-     x.w<=78*currentScale+1e-6&&x.alpha>0&&x.alpha<=1),
-    'Bubble sprites must scale with Fever tier and vortex size');
+   assert.ok(calls.every(x=>x.w>0&&
+     x.w<=78*currentScale*.55+1e-6&&x.alpha>0&&x.alpha<=1),
+    'Glass bubbles must render smaller and still scale by octopus tier');
   }
   fx.elapsed=.55;calls.length=0;
   scene.drawFeverSuctionParticles(fx,.55);
@@ -120,10 +121,28 @@ for(let tier=0;tier<=5;tier++){
   assert.ok(checked>=12,'Need stable bubble samples across the snap');
   const activePoses=Array.from({length:expected},(_,i)=>
    scene.feverBubblePose(fx,.55,i));
-  assert.ok(activePoses.some(p=>p.radius>p.visualRadius*1.20),
-   'Fresh bubbles must be visibly farther outside the vortex');
-  assert.ok(activePoses.some(p=>p.radius<p.visualRadius*.45),
-   'Older bubbles must spiral deeply into the central zone');
+  assert.ok(activePoses.some(p=>p.radius>p.visualRadius*.60),
+   'Fresh half-radius bubbles should still travel inward visibly');
+  assert.ok(activePoses.some(p=>p.radius<p.visualRadius*.225),
+   'Older bubbles must spiral deeply into the reduced field');
+  // Exact regression: each particle orbits at HALF the old radius
+  // (including the final inner radius) and its bitmap is 55% as wide.
+  for(const i of [0,3,11,21]){
+   const p=scene.feverBubblePose(fx,.55,i);
+   const hash=scene.feverBubbleHash;
+   const oldOuter=p.visualRadius*(1.35+.60*hash(i*17+p.cycle*23+2));
+   const oldInner=3+9*hash(i*19+p.cycle*13+3);
+   const oldRadius=mix(oldOuter,oldInner,p.pull);
+   const oldStart=(34+hash(i*31+p.cycle*7+9)*44)*p.visualRadius/100;
+   assert.ok(Math.abs(p.outer/oldOuter-.5)<1e-8,
+    'Bubble orbit outer radius must be exactly 50% for each tier/level');
+   assert.ok(Math.abs(p.inner/oldInner-.5)<1e-8,
+    'Bubble orbit endpoint must be exactly 50% for each tier/level');
+   assert.ok(Math.abs(p.radius/oldRadius-.5)<1e-8,
+    'Bubble travel radius must be exactly 50% at every particle phase');
+   assert.ok(Math.abs(p.startSize/oldStart-.55)<1e-8,
+    'Individual droplet bitmap must be 55% of the former size');
+  }
 
   // A single bubble's repeated life cycle: translucent birth, bright
   // middle, transparent death. Use a long stationary reel window to
@@ -135,11 +154,11 @@ for(let tier=0;tier<=5;tier++){
    return scene.feverBubblePose({...probe,elapsed:time},time,0);
   }
   const born=cyclePose(.06),mid=cyclePose(.52),lost=cyclePose(.96);
-  assert.ok(born.outer>born.visualRadius*1.34&&
-   born.outer<born.visualRadius*1.951,
-   'Bubble should spawn 1.35x to 1.95x outside the vortex center');
-  assert.ok(born.radius>born.visualRadius*1.25,
-   'New water bubble needs to start far beyond the visible effect');
+  assert.ok(born.outer>born.visualRadius*.67&&
+   born.outer<born.visualRadius*.976,
+   'Bubble birth radius must be 0.675x to 0.975x visual vortex radius');
+  assert.ok(born.radius>born.visualRadius*.625,
+   'New water bubbles spawn at half their former distance');
   assert.ok(mid.radius/mid.outer<born.radius/born.outer&&
    lost.radius/lost.outer<mid.radius/mid.outer,
    'Bubble must spiral progressively toward the center');
@@ -161,8 +180,8 @@ for(let tier=0;tier<=5;tier++){
   assert.equal(secondBorn.cycle,born.cycle+1,
    'Water bubble did not respawn for a second visible cycle');
   assert.ok(secondMid.alpha>secondBorn.alpha*4&&
-   secondBorn.outer>secondBorn.visualRadius*1.34,
-   'Second cycle needs a fresh far-off spawn and inward brightening');
+   secondBorn.outer>secondBorn.visualRadius*.67,
+   'Second cycle needs another half-radius spawn and inward brightening');
   assert.ok(Math.abs(secondBorn.outer-born.outer)>1e-3||
    Math.abs(secondBorn.angle-born.angle)>1e-3,
    'Every new bubble cycle should have a distinct organic starting point');
@@ -181,4 +200,4 @@ for(let tier=0;tier<=5;tier++){
    'Opaque white vortex source must use the softened bitmap instead');
  }
 }
-console.log('PASS: all Fever tiers continuously respawn outer bubbles at 1.35-1.95x, spiral inward, shrink and fade near the center.');
+console.log('PASS: all Fever octopus tiers keep original capture/vortex radius, bubbles orbit at exact 50% radius and render at 55% size, looping, spiraling and fading.');
