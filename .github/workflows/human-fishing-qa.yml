@@ -43,8 +43,10 @@ jobs:
         run: node human-fishing/qa-auto-fishing.cjs
       - name: Verify instant underwater control, random cast depth and directional currents
         run: node human-fishing/qa-current-cast.cjs
-      - name: Verify all 29 field-recorded Foley clips and 36 playable event cues
+      - name: Verify 30 CC0 audio clips and 38 Foley/fanfare event cues
         run: node human-fishing/qa-foley.cjs
+      - name: Verify fish thumbnail, size, NEW badges and sequential Fever victory cards
+        run: node human-fishing/qa-catch-showcase.cjs
       - name: Verify congested fish disperse, choose lanes and pass safely
         run: node human-fishing/qa-ecology-traffic.cjs
       - name: Verify context-driven 16-frame companion animation states
