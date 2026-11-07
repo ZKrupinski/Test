@@ -644,6 +644,10 @@ const lureStart={x:bob.x,y:bob.y};
 const fxStart=game.getFeverFx();
 const startingFish=fxStart.caught[0];
 const startingHuman=fxStart.caught[1];
+assert.match(script,/function feverPolishedMouthFrame\(fx\)/,
+ 'Octo Fever needs an 8-frame open, sustain, close mouth sequence');
+assert.match(script,/red_lure_polished_/,
+ 'Approved polished PNG bait artwork must load before original fallback');
 const earlyToss=game.toss(startingFish,fxStart,0,clock/1000);
 assert.equal(earlyToss.phase,'gather','Before suction, captured fish must drift toward the opening mouth');
 assert.equal(earlyToss.attached,true,'Captured fish must remain associated with the suction mouth');

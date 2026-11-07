@@ -61,7 +61,13 @@ assert.equal(active.split("drawFeverTossCreature(entity,fx,i,time,'released')").
 assert.doesNotMatch(feverCode,/drawImage\(octoSprite\(|feverFlingStreakSprite\(/,
  'Old vector tentacle-burst artwork may not return in the Fever renderer');
 assert.ok(source.includes('red_lure_fever_natural_v2.webp'),
- 'Fever must use the new natural-size illustrated red bait atlas');
+ 'Legacy Fever bitmap should remain available as preload fallback');
+assert.ok(source.includes('function feverPolishedMouthFrame(fx)')&&
+ source.includes('var polished=polishedRedLureArt.suction'),
+ 'Fever must primarily render eight polished PNG big-mouth frames');
+assert.ok(source.includes("polishedRedLureArt[mode]=image")&&
+ source.includes("Math.floor(frame/4)*cellH"),
+ 'New 4x2 transparent PNG art must be used for idle, swim and suction');
 assert.ok(source.includes('octofever_vortex_soft_v2.webp'),
  'Fever must load a separate soft circular suction atlas');
 // Extra OCTO FEVER suction sprites must be real binary WebP sheets and

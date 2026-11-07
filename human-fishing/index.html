@@ -4606,6 +4606,18 @@ function octoSprite(tier,frame,folding){
 // 3 independent 4x4 sheets (16 frames each), separate from the purple player
 // and the two cheering sidekicks. The original drawings are not regenerated.
 var redLureAtlas={},redLureReaction=null;
+// Approved 8-frame / 4x2 transparent PNG sheets, individually cleaned of
+// generated debris and NEVER containing a painted fishing line.
+var polishedRedLureArt={};
+['idle','swim','suction'].forEach(function(mode){
+ if(typeof Image==='undefined')return;
+ var image=new Image();image.ready=false;image.decoding='async';
+ image.onload=function(){image.ready=true};
+ image.onerror=function(){image.ready=false};
+ image.src='./assets/octopus/bait/red_lure_polished_'+mode+
+  '_8f.png?v=20261107-polished-alpha';
+ polishedRedLureArt[mode]=image;
+});
 // User-approved painted 4x4 / 16-frame OCTO FEVER mouth:
 // 512px padded transparent cells, original character/bubble pixels retained.
 var redFeverMouthArt=null;
@@ -4653,7 +4665,29 @@ function feverMouthSpriteFrame(fx){
  if(fx.elapsed<fx.suctionEnd)return 5+Math.floor((fx.elapsed-.22)*12)%7;
  return 12+Math.min(3,Math.floor((fx.elapsed-fx.suctionEnd)/.28*4));
 }
+function feverPolishedMouthFrame(fx){
+ // Open immediately, sustain a huge mouth for the entire suction and
+ // close before reeling. No rope is painted into these RGBA frames.
+ if(fx.elapsed<.22)return Math.min(4,Math.floor(fx.elapsed/.22*5));
+ if(fx.elapsed<fx.suctionEnd)return 4+
+  (Math.floor((fx.elapsed-.22)*5)%2);
+ if(fx.elapsed<fx.reelStart+.15)return 6;
+ return 7;
+}
 function drawFeverMouthSprite(fx,reel){
+ var polished=polishedRedLureArt.suction;
+ if(polished&&polished.ready){
+  var frame=feverPolishedMouthFrame(fx),cellW=polished.naturalWidth/4,
+   cellH=polished.naturalHeight/2,d=88;
+  var depth=lureHeadPivotDepth(),hit=vibrationOffset('lure');
+  ctx.save();
+  ctx.translate(reel.x+hit.x,reel.y-depth+hit.y);
+  ctx.rotate(lureHangState.angle);
+  // The line ends at the upper silver eyelet, independently of art.
+  ctx.drawImage(polished,(frame%4)*cellW,Math.floor(frame/4)*cellH,
+   cellW,cellH,-d/2,-d/2+depth,d,d);
+  ctx.restore();return true;
+ }
  var p=clamp(fx.elapsed/fx.duration,0,1);
  if(!redFeverMouthArt||!redFeverMouthArt.ready){
   return drawRedLure(time,reel.x,reel.y,84);
@@ -4953,7 +4987,7 @@ function lureHeadPivotDepth(){
   var g=selectedGear('octopus');
   d=Math.max(75,Math.min(94,octoStats(g.tier,gearLevel('octopus',g.id)).size));
  }
- return d*.29;
+ return d*(polishedRedLureArt.idle&&polishedRedLureArt.idle.ready?.42:.29);
 }
 function lureLegJointDepth(){
  // The separate hooked worm hangs from the rotated body center.
@@ -5030,7 +5064,28 @@ function redLurePose(now){
  return{action:'open',frame:Math.min(3,Math.max(0,Math.floor((Math.sin(now*2.5)+1)*1.6)))};
 }
 function drawRedLure(now,x,y,diameter){
- var pose=redLurePose(now),img=redLureAtlas[pose.action];
+ var pose=redLurePose(now),mode='idle',frame=0;
+ // The same glossy silhouette is used across ordinary and Fever fishing.
+ if(pose.action==='gulp'||hook||now-redLureReleasePulseAt<.28){
+  mode='suction';frame=Math.min(7,Math.floor(pose.frame/2));
+ }else if(drag||Math.abs(rodMotion.vx||0)>42||
+  Math.abs(rodMotion.vy||0)>60){
+  mode='swim';frame=Math.floor(now*10)%8;
+ }else if(pose.action==='fail'){
+  frame=Math.floor(now*11)%8;
+ }else frame=Math.floor(now*6)%8;
+ var painted=polishedRedLureArt[mode],d=Math.max(48,diameter||76);
+ if(painted&&painted.ready){
+  var cellW=painted.naturalWidth/4,cellH=painted.naturalHeight/2,
+   hit=vibrationOffset('lure'),depth=lureHeadPivotDepth(),
+   anchor={x:x+hit.x,y:y-depth+hit.y},
+   angle=updateLureHang(now,rodTip(now),anchor);
+  ctx.save();ctx.translate(anchor.x,anchor.y);ctx.rotate(angle);
+  ctx.drawImage(painted,(frame%4)*cellW,Math.floor(frame/4)*cellH,
+   cellW,cellH,-d/2,-d/2+depth,d,d);
+  ctx.restore();return true;
+ }
+ var img=redLureAtlas[pose.action];
  if(!img||!img.ready)return false;
  var cw=img.naturalWidth/4,ch=img.naturalHeight/4,
   sx=(pose.frame%4)*cw,sy=Math.floor(pose.frame/4)*ch,
