@@ -629,8 +629,9 @@ const beforeSnap=game.toss(distant,{...fxStart,elapsed:.10},0,clock/1000);
 const duringSnap=game.toss(distant,{...fxStart,elapsed:.27},0,clock/1000);
 const afterSnap=game.toss(distant,{...fxStart,elapsed:.43},0,clock/1000);
 const dist=(p)=>Math.hypot(p.x-fxStart.x,p.y-fxStart.y);
-assert.ok(dist(duringSnap)<dist(beforeSnap)*.88,
- 'Fish must rush toward the bait during the shrinking vortex burst');
+assert.ok(Math.abs(dist(duringSnap)-dist(afterSnap))<
+ Math.abs(dist(beforeSnap)-dist(afterSnap))*.8,
+ 'Full-size fish must rapidly approach its uncrowded grip radius during vortex shrink');
 assert.ok(dist(afterSnap)<dist(beforeSnap),
  'Fish must be gathered near the center within .43 seconds');
 assert.equal(afterSnap.phase,'held','The fish must settle in its own grip slot after the snap');
