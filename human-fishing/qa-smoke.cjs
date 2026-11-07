@@ -647,24 +647,29 @@ const startingHuman=fxStart.caught[1];
 const earlyToss=game.toss(startingFish,fxStart,0,clock/1000);
 assert.equal(earlyToss.phase,'gather','Before suction, captured fish must drift toward the opening mouth');
 assert.equal(earlyToss.attached,true,'Captured fish must remain associated with the suction mouth');
-// A distant catch is sucked inward while the ring contracts; gathering
-// is complete by .42s, not after the previous .80s slow full orbit.
+const firstFrame=game.toss(startingFish,{...fxStart,elapsed:1/60},0,clock/1000);
+assert.ok(Math.hypot(firstFrame.x-earlyToss.x,firstFrame.y-earlyToss.y)>3,
+ 'A real caught fish must move toward its grip slot on the FIRST 60fps frame');
+assert.equal(firstFrame.phase,'gather','The first frame should be active suction');
+assert.equal(firstFrame.scale,1,'Instant suction must keep original fish size');
+// An immediate full-size pull finishes by .29s; the ring still flashes
+// separately so the fish cannot appear stuck while the animation starts.
 const distant={...startingFish,x:fxStart.x+fxStart.radius*.95,y:fxStart.y};
 const beforeSnap=game.toss(distant,{...fxStart,elapsed:.10},0,clock/1000);
 const duringSnap=game.toss(distant,{...fxStart,elapsed:.27},0,clock/1000);
-const afterSnap=game.toss(distant,{...fxStart,elapsed:.43},0,clock/1000);
+const afterSnap=game.toss(distant,{...fxStart,elapsed:.30},0,clock/1000);
 const dist=(p)=>Math.hypot(p.x-fxStart.x,p.y-fxStart.y);
 assert.ok(Math.abs(dist(duringSnap)-dist(afterSnap))<
  Math.abs(dist(beforeSnap)-dist(afterSnap))*.8,
  'Full-size fish must rapidly approach its uncrowded grip radius during vortex shrink');
 assert.ok(dist(afterSnap)<dist(beforeSnap),
- 'Fish must be gathered near the center within .43 seconds');
+ 'Fish must be gathered near the center within .30 seconds');
 assert.equal(afterSnap.phase,'held','The fish must settle in its own grip slot after the snap');
 assert.equal(beforeSnap.scale,1,'The fish must keep its original size at capture');
 assert.equal(duringSnap.scale,1,'The fish must keep its original size while spiraling');
 assert.equal(afterSnap.scale,1,'The fish must keep its original size after spiraling');
-const startOrbit=game.toss(distant,{...fxStart,elapsed:.15},0,clock/1000);
-const quarterOrbit=game.toss(distant,{...fxStart,elapsed:.21},0,clock/1000);
+const startOrbit=game.toss(distant,{...fxStart,elapsed:.025},0,clock/1000);
+const quarterOrbit=game.toss(distant,{...fxStart,elapsed:.095},0,clock/1000);
 assert.ok(Math.abs(Math.atan2(startOrbit.y-fxStart.y,startOrbit.x-fxStart.x)-
  Math.atan2(quarterOrbit.y-fxStart.y,quarterOrbit.x-fxStart.x))>.2,
  'Fish should noticeably rotate around the suction center while gathering');
@@ -1554,7 +1559,7 @@ console.log('PASS: hook-bait centered fishing, shrinking precision at high tiers
  assert.ok(fx.duration>fx.reelStart+.82+1.9,
   'Fever must remain alive for the rare mouth-escape and dive');
  const now=clock/1000,releaseAt=fx.reelStart+.82;
- const gathering=game.toss(pulled,{...fx,elapsed:.34},0,now);
+ const gathering=game.toss(pulled,{...fx,elapsed:.15},0,now);
  const lifting=game.toss(pulled,{...fx,elapsed:fx.reelStart+.40},0,now);
  assert.equal(gathering.phase,'gather');
  assert.equal(lifting.phase,'held');

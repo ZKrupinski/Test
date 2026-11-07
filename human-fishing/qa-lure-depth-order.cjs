@@ -90,7 +90,9 @@ assert.ok(source.includes('var im=feverSuctionArt.bubbles||')&&
 assert.ok(source.includes('feverSuctionArt.backSoft=softenFeverWhiteAtlas(im)')&&
  source.includes('var whiteBreath=.22+.13*'),
  'Bright solid vortex must be partially transparent and change opacity over time');
-assert.ok(source.includes('var rotationTravel=turn+Math.PI*2;')&&
+assert.ok(source.includes('function feverCatchGatherProgress(fx)')&&
+ source.includes('var p=clamp(fx.elapsed/.29,0,1);')&&
+ source.includes('var rotationTravel=turn+Math.PI*2;')&&
  source.includes('scale:1,done:false,phase:\'gather\''),
  'Gathered fish must circle a full turn at their original scale');
 assert.ok(source.includes('var waveA=.5-.5*Math.cos(t*9.1);')&&

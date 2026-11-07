@@ -4813,6 +4813,13 @@ function feverSnapProgress(fx){
  return 1-Math.pow(1-t,3); // fast pull, soft stop at the center
 }
 function feverSnapScale(fx){return 1-.5*feverSnapProgress(fx)}
+// The vortex retains its full-size initial flash; captured animals do NOT.
+// Move each full-size fish from the FIRST rendered frame of a catch, without
+// the former .14s hold, and settle into separate grip slots within .29s.
+function feverCatchGatherProgress(fx){
+ var p=clamp(fx.elapsed/.29,0,1);
+ return 1-Math.pow(1-p,3);
+}
 function drawFeverVortex(fx,reel){
  if(!feverVortexArt||!feverVortexArt.ready)return false;
  var releaseAt=fx.reelStart+.82,arrivalAt=releaseAt+.72,t=fx.elapsed;
@@ -5192,11 +5199,11 @@ function feverTossPoint(entity,fx,index,now){
   wobbleY=Math.cos(now*24+index*1.78)*3.2*struggle;
  var hold={x:reel.x+offsetX+slot.x+wobbleX,
   y:reel.y+offsetY+slot.y+wobbleY};
- var q=feverSnapProgress(fx);
- if(fx.elapsed<.42){
-  // A brief full-radius flash first, then one sudden centripetal pull.
-  // Fish travel to their distinct mouth-side grip slots in the SAME .28s
-  // interval as the vortex shrinks, instead of orbiting for .8s.
+ var q=feverCatchGatherProgress(fx);
+ if(fx.elapsed<.29){
+  // Fish begin their clockwise pull on the FIRST frame of capture.
+  // They need not wait for the whirlpool to finish its full-size flash.
+  // Retain each animal's original size and distinct final grip position.
   var vx=entity.x-fx.x,vy=entity.y-fx.y,
    startRadius=Math.hypot(vx,vy),startAngle=Math.atan2(vy,vx),
    destX=hold.x-fx.x,destY=hold.y-fx.y,
