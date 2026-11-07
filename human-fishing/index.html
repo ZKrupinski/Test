@@ -252,11 +252,17 @@ nav{flex-wrap:nowrap}
  #panelBody .book-fish-caption .name{font-size:10px}
  #panelBody .book-fish-caption .book-detail{font-size:9px}
 }
+#autoFishStatus{position:absolute;right:15px;top:54px;z-index:8;display:none;
+pointer-events:none;padding:7px 12px;border-radius:8px;
+border:1px solid #8ad4c56b;background:#071c27bf;color:#d5f8e9;
+font:900 14px system-ui,sans-serif;letter-spacing:.65px}
+#autoFishStatus.active{display:block}
 </style></head><body><div class="wrap">
 <header inert><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 2.3</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navGear">🎒 장비</button><button id="navShop">🛒 상점</button></nav></header>
 <div class="stage" id="stage" inert><canvas id="game" width="1280" height="720" aria-label="물속에 미끼가 들어오면 화면 아래쪽 절반을 터치해 누른 위치 중심의 가상 조이스틱으로 미끼를 움직입니다."></canvas><div id="virtualJoystick" aria-hidden="true"><div id="virtualKnob"></div></div>
 <div class="hud top"><div class="tag" style="display:none" aria-hidden="true"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins" style="margin-left:auto">◈ 0　🐟 0/240</div></div>
+<div id="autoFishStatus" role="status" aria-live="polite" aria-hidden="true">🎣 AUTO FISHING</div>
 <div id="feverHud" class="fever-hud"><div class="fever-top"><span>🐙 OCTO FEVER</span><span id="feverNum">0 / 6</span></div><div class="fever-meter"><i id="feverFill"></i></div><div id="feverDetail" class="fever-detail">물고기 포획으로 충전</div></div>
 <div class="center-banner" id="banner"><div class="emoji" id="bannerIcon">🐟</div><strong id="bannerTitle">첫 포획!</strong><p id="bannerSub">새로운 물고기 발견</p></div>
 <div class="aqua-controls" id="aquaControls" aria-label="아쿠아리움">
@@ -3017,6 +3023,130 @@ function checkBaitWeakspot(){
   f.weakTouching=weak;
  }
 }
+// AUTO_FISHING_BEGIN: input-safe idle assistant, never modifies catch odds.
+var autoFishing={active:false,lastInput:time,target:null,kind:'fish',
+ targetSince:0,lastAttempt:-100,triggerSeconds:10};
+function autoFishingDisplay(active){
+ var label=$('autoFishStatus');if(!label)return;
+ label.classList.toggle('active',!!active);
+ label.setAttribute('aria-hidden',active?'false':'true');
+}
+function autoFishingStop(){
+ if(autoFishing.active){
+  autoFishing.active=false;autoFishing.target=null;
+  if(joystick.id==='auto')hideVirtualJoystick();
+  autoFishingDisplay(false);
+ }
+ autoFishing.lastInput=time;
+}
+document.addEventListener('pointerdown',autoFishingStop,true);
+document.addEventListener('pointerup',autoFishingStop,true);
+document.addEventListener('pointercancel',autoFishingStop,true);
+document.addEventListener('pointermove',function(e){
+ if(e.buttons)autoFishingStop(); // Do not count mouse hover as input.
+},true);
+document.addEventListener('keydown',autoFishingStop,true);
+document.addEventListener('wheel',autoFishingStop,{capture:true,passive:true});
+document.addEventListener('visibilitychange',function(){
+ if(document.hidden)autoFishingStop();
+});
+window.addEventListener('blur',autoFishingStop);
+function autoFishingBlocked(){
+ if(view!=='fish'||introEntrance.active||document.hidden)return true;
+ for(var id of ['panel','motionTunePanel','rodTunePanel','aquaSaleReceipt']){
+  var el=$(id);
+  if(el&&(el.classList.contains('open')||el.classList.contains('visible')))
+   return true;
+ }
+ return false;
+}
+function autoFishingCandidate(now){
+ var bait=danglingBaitPosition(now),best=null,bestScore=Infinity;
+ fish.forEach(function(f){
+  if(!f||f.feverCaptured||isFishFleeing(f)||f.x<90||f.x>W-90)return;
+  var mouth=fishMouthWeakspot(f,now);
+  if(!mouth||mouth.y<280||mouth.y>610)return;
+  var score=Math.hypot(mouth.x-bait.x,mouth.y-bait.y)+
+   Math.abs(f.vx||0)*.22+(f.sp&&f.sp.rarity==='MYTHIC'?100:0);
+  if(save.fever&&save.fever.ready){
+   var octo=selectedGear('octopus');
+   var r=octoStats(octo.tier,gearLevel('octopus',octo.id)).radius;
+   var nearby=fish.filter(function(other){
+    return other!==f&&!other.feverCaptured&&!isFishFleeing(other)&&
+     Math.hypot(other.x-f.x,other.y-f.y)<r;
+   }).length;
+   score-=Math.min(6,nearby)*35;
+  }
+  if(score<bestScore){bestScore=score;best={entity:f,kind:'fish'}}
+ });
+ // Human elites remain valid; fish are preferred for a calm auto loop.
+ hum.forEach(function(h){
+  if(!h||h.feverCaptured||h.x<100||h.x>W-100||
+    h.y+22<280||h.y+22>610)return;
+  var score=Math.hypot(h.x-bait.x,h.y+22-bait.y)+150;
+  if(score<bestScore){bestScore=score;best={entity:h,kind:'human'}}
+ });
+ return best;
+}
+function autoFishingTargetValid(){
+ var t=autoFishing.target;if(!t)return false;
+ if(autoFishing.kind==='fish')
+  return fish.indexOf(t)>=0&&!t.feverCaptured&&!isFishFleeing(t)&&
+   t.x>=90&&t.x<=W-90;
+ return hum.indexOf(t)>=0&&!t.feverCaptured;
+}
+function autoFishingStep(dt){
+ if(autoFishingBlocked()){
+  if(autoFishing.active)autoFishingStop();
+  return;
+ }
+ if(!autoFishing.active){
+  if(time-autoFishing.lastInput<autoFishing.triggerSeconds||
+    (joystick.active&&joystick.id!=='auto'))return;
+  autoFishing.active=true;autoFishing.target=null;
+  autoFishing.lastAttempt=time-1;autoFishingDisplay(true);
+ }
+ // Wait for current cast, swallow, escape, recovery and fever to finish.
+ if(cast.active||hook||feverFx||escapeFx||catchFx||
+  lureRecovery.active||octoGroggy>0)return;
+ if(!autoFishingTargetValid()||time-autoFishing.targetSince>5){
+  var chosen=autoFishingCandidate(time);
+  autoFishing.target=chosen&&chosen.entity;
+  autoFishing.kind=chosen?chosen.kind:'fish';
+  autoFishing.targetSince=time;
+ }
+ if(!autoFishing.target)return;
+ var target=autoFishing.target;
+ var aim=autoFishing.kind==='fish'?fishMouthWeakspot(target,time):
+  {x:target.x,y:target.y+22};
+ if(!aim)return;
+ var bait=danglingBaitPosition(time),dx=aim.x-bait.x,dy=aim.y-bait.y,
+  ready=save.fever&&save.fever.ready,canRelease=false;
+ if(ready){
+  var g=selectedGear('octopus');
+  var r=octoStats(g.tier,gearLevel('octopus',g.id)).radius;
+  canRelease=Math.hypot(target.x-bob.x,target.y-bob.y)<r*.65;
+ }else if(autoFishing.kind==='fish'){
+  canRelease=fishMouthOverlapsLure(target,bait,time);
+ }else{
+  var hit=ordinaryFishingTarget();
+  canRelease=!!(hit&&hit.kind==='human'&&hit.obj===target);
+ }
+ if(canRelease&&time-autoFishing.lastAttempt>.42){
+  autoFishing.lastAttempt=time;autoFishing.target=null;
+  if(joystick.id==='auto')hideVirtualJoystick();
+  playerOctoCue('excited',.72/PLAYER_ANIM_RATE);
+  release(); // Only normal hitbox, capture chance and Fever can award fish.
+  return;
+ }
+ // Feed the original joystick and rod inertia, never teleport the bait.
+ var x=clamp((dx-rodMotion.vx*.32)/65,-1,1),
+  y=clamp((dy-rodMotion.vy*.32)/65,-1,1),mag=Math.hypot(x,y);
+ if(mag>1){x/=mag;y/=mag}
+ joystick.active=true;joystick.id='auto';joystick.engaged=true;
+ joystick.dx=x;joystick.dy=y;
+}
+// AUTO_FISHING_END
 function tick(stamp){
  var dt=Math.min((stamp-last)/1000,.045);last=stamp;time+=dt;ctx.clearRect(0,0,W,H);
  if(view==='fish')advanceIntroEntrance(dt);
@@ -3059,6 +3189,7 @@ function tick(stamp){
     }
    }
    updateLureRecovery(dt);
+   autoFishingStep(dt);
    updateJoystick(dt);
    updateLureHang(time,rodTip(time),lureLineAnchor());
    checkBaitBrush();checkBaitWeakspot();
