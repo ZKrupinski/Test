@@ -7,7 +7,7 @@ assert.match(html,/<script src="\.\/foley\.js\?v=/,
  'Game must load natural Foley before its inline gameplay script');
 assert.doesNotMatch(html,/createOscillator|OscillatorNode/,
  'Electronic oscillator beeps must be removed entirely');
-assert.match(html,/function playFoley\(kind,intensity\)/);
+assert.match(html,/function playFoley\(kind,intensity,pitch\)/);
 assert.match(html,/vibrationPulse\(kind\)/);
 assert.match(html,/playFoley\('feverSnap'\)/);
 assert.match(html,/playFoley\('rodPump'/);
@@ -15,7 +15,7 @@ assert.match(html,/playFoley\('lureMove'/);
 assert.match(html,/playFoley\('aquarium'/);
 assert.match(html,/playFoley\('escapeSplash'/);
 const entries=[...foley.matchAll(/^\s*\w+:\['([\w-]+\.ogg)','(https:\/\/(?:raw\.githubusercontent\.com|opengameart\.org)\/[^']+)'\],?$/gm)];
-assert.equal(entries.length,30,'Expected 29 Foley samples plus a CC0 trumpet fanfare');
+assert.equal(entries.length,29,'Only the 29 natural CC0 Foley recordings should ship');
 for(const [,filename] of entries){
  const file=path+'assets/foley/'+filename;
  assert.ok(fs.existsSync(file),'Audio clip missing: '+file);
@@ -44,13 +44,13 @@ const bus=sandbox.window.HumanFishingFoley;
 assert.ok(bus,'Foley runtime missing');
 (async()=>{
  await bus.prime();
- assert.equal(bus.getState().sampleCount,30);
- assert.ok(bus.getState().cueCount>=38);
- assert.equal(bus.getState().loaded,30);
+ assert.equal(bus.getState().sampleCount,29);
+ assert.ok(bus.getState().cueCount>=39);
+ assert.equal(bus.getState().loaded,29);
  const required=['cast','splash','lureGrab','lureMove','brush','weakspot','bite',
  'miss','panic','reel','rodPump','rodSnap','swallow','catch','feverReady','fever',
  'feverSnap','feverBubbles','fishFlail','escape','escapeSplash','counter',
- 'groggy','catchFanfare','catchFanfareFever','menuOpen','menuClose','menuTap','menuNavigate','stage','upgrade',
+ 'groggy','catchFanfare','feverCard','feverFinish','menuOpen','menuClose','menuTap','menuNavigate','stage','upgrade',
  'purchase','equip','aquarium','aquariumPlace','aquariumRemove','helperIncome','error'];
  for(const event of required){
   assert.ok(bus.hasCue(event),'Missing action sound: '+event);
@@ -63,7 +63,9 @@ assert.ok(bus,'Foley runtime missing');
  assert.equal(bus.play('bite'),true);
  assert.equal(bus.play('bite'),false,'Fast retrigger should be debounced');
  assert.equal(bus.play('unknown_event'),false,'Unknown sounds must not generate audio');
- assert.equal(fetches.length,30,'Every audio source should be preloaded once');
- console.log('PASS: all 30 bundled CC0 OGG samples exist, 38 event cues decode, '+
+ assert.equal(fetches.length,29,'Every audio source should be preloaded once');
+ assert.doesNotMatch(foley.slice(foley.indexOf('var CUES='),foley.indexOf('var context=')),/victoryBrass|catchFanfareFever/,
+  'Do not play theatrical brass anywhere in reward cues');
+ console.log('PASS: 29 natural CC0 OGG samples decode, 39 subdued Foley/reward cues, '+
   'each cue starts playable physical sound, rapid retriggers are rate-limited.');
 })().catch(err=>{console.error(err);process.exitCode=1});
