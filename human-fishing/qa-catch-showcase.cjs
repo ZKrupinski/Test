@@ -4,11 +4,11 @@ const html=fs.readFileSync('human-fishing/index.html','utf8');
 const source=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(source,'Game script missing');
 assert.match(html,/id="catchShowcase"/,'Missing catch showcase container');
-assert.match(html,/#catchShowcase\{position:absolute;right:1\.5%;top:14\.2%;width:37\.5%;height:22\.7%/,
- 'The catch window must sit directly BELOW the upper-right menus');
+assert.match(html,/#catchShowcase\{position:absolute;right:1\.8%;top:16\.4%;width:36\.2%;height:18\.4%/,
+ 'The collector ribbon must sit below the right-hand menus');
 const stageWidth=1280,stageHeight=720,seaY=293;
-const box={right:stageWidth*.015,top:stageHeight*.142,
- width:stageWidth*.375,height:stageHeight*.227};
+const box={right:stageWidth*.018,top:stageHeight*.164,
+ width:stageWidth*.362,height:stageHeight*.184};
 assert.ok(box.top>=90,'Catch window must not block top-right HUD');
 assert.ok(box.top+box.height<seaY-20,
  'Catch window must remain wholly above sea level with visual margin');
@@ -18,16 +18,24 @@ assert.match(html,/#stage:has\(\.panel\.open\) #catchShowcase/,
  'All full-screen menus must hide the catch cards');
 assert.match(html,/z-index:5;pointer-events:none;overflow:hidden/,
  'Cards must be clipped to their own safe background pocket, below menus');
-assert.match(html,/\.catch-card-thumb img\{width:100%;height:100%;object-fit:contain/,
- 'Fish thumbnail must use uncut original image with object-fit:contain');
+assert.match(html,/\.catch-card-thumb img\{display:block;width:111%;height:105%;max-width:none;max-height:none;/,
+ 'Original PNG must be presented as large as possible without image cropping');
+assert.match(html,/object-fit:contain;object-position:center/,
+ 'Never crop the approved fish PNG');
 assert.match(html,/@keyframes catchCardFever/,
  'Fever catch must animate through fast rightward fade');
 assert.match(html,/100%\{opacity:0;transform:translateX\(126px\)/,
  'Fever fish thumbnails must glide to the right as they fade out');
-assert.match(html,/\.catch-card\{position:absolute;top:0;left:0;box-sizing:border-box;width:93%/,
- 'Widen the fish card to use the right-hand background pocket');
-assert.match(html,/\.catch-card-thumb\{flex:0 0 47%;width:47%;height:95%/,
- 'The original species artwork must occupy nearly half the enlarged panel');
+assert.match(html,/\.catch-card\{position:absolute;top:0;left:0;box-sizing:border-box;width:94%/,
+ 'Premium prize ribbon should fill the empty right-hand sky');
+assert.match(html,/\.catch-card-thumb\{position:relative;flex:0 0 49%;width:49%;height:100%/,
+ 'Original fish art must dominate almost half the banner');
+assert.match(html,/justify-content:center;overflow:visible;border:0;\s*background:transparent;isolation:isolate/,
+ 'Remove screenshot problem: no nested rectangular picture frame');
+assert.match(html,/\.catch-card-kicker\{display:flex/,
+ 'Prizes need clear title hierarchy rather than tiny uniform text');
+assert.match(html,/clamp\(17px,5\.35cqw,27px\)/,
+ 'Fish name must have a larger responsive font relative to the card');
 assert.match(html,/-webkit-line-clamp:2/,
  'Long species names should wrap onto two lines rather than squeeze fish thumbnail');
 const a=source.indexOf('// CATCH_SHOWCASE_BEGIN'),
@@ -58,9 +66,10 @@ sandbox.showCatchShowcase([prize],false);
 assert.match(root.innerHTML,/F007\.png\?v=20261106-fish304/);
 assert.match(root.innerHTML,/>홍염 금붕어</);
 assert.match(root.innerHTML,/class="catch-card-new">NEW</);
-assert.match(root.innerHTML,/class="catch-card-info"><span class="catch-card-new">NEW<\/span><div class="catch-card-title">/,
- 'NEW must occupy its own line, preserving maximum text width beside the big thumbnail');
-assert.match(root.innerHTML,/SIZE · 대형 <b>×2<\/b>/);
+assert.match(root.innerHTML,/class="catch-card-info"><div class="catch-card-kicker"><span>CAPTURED<\/span><span class="catch-card-new">NEW<\/span>/,
+ 'Acquisition label and NEW badge must form a premium prize eyebrow');
+assert.match(root.innerHTML,/class="size-label">SIZE<\/span> <b>대형<\/b> <b>×2<\/b>/,
+ 'Large thumbnail should be supported by a clearly grouped size label');
 assert.match(root.innerHTML,/animation-delay:0s/);
 assert.deepEqual(sounds.map(s=>s.cue),['catchFanfare']);
 assert.ok(sounds[0].intensity<=.7,
@@ -107,4 +116,4 @@ assert.match(source,/showCatchShowcase\(\[human\?catchShowcaseHuman/,
  'Regular single catch must show showcase at the swallow-success moment');
 assert.doesNotMatch(root.innerHTML,/data:image\/svg\+xml|<svg/,
  'No vector or generated image substituted for original PNG art');
-console.log('PASS: clear responsive sky placement; real PNG thumbs/new/size; 0.52s pachinko fades and a distinct quiet reward tick for EACH Fever fish.');
+console.log('PASS: premium unframed original fish PNG, scaled responsive typography, above-water menu clearance, NEW/size, and unchanged Fever pachinko rhythm/audio.');
