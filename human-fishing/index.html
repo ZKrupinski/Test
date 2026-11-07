@@ -4853,12 +4853,11 @@ function feverSuctionAtlasFrame(im,frame,x,y,d,rotation,alpha){
  ctx.drawImage(im,n%4*sw,Math.floor(n/4)*sh,sw,sh,-d/2,-d/2,d,d);
  ctx.restore();return true;
 }
-// Release burst: hold the REAL capture radius briefly, then collapse the
-// illustrated whirlpool to HALF-size in the same burst that draws fish inward.
-// Pure visual scale: upgrades still capture targets at the original fx.radius.
+// Keep the real catch radius unchanged. The illustrated whirlpool contracts
+// from full size to HALF exactly while the full-size fish snap inward, not
+// 140ms later. One shared easing prevents the visual catch from feeling late.
 function feverSnapProgress(fx){
- var t=clamp((fx.elapsed-.14)/.28,0,1);
- return 1-Math.pow(1-t,3); // fast pull, soft stop at the center
+ return feverCatchGatherProgress(fx);
 }
 function feverSnapScale(fx){return 1-.5*feverSnapProgress(fx)}
 // A 24ms impact is followed by a 66ms direct snap into a compact cluster.
