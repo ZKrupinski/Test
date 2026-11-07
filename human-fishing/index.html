@@ -4615,7 +4615,7 @@ var polishedRedLureArt={};
  image.onload=function(){image.ready=true};
  image.onerror=function(){image.ready=false};
  image.src='./assets/octopus/bait/red_lure_polished_'+mode+
-  '_8f.png?v=20261107-polished-alpha';
+  '_8f.png?v=20261107-round-swim-v2';
  polishedRedLureArt[mode]=image;
 });
 // User-approved painted 4x4 / 16-frame OCTO FEVER mouth:
@@ -4679,7 +4679,7 @@ function polishedLureEyelet(mode,frame){
  // Offset the art BEFORE rotation so every pose stays on the string endpoint.
  var points={
   idle:[[129,39],[129,33],[129,24],[129,35],[129,42],[129,45],[129,39],[129,38]],
-  swim:[[130,34],[149,43],[175,55],[200,71],[192,64],[157,51],[137,39],[128,33]],
+  swim:[[127.62,33.32],[128.39,33.29],[135.6,32.81],[149.58,33.25],[128.3,33.27],[127.82,33.21],[128.32,32.75],[127.87,33.36]],
   suction:[[129,31],[129,31],[129,28],[128,25],[129,24],[129,28],[129,29],[129,33]]
  };
  return (points[mode]||points.idle)[Math.max(0,Math.min(7,frame))];
