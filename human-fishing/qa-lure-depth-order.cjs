@@ -106,8 +106,10 @@ assert.ok(source.includes('var waveA=.5-.5*Math.cos(t*9.1);')&&
  'Both vortex bitmap layers must breathe smoothly instead of jumping on loop reset');
 assert.ok(source.includes('fadeIn=castEasing(life/.24)')&&
  source.includes('fadeOut=1-castEasing((life-.79)/.20)')&&
- source.includes('outer=visualRadius*(1.35+.60*feverBubbleHash'),
- 'Bubble overlay needs staggered outside births, mid-cycle brightening, center fade');
+ source.includes('outer=visualRadius*bubbleRadiusScale*(1.35+.60*feverBubbleHash')&&
+ source.includes('var bubbleRadiusScale=.50,')&&
+ source.includes('startSize=(34+feverBubbleHash(i*31+cycle*7+9)*44)*bubbleScale*.55'),
+ 'Bubble overlay needs half-radius births, smaller glass sprites, mid-cycle brightening and center fade');
 assert.ok(source.includes('function feverGripSlot(fx,index)')&&
  source.includes('radius=[0,18,30,38,46,54,60][n]+ring*50'),
  'Inhaled fish must collect into compact slots near the lure');
