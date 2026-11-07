@@ -36,7 +36,7 @@ var SRC={
  // CC0 acoustic trumpet celebration by gchoc, OpenGameArt.
  victoryBrass:['victory_brass.ogg','https://opengameart.org/sites/default/files/castlefanfare_0.ogg']
 };
-function layer(keys,gain,rate){return {keys:keys,gain:gain,rate:rate||1};}
+function layer(keys,gain,rate,offset){return {keys:keys,gain:gain,rate:rate||1,offset:offset||0};}
 var CUES={
  cast:{gap:.24,l:[layer(['clothA','clothB'],.64,.95),layer(['creakA'],.31,1.07)]},
  splash:{gap:.18,l:[layer(['waterSplash'],.88),layer(['softA','softB'],.27,.88)]},
@@ -52,10 +52,19 @@ var CUES={
  rodSnap:{gap:.14,l:[layer(['lineSnap'],.45),layer(['woodTap'],.16,1.16)]},
  swallow:{gap:.14,l:[layer(['waterPlop'],.71,.82),layer(['thudA','thudB'],.42,1.1)]},
  catch:{gap:.18,l:[layer(['coinsA','coinsB'],.51,1.03),layer(['softA'],.25,1.04)]},
- // These are real sampled brass phrases layered with tactile victory rewards,
- // never WebAudio sine tones or electronic menu beeps.
- catchFanfare:{gap:.18,l:[layer(['victoryBrass'],.79,1.22),layer(['coinsA','coinsB'],.42,1.06),layer(['softA'],.23,1.10)]},
- catchFanfareFever:{gap:1.25,l:[layer(['victoryBrass'],.92,.99),layer(['coinsB'],.67,1.14),layer(['plank'],.32,1.02)]},
+ // Modern understated win cue, not the former loud castle-brass fanfare:
+ // two quiet sampled plucked notes ascend above a soft physical tap.
+ catchFanfare:{gap:.22,l:[layer(['thudA','thudB'],.22,.94),
+  layer(['lineSnap'],.16,.94,.035),
+  layer(['lineSnap'],.14,1.24,.155),
+  layer(['coinsB'],.15,.88,.095)]},
+ // Fever has an entirely different, short per-FISH cue. Distinct from
+ // the solo motif; each card can step up a semitone without a synthetic beep.
+ feverCard:{gap:.23,l:[layer(['woodTap','touchTap'],.14,.96),
+  layer(['lineSnap'],.19,1.10,.015),
+  layer(['waterPlop'],.08,1.30,.04)]},
+ feverFinish:{gap:.55,l:[layer(['softB'],.17,.94),
+  layer(['coinsA'],.12,1.13,.075)]},
  feverReady:{gap:.9,l:[layer(['plank'],.44,1.17),layer(['coinsB'],.38,.93)]},
  fever:{gap:.7,l:[layer(['waterSplash'],.78,.8),layer(['thudA','thudB'],.88,.86),layer(['clothB'],.41,.88)]},
  feverSnap:{gap:.16,l:[layer(['punchA','punchB'],.81,.96),layer(['waterSplash'],.61,1.23),layer(['plank'],.24,1.04)]},
@@ -139,10 +148,12 @@ function play(key,options){
   var name=available[Math.floor(Math.random()*available.length)];
   var source=ac.createBufferSource(),gain=ac.createGain();
   source.buffer=decoded[name];
-  source.playbackRate.value=item.rate*(.96+Math.random()*.08);
+  var pitch=options&&Number.isFinite(options.pitch)?
+   Math.max(.80,Math.min(1.35,options.pitch)):1;
+  source.playbackRate.value=item.rate*(.97+Math.random()*.06)*pitch;
   gain.gain.value=Math.min(.92,item.gain*master*intensity);
   source.connect(gain);gain.connect(output||ac.destination);
-  try{source.start(now);}catch(e){}
+  try{source.start(now+item.offset);}catch(e){}
  });
  return true;
 }
