@@ -278,16 +278,14 @@ font:900 14px system-ui,sans-serif;letter-spacing:.65px}
 /* One sculpted glass ribbon, not a box nested inside another box. */
 .catch-card{position:absolute;top:0;left:0;box-sizing:border-box;width:94%;
  height:100%;display:flex;align-items:center;gap:0;padding:4px 14px 4px 4px;
- border:1px solid #b3e2d886;border-left:3px solid #e4d293;
- border-radius:10px 14px 14px 10px;color:#f7fff6;
- background:linear-gradient(103deg,#102e3bc4 0%,#102f3bdc 51%,#0b2631cf 100%);
- box-shadow:0 8px 19px #001d286d,inset 0 1px 0 #eafff02b;
+ border:0;border-radius:12px;color:#f7fff6;
+ background:linear-gradient(90deg,transparent 0%,#0c364351 31%,#0a2d3acc 56%,#082a38b8 100%);
+ box-shadow:none;
  opacity:0;animation:catchCardSingle 2.35s both ease-out;
  will-change:opacity,transform}
-.catch-card::after{content:'';position:absolute;pointer-events:none;left:44%;right:12px;
- bottom:11px;height:1px;background:linear-gradient(90deg,#77d8cb65,transparent)}
-.catch-card.fever{animation:catchCardFever .65s both linear;
- border-left-color:#f3c67f}
+.catch-card::after{content:'';position:absolute;pointer-events:none;left:52%;right:15px;
+ bottom:12px;height:1px;background:linear-gradient(90deg,#aee3d385,transparent)}
+.catch-card.fever{animation:catchCardFever .65s both linear}
 /* No picture frame: the original RGBA fish floats over a soft water-light halo. */
 .catch-card-thumb{position:relative;flex:0 0 49%;width:49%;height:100%;
  display:flex;align-items:center;justify-content:center;overflow:visible;border:0;
@@ -300,7 +298,8 @@ font:900 14px system-ui,sans-serif;letter-spacing:.65px}
  filter:drop-shadow(0 7px 7px #002333ab) drop-shadow(0 1px 2px #b2ffee25)}
 .catch-card-info{flex:1;min-width:0;height:100%;display:flex;
  flex-direction:column;justify-content:center;align-items:flex-start;
- gap:clamp(4px,1.3cqw,7px);padding:0 3px 0 4px}
+ gap:clamp(4px,1.3cqw,7px);padding:0 3px 0 10px;
+ border-left:2px solid #f0dca078}
 .catch-card-kicker{display:flex;align-items:center;gap:9px;min-height:19px;
  color:#8edbd1;font:900 clamp(10px,2.7cqw,13px)/1.1 system-ui,sans-serif;
  letter-spacing:1.9px}
