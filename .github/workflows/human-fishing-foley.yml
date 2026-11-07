@@ -24,8 +24,10 @@ jobs:
           persist-credentials: true
       - name: Download reviewed CC0 field/foley recordings
         run: python human-fishing/scripts/install_foley_assets.py
-      - name: Render four original treasure-acquisition melodies
+      - name: Install audio encoder and render four original treasure melodies
         run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg >/dev/null
           ffmpeg -version | head -n 1
           python human-fishing/scripts/render_reward_stingers.py
       - name: Commit OGG clips for offline, low-latency local playback
