@@ -378,7 +378,7 @@ font:900 14px system-ui,sans-serif;letter-spacing:.65px}
 <script src="./assets/fish/ready.js?v=20261106-fish304"></script>
 <script src="./fish-bitmap-catalog.js?v=20261106-fish304"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
-<script src="./foley.js?v=20261107-natural-foley-v1"></script>
+<script src="./foley.js?v=20261107-pachinko-rewards-v2"></script>
 <script>
 (function(){
 'use strict';
@@ -418,9 +418,10 @@ function spawnParticles(x,y,n,kind){for(var i=0;i<n;i++)particles.push({x:x,y:y,
 function ripple(x,y){ripples.push({x:x,y,r:6,life:1})}
 function announce(icon,title,sub){$('bannerIcon').textContent=icon;$('bannerTitle').textContent=title;$('bannerSub').textContent=sub;$('banner').classList.add('visible');bannerTimer=2.2}
 // CC0 physical Foley bus: no synthesized oscillator or digital beeps.
-function playFoley(kind,intensity){
+function playFoley(kind,intensity,pitch){
  var bus=window.HumanFishingFoley;
- return !!(bus&&bus.play&&bus.play(kind,{intensity:intensity===undefined?1:intensity}));
+ return !!(bus&&bus.play&&bus.play(kind,{intensity:intensity===undefined?1:intensity,
+  pitch:pitch===undefined?1:pitch}));
 }
 function beep(kind){return playFoley(kind==='catch'?'catch':kind==='hit'?'miss':'menuTap');}
 // Normal fishing only: a hidden, per-fish mouth weak point must overlap
