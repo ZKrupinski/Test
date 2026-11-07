@@ -39,6 +39,8 @@ jobs:
         run: node human-fishing/qa-boot.cjs
       - name: Run game startup, input and shop smoke test
         run: node human-fishing/qa-smoke.cjs
+      - name: Verify all 29 field-recorded Foley clips and 36 playable event cues
+        run: node human-fishing/qa-foley.cjs
       - name: Verify congested fish disperse, choose lanes and pass safely
         run: node human-fishing/qa-ecology-traffic.cjs
       - name: Verify context-driven 16-frame companion animation states
