@@ -3097,7 +3097,10 @@ function autoFishingTargetValid(){
 }
 function autoFishingStep(dt){
  if(autoFishingBlocked()){
+  // Menus and the entrance do not count toward the ten idle seconds.
+  // Start a fresh countdown only after returning to playable fishing.
   if(autoFishing.active)autoFishingStop();
+  else autoFishing.lastInput=time;
   return;
  }
  if(!autoFishing.active){
