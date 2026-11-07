@@ -4674,18 +4674,29 @@ function feverPolishedMouthFrame(fx){
  if(fx.elapsed<fx.reelStart+.15)return 6;
  return 7;
 }
+function polishedLureEyelet(mode,frame){
+ // Measured silver eyelet hole centers in each original 256px atlas cell.
+ // Offset the art BEFORE rotation so every pose stays on the string endpoint.
+ var points={
+  idle:[[129,39],[129,33],[129,24],[129,35],[129,42],[129,45],[129,39],[129,38]],
+  swim:[[130,34],[149,43],[175,55],[200,71],[192,64],[157,51],[137,39],[128,33]],
+  suction:[[129,31],[129,31],[129,28],[128,25],[129,24],[129,28],[129,29],[129,33]]
+ };
+ return (points[mode]||points.idle)[Math.max(0,Math.min(7,frame))];
+}
 function drawFeverMouthSprite(fx,reel){
  var polished=polishedRedLureArt.suction;
  if(polished&&polished.ready){
   var frame=feverPolishedMouthFrame(fx),cellW=polished.naturalWidth/4,
    cellH=polished.naturalHeight/2,d=88;
-  var depth=lureHeadPivotDepth(),hit=vibrationOffset('lure');
+  var depth=lureHeadPivotDepth(),hit=vibrationOffset('lure'),
+   eyelet=polishedLureEyelet('suction',frame);
   ctx.save();
   ctx.translate(reel.x+hit.x,reel.y-depth+hit.y);
   ctx.rotate(lureHangState.angle);
   // The line ends at the upper silver eyelet, independently of art.
   ctx.drawImage(polished,(frame%4)*cellW,Math.floor(frame/4)*cellH,
-   cellW,cellH,-d/2,-d/2+depth,d,d);
+   cellW,cellH,-eyelet[0]*d/256,-eyelet[1]*d/256,d,d);
   ctx.restore();return true;
  }
  var p=clamp(fx.elapsed/fx.duration,0,1);
@@ -5082,10 +5093,11 @@ function drawRedLure(now,x,y,diameter){
   var cellW=painted.naturalWidth/4,cellH=painted.naturalHeight/2,
    hit=vibrationOffset('lure'),depth=lureHeadPivotDepth(),
    anchor={x:x+hit.x,y:y-depth+hit.y},
-   angle=updateLureHang(now,rodTip(now),anchor);
+   angle=updateLureHang(now,rodTip(now),anchor),
+   eyelet=polishedLureEyelet(mode,frame);
   ctx.save();ctx.translate(anchor.x,anchor.y);ctx.rotate(angle);
   ctx.drawImage(painted,(frame%4)*cellW,Math.floor(frame/4)*cellH,
-   cellW,cellH,-d/2,-d/2+depth,d,d);
+   cellW,cellH,-eyelet[0]*d/256,-eyelet[1]*d/256,d,d);
   ctx.restore();return true;
  }
  var img=redLureAtlas[pose.action];
