@@ -50,6 +50,8 @@ assert.match(html,/clamp\(17px,5\.35cqw,27px\)/,
  'Fish name must have a larger responsive font relative to the card');
 assert.match(html,/flex-direction:column;justify-content:center;align-items:flex-end;text-align:right/,
  'All text in the prize info column must be right-aligned');
+assert.match(html,/gap:clamp\(4px,1\.3cqw,7px\);padding:0 14px 0 8px/,
+ 'Right-aligned prize text needs a small inset from the outer edge');
 assert.match(html,/\.catch-card-kicker\{display:flex;align-items:center;justify-content:flex-end;width:100%/,
  'CAPTURED and NEW must align to the right side');
 assert.match(html,/\.catch-card-title\{display:flex;align-items:center;justify-content:flex-end;width:100%;min-width:0;max-width:100%;text-align:right/,
