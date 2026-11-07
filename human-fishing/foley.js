@@ -32,7 +32,12 @@ var SRC={
  woodB:['wood_b.ogg','https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactWood_medium_003.ogg'],
  woodTap:['wood_tap.ogg','https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactWood_light_001.ogg'],
  touchTap:['touch_tap.ogg','https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactGeneric_light_002.ogg'],
- plank:['plank.ogg','https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactPlank_medium_001.ogg']
+ plank:['plank.ogg','https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactPlank_medium_001.ogg'],
+ // Original, project-composed chest-open/item-get melodies (pre-rendered OGG).
+ chestWin:['chest_prize.ogg',null],
+ chestNew:['chest_prize_new.ogg',null],
+ feverTick:['fever_prize_tick.ogg',null],
+ feverEnd:['fever_prize_finish.ogg',null]
 };
 function layer(keys,gain,rate,offset){return {keys:keys,gain:gain,rate:rate||1,offset:offset||0};}
 var CUES={
@@ -50,19 +55,19 @@ var CUES={
  rodSnap:{gap:.14,l:[layer(['lineSnap'],.45),layer(['woodTap'],.16,1.16)]},
  swallow:{gap:.14,l:[layer(['waterPlop'],.71,.82),layer(['thudA','thudB'],.42,1.1)]},
  catch:{gap:.18,l:[layer(['coinsA','coinsB'],.51,1.03),layer(['softA'],.25,1.04)]},
- // Modern understated win cue, not the former loud castle-brass fanfare:
- // two quiet sampled plucked notes ascend above a soft physical tap.
- catchFanfare:{gap:.22,l:[layer(['thudA','thudB'],.19,.90),
-  layer(['coinsB'],.18,.90,.045),
-  layer(['coinsB'],.12,1.18,.18),
-  layer(['clothB'],.09,1.05,.04)]},
- // Fever has an entirely different, short per-FISH cue. Distinct from
- // the solo motif; each card can step up a semitone without a synthetic beep.
- feverCard:{gap:.23,l:[layer(['woodTap','touchTap'],.14,.96),
-  layer(['lineSnap'],.19,1.10,.015),
-  layer(['waterPlop'],.08,1.30,.04)]},
- feverFinish:{gap:.55,l:[layer(['softB'],.17,.94),
-  layer(['coinsA'],.12,1.13,.075)]},
+ // Chest-opening moment: a CLEAR front-facing rising bell arpeggio followed
+ // by a bright resolving chord. These are original pre-rendered recordings;
+ // keep them above ordinary reel and splash sounds without clipping.
+ catchFanfare:{gap:.24,l:[layer(['chestWin'],.94,1),
+  layer(['coinsB'],.19,.98,.13)]},
+ // First-ever species registration gets a distinct richer 2-second flourish.
+ catchNew:{gap:.28,l:[layer(['chestNew'],.98,1),
+  layer(['coinsA'],.22,1.04,.19)]},
+ // Multiple Fever catches remain on their own pachinko cadence: one crisp
+ // item sparkle per fish and a short chord at the end, never a solo fanfare.
+ feverCard:{gap:.24,l:[layer(['feverTick'],.79,1),
+  layer(['coinsB'],.12,1.08,.06)]},
+ feverFinish:{gap:.55,l:[layer(['feverEnd'],.86,1)]},
  feverReady:{gap:.9,l:[layer(['plank'],.44,1.17),layer(['coinsB'],.38,.93)]},
  fever:{gap:.7,l:[layer(['waterSplash'],.78,.8),layer(['thudA','thudB'],.88,.86),layer(['clothB'],.41,.88)]},
  feverSnap:{gap:.16,l:[layer(['punchA','punchB'],.81,.96),layer(['waterSplash'],.61,1.23),layer(['plank'],.24,1.04)]},
@@ -115,7 +120,10 @@ function fetchSound(key){
  }
  var ac=setup();
  if(!ac)return Promise.resolve(null);
- loading[key]=load(root+file[0]).catch(function(){return load(file[1]);})
+ loading[key]=load(root+file[0]).catch(function(){
+  if(!file[1])throw Error('Missing bundled original prize recording: '+file[0]);
+  return load(file[1]);
+ })
  .then(function(bytes){return ac.decodeAudioData(bytes);})
  .then(function(buffer){decoded[key]=buffer;return buffer;})
  .catch(function(){failed[key]=true;return null;});
