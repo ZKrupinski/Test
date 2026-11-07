@@ -298,13 +298,13 @@ assert.match(script,/var tip=rodTip\(time\),/,
   const valleys=[0,1/3,2/3,1].map(atPulse),
    peaks=[1/6,1/2,5/6].map(atPulse);
   for(const pose of peaks){
-   assert.ok(pose.angle<-.26,mode+' must lift rod clearly at each pump');
+   assert.ok(pose.angle<-.68,mode+' must lift the entire rod at least 39 degrees at each pump');
   }
   for(let i=0;i<3;i++){
-   assert.ok(peaks[i].angle<valleys[i].angle-.24,
-    mode+' pump '+(i+1)+' failed to rise above lowered position');
-   assert.ok(peaks[i].tip.y<valleys[i].tip.y-22,
-    mode+' pump '+(i+1)+' did not raise connected line tip');
+   assert.ok(peaks[i].angle<valleys[i].angle-.66,
+    mode+' pump '+(i+1)+' must pivot the whole rod far above its lowered position');
+   assert.ok(peaks[i].tip.y<valleys[i].tip.y-55,
+    mode+' pump '+(i+1)+' must raise the attached line tip at least 55px');
   }
   for(const pose of valleys){
    assert.ok(Math.abs(pose.angle)<.04,'Rod should lower between pumps and at release');

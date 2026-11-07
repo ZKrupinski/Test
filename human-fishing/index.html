@@ -2625,7 +2625,9 @@ function rodCurve(mode,elapsed,now,settings,weight){
   // tilt. Squared sine gives an up/down/up/down/up/down sequence with zero
   // displacement at the start, between pumps, and at the end of the reel.
   var pumps=3,pump=Math.pow(Math.sin(Math.PI*pumps*p),2)*rise,
-   lift=mode==='fever'?.43:.40*clamp(.83+resist*.17,.90,1.14);
+   // Increase the WHOLE-ROD grip-pivot lift from ~23° to ~43°,
+   // without changing the three-pump timing or bend dynamics.
+   lift=mode==='fever'?.76:.73*clamp(.83+resist*.17,.90,1.14);
   angle=-lift*pump-.025*load;
   // The player's upward lift releases some bend against the fish tension,
   // while the already-calibrated material elasticity still drives the blank.
