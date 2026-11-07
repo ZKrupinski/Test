@@ -265,6 +265,40 @@ font:900 14px system-ui,sans-serif;letter-spacing:.65px}
 #currentHud.visible{display:flex}
 #currentArrow{font-size:29px;line-height:18px;color:#c1fbee}
 #currentText{font-size:13px}
+
+/* Catch card uses the approved individual fish PNG in a floating UI above the rod. */
+#catchShowcase{position:absolute;left:572px;top:68px;width:392px;height:115px;z-index:12;pointer-events:none}
+.catch-card{position:absolute;top:0;left:0;box-sizing:border-box;width:382px;height:104px;
+ display:flex;align-items:center;gap:12px;padding:9px;border:1px solid #b6eee7a8;
+ border-radius:12px;color:#f0fff9;background:linear-gradient(115deg,#143847f5,#102b3bf0);
+ box-shadow:0 9px 22px #00172290,inset 0 1px #e6fff52c;opacity:0;
+ animation:catchCardSingle 2.45s both ease-out}
+.catch-card.fever{animation:catchCardFever .65s both ease-out}
+.catch-card-thumb{flex:0 0 107px;width:107px;height:85px;display:flex;align-items:center;justify-content:center;
+ overflow:hidden;border:1px solid #c6eee338;border-radius:8px;
+ background:radial-gradient(ellipse at 50% 50%,#9cead346,#17455c38 70%)}
+.catch-card-thumb img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 4px #05222abb)}
+.catch-card-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.catch-card-title{display:flex;align-items:center;gap:7px;min-width:0}
+.catch-card-title strong{font:900 23px/1.15 system-ui,sans-serif;overflow:hidden;
+ white-space:nowrap;text-overflow:ellipsis;text-shadow:0 2px #00222a}
+.catch-card-new{flex:none;border-radius:5px;padding:4px 7px;background:#ffda78;
+ color:#4a3011;font:1000 14px system-ui,sans-serif;box-shadow:0 0 10px #ffe281a1}
+.catch-card-size{color:#b0e0d8;font:800 14px system-ui,sans-serif}
+.catch-card-size b{color:#ffe1a0}
+.catch-card.fever .catch-card-title strong{color:#fff0bd}
+@keyframes catchCardSingle{
+ 0%{opacity:0;transform:translate(-26px,10px) scale(.91)}
+ 10%{opacity:1;transform:translate(4px,-2px) scale(1.03)}
+ 18%,74%{opacity:1;transform:translate(0,0) scale(1)}
+ 100%{opacity:0;transform:translate(102px,-6px) scale(.95)}
+}
+@keyframes catchCardFever{
+ 0%{opacity:0;transform:translate(-30px,9px) scale(.90)}
+ 15%{opacity:1;transform:translate(2px,0) scale(1.02)}
+ 35%{opacity:1;transform:translate(0,0) scale(1)}
+ 100%{opacity:0;transform:translate(122px,-7px) scale(.92)}
+}
 </style></head><body><div class="wrap">
 <header inert><div class="brand"><div class="seal">🐙</div><div><h1>인간<span>낚시</span> <sup style="font-size:10px;color:#98dfdd">ALPHA 2.3</sup></h1><div class="sub">HUMAN FISHING · LITTLE MONSTER, BIG CATCH</div></div></div>
 <nav><button id="navFish" class="active">🎣 물고기낚시</button><button id="navHuman">🧑 인간낚시</button><button id="navTank">🐠 아쿠아리움</button><button id="navBook">📖 도감</button><button id="navGrow">✦ 성장</button><button id="navGear">🎒 장비</button><button id="navShop">🛒 상점</button></nav></header>
@@ -272,6 +306,7 @@ font:900 14px system-ui,sans-serif;letter-spacing:.65px}
 <div class="hud top"><div class="tag" style="display:none" aria-hidden="true"><small id="stageNo">STAGE 01 / 12</small><span id="stageName">열대 수초 수조</span></div><div class="coins" id="coins" style="margin-left:auto">◈ 0　🐟 0/240</div></div>
 <div id="autoFishStatus" role="status" aria-live="polite" aria-hidden="true">🎣 AUTO FISHING</div>
 <div id="currentHud" role="status" aria-hidden="true"><span id="currentText">조류</span><span id="currentArrow">→</span></div>
+<div id="catchShowcase" aria-label="포획한 물고기" aria-live="polite"></div>
 <div id="feverHud" class="fever-hud"><div class="fever-top"><span>🐙 OCTO FEVER</span><span id="feverNum">0 / 6</span></div><div class="fever-meter"><i id="feverFill"></i></div><div id="feverDetail" class="fever-detail">물고기 포획으로 충전</div></div>
 <div class="center-banner" id="banner"><div class="emoji" id="bannerIcon">🐟</div><strong id="bannerTitle">첫 포획!</strong><p id="bannerSub">새로운 물고기 발견</p></div>
 <div class="aqua-controls" id="aquaControls" aria-label="아쿠아리움">
@@ -1918,6 +1953,8 @@ function success(){
  if(!aquariumSale&&human&&save.humanPlaced.length===0)save.humanPlaced.push(id);
  if(!aquariumSale&&!human&&save.placed.length===0)save.placed.push(id);
  persist();updateStats();beep('catch');spawnParticles(645,290,extra?50:32,'gold');
+ showCatchShowcase([human?catchShowcaseHuman(o.id,qty,fresh):
+  catchShowcaseFish(o.sp,qty,fresh,aquariumSale)],false);
  beginLureRecovery('swallow_success');
  playCatchFx(o,human,aquariumSale?name+' · 판매':name,reward,extra,!aquariumSale&&fresh);
  if(window.octoSidekicksCatch)window.octoSidekicksCatch(time,{rare:!!(fresh||extra||human||(o.sp&&['EPIC','LEGEND','MYTHIC'].indexOf(o.sp.rarity)>=0))});
@@ -3247,6 +3284,12 @@ function tick(stamp){
     var arrival=feverFx.reelStart+.82+.72;
     if(!feverFx.baitDelivered&&feverFx.elapsed>=arrival){
      feverFx.baitDelivered=true;
+     // Failed or resisted rare fish must never appear as won prizes.
+     var prizes=feverFx.caught.filter(function(c){return !c.willEscape}).map(function(c){
+      return c.human?catchShowcaseHuman(c.id,c.quantity,c.showcaseFresh):
+       catchShowcaseFish(c.sp,c.quantity,c.showcaseFresh,c.showcaseSale);
+     });
+     showCatchShowcase(prizes,true);
      bob.x=mouthPos(time).x;bob.y=mouthPos(time).y;
      beginLureRecovery(feverFx.caught.some(function(z){return !z.willEscape})?
       'swallow_success':'swallow_failure');
@@ -3583,6 +3626,44 @@ function drawHookSwallow(now){
  var approach=hook.willEscape?clamp(hook.elapsed/(hook.travelDuration*(hook.escapeAt||.88)),0,1)*.90:clamp(hook.elapsed/hook.travelDuration,0,1);
  drawSwallowCreature(entity,approach,0,1,mouthPos(now));
 }
+// CATCH_SHOWCASE_BEGIN — the individual RGBA PNG is also used in the codex.
+function catchShowcaseFish(sp,quantity,fresh,forSale){
+ if(!sp)return null;
+ var category=fishVisualProfile(sp).category;
+ return{sp:sp,name:sp.name,quantity:quantity||1,fresh:!!fresh&&!forSale,
+  forSale:!!forSale,size:({SMALL:'소형',MEDIUM:'중형',LARGE:'대형',
+   SPECIAL:'특수형'}[category]||'중형')};
+}
+function catchShowcaseHuman(id,quantity,fresh){
+ return{name:humans[id]||'인간',human:true,quantity:quantity||1,
+  size:humanTier(id),fresh:!!fresh};
+}
+function catchShowcaseCard(item,fever,index){
+ var name=escapeHtml(item.name),size=escapeHtml(item.size||'중형');
+ var source=item.sp?'./assets/fish/individual/'+encodeURIComponent(item.sp.id)+
+  '.png?v=20261106-fish304':'';
+ var thumb=source?'<img src="'+source+'" decoding="async" alt="'+name+'">':
+  '<span style="font-size:38px">🧑</span>';
+ var tag=item.fresh?'<span class="catch-card-new">NEW</span>':'';
+ var extra=item.quantity>1?' <b>×'+Math.floor(item.quantity)+'</b>':'';
+ var sale=item.forSale?' · 판매':'';
+ var delay=fever?(index*.16).toFixed(2):'0';
+ return '<div class="catch-card'+(fever?' fever':'')+
+  '" style="animation-delay:'+delay+'s;z-index:'+index+'">'+
+  '<div class="catch-card-thumb">'+thumb+'</div>'+
+  '<div class="catch-card-info"><div class="catch-card-title">'+tag+
+  '<strong>'+name+'</strong></div><div class="catch-card-size">SIZE · '+
+  size+extra+sale+'</div></div></div>';
+}
+function showCatchShowcase(items,fever){
+ var root=$('catchShowcase');
+ if(!root||!items||!items.length)return;
+ root.innerHTML=items.filter(Boolean).slice(0,36).map(function(item,i){
+  return catchShowcaseCard(item,!!fever,i);
+ }).join('');
+ if(root.innerHTML)playFoley(fever?'catchFanfareFever':'catchFanfare');
+}
+// CATCH_SHOWCASE_END
 function playCatchFx(caught,isHuman,name,reward,isDouble,isNew){
  // The whole creature has already entered the mouth via the live hook path.
  var mouth=mouthPos(time),x=mouth.x,y=mouth.y;
@@ -5415,6 +5496,7 @@ function activateOctoFever(){
   // if their resistance roll fails. No unpaid fish enters the inventory.
   if(!captured&&!feverLiftResistantFish(f.sp))return;
   var n=captured?1+(net>0&&Math.random()<Math.min(.7,net*.035)?1:0):1;
+  var freshCatch=captured&&!aquariumFishingActive&&!save.owned[f.sp.id];
   if(captured){
    // Aquarium catches pay money only; unsuccessful pulls pay nothing.
    if(!aquariumFishingActive)save.owned[f.sp.id]=(save.owned[f.sp.id]||0)+n;
@@ -5429,6 +5511,7 @@ function activateOctoFever(){
   // The approved fish PNG is used both for ascent and the resistance escape.
   targets.push({x:f.x,y:f.y,sp:f.sp,size:f.size,vx:f.vx,phase:f.phase,
    quantity:n,human:false,willEscape:!captured,
+   showcaseFresh:freshCatch,showcaseSale:!!aquariumFishingActive,
    sourceFish:captured?null:f,escapeDir:f.x>=center.x?1:-1});
  });
  // Human elites are exceptionally rare, and harder to hook than rare fish.
@@ -5436,11 +5519,11 @@ function activateOctoFever(){
  hum.filter(function(h){return h.id<20&&!h.feverCaptured&&Math.hypot(h.x-center.x,h.y+22-center.y)<=v.radius}).forEach(function(h){
   var chance=catchProbability({id:h.id},true,true)*.85;
   if(Math.random()<chance){
-   var id=String(h.id),reward=70+h.id*5;
+   var id=String(h.id),reward=70+h.id*5,freshHuman=!save.human[id];
    save.human[id]=(save.human[id]||0)+1;save.coins+=reward;save.catches++;coins+=reward;
    if(save.humanPlaced.length===0)save.humanPlaced.push(id);
    h.feverCaptured=true;
-   targets.push({x:h.x,y:h.y,id:h.id,human:true,size:h.size||1,vx:h.vx,phase:h.phase,quantity:1});
+   targets.push({x:h.x,y:h.y,id:h.id,human:true,size:h.size||1,vx:h.vx,phase:h.phase,quantity:1,showcaseFresh:freshHuman});
   }else resisted++;
  });
  // Preserve the creatures' clockwise order around the bait. This avoids
