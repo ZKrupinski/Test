@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs');
-for(const state of ['idle','swim','back_swim','suction']){
+for(const state of ['idle','swim','back_swim','up_swim','down_swim','suction']){
  const file='human-fishing/assets/octopus/bait/red_lure_polished_'+state+'_8f.png';
  const b=fs.readFileSync(file);
  assert.equal(b.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
@@ -22,3 +22,13 @@ assert.equal(state.polishedLureSwimMode(2),'back_swim');
 assert.equal(state.polishedLureSwimMode(80),'swim');
 assert.equal(state.polishedLureSwimMode(-2),'swim');
 console.log('PASS forward/backward selection and near-zero direction stability');
+
+assert.equal(state.polishedLureSwimMode(0,-100),'up_swim');
+assert.equal(state.polishedLureSwimMode(0,100),'down_swim');
+assert.equal(state.polishedLureSwimMode(100,95),'down_swim');
+assert.equal(state.polishedLureSwimMode(-150,60),'back_swim');
+assert.equal(state.polishedLureSwimMode(-95,-100),'back_swim');
+assert.equal(state.polishedLureSwimMode(-60,-150),'up_swim');
+assert.equal(state.polishedLureSwimMode(1,0),'up_swim');
+assert.equal(state.polishedLureSwimMode(150,-40),'swim');
+console.log('PASS vertical swimming, diagonals, reversal and axis hysteresis');
