@@ -32,9 +32,7 @@ var SRC={
  woodB:['wood_b.ogg','https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactWood_medium_003.ogg'],
  woodTap:['wood_tap.ogg','https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactWood_light_001.ogg'],
  touchTap:['touch_tap.ogg','https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactGeneric_light_002.ogg'],
- plank:['plank.ogg','https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactPlank_medium_001.ogg'],
- // CC0 acoustic trumpet celebration by gchoc, OpenGameArt.
- victoryBrass:['victory_brass.ogg','https://opengameart.org/sites/default/files/castlefanfare_0.ogg']
+ plank:['plank.ogg','https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactPlank_medium_001.ogg']
 };
 function layer(keys,gain,rate,offset){return {keys:keys,gain:gain,rate:rate||1,offset:offset||0};}
 var CUES={
