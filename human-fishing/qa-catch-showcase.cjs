@@ -4,15 +4,18 @@ const html=fs.readFileSync('human-fishing/index.html','utf8');
 const source=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(source,'Game script missing');
 assert.match(html,/id="catchShowcase"/,'Missing catch showcase container');
-assert.match(html,/#catchShowcase\{position:absolute;right:1\.8%;top:16\.4%;width:36\.2%;height:18\.4%/,
- 'The collector ribbon must sit below the right-hand menus');
-const stageWidth=1280,stageHeight=720,seaY=293;
-const box={right:stageWidth*.018,top:stageHeight*.164,
- width:stageWidth*.362,height:stageHeight*.184};
-assert.ok(box.top>=90,'Catch window must not block top-right HUD');
+assert.match(html,/#catchShowcase\{position:absolute;right:16px;top:16\.4%;width:33\.4%;height:18\.4%/,
+ 'Catch banner right edge must align with the header buttons at 16px');
+assert.match(html,/header\{position:absolute;z-index:20;[^}]*padding:12px 16px/,
+ 'Header button right gutter must remain 16px');
+const stageWidth=1536,stageHeight=864,seaY=293/720*stageHeight;
+const box={right:16,top:stageHeight*.164,
+ width:stageWidth*.334,height:stageHeight*.184};
+assert.equal(box.right,16,'The prize should align precisely with the top navigation');
+assert.ok(box.top>=120,'Catch window must not block top-right HUD');
 assert.ok(box.top+box.height<seaY-20,
  'Catch window must remain wholly above sea level with visual margin');
-assert.ok(stageWidth-box.right-box.width>750,
+assert.ok(stageWidth-box.right-box.width>950,
  'Catch window must occupy the empty far-right area');
 assert.match(html,/#stage:has\(\.panel\.open\) #catchShowcase/,
  'All full-screen menus must hide the catch cards');
@@ -26,10 +29,19 @@ assert.match(html,/@keyframes catchCardFever/,
  'Fever catch must animate through fast rightward fade');
 assert.match(html,/100%\{opacity:0;transform:translateX\(126px\)/,
  'Fever fish thumbnails must glide to the right as they fade out');
-assert.match(html,/\.catch-card\{position:absolute;top:0;left:0;box-sizing:border-box;width:94%/,
- 'Premium prize ribbon should fill the empty right-hand sky');
-assert.match(html,/\.catch-card-thumb\{position:relative;flex:0 0 49%;width:49%;height:100%/,
- 'Original fish art must dominate almost half the banner');
+assert.match(html,/\.catch-card\{position:absolute;top:0;left:0;box-sizing:border-box;width:100%/,
+ 'Card must fill the showcase width with no hidden 6% right gutter');
+assert.match(html,/\.catch-card-thumb\{position:relative;flex:0 0 52%;width:52%;height:100%/,
+ 'Preserve large art by reserving 52% of the now narrower banner for the fish');
+const previousBanner=stageWidth*.362*.94;
+const previousText=previousBanner*.51;
+const currentText=box.width*.48;
+assert.ok(currentText<previousText*.94,
+ 'Text region must be noticeably narrower after the refinement');
+const previousFish=previousBanner*.49;
+const currentFish=box.width*.52;
+assert.ok(currentFish>=previousFish*.99,
+ 'Do not make the fish PNG thumbnail smaller when narrowing text');
 assert.match(html,/justify-content:center;overflow:visible;border:0;\s*background:transparent;isolation:isolate/,
  'Remove screenshot problem: no nested rectangular picture frame');
 assert.match(html,/\.catch-card-kicker\{display:flex/,
