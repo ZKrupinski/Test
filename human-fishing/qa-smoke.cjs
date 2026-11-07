@@ -34,7 +34,7 @@ function element(id){
       contains(k){return classes.has(k)}
     },onclick:null,onchange:null,oninput:null,
     addEventListener(k,cb){listeners[k]=cb},
-    appendChild(){},getContext(){return ctx},
+    appendChild(){},setAttribute(){},getContext(){return ctx},
     setPointerCapture(){},getBoundingClientRect(){return{left:0,top:0,width:1280,height:720}},
     querySelectorAll(){return[]}
   };
@@ -119,7 +119,7 @@ window.__hfTest={
  hideStick:hideVirtualJoystick,
  getJoystick:function(){return joystick},
  getSave:function(){return save},
- disableAutoForSmoke:function(){autoFishing.lastInput=1e9;autoFishing.active=false;},
+ disableAutoForSmoke:function(){autoFishing.triggerSeconds=1e9;autoFishing.lastInput=time;autoFishing.active=false;},
  renderCodex:renderBook,
  aquariumEnsure:aquariumEnsureFish,
  aquariumTap:aquariumTapFish,
