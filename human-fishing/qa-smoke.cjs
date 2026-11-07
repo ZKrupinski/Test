@@ -661,7 +661,14 @@ assert.ok(Math.hypot(beforeSnap.x-distant.x,beforeSnap.y-distant.y)<1,'Impact st
 assert.equal(duringSnap.phase,'gather');assert.equal(afterSnap.phase,'held');
 const gap=p=>Math.hypot(p.x-afterSnap.x,p.y-afterSnap.y);
 assert.ok(gap(duringSnap)<gap(beforeSnap)*.25,'At least 75% of pull completed by 60ms');
-for(const p of [beforeSnap,duringSnap,afterSnap])assert.equal(p.scale,1);
+// On real 60Hz frames the pull must be observable, not an instantaneous teleport.
+// The second and third frames close at least 30% and 75% of the original gap.
+const secondFrame=game.toss(distant,{...fxStart,elapsed:2/60},0,clock/1000);
+const thirdFrame=game.toss(distant,{...fxStart,elapsed:3/60},0,clock/1000);
+assert.equal(secondFrame.phase,'gather');assert.equal(thirdFrame.phase,'gather');
+assert.ok(gap(secondFrame)<gap(beforeSnap)*.70,'Second 60Hz frame must start a visible sharp snap');
+assert.ok(gap(thirdFrame)<gap(beforeSnap)*.25,'Third 60Hz frame must nearly finish the snap');
+for(const p of [beforeSnap,secondFrame,thirdFrame,duringSnap,afterSnap])assert.equal(p.scale,1);
 const nearEnd=game.toss(distant,{...fxStart,elapsed:.08999},0,clock/1000);
 const settled=game.toss(distant,{...fxStart,elapsed:.09},0,clock/1000);
 assert.ok(Math.hypot(nearEnd.x-settled.x,nearEnd.y-settled.y)<.1,'Snap ends continuously');
