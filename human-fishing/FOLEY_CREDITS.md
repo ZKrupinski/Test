@@ -45,9 +45,9 @@ CC0: <https://creativecommons.org/publicdomain/zero/1.0/>
   the 24–90 ms fish-group snap; tiny splashes as the suction continues; three
   physically distinct pumping cues while pulling the line.
 - Swallow and reward: liquid plop, dull impact, natural coins spilling.
-  Ordinary fish catches use a quiet two-note plucked win motif with a soft
-  impact; the former loud brass sample was removed completely. OCTO FEVER
-  uses its own different, short sampled pluck for EACH fish card in a steady
+  Ordinary fish catches use a soft impact and two restrained rising coin
+  accents; the former loud brass sample was removed completely. OCTO FEVER
+  uses its own DIFFERENT sampled plucked sound for EACH fish card in a steady
   0.52-second left-to-right pachinko-style sequence, plus a quiet finale.
 - Escape, human counterattack, groggy: fast splash, dense hand/punch/wood
   strikes, not lasers or synthesized warning tones.
