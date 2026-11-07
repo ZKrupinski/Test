@@ -45,6 +45,7 @@ function element(id){
 const document={
   getElementById:element,
   createElement:element,
+  addEventListener(k,fn){listeners['document:'+k]=fn;},
   querySelectorAll(selector){
     // Return mock controls for catalog category tabs so that handlers get wired.
     if(selector==='[data-shop-tab]'){
@@ -118,6 +119,7 @@ window.__hfTest={
  hideStick:hideVirtualJoystick,
  getJoystick:function(){return joystick},
  getSave:function(){return save},
+ disableAutoForSmoke:function(){autoFishing.lastInput=1e9;autoFishing.active=false;},
  renderCodex:renderBook,
  aquariumEnsure:aquariumEnsureFish,
  aquariumTap:aquariumTapFish,
@@ -193,6 +195,8 @@ window.__hfTest={
 vm.runInNewContext(instrumented,mock,{filename:'human-fishing.js',timeout:4000});
 const game=mock.window.__hfTest;
 assert.ok(game,'Test bridge missing');
+// Manual gameplay cases remain independent of idle automation tests.
+game.disableAutoForSmoke();
 // Entrance must hold the FIRST cast until hero, rod and both friends have
 // traveled together from off-screen left. Fast-forward it for gameplay tests.
 assert.ok(game.getIntro().active,'Opening ensemble must start offscreen');
