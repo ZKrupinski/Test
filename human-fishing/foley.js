@@ -73,12 +73,20 @@ var CUES={
  helperIncome:{gap:.95,l:[layer(['coinsB'],.42)]},
  error:{gap:.22,l:[layer(['creakA'],.30,.76),layer(['woodTap'],.23,.88)]}
 };
-var context=null, decoded={},loading={},failed={},last={},master=.72,lastUiKey='';
+var context=null,output=null,decoded={},loading={},failed={},last={},master=.72;
 function setup(){
  if(context)return context;
  var Native=window.AudioContext||window.webkitAudioContext;
  if(!Native)return null;
  try{context=new Native();}catch(e){return null;}
+ // Physical impacts add together: a gentle shared limiter prevents
+ // harsh clipping without ducking or lowering the hit versus other effects.
+ if(typeof context.createDynamicsCompressor==='function'){
+  output=context.createDynamicsCompressor();
+  output.threshold.value=-14;output.knee.value=8;
+  output.ratio.value=3;output.attack.value=.003;output.release.value=.12;
+  output.connect(context.destination);
+ }
  return context;
 }
 function fetchSound(key){
@@ -127,7 +135,7 @@ function play(key,options){
   source.buffer=decoded[name];
   source.playbackRate.value=item.rate*(.96+Math.random()*.08);
   gain.gain.value=Math.min(.92,item.gain*master*intensity);
-  source.connect(gain);gain.connect(ac.destination);
+  source.connect(gain);gain.connect(output||ac.destination);
   try{source.start(now);}catch(e){}
  });
  return true;
