@@ -287,8 +287,33 @@ assert.match(script,/var tip=rodTip\(time\),/,
  assert.ok(Math.abs(back.localTip.x-(104+warp.dx))<1e-8);
  assert.ok(Math.abs(back.localTip.y-(-50+warp.dy))<1e-8);
  const angle=back.angle,drop=46,c=Math.cos(angle),si=Math.sin(angle);
- assert.ok(Math.abs(back.tip.x-(536+back.localTip.x*c-back.localTip.y*si))<1e-8);
- assert.ok(Math.abs(back.tip.y-(191+back.localTip.x*si+back.localTip.y*c+drop))<1e-8);
+ const px=back.pivot.x,py=back.pivot.y;
+ assert.ok(px<0&&Math.abs(py)<20,'Pivot must be inside the approved rod handle');
+ assert.ok(Math.abs(back.tip.x-(536+px+(back.localTip.x-px)*c-(back.localTip.y-py)*si))<1e-8);
+ assert.ok(Math.abs(back.tip.y-(191+py+(back.localTip.x-px)*si+(back.localTip.y-py)*c+drop))<1e-8);
+ // During a single pull the rod MUST visibly lift above its handle 3 times;
+ // this is not a reel-only flex that merely moves the tip downwards.
+ for(const mode of ['reel','fever']){
+  const atPulse=p=>at(mode,p,mode==='reel'?1.3:1.18);
+  const valleys=[0,1/3,2/3,1].map(atPulse),
+   peaks=[1/6,1/2,5/6].map(atPulse);
+  for(const pose of peaks){
+   assert.ok(pose.angle<-.26,mode+' must lift rod clearly at each pump');
+  }
+  for(let i=0;i<3;i++){
+   assert.ok(peaks[i].angle<valleys[i].angle-.24,
+    mode+' pump '+(i+1)+' failed to rise above lowered position');
+   assert.ok(peaks[i].tip.y<valleys[i].tip.y-22,
+    mode+' pump '+(i+1)+' did not raise connected line tip');
+  }
+  for(const pose of valleys){
+   assert.ok(Math.abs(pose.angle)<.04,'Rod should lower between pumps and at release');
+   assert.ok(pose.pivot.x===px&&pose.pivot.y===py,
+    'Gripped handle must remain a fixed pivot throughout all pumps');
+  }
+ }
+ assert.match(script,/g\.translate\(px,py\);g\.rotate\(pose\.angle\);g\.translate\(-px,-py\)/,
+  'Approved rod bitmap must rotate around the same grip point as the line');
  assert.match(script,/ctx\.moveTo\(tip\.x,tip\.y\)/,
   'Line geometry must start at the calculated flexible tip, not old constants');
  const rodIds=['cork','bamboo','marine','carbon','titan','abyss'];

@@ -2621,14 +2621,19 @@ function rodCurve(mode,elapsed,now,settings,weight){
  }else if(mode==='reel'||mode==='fever'){
   var p=clamp(t,0,1),rise=smooth(p/.13),resist=mode==='fever'?1.18:(weight||1);
   var load=Math.sin(Math.PI*(.86*p))*rise;
-  bend=hang+36*settings.reel*resist*load;
-  angle=-.045*load;
-  // Short resistance pulses only while a fish is still pulling the line.
+  // THREE deliberate upward pumps during each retrieval, no rigid one-shot
+  // tilt. Squared sine gives an up/down/up/down/up/down sequence with zero
+  // displacement at the start, between pumps, and at the end of the reel.
+  var pumps=3,pump=Math.pow(Math.sin(Math.PI*pumps*p),2)*rise,
+   lift=mode==='fever'?.43:.40*clamp(.83+resist*.17,.90,1.14);
+  angle=-lift*pump-.025*load;
+  // The player's upward lift releases some bend against the fish tension,
+  // while the already-calibrated material elasticity still drives the blank.
+  bend=hang+36*settings.reel*resist*load*(1-.36*pump);
   if(mode==='reel'&&load>0){
-    // Soft blanks transmit fish tugs; premium damped rods suppress jitter.
-    var tug=2.2*clamp(settings.reel/(settings.damping*.85),.45,1.6);
-    bend+=Math.sin(now*24)*tug*load*resist;
-   }
+   var tug=2.2*clamp(settings.reel/(settings.damping*.85),.45,1.6);
+   bend+=Math.sin(now*24)*tug*load*resist;
+  }
  }else if(mode==='recover'){
   var dt=t,frequency=22*settings.elastic;
   bend=hang+(weight||0)*Math.exp(-6.4*settings.damping*dt)*Math.cos(frequency*dt);
@@ -2639,12 +2644,15 @@ function rodCurve(mode,elapsed,now,settings,weight){
  }
  return{bend:bend,angle:angle,mode:mode};
 }
-// Source rod artwork uses an APPROVED 210×160 logical frame, where
-// the reel/handle root is (536,191), tip is (640,141) in scene space.
+// Source rod artwork uses an APPROVED 210×160 logical frame with a fixed
+// reel staging origin (536,191). Rotate the rod about its actual CORK GRIP
+// center, not the reel center. The bitmap and flexible line tip MUST use
+// the same handle-relative transform, including the gameplay camera drop.
 // The blank begins flexing halfway between the gripped handle and reel.
 // The reel's image core stays fixed; flex accumulates continuously across the
 // WHOLE shaft, not just its outer third. The tip and line share this curve.
 var ROD_FLEX_START_X=-23,ROD_FLEX_TIP_X=104,ROD_FLEX_POWER=1.55;
+var ROD_GRIP_PIVOT_X=-30,ROD_GRIP_PIVOT_Y=8;
 function rodWarpAt(localX,bend){
  if(localX<=ROD_FLEX_START_X||bend===0)return{dx:0,dy:0,sx:0,sy:0};
  var span=ROD_FLEX_TIP_X-ROD_FLEX_START_X;
@@ -2676,12 +2684,13 @@ function evaluateRodPose(now,gearOverride,preview){
  var bx=536,by=191,tx=104,ty=-50,
   flex=rodWarpAt(tx,curve.bend),
   xx=tx+flex.dx,yy=ty+flex.dy,
+  px=ROD_GRIP_PIVOT_X,py=ROD_GRIP_PIVOT_Y,
   cosine=Math.cos(curve.angle),sine=Math.sin(curve.angle);
  return{
   mode:mode,bend:curve.bend,angle:curve.angle,settings:settings,
-  root:{x:bx,y:by},localTip:{x:xx,y:yy},
-  tip:{x:bx+xx*cosine-yy*sine,
-   y:by+xx*sine+yy*cosine+PLAYER_STAGE_DROP}
+  root:{x:bx,y:by},pivot:{x:px,y:py},localTip:{x:xx,y:yy},
+  tip:{x:bx+px+(xx-px)*cosine-(yy-py)*sine,
+   y:by+py+(xx-px)*sine+(yy-py)*cosine+PLAYER_STAGE_DROP}
  };
 }
 function triggerRodRecoil(now){
@@ -2696,7 +2705,11 @@ function drawRodWarped(g,image,pose,rootX,rootY,previewScale){
  var scale=previewScale||1;
  g.save();
  g.translate(rootX,rootY);g.scale(scale,scale);
- g.rotate(pose.angle);
+ // Keep the gripped handle planted in the hero's hand while the blank and
+ // reel swing above it. Line position is evaluated with this exact pivot.
+ var px=pose.pivot?pose.pivot.x:ROD_GRIP_PIVOT_X,
+  py=pose.pivot?pose.pivot.y:ROD_GRIP_PIVOT_Y;
+ g.translate(px,py);g.rotate(pose.angle);g.translate(-px,-py);
  g.imageSmoothingEnabled=true;
  for(var i=0;i<n;i++){
   var source0=imageW*i/n,source1=imageW*(i+1)/n;
