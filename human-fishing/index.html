@@ -4945,9 +4945,12 @@ function feverBubblePose(fx,now,i){
  var reel=feverReelState(fx,now);
  var x=reel.x+Math.cos(angle)*radius,
   y=reel.y+Math.sin(angle)*radius*.86;
- // Large/medium/small real bitmap bubbles mix together, and EACH one
- // shrinks to 36-53% of its birth size before vanishing near the center.
- var startSize=34+feverBubbleHash(i*31+cycle*7+9)*44,
+ // Keep today's droplet sizes at middle-tier Fever (~200px
+ // radius after the snap). Every bitmap scales with the visible vortex:
+ // lower-tier smaller, upper-tier larger, and the snap/reel shrink together.
+ // This changes rendering only, never the catch radius or fish bitmap size.
+ var bubbleScale=visualRadius/100,
+  startSize=(34+feverBubbleHash(i*31+cycle*7+9)*44)*bubbleScale,
   endScale=.36+.17*feverBubbleHash(i*41+cycle*9+4),
   size=startSize*(1-(1-endScale)*pull);
  var stopAt=fx.reelStart+.72,
