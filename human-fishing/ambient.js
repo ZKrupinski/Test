@@ -97,10 +97,16 @@ function sync(){
  // Keep both buses active with quiet loops; only their volume and filters
  // change. The water crossing never stops/restarts the ambience abruptly.
  if(active.surface){
-  var hz=active.surface.filter.frequency,now=context.currentTime;
-  hz.cancelScheduledValues(now);
-  hz.setValueAtTime(hz.value,now);
-  hz.linearRampToValueAtTime(sub?380:10500,now+(sub?.75:1.05));
+  var cutoff=sub?380:10500;
+  // Do NOT reschedule a filter envelope every rendered frame:
+  // update the diving low-pass only when its target actually changes.
+  if(active.surface.cutoffTarget!==cutoff){
+   var hz=active.surface.filter.frequency,now=context.currentTime;
+   hz.cancelScheduledValues(now);
+   hz.setValueAtTime(hz.value,now);
+   hz.linearRampToValueAtTime(cutoff,now+(sub?.75:1.05));
+   active.surface.cutoffTarget=cutoff;
+  }
   ramp(active.surface,enabled&&!sub?.62:0,sub?.83:1.12);
  }
  if(active.underwater)
