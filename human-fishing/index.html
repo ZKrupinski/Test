@@ -266,35 +266,38 @@ font:900 14px system-ui,sans-serif;letter-spacing:.65px}
 #currentArrow{font-size:29px;line-height:18px;color:#c1fbee}
 #currentText{font-size:13px}
 
-/* Catch reveal lives in empty sky to the RIGHT of the hero, below the top HUD.
-   Percentage coordinates retain exactly the same 16:9 layout on phones. */
-#catchShowcase{position:absolute;left:39.4%;top:23.7%;width:36%;height:12.6%;
+/* Top-right catch panel sits directly below the right status menus;
+   the entire panel ends ABOVE the sea surface (y=293/720). Use percentages
+   so it retains this composition at every 16:9 game-screen size. */
+#catchShowcase{position:absolute;right:1.5%;top:14.2%;width:37.5%;height:22.7%;
  z-index:5;pointer-events:none;overflow:hidden}
 #stage:has(.panel.open) #catchShowcase,
 #stage:has(.sideinfo.show) #catchShowcase,
 #stage:has(#motionTunePanel.visible) #catchShowcase,
 #stage:has(#rodTunePanel.visible) #catchShowcase,
 #stage:has(#banner.visible) #catchShowcase{display:none}
-.catch-card{position:absolute;top:0;left:0;box-sizing:border-box;width:78%;
- height:100%;min-height:0;display:flex;align-items:center;gap:3%;padding:1.9%;
+.catch-card{position:absolute;top:0;left:0;box-sizing:border-box;width:93%;
+ height:100%;min-height:0;display:flex;align-items:center;gap:2%;padding:1.25%;
  border:1px solid #9cddd099;border-radius:10px;color:#f0fff9;
  background:linear-gradient(115deg,#133a47dc,#0c303dd2);
  box-shadow:0 4px 12px #00172273,inset 0 1px #e6fff522;
  opacity:0;animation:catchCardSingle 2.35s both ease-out;will-change:opacity,transform}
 .catch-card.fever{animation:catchCardFever .65s both linear}
-.catch-card-thumb{flex:0 0 29%;width:29%;height:87%;display:flex;align-items:center;
+.catch-card-thumb{flex:0 0 47%;width:47%;height:95%;display:flex;align-items:center;
  justify-content:center;overflow:hidden;border:1px solid #c6eee329;border-radius:7px;
  background:radial-gradient(ellipse at 50% 50%,#9cead337,#17455c26 70%)}
 .catch-card-thumb img{width:100%;height:100%;object-fit:contain;
  filter:drop-shadow(0 2px 3px #05222a80)}
-.catch-card-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-.catch-card-title{display:flex;align-items:center;gap:5px;min-width:0}
-.catch-card-title strong{font:900 clamp(11px,1.5vw,22px)/1.14 system-ui,sans-serif;
- overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-shadow:0 1px #00222a}
-.catch-card-new{flex:none;border-radius:4px;padding:3px 5px;background:#f8d678;
- color:#4a3011;font:900 clamp(9px,1vw,13px) system-ui,sans-serif;
+.catch-card-info{flex:1;min-width:0;height:95%;display:flex;flex-direction:column;
+ justify-content:center;align-items:flex-start;gap:5px;padding:0 1.2%}
+.catch-card-title{display:flex;align-items:center;min-width:0;max-width:100%}
+.catch-card-title strong{font:900 clamp(11px,1.6vw,23px)/1.22 system-ui,sans-serif;
+ display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+ overflow:hidden;overflow-wrap:anywhere;text-overflow:ellipsis;text-shadow:0 1px #00222a}
+.catch-card-new{flex:none;align-self:flex-start;border-radius:4px;padding:3px 7px;
+ background:#f8d678;color:#4a3011;font:950 clamp(9px,1vw,14px) system-ui,sans-serif;
  box-shadow:0 0 6px #ffe28170}
-.catch-card-size{color:#b0e0d8;font:800 clamp(9px,1.06vw,14px) system-ui,sans-serif}
+.catch-card-size{color:#b0e0d8;font:800 clamp(10px,1.08vw,15px) system-ui,sans-serif}
 .catch-card-size b{color:#ffe1a0}
 .catch-card.fever .catch-card-title strong{color:#fff0bd}
 @keyframes catchCardSingle{
@@ -3665,7 +3668,7 @@ function catchShowcaseCard(item,fever,index){
  return '<div class="catch-card'+(fever?' fever':'')+
   '" style="animation-delay:'+delay+'s;z-index:'+index+'">'+
   '<div class="catch-card-thumb">'+thumb+'</div>'+
-  '<div class="catch-card-info"><div class="catch-card-title">'+tag+
+  '<div class="catch-card-info">'+tag+'<div class="catch-card-title">'+
   '<strong>'+name+'</strong></div><div class="catch-card-size">SIZE · '+
   size+extra+sale+'</div></div></div>';
 }
