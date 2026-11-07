@@ -13,6 +13,8 @@ assert.ok(first>=0&&last>first,'Missing Fever bitmap render functions');
 const drawCode=source.slice(first,last);
 assert.ok(drawCode.includes('var d=fx.radius*2*scale*feverSnapScale(fx);'),
  'Vortex must first match real radius, then visually collapse to half');
+assert.match(drawCode,/function feverSnapProgress\(fx\)\{\s*return feverCatchGatherProgress\(fx\);\s*\}/,
+ 'Vortex collapse must use the same progress as the caught fish, without a delayed start');
 assert.doesNotMatch(drawCode,/fx\.radius\*2\/\.55/,
  'The old 1.82x effect overdraw must never come back');
 assert.match(source,/radius:\[100,132,170,215,265,320\]\[clamp\(tier,0,5\)\]\+lv\*3/,
@@ -64,13 +66,15 @@ for(let tier=0;tier<=5;tier++){
    }
    return calls.find(x=>x.image==='vortex').w;
   };
-  const full=measure(.05),middle=measure(.24),half=measure(.50);
+  // Real 60fps samples: impact on frame 1, visible shrink on frames 2/3,
+  // and complete half-size by 90ms (same instant as the captured fish).
+  const full=measure(1/60),middle=measure(2/60),late=measure(3/60),half=measure(.095);
   assert.ok(Math.abs(full-realRadius*2)<1e-6,
-   'Fever must first show the full gameplay capture radius');
-  assert.ok(middle<full&&middle>half,
-   'Fever ring must contract during the capture snap');
+   'Fever must initially show the full gameplay capture radius');
+  assert.ok(middle<full&&middle>late&&late>half,
+   'Fever ring must visibly collapse on frames 2 and 3, together with fish');
   assert.ok(Math.abs(half-realRadius)<1e-6,
-   'Fever ring must finish at exactly HALF the starting diameter');
+   'Fever ring must finish at HALF the initial diameter by 90ms');
   // Each active frame draws a changing subset of staggered, independently
   // spawned glass bubbles. They may legitimately be OUTSIDE the VFX ring.
   const expected=realRadius>=180?28:22;
