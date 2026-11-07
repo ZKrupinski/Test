@@ -634,6 +634,14 @@ assert.ok(dist(duringSnap)<dist(beforeSnap)*.88,
 assert.ok(dist(afterSnap)<dist(beforeSnap),
  'Fish must be gathered near the center within .43 seconds');
 assert.equal(afterSnap.phase,'held','The fish must settle in its own grip slot after the snap');
+assert.equal(beforeSnap.scale,1,'The fish must keep its original size at capture');
+assert.equal(duringSnap.scale,1,'The fish must keep its original size while spiraling');
+assert.equal(afterSnap.scale,1,'The fish must keep its original size after spiraling');
+const startOrbit=game.toss(distant,{...fxStart,elapsed:.15},0,clock/1000);
+const quarterOrbit=game.toss(distant,{...fxStart,elapsed:.21},0,clock/1000);
+assert.ok(Math.abs(Math.atan2(startOrbit.y-fxStart.y,startOrbit.x-fxStart.x)-
+ Math.atan2(quarterOrbit.y-fxStart.y,quarterOrbit.x-fxStart.x))>.2,
+ 'Fish should noticeably rotate around the suction center while gathering');
 // Suction stays at the exact release point, then retrieves only after swallowing.
 for(const elapsed of [.1,.5,1,fxStart.suctionEnd-.01]){
  const fx={...fxStart,elapsed};const pose=game.reel(fx,clock/1000);
@@ -643,7 +651,9 @@ for(const elapsed of [.1,.5,1,fxStart.suctionEnd-.01]){
 const waiting={...fxStart,elapsed:.55};
 const queuedFirst=game.toss(startingFish,waiting,0,clock/1000);
 const queuedSecond=game.toss(startingHuman,waiting,1,clock/1000);
-assert.ok(Math.hypot(queuedFirst.x-queuedSecond.x,queuedFirst.y-queuedSecond.y)>70,'Waiting catches must have separate slots');
+assert.ok(Math.hypot(queuedFirst.x-queuedSecond.x,queuedFirst.y-queuedSecond.y)>120,'Full-size catches must have separated grip slots');
+assert.equal(queuedFirst.scale,1,'Fish must retain original size throughout suction');
+assert.equal(queuedSecond.scale,1,'Captured human must retain original size throughout suction');
 for(const [i,entity] of fxStart.caught.entries()){
  const before={...fxStart,elapsed:fxStart.reelStart};
  const lifted={...fxStart,elapsed:fxStart.reelStart+.41};
@@ -651,7 +661,8 @@ for(const [i,entity] of fxStart.caught.entries()){
  const ra=game.reel(before,clock/1000),rb=game.reel(lifted,clock/1000);
  assert.equal(a.done,false);assert.equal(b.done,false);
  assert.equal(a.phase,'held');assert.equal(b.phase,'held');
- assert.equal(b.scale,a.scale,'Fish must not shrink into the bait');
+ assert.equal(a.scale,1,'Full-size fish must not shrink during the hold');
+ assert.equal(b.scale,1,'Full-size fish must not shrink during lift');
  // Captured fish wriggle and spiral inward instead of riding rigid slots.
  const sa=game.gripSlot(before,i),sb=game.gripSlot(lifted,i);
  assert.ok(Math.hypot(sb.x,sb.y)<Math.hypot(sa.x,sa.y),

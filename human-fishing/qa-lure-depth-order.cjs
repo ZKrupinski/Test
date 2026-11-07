@@ -90,19 +90,19 @@ assert.ok(source.includes('var im=feverSuctionArt.bubbles||')&&
 assert.ok(source.includes('feverSuctionArt.backSoft=softenFeverWhiteAtlas(im)')&&
  source.includes('var whiteBreath=.22+.13*'),
  'Bright solid vortex must be partially transparent and change opacity over time');
-assert.ok(source.includes('var rotationTravel=turn+(mass<1.35?Math.PI*2:0);')&&
- source.includes('var arc=Math.sin(Math.PI*q)*Math.min(21,startRadius*.11)'),
- 'Gathered fish should follow a short curved snap, not a slow full orbit');
+assert.ok(source.includes('var rotationTravel=turn+Math.PI*2;')&&
+ source.includes('scale:1,done:false,phase:\'gather\''),
+ 'Gathered fish must circle a full turn at their original scale');
 assert.ok(source.includes('var waveA=.5-.5*Math.cos(t*9.1);')&&
  source.includes('var waveB=.5-.5*Math.cos(t*7.4-1.27);'),
  'Both vortex bitmap layers must breathe smoothly instead of jumping on loop reset');
-assert.ok(source.includes('var fadeIn=castEasing(life/.31)')&&
+assert.ok(source.includes('fadeIn=castEasing(life/.31)')&&
  source.includes('fadeOut=1-castEasing((life-.69)/.30)')&&
  source.includes('outer=visualRadius*(1.08+.34*feverBubbleHash'),
  'Bubble overlay needs staggered outside births, mid-cycle brightening, center fade');
 assert.ok(source.includes('function feverGripSlot(fx,index)')&&
- source.includes('radius=[0,64,70,79,88,100,111][n]+ring*111'),
- 'Inhaled fish must retain separate concentric grip slots around the center');
+ source.includes('radius=[0,62,83,101,122,141,156][n]+ring*163'),
+ 'Inhaled fish must retain larger full-size grip slots around the center');
 
 assert.ok(source.includes('makeFeverVortexOpaque(im)'),
  'Fever bitmap must boost original low-alpha paint without editing source art');

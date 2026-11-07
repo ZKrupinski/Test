@@ -5144,11 +5144,15 @@ function feverGripSlot(fx,index){
  var ring=Math.floor(index/6),n=Math.max(1,Math.min(6,fx.caught.length-ring*6)),
   progress=clamp((fx.elapsed-.15)/Math.max(.1,fx.reelStart+.82-.15),0,1),
   inward=progress*progress*(3-2*progress),
-  radius=[0,64,70,79,88,100,111][n]+ring*111-inward*11,
+  // Keep every fish at its ORIGINAL rendered size. Create more room in the
+  // grip ring rather than faking crowd separation by scaling fish down.
+  biggest=fx.caught.reduce(function(s,z){return Math.max(s,z.size||1.2)},1.2),
+  extra=n>1?clamp((biggest-1.2)*19,0,22):0,
+  radius=[0,62,83,101,122,141,156][n]+ring*163+extra-inward*11,
   angle=-Math.PI+(index%6)*Math.PI*2/n+ring*.30+inward*.27+
    Math.min(.46,Math.max(0,fx.elapsed-.80)*.34);
  return{x:Math.cos(angle)*radius,y:Math.sin(angle)*radius,
-  scale:fx.caught.length>6?.53:fx.caught.length>=5?.63:.77};
+  scale:1};
 }
 function feverTossPoint(entity,fx,index,now){
  var releaseAt=fx.reelStart+.82;
@@ -5158,7 +5162,9 @@ function feverTossPoint(entity,fx,index,now){
   reel=feverReelState(fx,now);
  var rings=Math.max(1,Math.ceil(fx.caught.length/6)),
   outer=Math.max(1,fx.caught.length-(rings-1)*6),
-  extent=[0,61,67,75,84,94,103][outer]+(rings-1)*100+10;
+  extent=[0,62,83,101,122,141,156][outer]+(rings-1)*163+16;
+ // Fit the group near the waterline/edges without snapping the bait itself.
+ extent=Math.min(extent,(H-WATER_SURFACE_Y)*.46);
  var offsetX=clamp(fx.x,extent+22,W-extent-22)-fx.x;
  var offsetY=clamp(fx.y,WATER_SURFACE_Y+extent+14,H-extent-14)-fx.y;
  // Independent frantic flails are small enough to preserve empty gaps.
@@ -5177,28 +5183,26 @@ function feverTossPoint(entity,fx,index,now){
    destX=hold.x-fx.x,destY=hold.y-fx.y,
    endAngle=Math.atan2(destY,destX),mass=entity.size||1.2;
   var turn=((endAngle-startAngle)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
-  var rotationTravel=turn+(mass<1.35?Math.PI*2:0);
-  // A short, curved suction arc (not a full extra revolution): keep the
-  // outward-to-inward displacement rapid and visibly directional.
-  var arc=Math.sin(Math.PI*q)*Math.min(21,startRadius*.11)*
-   (rotationTravel>Math.PI?1:-1);
-  var x=mix(entity.x,hold.x,q)-Math.sin(startAngle)*arc,
-   y=mix(entity.y,hold.y,q)+Math.cos(startAngle)*arc;
-  var qi=Math.min(1,q+.018),
-   arcNext=Math.sin(Math.PI*qi)*Math.min(21,startRadius*.11)*
-    (rotationTravel>Math.PI?1:-1),
-   nx=mix(entity.x,hold.x,qi)-Math.sin(startAngle)*arcNext,
-   ny=mix(entity.y,hold.y,qi)+Math.cos(startAngle)*arcNext,
-   dx=nx-x,dy=ny-y;
-  var tilt=clamp(Math.atan2(dy,Math.max(1,Math.abs(dx)))*.30,
+  // One full clockwise orbit plus the angle to its OWN empty grip slot.
+  // A full 2PI addition means q=1 lands exactly at hold (no teleport).
+  var rotationTravel=turn+Math.PI*2;
+  var radius=mix(startRadius,Math.hypot(destX,destY),q),
+   angle=startAngle+rotationTravel*q,
+   x=fx.x+Math.cos(angle)*radius,
+   y=fx.y+Math.sin(angle)*radius;
+  var qi=Math.min(1,q+.012),ri=mix(startRadius,Math.hypot(destX,destY),qi),
+   ai=startAngle+rotationTravel*qi,
+   dx=fx.x+Math.cos(ai)*ri-x,
+   dy=fx.y+Math.sin(ai)*ri-y;
+  var tilt=clamp(Math.atan2(dy,Math.max(1,Math.abs(dx)))*.31,
    -.44,.44);
   return{x:x,y:y,rotation:tilt,facing:dx>=0?1:-1,
-   scale:mix(1,slot.scale,q),done:false,phase:'gather',attached:true};
+   scale:1,done:false,phase:'gather',attached:true};
  }
 
  if(fx.elapsed<releaseAt)return{x:hold.x,y:hold.y,
   rotation:Math.sin(now*24+index*2.3)*.16,
-  scale:slot.scale,done:false,phase:'held',attached:true};
+  scale:1,done:false,phase:'held',attached:true};
  var launch=feverReelState(Object.assign({},fx,{elapsed:releaseAt}),now);
  var sx=launch.x+offsetX+slot.x,sy=launch.y+offsetY+slot.y,
   mouth=mouthPos(now),t=clamp((fx.elapsed-releaseAt)/.72,0,1),inv=1-t;
@@ -5221,15 +5225,17 @@ function feverTossPoint(entity,fx,index,now){
       Math.sin(sec*18+(entity.phase||0))*8*dive,
     rotation:Math.sin(Math.PI*breakT)*.22+
       outDir*.38*Math.sin(Math.PI*dive),
-    scale:mix(slot.scale,1,clamp(sec/.24,0,1)),
+    scale:1,
     done:sec>=1.33,phase:'escape',attached:false,facing:outDir};
   }
  }
  return{x:inv*inv*sx+2*inv*t*cx+t*t*mouth.x,
   y:inv*inv*sy+2*inv*t*cy+t*t*mouth.y,
   rotation:Math.sin(Math.PI*t)*.22,
-  scale:entity.willEscape?slot.scale:
-   slot.scale*(t<.84?1:Math.max(.02,(1-t)/.16)),
+  // Only successful mouth-swallow can reduce bitmap size, never suction,
+  // lift, or resisted rare-fish travel back toward the water.
+  scale:entity.willEscape?1:
+   (t<.84?1:Math.max(.02,(1-t)/.16)),
   done:t>=1,phase:'throw',attached:false};
 }
 // A fish that escaped the main mouth rejoins the living underwater scene
