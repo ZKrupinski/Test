@@ -654,17 +654,21 @@ const firstFrame=game.toss(startingFish,{...fxStart,elapsed:1/60},0,clock/1000);
 assert.equal(firstFrame.phase,'impact');assert.equal(firstFrame.scale,1);
 assert.ok(Math.hypot(firstFrame.x-earlyToss.x,firstFrame.y-earlyToss.y)>2,'Immediate body jolt');
 const distant={...startingFish,x:fxStart.x+fxStart.radius*.95,y:fxStart.y};
-const beforeSnap=game.toss(distant,{...fxStart,elapsed:.054},0,clock/1000);
-const duringSnap=game.toss(distant,{...fxStart,elapsed:.115},0,clock/1000);
-const afterSnap=game.toss(distant,{...fxStart,elapsed:.201},0,clock/1000);
+const beforeSnap=game.toss(distant,{...fxStart,elapsed:.0239},0,clock/1000);
+const duringSnap=game.toss(distant,{...fxStart,elapsed:.060},0,clock/1000);
+const afterSnap=game.toss(distant,{...fxStart,elapsed:.091},0,clock/1000);
 assert.ok(Math.hypot(beforeSnap.x-distant.x,beforeSnap.y-distant.y)<1,'Impact stays local');
 assert.equal(duringSnap.phase,'gather');assert.equal(afterSnap.phase,'held');
 const gap=p=>Math.hypot(p.x-afterSnap.x,p.y-afterSnap.y);
-assert.ok(gap(duringSnap)<gap(beforeSnap)*.25,'At least 75% of pull completed by 115ms');
+assert.ok(gap(duringSnap)<gap(beforeSnap)*.25,'At least 75% of pull completed by 60ms');
 for(const p of [beforeSnap,duringSnap,afterSnap])assert.equal(p.scale,1);
-const nearEnd=game.toss(distant,{...fxStart,elapsed:.19999},0,clock/1000);
-const settled=game.toss(distant,{...fxStart,elapsed:.20},0,clock/1000);
+const nearEnd=game.toss(distant,{...fxStart,elapsed:.08999},0,clock/1000);
+const settled=game.toss(distant,{...fxStart,elapsed:.09},0,clock/1000);
 assert.ok(Math.hypot(nearEnd.x-settled.x,nearEnd.y-settled.y)<.1,'Snap ends continuously');
+// The destination itself must be compact, not merely reached faster.
+const six={...fxStart,caught:Array.from({length:6},()=>({...startingFish,size:1.2})),elapsed:.10};
+for(let i=0;i<6;i++){const slot=game.gripSlot(six,i);assert.ok(Math.hypot(slot.x,slot.y)<=61,'Six fish cluster within 61px of lure');}
+assert.ok(Math.hypot(afterSnap.x-fxStart.x,afterSnap.y-fxStart.y)<70,'Catch lands near lure');
 // Suction stays at the exact release point, then retrieves only after swallowing.
 for(const elapsed of [.1,.5,1,fxStart.suctionEnd-.01]){
  const fx={...fxStart,elapsed};const pose=game.reel(fx,clock/1000);
@@ -674,7 +678,7 @@ for(const elapsed of [.1,.5,1,fxStart.suctionEnd-.01]){
 const waiting={...fxStart,elapsed:.55};
 const queuedFirst=game.toss(startingFish,waiting,0,clock/1000);
 const queuedSecond=game.toss(startingHuman,waiting,1,clock/1000);
-assert.ok(Math.hypot(queuedFirst.x-queuedSecond.x,queuedFirst.y-queuedSecond.y)>120,'Full-size catches must have separated grip slots');
+assert.ok(Math.hypot(queuedFirst.x-queuedSecond.x,queuedFirst.y-queuedSecond.y)>40,'Compact catches retain distinct grip centers');
 assert.equal(queuedFirst.scale,1,'Fish must retain original size throughout suction');
 assert.equal(queuedSecond.scale,1,'Captured human must retain original size throughout suction');
 for(const [i,entity] of fxStart.caught.entries()){
@@ -1551,7 +1555,7 @@ console.log('PASS: hook-bait centered fishing, shrinking precision at high tiers
  assert.ok(fx.duration>fx.reelStart+.82+1.9,
   'Fever must remain alive for the rare mouth-escape and dive');
  const now=clock/1000,releaseAt=fx.reelStart+.82;
- const gathering=game.toss(pulled,{...fx,elapsed:.15},0,now);
+ const gathering=game.toss(pulled,{...fx,elapsed:.060},0,now);
  const lifting=game.toss(pulled,{...fx,elapsed:fx.reelStart+.40},0,now);
  assert.equal(gathering.phase,'gather');
  assert.equal(lifting.phase,'held');

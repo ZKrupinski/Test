@@ -97,8 +97,8 @@ assert.ok(source.includes('feverSuctionArt.backSoft=softenFeverWhiteAtlas(im)')&
  source.includes('var whiteBreath=.22+.13*'),
  'Bright solid vortex must be partially transparent and change opacity over time');
 assert.ok(source.includes('function feverCatchGatherProgress(fx)')&&
- source.includes('var p=clamp((fx.elapsed-.055)/.145,0,1);')&&
- source.includes('if(fx.elapsed<.055){')&&
+ source.includes('var p=clamp((fx.elapsed-.024)/.066,0,1);')&&
+ source.includes('if(fx.elapsed<.024){')&&
  source.includes('scale:1,done:false,phase:\'gather\''),
  'Caught fish must jolt locally then snap at their original scale');
 assert.ok(source.includes('var waveA=.5-.5*Math.cos(t*9.1);')&&
@@ -109,8 +109,8 @@ assert.ok(source.includes('fadeIn=castEasing(life/.24)')&&
  source.includes('outer=visualRadius*(1.35+.60*feverBubbleHash'),
  'Bubble overlay needs staggered outside births, mid-cycle brightening, center fade');
 assert.ok(source.includes('function feverGripSlot(fx,index)')&&
- source.includes('radius=[0,62,83,101,122,141,156][n]+ring*163'),
- 'Inhaled fish must retain larger full-size grip slots around the center');
+ source.includes('radius=[0,18,30,38,46,54,60][n]+ring*50'),
+ 'Inhaled fish must collect into compact slots near the lure');
 
 assert.ok(source.includes('makeFeverVortexOpaque(im)'),
  'Fever bitmap must boost original low-alpha paint without editing source art');

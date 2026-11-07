@@ -4861,9 +4861,9 @@ function feverSnapProgress(fx){
  return 1-Math.pow(1-t,3); // fast pull, soft stop at the center
 }
 function feverSnapScale(fx){return 1-.5*feverSnapProgress(fx)}
-// A 55ms local catch impact is followed by a 145ms explosive pull.
+// A 24ms impact is followed by a 66ms direct snap into a compact cluster.
 function feverCatchGatherProgress(fx){
- var p=clamp((fx.elapsed-.055)/.145,0,1);
+ var p=clamp((fx.elapsed-.024)/.066,0,1);
  return 1-Math.pow(1-p,4);
 }
 function drawFeverVortex(fx,reel){
@@ -5255,15 +5255,14 @@ function feverReelState(fx,now){
   holding:fx.elapsed<fx.reelStart+.82,leftSweep:0,tilt:-.12*Math.sin(Math.PI*smooth),x:x,y:y};
 }
 function feverGripSlot(fx,index){
- // Stable, independent concentric slots prevent center-piling and overlaps.
+ // Compact individual slots keep the catch visibly clustered around the lure.
  var ring=Math.floor(index/6),n=Math.max(1,Math.min(6,fx.caught.length-ring*6)),
   progress=clamp((fx.elapsed-.15)/Math.max(.1,fx.reelStart+.82-.15),0,1),
   inward=progress*progress*(3-2*progress),
-  // Keep every fish at its ORIGINAL rendered size. Create more room in the
-  // grip ring rather than faking crowd separation by scaling fish down.
+  // Keep original bitmap sizes; allow a tight catch bundle with distinct centers.
   biggest=fx.caught.reduce(function(s,z){return Math.max(s,z.size||1.2)},1.2),
-  extra=n>1?clamp((biggest-1.2)*19,0,22):0,
-  radius=[0,62,83,101,122,141,156][n]+ring*163+extra-inward*11,
+  extra=n>1?clamp((biggest-1.2)*6,0,8):0,
+  radius=[0,18,30,38,46,54,60][n]+ring*50+extra-inward*4,
   angle=-Math.PI+(index%6)*Math.PI*2/n+ring*.30+inward*.27+
    Math.min(.46,Math.max(0,fx.elapsed-.80)*.34);
  return{x:Math.cos(angle)*radius,y:Math.sin(angle)*radius,
@@ -5277,7 +5276,7 @@ function feverTossPoint(entity,fx,index,now){
   reel=feverReelState(fx,now);
  var rings=Math.max(1,Math.ceil(fx.caught.length/6)),
   outer=Math.max(1,fx.caught.length-(rings-1)*6),
-  extent=[0,62,83,101,122,141,156][outer]+(rings-1)*163+16;
+  extent=[0,18,30,38,46,54,60][outer]+(rings-1)*50+24;
  // Fit the group near the waterline/edges without snapping the bait itself.
  extent=Math.min(extent,(H-WATER_SURFACE_Y)*.46);
  var offsetX=clamp(fx.x,extent+22,W-extent-22)-fx.x;
@@ -5289,8 +5288,8 @@ function feverTossPoint(entity,fx,index,now){
  var hold={x:reel.x+offsetX+slot.x+wobbleX,
   y:reel.y+offsetY+slot.y+wobbleY};
  // Catch impact belongs to each fish, not an extra camera shake.
- if(fx.elapsed<.055){
-  var impact=clamp(fx.elapsed/.055,0,1),fall=1-impact,
+ if(fx.elapsed<.024){
+  var impact=clamp(fx.elapsed/.024,0,1),fall=1-impact,
    seed=index*1.73,amp=7*fall;
   return{x:entity.x+Math.sin(fx.elapsed*240+seed)*amp,
    y:entity.y+Math.cos(fx.elapsed*270+seed)*amp*.55,
@@ -5298,10 +5297,10 @@ function feverTossPoint(entity,fx,index,now){
    facing:entity.vx>=0?1:-1,scale:1,done:false,phase:'impact',attached:true};
  }
  var q=feverCatchGatherProgress(fx);
- if(fx.elapsed<.20){
+ if(fx.elapsed<.09){
   // A short direct snap replaces the slow full orbit; all fish pull together.
   var dx=hold.x-entity.x,dy=hold.y-entity.y,length=Math.max(1,Math.hypot(dx,dy)),
-   bend=Math.sin(Math.PI*q)*Math.min(12,length*.06),
+   bend=0,
    x=mix(entity.x,hold.x,q)-dy/length*bend,
    y=mix(entity.y,hold.y,q)+dx/length*bend;
   return{x:x,y:y,rotation:clamp(Math.atan2(dy,Math.max(1,Math.abs(dx)))*.2,-.28,.28)*(1-q),
