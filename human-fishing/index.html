@@ -402,6 +402,7 @@ font:900 14px system-ui,sans-serif;letter-spacing:.65px}
 <script src="./fish-bitmap-catalog.js?v=20261106-fish304"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
 <script src="./foley.js?v=20261108-chest-prize-bells-v1"></script>
+<script src="./ambient.js?v=20261108-surface-diver-v1"></script>
 <script>
 (function(){
 'use strict';
@@ -629,6 +630,25 @@ $('navFish').onclick=function(){setMode('fish');chooseZone()};$('navHuman').oncl
 function circle(x,y,r,col){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=col;ctx.fill()}
 function rounded(x,y,w,h,r,fill){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=fill;ctx.fill()}
 var WATER_SURFACE_Y=293,PLAYER_STAGE_DROP=46;
+// SURFACE_AND_UNDERWATER_AMBIENCE_BEGIN
+var ambientLureUnderwater=false;
+function updateAmbience(){
+ var sound=window.HumanFishingAmbient;
+ if(!sound)return;
+ var gaming=view==='fish'||view==='tank';
+ var menu=$('panel').classList.contains('open');
+ var boot=$('bootOverlay');
+ var visible=gaming&&!menu&&(!boot||boot.hidden)&&
+  document.visibilityState!=='hidden';
+ // Read the actual red bait carrier position, NOT the hooked creature
+ // or the camera; the sound switches as soon as the octopus crosses water.
+ if(view==='tank')ambientLureUnderwater=true;
+ else if(view==='fish'&&introEntrance.active)ambientLureUnderwater=false;
+ else if(view==='fish'&&bob.y>WATER_SURFACE_Y+7)ambientLureUnderwater=true;
+ else if(view==='fish'&&bob.y<WATER_SURFACE_Y-7)ambientLureUnderwater=false;
+ sound.update(zone,ambientLureUnderwater,visible);
+}
+// SURFACE_AND_UNDERWATER_AMBIENCE_END
 // Four hand-painted, pre-aligned 16:9 bitmap scenes. Each WebP's sea horizon
 // was baked to Y=(293/720) of its image height; draw the WHOLE image at once
 // to prevent a double seam or aspect-ratio distortion on mobile.
@@ -3372,6 +3392,8 @@ function tick(stamp){
      bob.y+=o.y-baitOffset.y;
     }
   }
+  // The lure's physical waterline crossing drives the ambient mix.
+  updateAmbience();
   // Ordered canvas layers:
   // 1. Protagonist, cheerleader and fishing ROD (background props)
   // 2. Fishing LINE (always behind the illustrated bait)
