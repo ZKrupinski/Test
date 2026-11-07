@@ -12,14 +12,15 @@ BASE = pathlib.Path(__file__).resolve().parents[1]
 JS = (BASE / 'foley.js').read_text(encoding='utf-8')
 OUT = BASE / 'assets' / 'foley'
 SOURCES = re.findall(
-    r"^\s*\w+:\['([\w-]+\.ogg)','(https://raw\.githubusercontent\.com/[^']+\.ogg)'\],?\s*$",
+    r"^\s*\w+:\['([\w-]+\.ogg)','(https://(?:raw\.githubusercontent\.com|opengameart\.org)/[^']+\.ogg)'\],?\s*$",
     JS, re.MULTILINE
 )
-assert len(SOURCES) >= 24, f'Audio manifest unexpectedly small ({len(SOURCES)})'
+assert len(SOURCES) >= 30, f'Audio manifest unexpectedly small ({len(SOURCES)})'
 assert len(set(name for name, _ in SOURCES)) == len(SOURCES), 'Duplicate sound file name'
 ALLOWED = (
     'https://raw.githubusercontent.com/Julian-adv/OpenMMO/master/client/public/sounds/fishing-',
-    'https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/'
+    'https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/',
+    'https://opengameart.org/sites/default/files/castlefanfare_0.ogg'
 )
 OUT.mkdir(parents=True, exist_ok=True)
 for index, (filename, url) in enumerate(SOURCES, 1):
@@ -34,7 +35,8 @@ for index, (filename, url) in enumerate(SOURCES, 1):
     last_error = None
     for attempt in range(4):
         try:
-            req = urllib.request.Request(url, headers={'User-Agent':'HumanFishing-CC0-Audio-Installer'})
+            req = urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0 (HumanFishing CC0 audio installer)',
+                'Referer':'https://opengameart.org/content/trumpet-fanfare'})
             with urllib.request.urlopen(req, timeout=30) as response:
                 payload = response.read(500_000)
             if not 2000 <= len(payload) <= 400_000 or not payload.startswith(b'OggS'):
