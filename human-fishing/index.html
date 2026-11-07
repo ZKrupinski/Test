@@ -1631,7 +1631,9 @@ function tick(stamp){
 // Cast: quick rightward throw, short splash tremor, then slow leftward
 // sink towards the original x=640 / y=436 rest point.
 var cast={active:false,elapsed:0,duration:3.65,landing:false,
- impactAt:1.02,impactX:820,splashHold:.30};
+ impactAt:1.02,impactX:820,splashHold:.30,
+ sinkActive:false,sinkElapsed:0,sinkDuration:1.8,
+ sinkX:820,sinkY:WATER_SURFACE_Y+12,targetDepth:436};
 var dragPointer=null,dragStart=null,dragOffset=null,dragQualified=false,shopCategory='rod',shopSort='tier';
 if(!save.gearOwned||typeof save.gearOwned!=='object')save.gearOwned={};
 if(!save.gearLevels||typeof save.gearLevels!=='object')save.gearLevels={};
@@ -2008,10 +2010,14 @@ function startCast(){
  playFoley('cast');
  playerOctoCueState=null;playerOctoIdleState=null;
  if(window.octoSidekicksSignal)window.octoSidekicksSignal('cast',time);
- hideVirtualJoystick();lureRecovery.active=false;rodRecoil.at=-100;cast.active=true;cast.elapsed=0;cast.landing=false;drag=false;dragPointer=null;dragQualified=false;
+ hideVirtualJoystick();lureRecovery.active=false;rodRecoil.at=-100;
+ cast.active=true;cast.elapsed=0;cast.landing=false;cast.sinkActive=false;
+ cast.targetDepth=rnd(350,585); // Random height every cast, including first
+ cast.sinkDuration=rnd(1.45,2.05);
+ drag=false;dragPointer=null;dragQualified=false;
  bob.x=rodTip(time).x-18;bob.y=rodTip(time).y+13;
  $('hintTitle').textContent='낚싯대를 휘둘러 찌를 던지는 중…';
- $('hint').textContent='미끼를 오른쪽으로 던지고 수면에서 떨린 뒤, 천천히 중앙으로 가라앉으면 화면 아래쪽 절반에서 조작할 수 있습니다.';
+ $('hint').textContent='수면 아래로 들어오는 순간부터 바로 조작할 수 있습니다.';
 }
 function castEasing(p){p=clamp(p,0,1);return p*p*(3-2*p)}
 function castMotion(dt){
@@ -2022,38 +2028,36 @@ function castMotion(dt){
  if(u<.26){
   bob.x=tip.x-18;bob.y=tip.y+13;
  }else if(u<impact){
-  // Fast airborne throw toward the right, never teleporting the bait.
   var p=clamp((u-.26)/(impact-.26),0,1);
   bob.x=mix(tip.x-18,cast.impactX,1-Math.pow(1-p,1.85));
   bob.y=mix(tip.y+13,surface,p)-76*Math.sin(Math.PI*p);
- }else{
-  if(!cast.landing){
-   cast.landing=true;
-   ripple(cast.impactX,surface);
-   spawnParticles(cast.impactX,surface,24,'water');
-   vibrationPulse('splash');
-  }
-  var after=u-impact;
-  if(after<cast.splashHold){
-   // Rapid impact shake before any horizontal recovery.
-   var fade=1-after/cast.splashHold;
-   bob.x=cast.impactX+Math.sin(after*64)*5*fade;
-   bob.y=surface+Math.sin(after*73)*3*fade;
-  }else{
-   // Deliberately slow drift back LEFT and down after water contact.
-   var p=castEasing((after-cast.splashHold)/
-    (cast.duration-impact-cast.splashHold));
-   bob.x=mix(cast.impactX,640,p);
-   bob.y=mix(surface,436,p)+Math.sin((after-cast.splashHold)*13)*2*(1-p);
-   if(Math.random()<dt*10)
-    particles.push({x:bob.x+rnd(-7,7),y:bob.y+rnd(-3,7),
-     vx:rnd(-.3,.3),vy:rnd(-.7,-.2),life:.55,size:rnd(2,5),kind:'water'});
-  }
+ }else if(!cast.landing){
+  // Unlock input the very first frame the bait breaks the water surface.
+  // Continue natural sinking independently; NO input lock while sinking.
+  cast.landing=true;cast.active=false;cast.sinkActive=true;
+  cast.sinkElapsed=0;cast.sinkX=cast.impactX;
+  cast.sinkY=surface+12;
+  bob.x=cast.sinkX;bob.y=cast.sinkY;
+  ripple(cast.impactX,surface);
+  spawnParticles(cast.impactX,surface,24,'water');
+  vibrationPulse('splash');
+  $('hintTitle').textContent='입수! 바로 조작 가능';
+  $('hint').textContent='조이스틱을 움직이고 손을 떼면 물고기를 낚습니다.';
  }
- if(u>=cast.duration){
-  cast.active=false;bob.x=640;bob.y=436;
-  $('hintTitle').textContent='화면 아래쪽 절반을 터치하면 가상 조이스틱이 나타나요';
-  $('hint').textContent='스틱을 밀어 이동하고 손을 떼면 가까운 생물 포획!';
+}
+function updateCastSink(dt){
+ if(!cast.sinkActive)return;
+ if(view!=='fish'||hook||feverFx||escapeFx||lureRecovery.active){
+  cast.sinkActive=false;return;
+ }
+ // Any manual or automatic joystick control takes priority over drift.
+ if(joystick.active||drag){cast.sinkActive=false;return;}
+ cast.sinkElapsed+=dt;
+ var p=castEasing(cast.sinkElapsed/cast.sinkDuration);
+ bob.x=mix(cast.sinkX,640,p)+Math.sin(cast.sinkElapsed*28)*3*(1-p);
+ bob.y=mix(cast.sinkY,cast.targetDepth,p);
+ if(cast.sinkElapsed>=cast.sinkDuration){
+  cast.sinkActive=false;bob.x=640;bob.y=cast.targetDepth;
  }
 }
 // Each rod has its own actual velocity, braking, reversal and drift response.
@@ -2091,6 +2095,7 @@ function onBaitPointerDown(e){
  // Mouse behavior remains unchanged for desktop play.
  if((e.pointerType==='touch'||e.pointerType==='pen')&&p.y<H*.5)return;
 
+ if(cast.sinkActive)cast.sinkActive=false;
  joystick.active=true;joystick.id=e.pointerId;joystick.x=p.x;joystick.y=p.y;
  playFoley('lureGrab',.8);
  joystick.dx=0;joystick.dy=0;joystick.engaged=false;joystick.traveled=0;
@@ -2167,9 +2172,9 @@ function updateJoystick(dt){
  if(diff>.0001){rodMotion.vx+=diffX/diff*move;rodMotion.vy+=diffY/diff*move}
  var bounds=baitHorizontalBounds();
  bob.x=clamp(bob.x+rodMotion.vx*dt,bounds.min,bounds.max);
- bob.y=clamp(bob.y+rodMotion.vy*dt,274,615);
+ bob.y=clamp(bob.y+rodMotion.vy*dt,WATER_SURFACE_Y+16,615);
  if((bob.x<=bounds.min&&rodMotion.vx<0)||(bob.x>=bounds.max&&rodMotion.vx>0))rodMotion.vx=0;
- if((bob.y<=274&&rodMotion.vy<0)||(bob.y>=615&&rodMotion.vy>0))rodMotion.vy=0;
+ if((bob.y<=WATER_SURFACE_Y+16&&rodMotion.vy<0)||(bob.y>=615&&rodMotion.vy>0))rodMotion.vy=0;
 }
 function rodTip(now){return evaluateRodPose(now).tip}
 // Original approved illustrated 4x4 / 16-frame sheets: no redraw or regeneration.
@@ -3143,6 +3148,7 @@ function autoFishingStep(dt){
   return;
  }
  // Feed the original joystick and rod inertia, never teleport the bait.
+ if(cast.sinkActive)cast.sinkActive=false;
  var x=clamp((dx-rodMotion.vx*.32)/65,-1,1),
   y=clamp((dy-rodMotion.vy*.32)/65,-1,1),mag=Math.hypot(x,y);
  if(mag>1){x/=mag;y/=mag}
@@ -3164,6 +3170,7 @@ function tick(stamp){
   updateEcosystem(dt);
   if(view==='fish'){
    castMotion(dt);
+   updateCastSink(dt);
    if(feverFx){
     feverFx.elapsed+=dt;
     if(!feverFx.snapSoundPlayed&&feverFx.elapsed>=.024){
