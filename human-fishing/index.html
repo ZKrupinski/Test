@@ -5169,8 +5169,11 @@ function feverBubblePose(fx,now,i){
   cycle=Math.floor(age),life=age-cycle;
  var visualRadius=fx.radius*feverSnapScale(fx)*
   (1-.55*castEasing((fx.elapsed-fx.reelStart)/.66));
- var outer=visualRadius*(1.35+.60*feverBubbleHash(i*17+cycle*23+2)),
-  inner=3+9*feverBubbleHash(i*19+cycle*13+3),
+ // Water-bubble-only field is half its previous radius at EVERY octopus
+ // tier/level. Keep the underlying Fever catch area and vortex untouched.
+ var bubbleRadiusScale=.50,
+  outer=visualRadius*bubbleRadiusScale*(1.35+.60*feverBubbleHash(i*17+cycle*23+2)),
+  inner=(3+9*feverBubbleHash(i*19+cycle*13+3))*bubbleRadiusScale,
   pull=life*life*(3-2*life),
   radius=mix(outer,inner,pull),
   turns=1.5+1.4*feverBubbleHash(i*13+cycle*17+7),
@@ -5183,8 +5186,10 @@ function feverBubblePose(fx,now,i){
  // radius after the snap). Every bitmap scales with the visible vortex:
  // lower-tier smaller, upper-tier larger, and the snap/reel shrink together.
  // This changes rendering only, never the catch radius or fish bitmap size.
+ // Smaller glass droplets: 55% of their former bitmap diameter,
+ // while retaining proportional tier growth and inward shrink.
  var bubbleScale=visualRadius/100,
-  startSize=(34+feverBubbleHash(i*31+cycle*7+9)*44)*bubbleScale,
+  startSize=(34+feverBubbleHash(i*31+cycle*7+9)*44)*bubbleScale*.55,
   endScale=.36+.17*feverBubbleHash(i*41+cycle*9+4),
   size=startSize*(1-(1-endScale)*pull);
  var stopAt=fx.reelStart+.72,
