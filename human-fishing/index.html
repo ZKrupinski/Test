@@ -297,23 +297,23 @@ font:900 14px system-ui,sans-serif;letter-spacing:.65px}
  object-fit:contain;object-position:center;
  filter:drop-shadow(0 7px 7px #002333ab) drop-shadow(0 1px 2px #b2ffee25)}
 .catch-card-info{flex:1;min-width:0;height:100%;display:flex;
- flex-direction:column;justify-content:center;align-items:flex-start;
+ flex-direction:column;justify-content:center;align-items:flex-end;text-align:right;
  gap:clamp(4px,1.3cqw,7px);padding:0 2px 0 8px;
  border-left:2px solid #f0dca078}
-.catch-card-kicker{display:flex;align-items:center;gap:9px;min-height:19px;
+.catch-card-kicker{display:flex;align-items:center;justify-content:flex-end;width:100%;gap:9px;min-height:19px;
  color:#8edbd1;font:900 clamp(10px,2.7cqw,13px)/1.1 system-ui,sans-serif;
  letter-spacing:1.9px}
 .catch-card-new{flex:none;border-radius:3px;padding:3px 6px;
  border:1px solid #fff0a954;background:#f6cb71;color:#38291b;
  font:950 clamp(10px,2.5cqw,13px)/1.1 system-ui,sans-serif;
  letter-spacing:.5px;box-shadow:0 0 9px #ffd78966}
-.catch-card-title{display:flex;align-items:center;min-width:0;max-width:100%}
+.catch-card-title{display:flex;align-items:center;justify-content:flex-end;width:100%;min-width:0;max-width:100%;text-align:right}
 .catch-card-title strong{font:950 clamp(17px,5.35cqw,27px)/1.16
  'Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif;
  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
- overflow:hidden;overflow-wrap:anywhere;text-overflow:ellipsis;
+ overflow:hidden;overflow-wrap:anywhere;text-overflow:ellipsis;text-align:right;
  letter-spacing:-.7px;text-shadow:0 2px 5px #021d26df}
-.catch-card-size{display:flex;align-items:baseline;gap:7px;
+.catch-card-size{display:flex;align-items:baseline;justify-content:flex-end;width:100%;gap:7px;
  font:850 clamp(12px,3.1cqw,16px)/1.1 system-ui,sans-serif;
  color:#e7f4f1;white-space:nowrap}
 .catch-card-size .size-label{font:900 clamp(9px,2.15cqw,11px) system-ui,sans-serif;
@@ -3712,10 +3712,10 @@ function updateCatchShowcaseAudio(){
   var i=seq.next++;
   // One distinct dry acoustic pluck per individual Fever trophy.
   // Gentle pitch ascent creates a pachinko rhythm without a loud fanfare.
-  playFoley('feverCard',.88+(i%3)*.04,.94+(i%6)*.045);
+  playFoley('feverCard',.63+(i%3)*.03,.94+(i%6)*.045);
   seq.nextAt=seq.started+seq.next*.52;
  }else if(seq.next>=seq.total&&time>=seq.nextAt-.08){
-  playFoley('feverFinish',.89);
+  playFoley('feverFinish',.68);
   catchShowcaseSequence=null;
  }
 }
@@ -3736,7 +3736,7 @@ function showCatchShowcase(items,fever){
  }else{
   // NEW gets a fuller, original item-discovery flourish.
   // Standard catches still get an audible rising bell reward.
-  playFoley(shown.some(function(p){return p.fresh})?'catchNew':'catchFanfare',1.14);
+  playFoley(shown.some(function(p){return p.fresh})?'catchNew':'catchFanfare',.76);
  }
 }
 // CATCH_SHOWCASE_END
