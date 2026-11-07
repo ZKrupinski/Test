@@ -52,10 +52,10 @@ var CUES={
  catch:{gap:.18,l:[layer(['coinsA','coinsB'],.51,1.03),layer(['softA'],.25,1.04)]},
  // Modern understated win cue, not the former loud castle-brass fanfare:
  // two quiet sampled plucked notes ascend above a soft physical tap.
- catchFanfare:{gap:.22,l:[layer(['thudA','thudB'],.22,.94),
-  layer(['lineSnap'],.16,.94,.035),
-  layer(['lineSnap'],.14,1.24,.155),
-  layer(['coinsB'],.15,.88,.095)]},
+ catchFanfare:{gap:.22,l:[layer(['thudA','thudB'],.19,.90),
+  layer(['coinsB'],.18,.90,.045),
+  layer(['coinsB'],.12,1.18,.18),
+  layer(['clothB'],.09,1.05,.04)]},
  // Fever has an entirely different, short per-FISH cue. Distinct from
  // the solo motif; each card can step up a semitone without a synthetic beep.
  feverCard:{gap:.23,l:[layer(['woodTap','touchTap'],.14,.96),
