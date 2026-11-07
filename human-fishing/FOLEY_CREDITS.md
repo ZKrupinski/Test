@@ -1,11 +1,10 @@
 # Human Fishing — Foley sound licensing & audio direction
 
-The game uses **29 small bundled OGG samples** (approximately 330 KB total).
-These are physical, tactile sounds rather than an oscillator-generated UI tone.
-The game combines, re-pitches by about ±4%, varies volume, and overlaps these
-samples into **36 event-specific treatments**. The sound engine is `foley.js`.
-No voice acting, music, recorded character likeness, or commercial sound samples
-are used here.
+The game uses **30 bundled CC0 OGG samples** (approximately 355 KB total):
+29 tactile field/Foley sounds and one short trumpet-style victory fanfare.
+There are **38 distinct event cues**. The engine in `foley.js` blends recorded
+physical sounds with the fanfare without generating oscillator or digital beeps.
+No copyrighted commercial music, character voices, or character likenesses are used.
 
 ## Provenance and licensing
 
@@ -22,6 +21,12 @@ are used here.
   The two `fishing-splash.ogg` and `fishing-plop.ogg` OGG edits are carried by
   `Julian-adv/OpenMMO/client/public/sounds` and described in its
   `doc/assets/sfx.md` as CC0.
+- **Trumpet Fanfare** by **gchoc (Graciano Choc)**, CC0 1.0:
+  <https://opengameart.org/content/trumpet-fanfare>.
+  Bundled as `assets/foley/victory_brass.ogg` from the approved original
+  `https://opengameart.org/sites/default/files/castlefanfare_0.ogg`.
+  The regular catch plays this brass sample slightly faster with coins,
+  while multi-catch OCTO FEVER plays the fuller variant with impact and coins.
 - **Kenney Interface Sounds**, Creative Commons CC0 1.0:
   <https://kenney.nl/assets/interface-sounds>.
   The two edited `fishing-reel.ogg` and `fishing-snap.ogg` OGG files are
@@ -47,6 +52,8 @@ CC0: <https://creativecommons.org/publicdomain/zero/1.0/>
   the 24–90 ms fish-group snap; tiny splashes as the suction continues; three
   physically distinct pumping cues while pulling the line.
 - Swallow and reward: liquid plop, dull impact, natural coins spilling.
+  New fish showcase cards trigger a short brass fanfare; multiple Fever wins
+  use a fuller fanfare, while thumbnail cards streak right and fade in sequence.
 - Escape, human counterattack, groggy: fast splash, dense hand/punch/wood
   strikes, not lasers or synthesized warning tones.
 - Menus, equipment, shop, aquarium and catalog: book pages, leather and gentle
