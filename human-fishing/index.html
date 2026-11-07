@@ -317,6 +317,7 @@ nav{flex-wrap:nowrap}
 <script src="./assets/fish/ready.js?v=20261106-fish304"></script>
 <script src="./fish-bitmap-catalog.js?v=20261106-fish304"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
+<script src="./foley.js?v=20261107-natural-foley-v1"></script>
 <script>
 (function(){
 'use strict';
@@ -355,8 +356,12 @@ function createBubble(){bubbles.push({x:rnd(10,1280),y:730,r:rnd(2,8),speed:rnd(
 function spawnParticles(x,y,n,kind){for(var i=0;i<n;i++)particles.push({x:x,y:y,vx:rnd(-5,5),vy:rnd(-6,1),life:1,size:rnd(2,7),kind:kind})}
 function ripple(x,y){ripples.push({x:x,y,r:6,life:1})}
 function announce(icon,title,sub){$('bannerIcon').textContent=icon;$('bannerTitle').textContent=title;$('bannerSub').textContent=sub;$('banner').classList.add('visible');bannerTimer=2.2}
-var audioCtx;
-function beep(kind){try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();var o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime;o.type=kind==='hit'?'triangle':'sine';o.frequency.setValueAtTime(kind==='hit'?510:kind==='catch'?620:300,t);o.frequency.exponentialRampToValueAtTime(kind==='catch'?960:kind==='hit'?210:180,t+.16);g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(.08,t+.013);g.gain.exponentialRampToValueAtTime(.001,t+.26);o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+.27)}catch(e){}}
+// CC0 physical Foley bus: no synthesized oscillator or digital beeps.
+function playFoley(kind,intensity){
+ var bus=window.HumanFishingFoley;
+ return !!(bus&&bus.play&&bus.play(kind,{intensity:intensity===undefined?1:intensity}));
+}
+function beep(kind){return playFoley(kind==='catch'?'catch':kind==='hit'?'miss':'menuTap');}
 // Normal fishing only: a hidden, per-fish mouth weak point must overlap
 // the equipped bait's hidden center area. This never alters OCTO FEVER AOE.
 var FISH_MOUTH_RADIUS={COMMON:14,UNCOMMON:11.5,RARE:8.8,EPIC:6.7,LEGEND:4.7,MYTHIC:3.1};
@@ -517,7 +522,7 @@ function ordinaryFishingTarget(){
  return human?{obj:human,kind:'human'}:null;
 }
 function nearest(){return ordinaryFishingTarget()}
-function release(){if(hook||view!=='fish'&&view!=='human')return;var found=nearest();ripple(bob.x,bob.y);beep('hit');if(found){hook={obj:found,kind:view,elapsed:0,startX:found.x,startY:found.y,originX:bob.x,originY:bob.y};$('hintTitle').textContent='입질 성공!';$('hint').textContent='당겨 올리는 중…';spawnParticles(bob.x,bob.y,12,'water')}else{announce('💧','앗, 놓쳤다!','움직이는 생물 가까이 찌를 놓아보세요.');$('hintTitle').textContent='다시 찌를 움직여보세요';spawnParticles(bob.x,bob.y,8,'water')}}
+function release(){if(hook||view!=='fish'&&view!=='human')return;var found=nearest();ripple(bob.x,bob.y);if(found){hook={obj:found,kind:view,elapsed:0,startX:found.x,startY:found.y,originX:bob.x,originY:bob.y};$('hintTitle').textContent='입질 성공!';$('hint').textContent='당겨 올리는 중…';spawnParticles(bob.x,bob.y,12,'water')}else{announce('💧','앗, 놓쳤다!','움직이는 생물 가까이 찌를 놓아보세요.');$('hintTitle').textContent='다시 찌를 움직여보세요';spawnParticles(bob.x,bob.y,8,'water')}}
 function success(){var o=hook.obj, human=hook.kind==='human',id=human?String(o.id):o.sp.id,name=human?humans[o.id]:o.sp.name,owned=human?save.human:save.owned,fresh=!owned[id];owned[id]=(owned[id]||0)+1;var reward=(human?55:15)+(human?o.id*4:o.sp.index>=18?85:o.sp.index>=14?35:0)+save.up[2]*4;save.coins+=reward;save.catches++;if(!human&&save.placed.length===0)save.placed.push(id);persist();updateStats();announce(human?'🧑':'🐟',fresh?'NEW! '+name:name+' 포획!',(fresh?'도감에 새로 등록 · ':'')+'진주 +'+reward);beep('catch');spawnParticles(420,260,28,'gold');hook=null;buildFish();buildHum();$('hintTitle').textContent='다음 대상을 낚아보세요!';$('hint').textContent='찌를 드래그한 뒤 손을 놓으면 자동 포획';}
 canvas.addEventListener('pointerdown',onBaitPointerDown);
 canvas.addEventListener('pointermove',onBaitPointerMove);
@@ -1025,7 +1030,7 @@ function nearest(){
 }
 function release(){
  if(hook||view!=='fish')return;
- var found=nearest();ripple(bob.x,bob.y);beep('hit');
+ var found=nearest();ripple(bob.x,bob.y);
  if(found){
   hook={obj:found.obj,kind:found.kind,elapsed:0,startX:found.obj.x,startY:found.obj.y,originX:bob.x,originY:bob.y};
   $('hintTitle').textContent=found.kind==='human'?(humanTier(found.obj.id)+' 인간이 낚싯줄에 걸렸어!'):'물고기 입질 성공!';
@@ -1045,6 +1050,7 @@ function release(){
    $('hintTitle').textContent='물고기 입 근처에 미끼를 놓아보세요';
    $('hint').textContent='물고기 입의 약점 영역에 미끼 중심을 맞춰야 낚입니다.';
   }
+  playFoley(scared?'panic':'miss');
   spawnParticles(bob.x,bob.y,scared?14:8,'water');
   beginMissReturn();
  }
@@ -1296,6 +1302,7 @@ function aquariumTapFish(event){
  if(!best)return false;
  var turned=aquariumStartTurn(best,time);
  if(!turned)return false;
+ playFoley('aquarium',.78);
  // On some taps the fish also panics; intermittent unprompted wriggles
  // occur through its own timer, and never synchronize across species.
  if(Math.random()<.66)aquariumStartStruggle(best,time,.8+Math.random()*.35);
@@ -1813,7 +1820,7 @@ function renderEquipment(){
    var cost=gearPrice(cat,item);if(save.coins<cost)return;
    save.coins-=cost;save.gearLevels[cat][item.id]=gearLevel(cat,item.id)+1;
   }else return;
-  persist();updateStats();beep('catch');
+  persist();updateStats();playFoley(action==='equip'?'equip':'upgrade');
   if(cat==='bait'){buildFish();buildHum()}
   if(cat==='octopus')updateFeverHud();
   renderEquipment();
@@ -1852,7 +1859,7 @@ function renderShop(){
   var item=equipmentItem(shopCategory,b.dataset.shopBuy);
   if(!item||save.gearOwned[shopCategory].includes(item.id)||save.coins<item.price)return;
   save.coins-=item.price;save.gearOwned[shopCategory].push(item.id);
-  persist();updateStats();beep('catch');renderShop();
+  persist();updateStats();playFoley('purchase');renderShop();
  }});
  $('shopToGear').onclick=function(){equipmentCategory=shopCategory;setMode('gear')};
 }
@@ -1956,6 +1963,7 @@ function beginLureRecovery(result){
  hideVirtualJoystick();
  startPlayerOctoReaction(kind);
  triggerRedLureReaction(kind==='swallow_success'?'gulp':'fail');
+ playFoley('rodSnap',.57);
 }
 function updateLureRecovery(dt){
  if(!lureRecovery.active||view!=='fish')return;
@@ -1991,6 +1999,7 @@ function updateLureRecovery(dt){
 }
 function startCast(){
  if(introEntrance.active)return; // No rod cast before the arrival is complete.
+ playFoley('cast');
  playerOctoCueState=null;playerOctoIdleState=null;
  if(window.octoSidekicksSignal)window.octoSidekicksSignal('cast',time);
  hideVirtualJoystick();lureRecovery.active=false;rodRecoil.at=-100;cast.active=true;cast.elapsed=0;cast.landing=false;drag=false;dragPointer=null;dragQualified=false;
@@ -2014,7 +2023,7 @@ function castMotion(dt){
  }else{
   if(!cast.landing){
    cast.landing=true;
-   ripple(cast.impactX,surface);beep('hit');
+   ripple(cast.impactX,surface);
    spawnParticles(cast.impactX,surface,24,'water');
    vibrationPulse('splash');
   }
@@ -2062,6 +2071,7 @@ function moveVirtualJoystick(p){
  $('virtualKnob').style.left=(50+joystick.dx*30)+'%';
  $('virtualKnob').style.top=(50+joystick.dy*30)+'%';
  canvas.classList.toggle('dragging',joystick.engaged);
+ if(joystick.engaged)playFoley('lureMove',.70);
 }
 function onBaitPointerDown(e){
  if(view==='tank'){aquariumTapFish(e);return;}
@@ -2076,6 +2086,7 @@ function onBaitPointerDown(e){
  if((e.pointerType==='touch'||e.pointerType==='pen')&&p.y<H*.5)return;
 
  joystick.active=true;joystick.id=e.pointerId;joystick.x=p.x;joystick.y=p.y;
+ playFoley('lureGrab',.8);
  joystick.dx=0;joystick.dy=0;joystick.engaged=false;joystick.traveled=0;
  var centerX=clamp(p.x,76,W-76),centerY=clamp(p.y,76,H-76);
  var stick=$('virtualJoystick'),knob=$('virtualKnob');
@@ -2936,6 +2947,7 @@ function updateReelHaptics(h,progress){
  // Protect the intense initial bite; pulse during lift with a fading rhythm.
  if(p<.075||time-deviceHaptics.lastReel<.13+.065*p)return;
  deviceHaptics.lastReel=time;
+ playFoley('reel',.60);
  deviceVibrate(Math.round(40-29*Math.pow(p,.85)),deviceHapticPriority.pull);
 }
 function vibrationPulse(kind){
@@ -2952,6 +2964,8 @@ function vibrationPulse(kind){
   items.push({start:time,duration:p.duration,power:p[k],phase:Math.random()*Math.PI*2});
  }
  if(deviceHapticPatterns[kind])deviceVibrate(deviceHapticPatterns[kind],deviceHapticPriority[kind]);
+ var foleyKind={brush:'brush',weakspot:'weakspot',bite:'bite',pull:'rodPump',swallow:'swallow',escape:'escape',counter:'counter',fever:'fever',splash:'splash'}[kind];
+ if(foleyKind)playFoley(foleyKind);
  return true;
 }
 function vibrationOffset(layer){
@@ -3019,6 +3033,20 @@ function tick(stamp){
    castMotion(dt);
    if(feverFx){
     feverFx.elapsed+=dt;
+    if(!feverFx.snapSoundPlayed&&feverFx.elapsed>=.024){
+     feverFx.snapSoundPlayed=true;playFoley('feverSnap');
+    }
+    if(feverFx.elapsed>=.29&&feverFx.elapsed<feverFx.suctionEnd&&
+       feverFx.elapsed-feverFx.lastBubbleSound>=.31){
+     feverFx.lastBubbleSound=feverFx.elapsed;playFoley('feverBubbles',.72);
+    }
+    if(feverFx.elapsed>=feverFx.reelStart&&
+       feverFx.elapsed<feverFx.reelStart+.82){
+     var pumpStep=Math.min(2,Math.floor((feverFx.elapsed-feverFx.reelStart)/(.82/3)));
+     if(pumpStep!==feverFx.lastPumpSoundStep){
+      feverFx.lastPumpSoundStep=pumpStep;playFoley('rodPump',.84);
+     }
+    }
     var currentReel=feverReelState(feverFx,time);
     if(!lureRecovery.active){bob.x=currentReel.x;bob.y=currentReel.y}
     var arrival=feverFx.reelStart+.82+.72;
@@ -3391,6 +3419,7 @@ setMode=function(m){
  // fishing starts the ordinary rod cast from a clean, continuous state.
  if(m!=='fish')lureRecovery.active=false;
  previousModeAlpha04(m);
+ if(m!=='fish')playFoley(m==='tank'?'aquarium':'menuOpen',.72);
  if(m==='fish')startCast();else hideVirtualJoystick();
 };
 $('action').onclick=function(){
@@ -3452,6 +3481,7 @@ function recordFeverCapture(qty){
  // Octopus upgrades still grant an early activation roll at 3-5 captures.
  if(save.fever.count>=6||(save.fever.count>=3&&Math.random()<q.chance)){
   save.fever.ready=true;
+  playFoley('feverReady');
   $('hintTitle').textContent='🐙 OCTO FEVER 준비 완료!';
   $('hint').textContent='미끼를 놓으면 문어가 변신해 반경 안 물고기를 한 번에 낚아요.';
   spawnParticles(bob.x,bob.y,24,'gold');
@@ -4331,7 +4361,7 @@ function escapeHook(){
  beginLureRecovery('swallow_failure');
  vibrationPulse('escape');
  if(window.octoSidekicksFail)window.octoSidekicksFail(time);
- beep('hit');spawnParticles(escapeFx.x,escapeFx.y,13,'water');
+ spawnParticles(escapeFx.x,escapeFx.y,13,'water');
  $('hintTitle').textContent=human?'인간 반격!':'물고기 탈출!';
  $('hint').textContent=human?'공중에서 문어를 공격하고 잠시 그로기로 만듭니다':'입에서 미끄러져 빠져나와 고속으로 도망칩니다';
 }
@@ -4479,10 +4509,10 @@ function drawEscapeFx(dt){
  if(fx.human&&!fx.impact&&fx.elapsed>=.74){
   fx.impact=true;octoGroggy=1.55;vibrationPulse('counter');
   spawnParticles(m.x+fx.dir*17,m.y-8,36,'gold');
-  ripple(m.x+fx.dir*17,m.y-8);beep('hit');
+  ripple(m.x+fx.dir*17,m.y-8);
  }
  if(!fx.splash&&pose.y>=WATER_SURFACE_Y+4&&fx.lastWasAboveWater!==false){
-  fx.splash=true;
+  fx.splash=true;playFoley('escapeSplash');
   ripple(pose.x,WATER_SURFACE_Y+4);spawnParticles(pose.x,WATER_SURFACE_Y+4,20,'water');
  }
  fx.lastWasAboveWater=pose.y<WATER_SURFACE_Y+4;
@@ -5211,12 +5241,13 @@ function activateOctoFever(){
    Math.atan2(b.y-center.y,b.x-center.x);
  });
  save.fever.ready=false;save.fever.count=0;save.fever.activations++;
- persist();updateStats();updateFeverHud();beep('catch');vibrationPulse('fever');
+ persist();updateStats();updateFeverHud();vibrationPulse('fever');
  spawnParticles(center.x,center.y,52,'gold');ripple(center.x,center.y);
  var swallowSpacing=0, suctionEnd=1.05;
  feverFx={
   x:center.x,y:center.y,radius:v.radius,tier:g.tier,color:g.color,
   caught:targets,resisted:resisted,coins:coins,elapsed:0,
+  snapSoundPlayed:false,lastBubbleSound:-10,lastPumpSoundStep:-1,
   suctionEnd:suctionEnd,reelStart:suctionEnd+.32,
   // Keep Fever active until the last resistant rare fish finishes
   // escaping from the protagonist's mouth, rather than cutting it off.
@@ -5662,6 +5693,7 @@ loadRemainingPlayerAtlases();
 if(window.octoSidekicksStartFullLoad)window.octoSidekicksStartFullLoad();
 if(window.HumanFishingArt)window.HumanFishingArt.primeHabitat(zone,species);
 function beginLoadedGame(){
+ if(window.HumanFishingFoley)window.HumanFishingFoley.unlock();
  document.querySelectorAll('[inert]').forEach(function(el){el.removeAttribute('inert');});
  last=performance.now();requestAnimationFrame(tick);
 }
