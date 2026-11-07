@@ -70,31 +70,54 @@ for(let tier=0;tier<=5;tier++){
    'Fever ring must contract during the capture snap');
   assert.ok(Math.abs(half-realRadius)<1e-6,
    'Fever ring must finish at exactly HALF the starting diameter');
-  calls.length=0;
-  fx.elapsed=.55;
-  scene.drawFeverSuctionParticles(fx,.55);
-  const expected=realRadius>=180?18:14;
-  assert.equal(calls.length,expected,'Expected clear glass bubble sprites');
-  for(const item of calls){
-   const centerDistance=Math.hypot(item.x-fx.x,item.y-fx.y);
-   assert.ok(centerDistance+item.w*.55<=realRadius*.5+1e-6,
-    tier+'/'+level+': water bubble exceeds shrunken vortex boundary');
-   assert.equal(item.image,'glass-bubble','Foamy source was used instead of glass bubbles');
-   assert.ok(item.alpha>=.75&&item.alpha<=1,
-    'Every bubble must be clearly visible on the topmost layer');
-   assert.ok(item.w>=36,'Glass bubble bitmap too small for mobile display');
-  }
-  for(const at of [.14,.30,.70,1.12,1.60]){
+  // Each active frame draws a changing subset of staggered, independently
+  // spawned glass bubbles. They may legitimately be OUTSIDE the VFX ring.
+  const expected=realRadius>=180?20:16;
+  for(const at of [.14,.30,.55,.70,1.12,1.60]){
    fx.elapsed=at;calls.length=0;
    scene.drawFeverSuctionParticles(fx,at);
-   assert.equal(calls.length,expected,
-    'Water bubbles should remain on screen through early bait retrieval');
-   assert.ok(calls.some(x=>x.alpha>.20&&x.w>=36),
-    'Water bubble visibility collapsed during the suction or reel animation');
+   assert.ok(calls.length>=3&&calls.length<=expected,
+    'Fever bubbles must scatter asynchronously, not appear as a solid crowd');
+   assert.ok(calls.every(x=>x.image==='glass-bubble'),
+    'Must render distinct glass bubbles, not white foam');
+   assert.ok(calls.every(x=>x.w>=24&&x.w<=77&&x.alpha>0&&x.alpha<=1),
+    'Bubble sprites need varied mobile-legible size and fade');
   }
+  fx.elapsed=.55;calls.length=0;
+  scene.drawFeverSuctionParticles(fx,.55);
+  const sizes=new Set(calls.map(x=>Math.round(x.w)));
+  assert.ok(sizes.size>=3,'Water bubble sizes cannot all be the same');
+  const activePoses=Array.from({length:expected},(_,i)=>
+   scene.feverBubblePose(fx,.55,i));
+  assert.ok(activePoses.some(p=>p.radius>p.visualRadius*1.02),
+   'Fresh water bubbles must originate OUTSIDE the visible vortex');
+  assert.ok(activePoses.some(p=>p.radius<p.visualRadius*.65),
+   'Older bubbles must already be winding toward the vortex center');
+
+  // A single bubble's repeated life cycle: translucent birth, bright
+  // middle, transparent death. Use a long stationary reel window to
+  // isolate its phase-dependent motion from scene-wide release fade.
+  const probe={...fx,reelStart:10};
+  const seed=scene.feverBubblePose({...probe,elapsed:0},0,0);
+  function cyclePose(life){
+   const time=(1+life-seed.shift)/seed.speed;
+   return scene.feverBubblePose({...probe,elapsed:time},time,0);
+  }
+  const born=cyclePose(.06),mid=cyclePose(.52),lost=cyclePose(.96);
+  assert.ok(born.outer>born.visualRadius*1.075,
+   'Bubble birth point must sit beyond the outer vortex circle');
+  assert.ok(born.radius>born.visualRadius,
+   'New water bubble needs to start outside the visible effect');
+  assert.ok(mid.radius/mid.outer<born.radius/born.outer&&
+   lost.radius/lost.outer<mid.radius/mid.outer,
+   'Bubble must spiral progressively toward the center');
+  assert.ok(mid.alpha>born.alpha*4&&mid.alpha>lost.alpha*4,
+   'Water bubble must grow opaque inward then vanish near center');
+  assert.ok(Math.abs(mid.angle-born.angle)>1,
+   'Bubble must rotate around the lure during inward travel');
   fx.elapsed=fx.reelStart+.69;calls.length=0;
   scene.drawFeverSuctionParticles(fx,fx.elapsed);
-  assert.equal(calls.length,0,'Water bubbles must vanish before the fish toss');
+  assert.equal(calls.length,0,'Water bubbles must stop before fish toss');
   calls.length=0;
   fx.elapsed=.31;
   scene.drawFeverVortex(fx,{x:610,y:410,tilt:0});
@@ -102,4 +125,4 @@ for(let tier=0;tier<=5;tier++){
    'Opaque white vortex source must use the softened bitmap instead');
  }
 }
-console.log('PASS: all Fever tiers show softened pulsating white vortex and 14-18 large glass bubbles through reel.');
+console.log('PASS: all Fever tiers keep full-to-half vortex, and distinct bubbles spawn outside, spiral inward, brighten and fade before respawning.');

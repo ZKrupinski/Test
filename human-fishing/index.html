@@ -4852,33 +4852,58 @@ function drawFeverVortex(fx,reel){
 }
 // A pre-rasterized glass-bubble atlas passes ABOVE all fish and effects;
 // active frames are strictly bitmaps, not per-frame vector circles.
+// Deterministic variation keeps each bubble's birth radius, size and
+// trajectory consistent between frames without reallocating random arrays.
+function feverBubbleHash(seed){
+ var v=Math.sin(seed*127.1+78.233)*43758.5453;
+ return v-Math.floor(v);
+}
+function feverBubblePose(fx,now,i){
+ var speed=.63+(i%5)*.075+feverBubbleHash(i*7+1)*.09,
+  shift=feverBubbleHash(i*3+11),
+  age=fx.elapsed*speed+shift,
+  cycle=Math.floor(age),life=age-cycle;
+ // Bubble generation follows the currently contracted VFX, NOT the catch
+ // gameplay radius. Each fresh drop is BORN OUTSIDE its visible ring.
+ var visualRadius=fx.radius*feverSnapScale(fx)*
+  (1-.55*castEasing((fx.elapsed-fx.reelStart)/.66));
+ var outer=visualRadius*(1.08+.34*feverBubbleHash(i*17+cycle*23+2)),
+  inner=8+18*feverBubbleHash(i*19+cycle*13+3),
+  pull=life*life*(3-2*life),
+  radius=mix(outer,inner,pull),
+  turns=1.2+1.2*feverBubbleHash(i*13+cycle*17+7),
+  angle=feverBubbleHash(i*23+cycle*29+5)*Math.PI*2+
+   life*Math.PI*turns+now*.16;
+ var reel=feverReelState(fx,now);
+ var x=reel.x+Math.cos(angle)*radius,
+  y=reel.y+Math.sin(angle)*radius*.87;
+ var size=28+feverBubbleHash(i*31+cycle*7+9)*49;
+ size*=1-life*.14;
+ // Newly generated -> barely visible -> opaque in the inward spiral ->
+ // disappears near the center, then the NEXT cycle begins elsewhere.
+ var appear=castEasing(fx.elapsed/.09),
+  sceneFade=1-castEasing((fx.elapsed-fx.reelStart-.24)/.44),
+  fadeIn=castEasing(life/.31),
+  fadeOut=1-castEasing((life-.69)/.30);
+ var alpha=appear*sceneFade*fadeIn*fadeOut*
+  (.80+.18*feverBubbleHash(i*11+cycle*19+6));
+ return{x:x,y:y,size:size,alpha:alpha,angle:angle,life:life,
+  radius:radius,outer:outer,visualRadius:visualRadius,
+  speed:speed,shift:shift};
+}
 function drawFeverSuctionParticles(fx,now){
  if(!fx)return;
  var im=feverSuctionArt.bubbles||
   feverSuctionArt.dropsVisible||feverSuctionArt.drops;
  if(!im||!im.ready||fx.elapsed>=fx.reelStart+.68)return;
- // Stay over the captured fish into the first reel movement; the previous
- // <1.05s foam-only pass was too brief for a real mobile player to notice.
- var appear=castEasing(fx.elapsed/.09),
-  fade=1-castEasing((fx.elapsed-fx.reelStart-.24)/.44);
- var reel=feverReelState(fx,now);
- var visualRadius=fx.radius*feverSnapScale(fx)*
-  (1-.55*castEasing((fx.elapsed-fx.reelStart)/.66));
- var count=fx.radius>=180?18:14;
+ // Spawn phases are scattered. Only visible individuals are rendered in the
+ // final overlay after every fish and effect. No frame-by-frame vectors.
+ var count=fx.radius>=180?20:16;
  for(var i=0;i<count;i++){
-  var flow=(fx.elapsed*(.67+(i%4)*.13)+i*.61803398875)%1;
-  var theta=i*2.39996+now*.42+flow*(4.8+(i%3)*.27);
-  // One bubble per 96px atlas cell, sized 36-75px in game units.
-  // The clear glass sphere fills most of the frame, unlike old foam blobs.
-  var d=Math.max(36,Math.min(37+(i%4)*10+
-    Math.min(12,fx.radius*.045),visualRadius*.89)*(1-.12*flow));
-  var radius=Math.max(0,visualRadius-d*.55-2)*
-   (.91*Math.pow(1-flow,1.28));
-  var x=reel.x+Math.cos(theta)*radius;
-  var y=reel.y+Math.sin(theta)*radius*.87;
-  var alpha=appear*fade*(.76+.20*Math.sin(Math.PI*flow));
-  feverSuctionAtlasFrame(im,(i*5+Math.floor(now*9))%16,
-   x,y,d,theta*.23,alpha);
+  var p=feverBubblePose(fx,now,i);
+  if(p.alpha<=.025)continue;
+  feverSuctionAtlasFrame(im,(i*5+Math.floor(p.life*15))%16,
+   p.x,p.y,p.size,p.angle*.18,p.alpha);
  }
 }
 // A softly damped pendulum for the actual octopus BAIT, not the player.

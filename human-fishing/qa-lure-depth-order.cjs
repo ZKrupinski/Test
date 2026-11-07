@@ -96,8 +96,10 @@ assert.ok(source.includes('var rotationTravel=turn+(mass<1.35?Math.PI*2:0);')&&
 assert.ok(source.includes('var waveA=.5-.5*Math.cos(t*9.1);')&&
  source.includes('var waveB=.5-.5*Math.cos(t*7.4-1.27);'),
  'Both vortex bitmap layers must breathe smoothly instead of jumping on loop reset');
-assert.ok(source.includes('var alpha=appear*fade*(.76+.20*Math.sin(Math.PI*flow))'),
- 'Clear bubble sprites need high alpha throughout their visible movement');
+assert.ok(source.includes('var fadeIn=castEasing(life/.31)')&&
+ source.includes('fadeOut=1-castEasing((life-.69)/.30)')&&
+ source.includes('outer=visualRadius*(1.08+.34*feverBubbleHash'),
+ 'Bubble overlay needs staggered outside births, mid-cycle brightening, center fade');
 assert.ok(source.includes('function feverGripSlot(fx,index)')&&
  source.includes('radius=[0,64,70,79,88,100,111][n]+ring*111'),
  'Inhaled fish must retain separate concentric grip slots around the center');
