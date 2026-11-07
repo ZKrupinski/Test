@@ -5,6 +5,7 @@ on:
     paths:
       - "human-fishing/foley.js"
       - "human-fishing/scripts/install_foley_assets.py"
+      - "human-fishing/scripts/render_reward_stingers.py"
       - ".github/workflows/human-fishing-foley.yml"
   workflow_dispatch:
 permissions:
@@ -23,6 +24,10 @@ jobs:
           persist-credentials: true
       - name: Download reviewed CC0 field/foley recordings
         run: python human-fishing/scripts/install_foley_assets.py
+      - name: Render four original treasure-acquisition melodies
+        run: |
+          ffmpeg -version | head -n 1
+          python human-fishing/scripts/render_reward_stingers.py
       - name: Commit OGG clips for offline, low-latency local playback
         run: |
           git config user.name "github-actions[bot]"
@@ -32,6 +37,6 @@ jobs:
             echo "All audio already bundled."
             exit 0
           fi
-          git commit -m "Bundle 29 physical Foley OGG sound samples for human fishing"
+          git commit -m "Bundle natural Foley and original four treasure-acquisition OGG stingers"
           git pull --rebase origin main
           git push origin HEAD:main
