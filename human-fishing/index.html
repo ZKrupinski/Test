@@ -4609,13 +4609,13 @@ var redLureAtlas={},redLureReaction=null;
 // Approved 8-frame / 4x2 transparent PNG sheets, individually cleaned of
 // generated debris and NEVER containing a painted fishing line.
 var polishedRedLureArt={};
-['idle','swim','suction'].forEach(function(mode){
+['idle','swim','back_swim','suction'].forEach(function(mode){
  if(typeof Image==='undefined')return;
  var image=new Image();image.ready=false;image.decoding='async';
  image.onload=function(){image.ready=true};
  image.onerror=function(){image.ready=false};
  image.src='./assets/octopus/bait/red_lure_polished_'+mode+
-  '_8f.png?v=20261107-round-swim-v2';
+  '_8f.png?v=20261107-back-swim-v1';
  polishedRedLureArt[mode]=image;
 });
 // User-approved painted 4x4 / 16-frame OCTO FEVER mouth:
@@ -4679,6 +4679,7 @@ function polishedLureEyelet(mode,frame){
  // Offset the art BEFORE rotation so every pose stays on the string endpoint.
  var points={
   idle:[[129,39],[129,33],[129,24],[129,35],[129,42],[129,45],[129,39],[129,38]],
+  back_swim:[[128.12,32.62],[128.01,32.62],[128.06,32.62],[124.78,33.35],[105.44,32.63],[127.81,33.14],[127.79,32.6],[128.36,33.13]],
   swim:[[127.62,33.32],[128.39,33.29],[135.6,32.81],[149.58,33.25],[128.3,33.27],[127.82,33.21],[128.32,32.75],[127.87,33.36]],
   suction:[[129,31],[129,31],[129,28],[128,25],[129,24],[129,28],[129,29],[129,33]]
  };
@@ -5074,6 +5075,14 @@ function redLurePose(now){
  // is readable instead of continuously gaping.
  return{action:'open',frame:Math.min(3,Math.max(0,Math.floor((Math.sin(now*2.5)+1)*1.6)))};
 }
+var polishedLureSwimDirection=1;
+function polishedLureSwimMode(vx){
+ // Follow actual travel, including braking inertia. A small dead band avoids
+ // alternating poses as horizontal speed settles near zero.
+ if(vx < -4)polishedLureSwimDirection=-1;
+ else if(vx > 4)polishedLureSwimDirection=1;
+ return polishedLureSwimDirection<0?'back_swim':'swim';
+}
 function drawRedLure(now,x,y,diameter){
  var pose=redLurePose(now),mode='idle',frame=0;
  // The same glossy silhouette is used across ordinary and Fever fishing.
@@ -5083,7 +5092,8 @@ function drawRedLure(now,x,y,diameter){
  }else if((typeof drag!=='undefined'&&drag)||
   (typeof rodMotion!=='undefined'&&rodMotion&&
   (Math.abs(rodMotion.vx||0)>42||Math.abs(rodMotion.vy||0)>60))){
-  mode='swim';frame=Math.floor(now*10)%8;
+  mode=polishedLureSwimMode(typeof rodMotion!=='undefined'&&rodMotion?(rodMotion.vx||0):0);
+  frame=Math.floor(now*10)%8;
  }else if(pose.action==='fail'){
   frame=Math.floor(now*11)%8;
  }else frame=Math.floor(now*6)%8;
