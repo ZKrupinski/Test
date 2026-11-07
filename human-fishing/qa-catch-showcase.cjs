@@ -48,6 +48,14 @@ assert.match(html,/\.catch-card-kicker\{display:flex/,
  'Prizes need clear title hierarchy rather than tiny uniform text');
 assert.match(html,/clamp\(17px,5\.35cqw,27px\)/,
  'Fish name must have a larger responsive font relative to the card');
+assert.match(html,/flex-direction:column;justify-content:center;align-items:flex-end;text-align:right/,
+ 'All text in the prize info column must be right-aligned');
+assert.match(html,/\.catch-card-kicker\{display:flex;align-items:center;justify-content:flex-end;width:100%/,
+ 'CAPTURED and NEW must align to the right side');
+assert.match(html,/\.catch-card-title\{display:flex;align-items:center;justify-content:flex-end;width:100%;min-width:0;max-width:100%;text-align:right/,
+ 'Long fish name must remain right-aligned');
+assert.match(html,/\.catch-card-size\{display:flex;align-items:baseline;justify-content:flex-end;width:100%/,
+ 'Fish size must align with right edge of name and badge');
 assert.match(html,/-webkit-line-clamp:2/,
  'Long species names should wrap onto two lines rather than squeeze fish thumbnail');
 const a=source.indexOf('// CATCH_SHOWCASE_BEGIN'),
@@ -85,8 +93,8 @@ assert.match(root.innerHTML,/class="size-label">SIZE<\/span> <b>대형<\/b> <b>�
 assert.match(root.innerHTML,/animation-delay:0s/);
 assert.deepEqual(sounds.map(s=>s.cue),['catchNew'],
  'Newly discovered fish must play the rich dedicated treasure flourish');
-assert.ok(sounds[0].intensity>=1.1,
- 'Original chest melody must be confidently audible over water/rod effects');
+assert.ok(sounds[0].intensity>=.7&&sounds[0].intensity<=.8,
+ 'Treasure reward must be audible but approximately one third quieter than previous 1.14 intensity');
 assert.match(source,/shown\.some\(function\(p\)\{return p\.fresh\}\)\?'catchNew':'catchFanfare'/,
  'A normal acquired fish must still have its own clear rising reward chime');
 const aquarium=sandbox.catchShowcaseFish(sp,1,true,true);
@@ -114,9 +122,13 @@ assert.deepEqual(sounds.slice(-3).map(s=>s.cue),
  'Exactly one rhythmic pluck must play for EACH Fever fish');
 assert.ok(sounds.at(-1).pitch>sounds.at(-2).pitch,
  'Per-fish Fever ticks should ascend gently instead of repeat mechanically');
+assert.ok(sounds.at(-1).intensity>=.6&&sounds.at(-1).intensity<=.72,
+ 'Fever item ticks must be reduced from their formerly intrusive .88-.96 intensity');
 sandbox.time=11.50;sandbox.updateCatchShowcaseAudio();
 assert.equal(sounds.at(-1).cue,'feverFinish',
  'Finishing the sequence should use a soft, distinct reward tail');
+assert.ok(sounds.at(-1).intensity<=.7,
+ 'Fever finishing chord must also be quieter');
 assert.equal(sandbox.catchShowcaseSequence,null,
  'The Fever sequence must stop cleanly when it finishes');
 assert.equal(sounds.filter(s=>s.cue==='catchFanfare').length,1,
@@ -135,4 +147,4 @@ assert.match(source,/showCatchShowcase\(\[human\?catchShowcaseHuman/,
  'Regular single catch must show showcase at the swallow-success moment');
 assert.doesNotMatch(root.innerHTML,/data:image\/svg\+xml|<svg/,
  'No vector or generated image substituted for original PNG art');
-console.log('PASS: prize layout, audible separate chest/NEW musical rewards, and independent per-fish Fever sparkle rhythm.');
+console.log('PASS: captured fish text right-aligned, unchanged art/position, chest/NEW rewards reduced to 0.76, Fever ticks and tail softened.');
