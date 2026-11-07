@@ -30,8 +30,9 @@ const calls=[],ctx={
 };
 const img=(id)=>({id,ready:true,width:400,height:400,naturalWidth:400,naturalHeight:400});
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+const mix=(a,b,t)=>a+(b-a)*t;
 const scene={
- ctx,Math,console,clamp,
+ ctx,Math,console,clamp,mix,
  castEasing(x){x=clamp(x,0,1);return x*x*(3-2*x)},
  feverVortexArt:img('vortex'),
  feverVortexOpaque:null,
