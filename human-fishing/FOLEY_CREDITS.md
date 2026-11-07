@@ -1,9 +1,12 @@
 # Human Fishing — Foley sound licensing & audio direction
 
-The game uses **29 bundled CC0 OGG Foley samples** (approximately 295 KB total)
-and **39 distinct event cues**. The engine in `foley.js` layers real recorded
-tactile samples into compact modern rewards without oscillators or digital beeps.
-No copyrighted commercial music, character voices, or character likenesses are used.
+The game uses **29 bundled CC0 OGG Foley samples** and **four entirely
+original, offline-composed OGG item-acquisition jingles** (~57 KB combined).
+The engine in `foley.js` provides **40 event-specific cues**. Normal/repeated
+fish catches, first-time species discoveries, individual OCTO FEVER prizes and
+the end of a Fever streak each have a distinct sound. Gameplay plays prerendered
+buffers, not real-time oscillators. No copyrighted game recordings, recognizable
+melodies or commercial character likenesses are used.
 
 ## Provenance and licensing
 
@@ -26,12 +29,21 @@ No copyrighted commercial music, character voices, or character likenesses are u
   sourced from the same OpenMMO sound directory, which documents their
   `click_004` and `pluck_001` CC0 origin.
 
-Specific source URL for every actual file is embedded in the `SRC` map in
-`foley.js`. `scripts/install_foley_assets.py` downloads the approved source
-files, validates that they are OGG, and stores them under `assets/foley`.
-`.github/workflows/human-fishing-foley.yml` handles safe bundling once on push.
-The game serves its own local copies first, and falls back to the public source
-URL only if a local file is unavailable.
+Every externally sourced CC0 Foley file has its verified URL embedded in
+the `SRC` map in `foley.js`. `scripts/install_foley_assets.py` bundles those
+recordings, while `scripts/render_reward_stingers.py` creates the following
+**new compositions specifically for this game** from a glass-bell-style,
+inharmonic, struck tone with a short musical ascent and resolving chord:
+
+- `chest_prize.ogg`: standard fish capture (1.85s, clear rising chime)
+- `chest_prize_new.ogg`: new species discovery (2.05s, richer flourish)
+- `fever_prize_tick.ogg`: 0.44s per-fish sparkle, one every 0.52s
+- `fever_prize_finish.ogg`: 1.25s gentle end-of-streak chord
+
+These originals are **not sampled from or arranged after any copyrighted game
+fanfare**; only the general emotion of discovering treasure informs the design.
+The GitHub audio bundling workflow encodes them with FFmpeg/libvorbis and commits
+the finished assets for low-latency local playback.
 
 CC0: <https://creativecommons.org/publicdomain/zero/1.0/>
 
@@ -44,11 +56,12 @@ CC0: <https://creativecommons.org/publicdomain/zero/1.0/>
 - Octo Fever: heavy liquid rush + tactile impact; short sharp impact synced to
   the 24–90 ms fish-group snap; tiny splashes as the suction continues; three
   physically distinct pumping cues while pulling the line.
-- Swallow and reward: liquid plop, dull impact, natural coins spilling.
-  Ordinary fish catches use a soft impact and two restrained rising coin
-  accents; the former loud brass sample was removed completely. OCTO FEVER
-  uses its own DIFFERENT sampled plucked sound for EACH fish card in a steady
-  0.52-second left-to-right pachinko-style sequence, plus a quiet finale.
+- Swallow and reward: close liquid plop and physical contact on the hook
+  path, then a much clearer **five-note rising bell motif plus resolving chord**
+  when the fish is credited. New species have a richer six-note phrase with
+  sparkle. The Fever card uses its own separate audible bell glint on each
+  0.52s card arrival, followed by an original ending chord. Original brass
+  and barely audible low-gain coin-only rewards have been retired.
 - Escape, human counterattack, groggy: fast splash, dense hand/punch/wood
   strikes, not lasers or synthesized warning tones.
 - Menus, equipment, shop, aquarium and catalog: book pages, leather and gentle
