@@ -1,9 +1,8 @@
 # Human Fishing — Foley sound licensing & audio direction
 
-The game uses **30 bundled CC0 OGG samples** (approximately 355 KB total):
-29 tactile field/Foley sounds and one short trumpet-style victory fanfare.
-There are **38 distinct event cues**. The engine in `foley.js` blends recorded
-physical sounds with the fanfare without generating oscillator or digital beeps.
+The game uses **29 bundled CC0 OGG Foley samples** (approximately 295 KB total)
+and **39 distinct event cues**. The engine in `foley.js` layers real recorded
+tactile samples into compact modern rewards without oscillators or digital beeps.
 No copyrighted commercial music, character voices, or character likenesses are used.
 
 ## Provenance and licensing
@@ -21,13 +20,7 @@ No copyrighted commercial music, character voices, or character likenesses are u
   The two `fishing-splash.ogg` and `fishing-plop.ogg` OGG edits are carried by
   `Julian-adv/OpenMMO/client/public/sounds` and described in its
   `doc/assets/sfx.md` as CC0.
-- **Trumpet Fanfare** by **gchoc (Graciano Choc)**, CC0 1.0:
-  <https://opengameart.org/content/trumpet-fanfare>.
-  Bundled as `assets/foley/victory_brass.ogg` from the approved original
-  `https://opengameart.org/sites/default/files/castlefanfare_0.ogg`.
-  The regular catch plays this brass sample slightly faster with coins,
-  while multi-catch OCTO FEVER plays the fuller variant with impact and coins.
-- **Kenney Interface Sounds**, Creative Commons CC0 1.0:
+ - **Kenney Interface Sounds**, Creative Commons CC0 1.0:
   <https://kenney.nl/assets/interface-sounds>.
   The two edited `fishing-reel.ogg` and `fishing-snap.ogg` OGG files are
   sourced from the same OpenMMO sound directory, which documents their
@@ -52,8 +45,10 @@ CC0: <https://creativecommons.org/publicdomain/zero/1.0/>
   the 24–90 ms fish-group snap; tiny splashes as the suction continues; three
   physically distinct pumping cues while pulling the line.
 - Swallow and reward: liquid plop, dull impact, natural coins spilling.
-  New fish showcase cards trigger a short brass fanfare; multiple Fever wins
-  use a fuller fanfare, while thumbnail cards streak right and fade in sequence.
+  Ordinary fish catches use a quiet two-note plucked win motif with a soft
+  impact; the former loud brass sample was removed completely. OCTO FEVER
+  uses its own different, short sampled pluck for EACH fish card in a steady
+  0.52-second left-to-right pachinko-style sequence, plus a quiet finale.
 - Escape, human counterattack, groggy: fast splash, dense hand/punch/wood
   strikes, not lasers or synthesized warning tones.
 - Menus, equipment, shop, aquarium and catalog: book pages, leather and gentle
