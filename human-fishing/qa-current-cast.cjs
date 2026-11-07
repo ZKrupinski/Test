@@ -19,6 +19,7 @@ let roll=.15,splash=0;
 const castEnv={
  time:0,view:'fish',introEntrance:{active:false},
  cast:{active:false,elapsed:0,impactAt:1.02,impactX:820,landing:false},
+ hook:null,feverFx:null,escapeFx:null,
  bob:{x:0,y:0},rodRecoil:{at:-100},lureRecovery:{active:false},
  drag:false,dragPointer:null,dragQualified:false,joystick:{active:false},
  playerOctoCueState:null,playerOctoIdleState:null,
