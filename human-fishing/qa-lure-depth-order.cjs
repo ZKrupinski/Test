@@ -96,9 +96,9 @@ assert.ok(source.includes('var rotationTravel=turn+Math.PI*2;')&&
 assert.ok(source.includes('var waveA=.5-.5*Math.cos(t*9.1);')&&
  source.includes('var waveB=.5-.5*Math.cos(t*7.4-1.27);'),
  'Both vortex bitmap layers must breathe smoothly instead of jumping on loop reset');
-assert.ok(source.includes('fadeIn=castEasing(life/.31)')&&
- source.includes('fadeOut=1-castEasing((life-.69)/.30)')&&
- source.includes('outer=visualRadius*(1.08+.34*feverBubbleHash'),
+assert.ok(source.includes('fadeIn=castEasing(life/.24)')&&
+ source.includes('fadeOut=1-castEasing((life-.79)/.20)')&&
+ source.includes('outer=visualRadius*(1.35+.60*feverBubbleHash'),
  'Bubble overlay needs staggered outside births, mid-cycle brightening, center fade');
 assert.ok(source.includes('function feverGripSlot(fx,index)')&&
  source.includes('radius=[0,62,83,101,122,141,156][n]+ring*163'),

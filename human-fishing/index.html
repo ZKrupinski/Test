@@ -4859,51 +4859,55 @@ function feverBubbleHash(seed){
  return v-Math.floor(v);
 }
 function feverBubblePose(fx,now,i){
- var speed=.63+(i%5)*.075+feverBubbleHash(i*7+1)*.09,
+ // Independent loops continuously respawn individual water spheres at the
+ // OUTER edge. Phase offsets and seeded cycle variation prevent synchronized
+ // birth, and using fx.elapsed keeps the result deterministic within a cast.
+ var speed=.87+(i%5)*.067+feverBubbleHash(i*7+1)*.12,
   shift=feverBubbleHash(i*3+11),
   age=fx.elapsed*speed+shift,
   cycle=Math.floor(age),life=age-cycle;
- // Bubble generation follows the currently contracted VFX, NOT the catch
- // gameplay radius. Each fresh drop is BORN OUTSIDE its visible ring.
  var visualRadius=fx.radius*feverSnapScale(fx)*
   (1-.55*castEasing((fx.elapsed-fx.reelStart)/.66));
- var outer=visualRadius*(1.08+.34*feverBubbleHash(i*17+cycle*23+2)),
-  inner=8+18*feverBubbleHash(i*19+cycle*13+3),
+ var outer=visualRadius*(1.35+.60*feverBubbleHash(i*17+cycle*23+2)),
+  inner=3+9*feverBubbleHash(i*19+cycle*13+3),
   pull=life*life*(3-2*life),
   radius=mix(outer,inner,pull),
-  turns=1.2+1.2*feverBubbleHash(i*13+cycle*17+7),
+  turns=1.5+1.4*feverBubbleHash(i*13+cycle*17+7),
   angle=feverBubbleHash(i*23+cycle*29+5)*Math.PI*2+
-   life*Math.PI*turns+now*.16;
+   life*Math.PI*turns+now*.20;
  var reel=feverReelState(fx,now);
  var x=reel.x+Math.cos(angle)*radius,
-  y=reel.y+Math.sin(angle)*radius*.87;
- var size=28+feverBubbleHash(i*31+cycle*7+9)*49;
- size*=1-life*.14;
- // Newly generated -> barely visible -> opaque in the inward spiral ->
- // disappears near the center, then the NEXT cycle begins elsewhere.
- var appear=castEasing(fx.elapsed/.09),
-  sceneFade=1-castEasing((fx.elapsed-fx.reelStart-.24)/.44),
-  fadeIn=castEasing(life/.31),
-  fadeOut=1-castEasing((life-.69)/.30);
+  y=reel.y+Math.sin(angle)*radius*.86;
+ // Large/medium/small real bitmap bubbles mix together, and EACH one
+ // shrinks to 36-53% of its birth size before vanishing near the center.
+ var startSize=34+feverBubbleHash(i*31+cycle*7+9)*44,
+  endScale=.36+.17*feverBubbleHash(i*41+cycle*9+4),
+  size=startSize*(1-(1-endScale)*pull);
+ var stopAt=fx.reelStart+.72,
+  appear=castEasing(fx.elapsed/.09),
+  sceneFade=1-castEasing((fx.elapsed-(stopAt-.20))/.20),
+  fadeIn=castEasing(life/.24),
+  fadeOut=1-castEasing((life-.79)/.20);
  var alpha=appear*sceneFade*fadeIn*fadeOut*
-  (.80+.18*feverBubbleHash(i*11+cycle*19+6));
- return{x:x,y:y,size:size,alpha:alpha,angle:angle,life:life,
-  radius:radius,outer:outer,visualRadius:visualRadius,
+  (.78+.18*feverBubbleHash(i*11+cycle*19+6));
+ return{x:x,y:y,size:size,startSize:startSize,alpha:alpha,
+  angle:angle,life:life,cycle:cycle,pull:pull,
+  radius:radius,outer:outer,inner:inner,visualRadius:visualRadius,
   speed:speed,shift:shift};
 }
 function drawFeverSuctionParticles(fx,now){
  if(!fx)return;
  var im=feverSuctionArt.bubbles||
   feverSuctionArt.dropsVisible||feverSuctionArt.drops;
- if(!im||!im.ready||fx.elapsed>=fx.reelStart+.68)return;
- // Spawn phases are scattered. Only visible individuals are rendered in the
- // final overlay after every fish and effect. No frame-by-frame vectors.
- var count=fx.radius>=180?20:16;
+ if(!im||!im.ready||fx.elapsed>=fx.reelStart+.72)return;
+ // Repeating, irregular arrivals; this bitmap overlay is still rendered
+ // AFTER every fish and vortex effect, not once at the onset of Fever.
+ var count=fx.radius>=180?28:22;
  for(var i=0;i<count;i++){
   var p=feverBubblePose(fx,now,i);
   if(p.alpha<=.025)continue;
   feverSuctionAtlasFrame(im,(i*5+Math.floor(p.life*15))%16,
-   p.x,p.y,p.size,p.angle*.18,p.alpha);
+   p.x,p.y,p.size,p.angle*.20,p.alpha);
  }
 }
 // A softly damped pendulum for the actual octopus BAIT, not the player.

@@ -73,7 +73,7 @@ for(let tier=0;tier<=5;tier++){
    'Fever ring must finish at exactly HALF the starting diameter');
   // Each active frame draws a changing subset of staggered, independently
   // spawned glass bubbles. They may legitimately be OUTSIDE the VFX ring.
-  const expected=realRadius>=180?20:16;
+  const expected=realRadius>=180?28:22;
   for(const at of [.14,.30,.55,.70,1.12,1.60]){
    fx.elapsed=at;calls.length=0;
    scene.drawFeverSuctionParticles(fx,at);
@@ -81,8 +81,8 @@ for(let tier=0;tier<=5;tier++){
     'Fever bubbles must scatter asynchronously, not appear as a solid crowd');
    assert.ok(calls.every(x=>x.image==='glass-bubble'),
     'Must render distinct glass bubbles, not white foam');
-   assert.ok(calls.every(x=>x.w>=24&&x.w<=77&&x.alpha>0&&x.alpha<=1),
-    'Bubble sprites need varied mobile-legible size and fade');
+   assert.ok(calls.every(x=>x.w>=10&&x.w<=78&&x.alpha>0&&x.alpha<=1),
+    'Outside bubbles should shrink progressively while alpha fades');
   }
   fx.elapsed=.55;calls.length=0;
   scene.drawFeverSuctionParticles(fx,.55);
@@ -90,10 +90,10 @@ for(let tier=0;tier<=5;tier++){
   assert.ok(sizes.size>=3,'Water bubble sizes cannot all be the same');
   const activePoses=Array.from({length:expected},(_,i)=>
    scene.feverBubblePose(fx,.55,i));
-  assert.ok(activePoses.some(p=>p.radius>p.visualRadius*1.02),
-   'Fresh water bubbles must originate OUTSIDE the visible vortex');
-  assert.ok(activePoses.some(p=>p.radius<p.visualRadius*.65),
-   'Older bubbles must already be winding toward the vortex center');
+  assert.ok(activePoses.some(p=>p.radius>p.visualRadius*1.20),
+   'Fresh bubbles must be visibly farther outside the vortex');
+  assert.ok(activePoses.some(p=>p.radius<p.visualRadius*.45),
+   'Older bubbles must spiral deeply into the central zone');
 
   // A single bubble's repeated life cycle: translucent birth, bright
   // middle, transparent death. Use a long stationary reel window to
@@ -105,10 +105,11 @@ for(let tier=0;tier<=5;tier++){
    return scene.feverBubblePose({...probe,elapsed:time},time,0);
   }
   const born=cyclePose(.06),mid=cyclePose(.52),lost=cyclePose(.96);
-  assert.ok(born.outer>born.visualRadius*1.075,
-   'Bubble birth point must sit beyond the outer vortex circle');
-  assert.ok(born.radius>born.visualRadius,
-   'New water bubble needs to start outside the visible effect');
+  assert.ok(born.outer>born.visualRadius*1.34&&
+   born.outer<born.visualRadius*1.951,
+   'Bubble should spawn 1.35x to 1.95x outside the vortex center');
+  assert.ok(born.radius>born.visualRadius*1.25,
+   'New water bubble needs to start far beyond the visible effect');
   assert.ok(mid.radius/mid.outer<born.radius/born.outer&&
    lost.radius/lost.outer<mid.radius/mid.outer,
    'Bubble must spiral progressively toward the center');
@@ -116,9 +117,33 @@ for(let tier=0;tier<=5;tier++){
    'Water bubble must grow opaque inward then vanish near center');
   assert.ok(Math.abs(mid.angle-born.angle)>1,
    'Bubble must rotate around the lure during inward travel');
-  fx.elapsed=fx.reelStart+.69;calls.length=0;
+  assert.ok(born.size>mid.size&&mid.size>lost.size,
+   'Individual bubble must visibly shrink while approaching the center');
+  assert.ok(lost.radius<born.radius*.12&&lost.inner<=12,
+   'Old bubbles should reach nearly the exact center before fading');
+  // The second cycle must contain fresh bubbles, not merely a single
+  // one-shot suction burst reused until the cast ends.
+  function secondCyclePose(life){
+   const time=(2+life-seed.shift)/seed.speed;
+   return scene.feverBubblePose({...probe,elapsed:time},time,0);
+  }
+  const secondBorn=secondCyclePose(.06),secondMid=secondCyclePose(.52);
+  assert.equal(secondBorn.cycle,born.cycle+1,
+   'Water bubble did not respawn for a second visible cycle');
+  assert.ok(secondMid.alpha>secondBorn.alpha*4&&
+   secondBorn.outer>secondBorn.visualRadius*1.34,
+   'Second cycle needs a fresh far-off spawn and inward brightening');
+  assert.ok(Math.abs(secondBorn.outer-born.outer)>1e-3||
+   Math.abs(secondBorn.angle-born.angle)>1e-3,
+   'Every new bubble cycle should have a distinct organic starting point');
+  // The fade must not blanket-out the whole effect during late suction.
+  fx.elapsed=fx.reelStart+.35;calls.length=0;
   scene.drawFeverSuctionParticles(fx,fx.elapsed);
-  assert.equal(calls.length,0,'Water bubbles must stop before fish toss');
+  assert.ok(calls.some(p=>p.alpha>.40),
+   'Continuous suction bubbles disappeared before bait retrieval');
+  fx.elapsed=fx.reelStart+.73;calls.length=0;
+  scene.drawFeverSuctionParticles(fx,fx.elapsed);
+  assert.equal(calls.length,0,'Bubbles must end before the fish toss');
   calls.length=0;
   fx.elapsed=.31;
   scene.drawFeverVortex(fx,{x:610,y:410,tilt:0});
@@ -126,4 +151,4 @@ for(let tier=0;tier<=5;tier++){
    'Opaque white vortex source must use the softened bitmap instead');
  }
 }
-console.log('PASS: all Fever tiers keep full-to-half vortex, and distinct bubbles spawn outside, spiral inward, brighten and fade before respawning.');
+console.log('PASS: all Fever tiers continuously respawn outer bubbles at 1.35-1.95x, spiral inward, shrink and fade near the center.');
