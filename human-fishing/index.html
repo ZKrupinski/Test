@@ -3678,14 +3678,9 @@ function drawCatchFx(dt){
  var fx=catchFx;fx.elapsed+=dt;var p=clamp(fx.elapsed/fx.duration,0,1),mouth=mouthPos(time);
  var entity={human:fx.human,id:fx.id,sp:fx.sp,vx:fx.dir,size:fx.size,phase:fx.phase,x:fx.x,y:fx.y};
  if(!fx.swallowed)drawSwallowCreature(entity,fx.elapsed,0,1.20,mouth);
- ctx.save();
- ctx.globalAlpha=Math.max(0,Math.min(1,fx.elapsed*5,(fx.duration-fx.elapsed)*2.5));
- ctx.textAlign='left';ctx.shadowColor='#031d25';ctx.shadowBlur=7;
- ctx.fillStyle=fx.fresh?'#ffe7a6':'#e2fcf3';ctx.font='900 17px system-ui';
- ctx.fillText((fx.fresh?'✦ NEW · ':'')+fx.name+(fx.double?' ×2':''),mouth.x+108,mouth.y-26);
- ctx.fillStyle='#ffe3a0';ctx.font='900 16px system-ui';
- ctx.fillText('◈ +'+fx.reward,mouth.x+108,mouth.y+1);
- ctx.restore();
+ // No second floating name beside the octopus mouth: the clean PNG
+ // accolade above the fishing rod is the only catch-identity display.
+ // Keep catchFx timing for the swallow/recovery animation and game flow.
  if(fx.elapsed>=fx.duration){
   catchFx=null; // Recovery is synchronized with the character reaction.
  }
