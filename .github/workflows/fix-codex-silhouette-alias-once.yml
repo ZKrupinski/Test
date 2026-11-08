@@ -120,6 +120,9 @@ jobs:
             $('search').oninput=function(){""",
            'Codex retry fallback')
           html=html[:start]+part+html[end:]
+          html=html.replace("catalogueSpecies.filter(function(sp){return sp.artVariant||sp.expansionSpecies}).length+'종</option>'+ ",
+           "catalogueSpecies.filter(function(sp){return sp.artVariant||sp.expansionSpecies}).length+'종</option>'+")
+
           html=one(html,
            "function updateStats(){\n var count=Object.keys(save.owned).length,h=Object.keys(save.human).filter",
            "function updateStats(){\n var visibleSpecies=species.filter(function(sp){return !sp.archivedVisualDuplicate});\n var count=visibleSpecies.filter(function(sp){return (save.owned[sp.id]||0)>0}).length,h=Object.keys(save.human).filter",
