@@ -1,0 +1,329 @@
+{
+  "batch": "010",
+  "purpose": "Install only the 8 verified not-yet-live original Work batch009 fish",
+  "status": "LIVE_INSTALLED_ORIGINALS_PENDING_PAGES_QA",
+  "sourceBatch": "009",
+  "originalPixelsPreserved": true,
+  "expectedOriginalInstalledCount": 10,
+  "pendingFishCount": 8,
+  "priorLiveIds": [
+    "F355",
+    "F356",
+    "F357",
+    "F358",
+    "F359",
+    "F360",
+    "F361",
+    "F362",
+    "F363",
+    "F364"
+  ],
+  "species": [
+    {
+      "gameId": "F365",
+      "nameKo": "자발레타멸치",
+      "scientificName": "Anchovia clupeoides",
+      "filename": "F365.png",
+      "sourceUserFile": "29660.png",
+      "sha256": "88a57adf2488212936a603c49710bc6f61417956ce45bfaa261568a9990e5152",
+      "bytes": 959417,
+      "width": 1774,
+      "height": 887,
+      "habitat": 7,
+      "artSizeClass": "SMALL",
+      "rarity": "UNCOMMON",
+      "level": 30,
+      "nativeRegion": "남아메리카 열대 하구·연안 기수",
+      "regionProvisional": true,
+      "family": "Engraulidae",
+      "alphaEdgeMargin": [
+        0,
+        21,
+        4,
+        0
+      ],
+      "visualReviewFlags": [
+        "ORIGINAL_FRINGING_PRESENT",
+        "SOURCE_EDGE_MARGIN_INSUFFICIENT"
+      ],
+      "behaviorProfile": {
+        "archetype": "estuary_anchovy_shadow_school",
+        "mode": "dart",
+        "speedMultiplier": 1.26,
+        "swimAmpMultiplier": 0.53,
+        "agilityMultiplier": 1.56,
+        "turnSeconds": 5
+      },
+      "installedPath": "assets/fish/individual/F365.png",
+      "gameStatus": "LIVE"
+    },
+    {
+      "gameId": "F366",
+      "nameKo": "큰코고양이상어",
+      "scientificName": "Apristurus nasutus",
+      "filename": "F366.png",
+      "sourceUserFile": "29661.png",
+      "sha256": "27e7bec7f91951566d41ef8ffdf738a92e17805aa1781bcdae04a9680e5084d8",
+      "bytes": 618681,
+      "width": 2172,
+      "height": 724,
+      "habitat": 10,
+      "artSizeClass": "MEDIUM",
+      "rarity": "EPIC",
+      "level": 62,
+      "nativeRegion": "심해 대륙사면",
+      "regionProvisional": false,
+      "family": "Scyliorhinidae",
+      "alphaEdgeMargin": [
+        21,
+        87,
+        38,
+        16
+      ],
+      "visualReviewFlags": [
+        "ORIGINAL_FRINGING_PRESENT",
+        "SOURCE_EDGE_MARGIN_INSUFFICIENT"
+      ],
+      "behaviorProfile": {
+        "archetype": "deep_catshark_low_slope_patrol",
+        "mode": "hover",
+        "speedMultiplier": 0.63,
+        "swimAmpMultiplier": 0.55,
+        "agilityMultiplier": 0.88,
+        "turnSeconds": 16
+      },
+      "installedPath": "assets/fish/individual/F366.png",
+      "gameStatus": "LIVE"
+    },
+    {
+      "gameId": "F367",
+      "nameKo": "노랑꼬리전갱이",
+      "scientificName": "Atule mate",
+      "filename": "F367.png",
+      "sourceUserFile": "29662.png",
+      "sha256": "7e0bc8c5665fe75b352ad719e218f3115324fece76b1f9d12ebea93e91350342",
+      "bytes": 965580,
+      "width": 1774,
+      "height": 887,
+      "habitat": 6,
+      "artSizeClass": "MEDIUM",
+      "rarity": "UNCOMMON",
+      "level": 36,
+      "nativeRegion": "인도태평양 열대 연안·산호초 주변",
+      "regionProvisional": false,
+      "family": "Carangidae",
+      "alphaEdgeMargin": [
+        25,
+        17,
+        19,
+        0
+      ],
+      "visualReviewFlags": [
+        "ORIGINAL_FRINGING_PRESENT",
+        "SOURCE_EDGE_MARGIN_INSUFFICIENT"
+      ],
+      "behaviorProfile": {
+        "archetype": "yellowtail_scad_fast_shoal",
+        "mode": "cruise",
+        "speedMultiplier": 1.4,
+        "swimAmpMultiplier": 0.67,
+        "agilityMultiplier": 1.47,
+        "turnSeconds": 6
+      },
+      "installedPath": "assets/fish/individual/F367.png",
+      "gameStatus": "LIVE"
+    },
+    {
+      "gameId": "F368",
+      "nameKo": "커스크",
+      "scientificName": "Brosme brosme",
+      "filename": "F368.png",
+      "sourceUserFile": "29658.png",
+      "sha256": "91a97e557be7e0f11bfd8d7070728334ea1a88b557d9dd4bdf448cd72f0bbb10",
+      "bytes": 1361688,
+      "width": 2172,
+      "height": 724,
+      "habitat": 11,
+      "artSizeClass": "LARGE",
+      "rarity": "RARE",
+      "level": 53,
+      "nativeRegion": "북대서양 한대·냉수 저층",
+      "regionProvisional": false,
+      "family": "Lotidae",
+      "alphaEdgeMargin": [
+        37,
+        17,
+        155,
+        0
+      ],
+      "visualReviewFlags": [
+        "ORIGINAL_FRINGING_PRESENT",
+        "SOURCE_EDGE_MARGIN_INSUFFICIENT"
+      ],
+      "behaviorProfile": {
+        "archetype": "cusk_cold_seafloor_heavy_pause",
+        "mode": "wander",
+        "speedMultiplier": 0.59,
+        "swimAmpMultiplier": 0.57,
+        "agilityMultiplier": 0.61,
+        "turnSeconds": 17
+      },
+      "installedPath": "assets/fish/individual/F368.png",
+      "gameStatus": "LIVE"
+    },
+    {
+      "gameId": "F369",
+      "nameKo": "칠레쥐꼬리고기",
+      "scientificName": "Coelorinchus chilensis",
+      "filename": "F369.png",
+      "sourceUserFile": "29659.png",
+      "sha256": "fad38e2981713b8be10a54954759a453741eec1439c7d633acfd8d6170618eb6",
+      "bytes": 784323,
+      "width": 2172,
+      "height": 724,
+      "habitat": 10,
+      "artSizeClass": "MEDIUM",
+      "rarity": "EPIC",
+      "level": 63,
+      "nativeRegion": "동남태평양 심해 저층",
+      "regionProvisional": false,
+      "family": "Macrouridae",
+      "alphaEdgeMargin": [
+        47,
+        9,
+        50,
+        0
+      ],
+      "visualReviewFlags": [
+        "ORIGINAL_FRINGING_PRESENT",
+        "SOURCE_EDGE_MARGIN_INSUFFICIENT"
+      ],
+      "behaviorProfile": {
+        "archetype": "rat_tail_grenadier_deep_taper_glide",
+        "mode": "hover",
+        "speedMultiplier": 0.72,
+        "swimAmpMultiplier": 0.88,
+        "agilityMultiplier": 0.74,
+        "turnSeconds": 14
+      },
+      "installedPath": "assets/fish/individual/F369.png",
+      "gameStatus": "LIVE"
+    },
+    {
+      "gameId": "F370",
+      "nameKo": "북방샛비늘치",
+      "scientificName": "Stenobrachius leucopsarus",
+      "filename": "F370.png",
+      "sourceUserFile": "29656.png",
+      "sha256": "88e953b98f3eed5e12453add9da27858a78deb326849828fc3b5cbddf7be4feb",
+      "bytes": 799164,
+      "width": 1774,
+      "height": 887,
+      "habitat": 10,
+      "artSizeClass": "SMALL",
+      "rarity": "RARE",
+      "level": 48,
+      "nativeRegion": "북태평양 중층·심해",
+      "regionProvisional": false,
+      "family": "Myctophidae",
+      "alphaEdgeMargin": [
+        23,
+        18,
+        22,
+        34
+      ],
+      "visualReviewFlags": [
+        "ORIGINAL_FRINGING_PRESENT",
+        "SOURCE_EDGE_MARGIN_INSUFFICIENT"
+      ],
+      "behaviorProfile": {
+        "archetype": "northern_lanternfish_vertical_diel_dart",
+        "mode": "dart",
+        "speedMultiplier": 1.13,
+        "swimAmpMultiplier": 0.94,
+        "agilityMultiplier": 1.5,
+        "turnSeconds": 7
+      },
+      "installedPath": "assets/fish/individual/F370.png",
+      "gameStatus": "LIVE"
+    },
+    {
+      "gameId": "F371",
+      "nameKo": "점박이늑대고기",
+      "scientificName": "Anarhichas minor",
+      "filename": "F371.png",
+      "sourceUserFile": "29657.png",
+      "sha256": "9e7548018c5cde1a96d7a727fb0cb71ad289963aba56886e7b58730c27a74e6d",
+      "bytes": 1425459,
+      "width": 2172,
+      "height": 724,
+      "habitat": 11,
+      "artSizeClass": "LARGE",
+      "rarity": "EPIC",
+      "level": 68,
+      "nativeRegion": "북대서양 한대 암반·저층",
+      "regionProvisional": false,
+      "family": "Anarhichadidae",
+      "alphaEdgeMargin": [
+        57,
+        57,
+        34,
+        16
+      ],
+      "visualReviewFlags": [
+        "ORIGINAL_FRINGING_PRESENT",
+        "SOURCE_EDGE_MARGIN_INSUFFICIENT"
+      ],
+      "behaviorProfile": {
+        "archetype": "spotted_wolffish_rock_lair_lunge",
+        "mode": "wander",
+        "speedMultiplier": 0.55,
+        "swimAmpMultiplier": 0.71,
+        "agilityMultiplier": 0.85,
+        "turnSeconds": 15
+      },
+      "installedPath": "assets/fish/individual/F371.png",
+      "gameStatus": "LIVE"
+    },
+    {
+      "gameId": "F372",
+      "nameKo": "빙어고등어",
+      "scientificName": "Champsocephalus gunnari",
+      "filename": "F372.png",
+      "sourceUserFile": "29655.png",
+      "sha256": "7c30e22e5e2d81b766b8190613abd3e6f04d2899e7ee68ff449a9f601253a3ca",
+      "bytes": 841136,
+      "width": 2172,
+      "height": 724,
+      "habitat": 11,
+      "artSizeClass": "MEDIUM",
+      "rarity": "RARE",
+      "level": 45,
+      "nativeRegion": "남극해·남극수렴선 인근 한대",
+      "regionProvisional": false,
+      "family": "Channichthyidae",
+      "alphaEdgeMargin": [
+        89,
+        29,
+        84,
+        25
+      ],
+      "visualReviewFlags": [
+        "ORIGINAL_FRINGING_PRESENT"
+      ],
+      "behaviorProfile": {
+        "archetype": "antarctic_icefish_cold_openwater_coast",
+        "mode": "cruise",
+        "speedMultiplier": 1.08,
+        "swimAmpMultiplier": 0.77,
+        "agilityMultiplier": 1.21,
+        "turnSeconds": 10
+      },
+      "installedPath": "assets/fish/individual/F372.png",
+      "gameStatus": "LIVE"
+    }
+  ],
+  "newFishCount": 8,
+  "recordsAfter": 351,
+  "basePriorFishRecords": 343
+}
