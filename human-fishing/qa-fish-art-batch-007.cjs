@@ -40,8 +40,8 @@ const none=[];disabled.HumanFishingFishExpansion007.extend(none);assert.equal(no
 assert.ok(html.includes('humanFishingAlpha01'),'Existing save key must not change');
 // Codex display order must group every historical and newly installed fish by its
 // registered habitat, then by stable ID. Do not reorder gameplay species or save keys.
-assert.match(html,/var visibleFish=sortFishForCodexByRegion\\(/);
-const sorterSource=html.match(/function sortFishForCodexByRegion\\(list\\)\\{[\\s\\S]*?\\n\\}/);
+assert.match(html,/var visibleFish=sortFishForCodexByRegion\(/);
+const sorterSource=html.match(/function sortFishForCodexByRegion\(list\)\{[\s\S]*?\n\}/);
 assert.ok(sorterSource,'Codex sorting helper must be present');
 const sortCtx={};vm.runInNewContext(sorterSource[0]+';this.sortCodex=sortFishForCodexByRegion;',sortCtx);
 const unsorted=[
