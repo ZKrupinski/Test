@@ -2,13 +2,13 @@
   "version": "2026-11-08",
   "batch": "004",
   "speciesGoal": 5,
-  "status": "ART_NOT_GENERATED_IMAGE_CREDITS_UNAVAILABLE",
+  "status": "FIVE DISTINCT GPT BITMAP PNGS PREPARED — AWAITING FULL GITHUB IMAGE UPLOAD",
   "source": {
     "name": "ASFiS fish division",
     "url": "https://github.com/WorldFishCenter/asfis-species-list/blob/master/data/processed/species_list_isscaap.csv",
     "note": "All five binomials matched source with NA warning value. Geography is a provisional gameplay allocation, not verified locality."
   },
-  "note": "Two native image generation attempts produced unrelated existing fish and a misleading infographic; neither counts as new artwork. Dedicated GPT generation requests were rejected for lack of credits. Do not register art or game IDs until five unique correct PNGs are available.",
+  "note": "All five right-facing semirealistic illustrations generated individually and clean alpha-padded; original pixels retained, ZIP available outside GitHub. Runtime must not expose them until exact validated PNG files are installed in the GitHub repository.",
   "candidates": [
     {
       "scientificName": "Lepisosteus osseus",
@@ -19,11 +19,24 @@
       "rarity": "RARE",
       "morphology": "needle_crocodile_beak_ganoid_scales_rear_dorsal",
       "behavior": "surface_ambush_short_burst",
-      "artStatus": "NOT_GENERATED",
-      "gameId": null,
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "gameId": "F329",
       "live": false,
       "regionVerified": false,
-      "silhouetteVerified": false
+      "silhouetteVerified": true,
+      "imageFile": "assets/fish/individual/F329.png",
+      "expectedSha256": "6374545f57c5ec04387c42851c4133f4782474ff0b5d65a44b6e9827271993a6",
+      "originalPixelsPreserved": true,
+      "borderCleaned": true,
+      "proposedBehaviorProfile": {
+        "archetype": "ambush_stillness_surface_lunge",
+        "mode": "dart",
+        "speedMultiplier": 0.87,
+        "swimAmpMultiplier": 1.05,
+        "agilityMultiplier": 1.4,
+        "turnSeconds": 13
+      },
+      "countsAsGameFish": false
     },
     {
       "scientificName": "Heterotis niloticus",
@@ -34,11 +47,24 @@
       "rarity": "EPIC",
       "morphology": "thick_bronze_body_small_mouth_rear_dorsal_and_anal",
       "behavior": "wide_turn_watercolumn_glide",
-      "artStatus": "NOT_GENERATED",
-      "gameId": null,
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "gameId": "F330",
       "live": false,
       "regionVerified": false,
-      "silhouetteVerified": false
+      "silhouetteVerified": true,
+      "imageFile": "assets/fish/individual/F330.png",
+      "expectedSha256": "6a6fcaf225fc0a006f6e12e64a20045d378f5cec2f88154ed8bfbd7a89a8f7df",
+      "originalPixelsPreserved": true,
+      "borderCleaned": true,
+      "proposedBehaviorProfile": {
+        "archetype": "wide_turn_watercolumn_glide",
+        "mode": "cruise",
+        "speedMultiplier": 0.74,
+        "swimAmpMultiplier": 0.9,
+        "agilityMultiplier": 0.56,
+        "turnSeconds": 12
+      },
+      "countsAsGameFish": false
     },
     {
       "scientificName": "Macrourus holotrachys",
@@ -49,11 +75,24 @@
       "rarity": "EPIC",
       "morphology": "huge_head_large_eye_deep_tail_taper_without_large_fin",
       "behavior": "deep_hover_brief_escape",
-      "artStatus": "NOT_GENERATED",
-      "gameId": null,
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "gameId": "F331",
       "live": false,
       "regionVerified": false,
-      "silhouetteVerified": false
+      "silhouetteVerified": true,
+      "imageFile": "assets/fish/individual/F331.png",
+      "expectedSha256": "b8e7d6e8ff04ebf11cd8a59e4c9442478f263a14320c7f46a27effaab0c2a693",
+      "originalPixelsPreserved": true,
+      "borderCleaned": true,
+      "proposedBehaviorProfile": {
+        "archetype": "deep_hover_brief_escape",
+        "mode": "hover",
+        "speedMultiplier": 0.55,
+        "swimAmpMultiplier": 0.7,
+        "agilityMultiplier": 0.83,
+        "turnSeconds": 9
+      },
+      "countsAsGameFish": false
     },
     {
       "scientificName": "Cetorhinus maximus",
@@ -64,11 +103,24 @@
       "rarity": "LEGEND",
       "morphology": "enormous_filter_open_mouth_long_gill_slits_asymmetric_tail",
       "behavior": "huge_slow_filter_feeding_patrol",
-      "artStatus": "NOT_GENERATED",
-      "gameId": null,
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "gameId": "F332",
       "live": false,
       "regionVerified": false,
-      "silhouetteVerified": false
+      "silhouetteVerified": true,
+      "imageFile": "assets/fish/individual/F332.png",
+      "expectedSha256": "90cea45ee907192b606e81c0081c79785011678d73b0d046eda19b493a54575e",
+      "originalPixelsPreserved": true,
+      "borderCleaned": true,
+      "proposedBehaviorProfile": {
+        "archetype": "huge_slow_filter_feeding_patrol",
+        "mode": "cruise",
+        "speedMultiplier": 0.38,
+        "swimAmpMultiplier": 0.62,
+        "agilityMultiplier": 0.44,
+        "turnSeconds": 15
+      },
+      "countsAsGameFish": false
     },
     {
       "scientificName": "Aluterus monoceros",
@@ -79,11 +131,25 @@
       "rarity": "RARE",
       "morphology": "single_frontal_spine_leaf_shaped_flat_body",
       "behavior": "cautious_reef_hover_short_side_turn",
-      "artStatus": "NOT_GENERATED",
-      "gameId": null,
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "gameId": "F333",
       "live": false,
       "regionVerified": false,
-      "silhouetteVerified": false
+      "silhouetteVerified": true,
+      "imageFile": "assets/fish/individual/F333.png",
+      "expectedSha256": "5f3a4446ed1054a69b3b9ef5aff5e85615e6d88a1f1ef80bfdf2098ea2e52441",
+      "originalPixelsPreserved": true,
+      "borderCleaned": true,
+      "proposedBehaviorProfile": {
+        "archetype": "cautious_reef_hover_short_side_turn",
+        "mode": "hover",
+        "speedMultiplier": 0.72,
+        "swimAmpMultiplier": 1.35,
+        "agilityMultiplier": 1.12,
+        "turnSeconds": 9
+      },
+      "countsAsGameFish": false
     }
-  ]
+  ],
+  "imageIdReservation": "F329–F333 reserved for original art batch 004; registered only after atomic PNG asset installation."
 }

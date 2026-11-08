@@ -32,6 +32,6 @@ assert.equal(q.candidates.filter(x=>x.artStatus==='READY_FOR_IMPORT_QA'||x.artSt
 if(ready)for(const x of result.records)assert.ok(fs.existsSync(root+'assets/fish/individual/'+x.id+'.png'),x.id);
 assert.equal(q.candidates.filter(x=>x.artStatus==='LIVE').length,ready?10:0);
 assert.equal(qa004.candidates.length,5);
-assert.ok(qa004.candidates.every(x=>x.artStatus==='NOT_GENERATED'&&x.gameId===null&&!x.live));
+assert.ok(qa004.candidates.every(x=>['READY_FOR_IMPORT_QA','LIVE'].includes(x.artStatus)&&x.gameId&&!x.live===false||['READY_FOR_IMPORT_QA','LIVE'].includes(x.artStatus)&&x.gameId));
 assert.equal(new Set(qa004.candidates.map(x=>x.scientificName)).size,5);
-console.log('PASS: 291 existing + 11 first + 10 second/third isolated species and 5 fourth-round unrendered species QA');
+console.log('PASS: 291 existing, 11 first batch, 10 second/third staged originals and 5 fourth-round original sprites pending/full installation');

@@ -1,0 +1,92 @@
+name: Install Human Fishing original bitmap fish batch 004
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'human-fishing/fish-art-import-batch-004.zip'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: human-fishing-bitmap-004-import
+  cancel-in-progress: false
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate five species, image SHA256, transparent alpha, and no overwrites
+        run: |
+          python -m pip install -q Pillow
+          python <<'PY'
+          from pathlib import Path
+          from PIL import Image,ImageChops
+          import hashlib,io,json,zipfile
+          root=Path('human-fishing')
+          upload=root/'fish-art-import-batch-004.zip'
+          assert upload.exists(), 'Upload prepared fish-art-import-batch-004.zip to human-fishing/'
+          queuepath=root/'fish-art-batch-004-queue.json'
+          queue=json.loads(queuepath.read_text())
+          expected={f'F{i}.png' for i in range(329,334)}
+          with zipfile.ZipFile(upload) as z:
+            assert set(z.namelist())==expected|{'fish-manifest.json'}, 'Exactly five independent original PNGs required'
+            manifest=json.loads(z.read('fish-manifest.json'))
+            records=manifest['species']
+            assert len(records)==5
+            assert {r['gameId']+'.png' for r in records}==expected
+            seen=set()
+            proofs=[]
+            for item in records:
+              ident=item['gameId']
+              row=next((r for r in queue['candidates'] if r['gameId']==ident),None)
+              assert row is not None
+              assert row['scientificName']==item['scientificName']
+              assert row['nameKo']==item['nameKo']
+              assert row['proposedZone']==item['habitat']
+              assert row['size']==item['size']
+              assert row['rarity']==item['rarity']
+              assert row['expectedSha256']==item['sha256']
+              assert ident not in seen
+              seen.add(ident)
+              target=root/'assets/fish/individual'/(ident+'.png')
+              assert not target.exists(), 'Never overwrite any existing image: '+ident
+              raw=z.read(ident+'.png')
+              assert hashlib.sha256(raw).hexdigest()==item['sha256'],'Artwork altered: '+ident
+              im=Image.open(io.BytesIO(raw))
+              assert im.format=='PNG' and im.mode=='RGBA'
+              assert (im.width,im.height)==(item['width'],item['height'])
+              assert im.width>=1600 and im.height>=500
+              alpha=im.getchannel('A')
+              box=alpha.getbbox()
+              assert box and min(box[0],box[1],im.width-box[2],im.height-box[3])>=100,'Dangerous crop: '+ident
+              assert alpha.getextrema()==(0,255)
+              res=Image.new('RGBA',im.size,(21,28,34,255));res.alpha_composite(im)
+              proofs.append((ident,res.convert('RGB').resize((32,20))))
+            for i,(ident,im) in enumerate(proofs):
+              for other,prev in proofs[:i]:
+                assert ImageChops.difference(im,prev).getbbox(), 'Repeated picture '+ident+' / '+other
+            for row in records:
+              target=root/'assets/fish/individual'/(row['gameId']+'.png')
+              target.write_bytes(z.read(row['gameId']+'.png'))
+          cache=root/'assets/fish-expansion-004'
+          cache.mkdir(parents=True,exist_ok=True)
+          (cache/'ready.js').write_text('window.HumanFishingFishExpansion004Ready=true;\n')
+          (cache/'installed-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
+          for row in queue['candidates']:
+            row['artStatus']='LIVE'
+            row['live']=True
+            row['countsAsGameFish']=True
+          queue['status']='FIVE UNIQUE BITMAPS INSTALLED AND LIVE'
+          queuepath.write_text(json.dumps(queue,ensure_ascii=False,indent=2)+'\n')
+          upload.unlink()
+          print('Installed F329..F333. Original fish images and saves preserved.')
+          PY
+      - name: Commit five verified original PNGs and activate fourth batch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A human-fishing/assets/fish/individual/ human-fishing/assets/fish-expansion-004/ human-fishing/fish-art-batch-004-queue.json human-fishing/fish-art-import-batch-004.zip
+          git diff --cached --quiet || git commit -m 'Install F329-F333 unique verified fish sprites and activate them'
+          git push origin HEAD:main
