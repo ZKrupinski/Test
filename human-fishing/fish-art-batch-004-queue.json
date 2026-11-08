@@ -1,0 +1,89 @@
+{
+  "version": "2026-11-08",
+  "batch": "004",
+  "speciesGoal": 5,
+  "status": "ART_NOT_GENERATED_IMAGE_CREDITS_UNAVAILABLE",
+  "source": {
+    "name": "ASFiS fish division",
+    "url": "https://github.com/WorldFishCenter/asfis-species-list/blob/master/data/processed/species_list_isscaap.csv",
+    "note": "All five binomials matched source with NA warning value. Geography is a provisional gameplay allocation, not verified locality."
+  },
+  "note": "Two native image generation attempts produced unrelated existing fish and a misleading infographic; neither counts as new artwork. Dedicated GPT generation requests were rejected for lack of credits. Do not register art or game IDs until five unique correct PNGs are available.",
+  "candidates": [
+    {
+      "scientificName": "Lepisosteus osseus",
+      "nameKo": "롱노즈가아",
+      "family": "Lepisosteidae",
+      "proposedZone": 4,
+      "size": "LARGE",
+      "rarity": "RARE",
+      "morphology": "needle_crocodile_beak_ganoid_scales_rear_dorsal",
+      "behavior": "surface_ambush_short_burst",
+      "artStatus": "NOT_GENERATED",
+      "gameId": null,
+      "live": false,
+      "regionVerified": false,
+      "silhouetteVerified": false
+    },
+    {
+      "scientificName": "Heterotis niloticus",
+      "nameKo": "아프리카보니텅",
+      "family": "Arapaimidae",
+      "proposedZone": 2,
+      "size": "LARGE",
+      "rarity": "EPIC",
+      "morphology": "thick_bronze_body_small_mouth_rear_dorsal_and_anal",
+      "behavior": "wide_turn_watercolumn_glide",
+      "artStatus": "NOT_GENERATED",
+      "gameId": null,
+      "live": false,
+      "regionVerified": false,
+      "silhouetteVerified": false
+    },
+    {
+      "scientificName": "Macrourus holotrachys",
+      "nameKo": "거친머리그레나디어",
+      "family": "Macrouridae",
+      "proposedZone": 10,
+      "size": "MEDIUM",
+      "rarity": "EPIC",
+      "morphology": "huge_head_large_eye_deep_tail_taper_without_large_fin",
+      "behavior": "deep_hover_brief_escape",
+      "artStatus": "NOT_GENERATED",
+      "gameId": null,
+      "live": false,
+      "regionVerified": false,
+      "silhouetteVerified": false
+    },
+    {
+      "scientificName": "Cetorhinus maximus",
+      "nameKo": "돌묵상어",
+      "family": "Cetorhinidae",
+      "proposedZone": 9,
+      "size": "LARGE",
+      "rarity": "LEGEND",
+      "morphology": "enormous_filter_open_mouth_long_gill_slits_asymmetric_tail",
+      "behavior": "huge_slow_filter_feeding_patrol",
+      "artStatus": "NOT_GENERATED",
+      "gameId": null,
+      "live": false,
+      "regionVerified": false,
+      "silhouetteVerified": false
+    },
+    {
+      "scientificName": "Aluterus monoceros",
+      "nameKo": "유니콘쥐치",
+      "family": "Monacanthidae",
+      "proposedZone": 6,
+      "size": "MEDIUM",
+      "rarity": "RARE",
+      "morphology": "single_frontal_spine_leaf_shaped_flat_body",
+      "behavior": "cautious_reef_hover_short_side_turn",
+      "artStatus": "NOT_GENERATED",
+      "gameId": null,
+      "live": false,
+      "regionVerified": false,
+      "silhouetteVerified": false
+    }
+  ]
+}
