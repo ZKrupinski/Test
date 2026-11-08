@@ -83,6 +83,10 @@ jobs:
             'Visible codex source')
           part=part.replace('species.length+humans.length','catalogueSpecies.length+humans.length')
           part=part.replace('species.filter(function','catalogueSpecies.filter(function')
+          # The catalogue source must refer to species, never itself.
+          part=one(part,'var catalogueSpecies=catalogueSpecies.filter(function(sp)',
+           'var catalogueSpecies=species.filter(function(sp)',
+           'Preserve original catalogue source variable')
           part=one(part,
            "}).join('')+visibleFish.map(function(sp){",
            "}).join('')+visibleFish.map(function(sp,photoIndex){",
