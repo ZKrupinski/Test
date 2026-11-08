@@ -1,0 +1,130 @@
+name: Install Human Fishing verified fast pack 17
+on:
+  push:
+    branches: [main]
+    paths: ['human-fishing/fish-art-fast-pack-17.zip']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+  pages: write
+  id-token: write
+concurrency:
+  group: human-fishing-fast-art-install
+  cancel-in-progress: false
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate 17 unique original sprites and install as one set
+        run: |
+          python -m pip install -q Pillow
+          python <<'PY'
+          import json,hashlib,zipfile,io
+          from pathlib import Path
+          from PIL import Image
+          root=Path('human-fishing')
+          zip_path=root/'fish-art-fast-pack-17.zip'
+          assert zip_path.is_file(),'Upload fish-art-fast-pack-17.zip through Human Fishing uploader'
+          a={'F306','F311','F312','F314','F315','F316'}
+          b={'F'+str(i) for i in range(319,329)}
+          ids=a|b|{'S001'}
+          one=root/'fish-art-batch-001-assignments.json'
+          two=root/'fish-art-batch-002-queue.json'
+          three=root/'special-creature-candidates.json'
+          d1=json.loads(one.read_text());d2=json.loads(two.read_text());d3=json.loads(three.read_text())
+          q1={r['gameId']:r for r in d1['records']}
+          q2={r['gameId']:r for r in d2['candidates'] if r.get('gameId')}
+          q3={r['id']:r for r in d3['candidates']}
+          staged={}
+          with zipfile.ZipFile(zip_path) as z:
+              wanted={'fast-manifest.json','manifests/fish001.json','manifests/fish023.json','manifests/special.json'}
+              wanted|={'fish001/'+x+'.png' for x in a}|{'fish023/'+x+'.png' for x in b}|{'special/S001.png'}
+              assert set(z.namelist())==wanted,'Unexpected or missing source files'
+              m=json.loads(z.read('fast-manifest.json'))
+              j1=json.loads(z.read('manifests/fish001.json'))
+              j2=json.loads(z.read('manifests/fish023.json'))
+              j3=json.loads(z.read('manifests/special.json'))
+              assert m['schema']=='human-fishing-fast-17-v1'
+              assert m['fishCount']==16 and m['specialCount']==1
+              assert {r['gameId'] for r in m['species']}==ids
+              assert {r['gameId'] for r in j1['species']}==a
+              assert {r['gameId'] for r in j2['species']}==b
+              assert {r['id'] for r in j3['creatures']}=={'S001'}
+              source={r['gameId']:r for r in j1['species']+j2['species']}
+              source['S001']=j3['creatures'][0]
+              live=[]
+              for r in m['species']:
+                  ident=r['gameId'];group='fish001' if ident in a else 'fish023' if ident in b else 'special'
+                  assert r['archivePath']==group+'/'+ident+'.png'
+                  assert r['sha256']==source[ident]['sha256']
+                  assert r['scientificName']==source[ident]['scientificName']
+                  if ident in a:
+                      assert q1[ident]['artStatus'] in ('READY_FOR_IMPORT_QA','LIVE')
+                      assert q1[ident]['scientificName']==r['scientificName']
+                  elif ident in b:
+                      assert q2[ident]['artStatus'] in ('READY_FOR_IMPORT_QA','LIVE')
+                      assert q2[ident]['scientificName']==r['scientificName']
+                  else:assert q3[ident]['scientificName']==r['scientificName']
+                  dest=(root/'assets/special-creatures'/(ident+'.png')) if ident=='S001' else (root/'assets/fish/individual'/(ident+'.png'))
+                  assert not dest.exists(),ident+' would overwrite artwork'
+                  data=z.read(r['archivePath'])
+                  assert hashlib.sha256(data).hexdigest()==r['sha256'],ident+' SHA256 mismatch'
+                  im=Image.open(io.BytesIO(data));im.load()
+                  assert im.format=='PNG' and im.mode=='RGBA'
+                  assert [im.width,im.height]==[r['width'],r['height']]
+                  bb=im.getchannel('A').getbbox()
+                  assert bb and min(bb[0],bb[1],im.width-bb[2],im.height-bb[3])>=8,ident+' alpha edge clip'
+                  staged[dest]=data
+                  live.append(dict(gameId=ident,nameKo=r['nameKo'],scientificName=r['scientificName'],sha256=r['sha256'],filename=ident+'.png',originalPixelsPreserved=True))
+          for dest,raw in staged.items():
+              dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(raw)
+          out1=root/'assets/fish-expansion'
+          out2=root/'assets/fish-expansion-023'
+          out3=root/'assets/special-creatures'
+          out1.mkdir(exist_ok=True,parents=True);out2.mkdir(exist_ok=True,parents=True)
+          (out1/'installed-manifest.json').write_text(json.dumps({'batch':'001-fast','status':'LIVE','species':[r for r in live if r['gameId'] in a]},ensure_ascii=False,indent=2)+'\n')
+          (out1/'ready.js').write_text('window.HumanFishingFishExpansionAssetsReady=true;\n')
+          j2['status']='INSTALLED_AND_LIVE'
+          (out2/'installed-manifest.json').write_text(json.dumps(j2,ensure_ascii=False,indent=2)+'\n')
+          (out2/'ready.js').write_text('window.HumanFishingFishExpansion023Ready=true;\n')
+          j3['creatures'][0]['status']='LIVE'
+          (out3/'manifest.json').write_text(json.dumps(j3,ensure_ascii=False,indent=2)+'\n')
+          (out3/'ready.js').write_text('window.HumanFishingSpecialAssetsReady=true;\n')
+          for q in d1['records']:
+              if q['gameId'] in a:q['artStatus']='LIVE'
+          d1['status']='SIX VERIFIED ORIGINALS LIVE; EIGHT HELD'
+          one.write_text(json.dumps(d1,ensure_ascii=False,indent=2)+'\n')
+          for q in d2['candidates']:
+              if q.get('gameId') in b:
+                  q['artStatus']='LIVE';q['assetReady']='DEPLOYED_IN_GAME';q['countsAsGameFish']=True
+          d2['status']='TEN BATCH023 ORIGINALS LIVE; TWO WORK IMAGES ALREADY LIVE'
+          two.write_text(json.dumps(d2,ensure_ascii=False,indent=2)+'\n')
+          for q in d3['candidates']:
+              if q['id']=='S001':q['gameStatus']='LIVE'
+          d3['artReadyButNotLive']=0;d3['liveCount']=1
+          three.write_text(json.dumps(d3,ensure_ascii=False,indent=2)+'\n')
+          inv=root/'fish-art-fast-inventory.json'
+          data=json.loads(inv.read_text())
+          data['fastPackInstalled']=True;data['confirmedLiveAfterFastPack']=320;data['verifiedSpecialLive']=1
+          inv.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
+          zip_path.unlink()
+          print('PASS 16 original fish PNGs + S001; expected 320 fish, 1 special, 5 edge-clip images held')
+          PY
+      - name: Commit verified images and readiness state
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A human-fishing/assets/fish/individual human-fishing/assets/fish-expansion human-fishing/assets/fish-expansion-023 human-fishing/assets/special-creatures
+          git add -A human-fishing/fish-art-batch-001-assignments.json human-fishing/fish-art-batch-002-queue.json human-fishing/special-creature-candidates.json human-fishing/fish-art-fast-inventory.json human-fishing/fish-art-fast-pack-17.zip
+          git diff --cached --quiet || git commit -m 'Install 16 verified original fish PNGs and S001 special'
+          git push origin HEAD:main
+      - name: Dispatch game QA and Pages after bot commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run human-fishing-qa.yml --ref main
+          gh workflow run pages.yml --ref main
