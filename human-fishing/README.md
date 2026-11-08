@@ -1,5 +1,7 @@
 # HUMAN FISHING / 인간낚시 — 웹 알파 2.4
 
+**Chat / Work 공통 업로드 기준:** [업로드·배포 가이드](tools/UPLOAD_DEPLOY_GUIDE.md) — PNG 직접 설치, 대용량 전송 검증, ZIP 업로더, 배포 완료 판정.
+
 **게임 실행:** https://zkrupinski.github.io/Test/human-fishing/
 
 **블루탱 14동작 확인:** https://zkrupinski.github.io/Test/human-fishing/?bluetang=1
