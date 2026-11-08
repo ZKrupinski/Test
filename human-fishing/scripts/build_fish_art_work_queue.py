@@ -33,6 +33,8 @@ for manifest_name in [
     'assets/fish-expansion-006/installed-manifest.json',
     'assets/fish-expansion-007/installed-manifest.json',
     'assets/fish-expansion-008/installed-manifest.json',
+    'assets/fish-expansion-009/installed-manifest.json',
+    'assets/fish-expansion-010/installed-manifest.json',
 ]:
     path = ROOT / manifest_name
     if not path.is_file():
@@ -75,7 +77,7 @@ for i, row in enumerate(selected):
     row['reviewOrder'] = i + 1
     row['batch'] = 'REVIEW-%02d' % (i // 6 + 1)
 result = {
-    'version': '2026-11-08',
+    'version': '2026-11-09',
     'role': 'Production review order, NOT a list of approved or live fish',
     'sourceCandidateCount': len(source['candidates']),
     'knownArtOrCurrentBatchMatched': len(source['candidates']) - len(backlog),
