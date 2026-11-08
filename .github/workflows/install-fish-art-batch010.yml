@@ -118,7 +118,7 @@ jobs:
           script=bitmap.read_text()
           v="Number(id.slice(1))>=355?'20261108-batch009-ten'"
           assert script.count(v)==1,'Bitmap cache version gate changed'
-          script=script.replace(v,"Number(id.slice(1))>=365?'20261109-batch010-eight':("+v+")")
+          script=script.replace(v,"Number(id.slice(1))>=365?'20261109-batch010-eight':"+v)
           bitmap.write_text(script)
           install=root/'assets/fish-expansion-010'
           install.mkdir(parents=True,exist_ok=False)
