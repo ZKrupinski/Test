@@ -63,6 +63,7 @@ Git blob SHA는 파일 내용만의 단순 SHA-1이 아니라 Git 헤더를 포�
 | fish-art-import-batch-001.zip | install-fish-art-batch001.yml |
 | fish-art-import-batch-023.zip | install-fish-art-batch023.yml |
 | fish-art-import-batch-004.zip | install-fish-art-batch004.yml |
+| fish-art-import-batch-011.zip | install-fish-art-batch011.yml (11차 F373–F378 6종, 최종 승인 F378 반영) |
 | special-creature-import.zip | install-special-creature-art.yml |
 
 ZIP은 `human-fishing/`에 정확한 이름으로 업로드한다.
