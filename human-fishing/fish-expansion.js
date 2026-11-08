@@ -23,6 +23,29 @@ var NAME_GROUPS=[
  '남극드래곤피시,남극실버피시,남극록코드,남극빙점어,극지백색빙어,남극스코티아메기,남극라이게노라,시베리아북극돔,얼음등가시고기,극지창꼬치,태평양할리벗,대서양할리벗,빙해폴락,퍼시픽코드,그린란드코드,노르웨이홍어,극지스케이트,알래스카폴락,베링청어,북태평양꽁치,흰점늑대고기,북극사각가오리,북극스컬핀,베링아이스피시,흰점극지퍼치'
 ];
 // SPECIES_NAMES_END
+// SOURCE_MAP_BEGIN
+// Approved silhouette parent for EACH named fish, chosen by body family,
+// not random index. Values 0..19 are a local habitat source; 1xxx is an
+// explicit original Fxxx from a different habitat when anatomy fits better.
+var SOURCE_MAPS=[
+ [3,3,3,3,2,2,2,4,4,0,0,0,11,12,14,11,5,7,7,18,18,15,15,16,17],
+ [1,1,0,0,0,4,5,5,5,4,4,1,18,17,18,17,17,17,17,12,14,15,18,5,9],
+ [3,3,6,6,0,5,2,5,6,1,8,8,8,8,7,12,9,9,0,12,10,10,2,19,17],
+ [8,8,9,10,7,6,5,6,7,5,19,19,19,19,19,13,13,8,10,3,2,0,1150,1150,1150],
+ [0,0,0,1,2,7,7,1,1,8,19,19,19,19,19,4,5,4,4,12,12,10,16,1148,15],
+ [18,18,18,18,11,10,9,9,4,4,4,4,11,18,7,6,8,8,12,12,18,1081,1081,16,3],
+ [5,5,3,3,2,4,4,4,3,3,1177,1177,1177,1177,0,1,0,1,0,7,7,7,1172,18,15],
+ [0,0,0,0,1,0,0,9,9,9,9,10,9,1129,13,1139,15,16,15,17,1170,5,5,2,1139],
+ [1,1,5,17,7,3,3,4,11,10,10,9,10,9,19,19,13,14,15,17,17,18,17,11,11],
+ [0,0,18,18,18,18,18,18,19,1158,19,19,1158,18,18,7,8,9,12,13,12,5,12,15,6],
+ [0,1,2,1,8,8,3,3,4,13,9,12,12,7,17,17,17,15,5,5,4,0,7,7,7],
+ [0,1,0,1,1,11,11,4,13,14,10,10,5,4,4,9,9,5,13,14,11,9,12,2,5]
+];
+// SOURCE_MAP_END
+function parentId(h,i){
+ var value=SOURCE_MAPS[h][i];
+ return value>=1000?value-1000:1+h*20+value;
+}
 var MORPH_COLOR=['루비','사파이어','에메랄드','호박','오팔','자수정','백금','금빛','밤안개','구름빛',
  '코발트','석양','달빛','오로라','화염','설화','터키석','진홍','바이올렛','진주',
  '청록','흑요석','노을','유리빛','남보라'];
@@ -38,8 +61,8 @@ function extend(list,profile){
  list.forEach(function(sp){ids[sp.id]=true;names[sp.name]=true});
  for(var h=0;h<12;h++){
   for(var i=0;i<25;i++){
-   var base=list[h*20+i%20],
-    baseId='F'+String(h*20+i%20+1).padStart(3,'0');
+   var sourceNumber=parentId(h,i),base=list[sourceNumber-1],
+    baseId='F'+String(sourceNumber).padStart(3,'0');
    var size=typeof profile==='function'?profile(base).category:(base.artSizeClass||'MEDIUM');
    for(var m=0;m<2;m++){
     var id='F'+String(305+h*50+i*2+m).padStart(3,'0'),
