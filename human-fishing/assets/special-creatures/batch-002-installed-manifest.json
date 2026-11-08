@@ -1,0 +1,129 @@
+{
+  "batch": "special-creatures-S006-S017",
+  "version": "2026-11-08",
+  "sourcePolicy": "When duplicate, later user upload wins; do not re-encode PNG",
+  "creatures": [
+    {
+      "id": "S006",
+      "nameKo": "유리심장 해파리",
+      "filename": "S006.png",
+      "sha256": "39e0a66260eba251635b861bd905d28b637a2af9ba5306fbce38a37491993841",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1725934,
+      "sourceFilename": "29641.png"
+    },
+    {
+      "id": "S007",
+      "nameKo": "심연의 종탑 생물",
+      "filename": "S007.png",
+      "sha256": "98fd8b51841bbc6605193545c9b090460bed74af3ca9fdaebd4550bfd8dc72f9",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1686165,
+      "sourceFilename": "29642.png"
+    },
+    {
+      "id": "S008",
+      "nameKo": "해류 가면귀",
+      "filename": "S008.png",
+      "sha256": "d82f8e69efda2fc942ccceb1b81d7f337a48b96384febcff979694bd644a26ab",
+      "width": 1717,
+      "height": 916,
+      "bytes": 1274855,
+      "sourceFilename": "29652.png"
+    },
+    {
+      "id": "S009",
+      "nameKo": "거울면가오리",
+      "filename": "S009.png",
+      "sha256": "721c7082e8ae73d74ab195f12c56864a5a8ffa34f6c7a399426f1f9b2ac073d2",
+      "width": 1774,
+      "height": 887,
+      "bytes": 837629,
+      "sourceFilename": "29653.png"
+    },
+    {
+      "id": "S010",
+      "nameKo": "심연 촛불장어",
+      "filename": "S010.png",
+      "sha256": "292103a82e4998015ac0eb420105160880c39becae1b3db7886cad23f86926aa",
+      "width": 1774,
+      "height": 887,
+      "bytes": 976458,
+      "sourceFilename": "29644.png"
+    },
+    {
+      "id": "S011",
+      "nameKo": "삼중입 나팔아귀",
+      "filename": "S011.png",
+      "sha256": "b2179b0f963a295fee65d51eafc61ba5e3b55e63b3509c8ef1c5b4819ef580e4",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 2040174,
+      "sourceFilename": "29638.png"
+    },
+    {
+      "id": "S012",
+      "nameKo": "가시왕관 먹장어",
+      "filename": "S012.png",
+      "sha256": "8edea5d6793aa2b6113b0a7e1b8853d9cf5df3bd50a3680419f9ec2748664a07",
+      "width": 1774,
+      "height": 887,
+      "bytes": 869343,
+      "sourceFilename": "29650.png"
+    },
+    {
+      "id": "S013",
+      "nameKo": "얼음유리 해마",
+      "filename": "S013.png",
+      "sha256": "25e8feb1f3d50cfc32530f277c5c4806b4a38e9cae6a72dcf24a68b36911fd03",
+      "width": 1199,
+      "height": 1312,
+      "bytes": 938766,
+      "sourceFilename": "29645.png"
+    },
+    {
+      "id": "S014",
+      "nameKo": "거울등 유령상어",
+      "filename": "S014.png",
+      "sha256": "d56f77ce70ab6feb9485065932755472c9366b23f256680a53ceecf62fb95ea8",
+      "width": 1774,
+      "height": 887,
+      "bytes": 961466,
+      "sourceFilename": "29646.png"
+    },
+    {
+      "id": "S015",
+      "nameKo": "뇌전톱니어",
+      "filename": "S015.png",
+      "sha256": "cdd94e66e301c350ee46fe8ee2862b3408eb1e9def29523e452a85b967bbaa5c",
+      "width": 1774,
+      "height": 887,
+      "bytes": 1077912,
+      "sourceFilename": "29643.png"
+    },
+    {
+      "id": "S016",
+      "nameKo": "은하우산 해파리",
+      "filename": "S016.png",
+      "sha256": "9d47c033cacf9a5b8ca03d094c2f5c9348a2927623bbbf7abe94500673730099",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1856165,
+      "sourceFilename": "29639.png"
+    },
+    {
+      "id": "S017",
+      "nameKo": "산호갑옷 거북",
+      "filename": "S017.png",
+      "sha256": "2876b611aebd3eb54ba170708f83767aa1b6425ae2fdf54e4ff8b4cfb2b3622c",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 2411797,
+      "sourceFilename": "29640.png"
+    }
+  ],
+  "installStatus": "SPRITES_INSTALLED_ONLY",
+  "gameCatalogChanged": false
+}
