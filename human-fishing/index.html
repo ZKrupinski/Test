@@ -4102,6 +4102,14 @@ function makeWildFish(sp,x,y,dir,small,schoolId){
   panicUntil:0,fearX:0,fearY:0,huntUntil:0,fightUntil:0,fightTarget:0,
   nextTurn:eco.t+rnd(rarity.turnMin,rarity.turnMax),homeY:y
  };
+ if(sp.specialCreature){
+  // Slow, low-oxygen drift rather than schooling like a normal fish.
+  f.speed=rnd(9,15);f.vx=dir*f.speed;f.vy=0;f.hunter=false;
+  f.schoolId=0;f.small=false;f.swimMode='hover';
+  f.swimFreq=rnd(.12,.24);f.swimAmp=rnd(15,26);f.agility=.68;
+  f.nextDart=eco.t+rnd(6,11);f.nextTurn=eco.t+rnd(6,10);
+  f.specialPulseAt=eco.t+rnd(4,9);
+ }
  f.y=ecoSafeDepth(f,y);f.homeY=f.y;
  return f;
 }
@@ -4478,6 +4486,17 @@ function updateEcosystem(dt){
   var wantX=f.dir*naturalSpeed*pace;
   var wantY=Math.sin(eco.t*f.swimFreq+f.phase)*f.swimAmp;
   var state=f.schoolId?'school':style==='hover'?'hover':'cruise';
+  if(f.sp&&f.sp.id==='S001'){
+   // Vampire squid: lazy webbed-arm hovering, then a short bioluminescent
+   // evasive pulse. Remains catchable and keeps full original bitmap size.
+   if(!Number.isFinite(f.specialPulseAt))f.specialPulseAt=eco.t+rnd(4,9);
+   if(eco.t>f.specialPulseAt+.42)f.specialPulseAt=eco.t+rnd(5,10);
+   var pulse=eco.t>=f.specialPulseAt&&eco.t<f.specialPulseAt+.42;
+   wantX=f.dir*(pulse?Math.max(30,naturalSpeed*2.8):Math.max(6,f.speed*.43));
+   wantY=Math.sin(eco.t*.71+f.phase)*(pulse?20:12);
+   state=pulse?'escape':'hover';
+   f.swimMode='hover';
+  }
   // Cheese draws only ordinary fish gently toward the painted bait.
   // It does not auto-hook or override personal-space separation.
   if(liveBaitTrait.type==='gentleAttract'&&!cast.active&&!hook&&!feverFx&&
