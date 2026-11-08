@@ -404,6 +404,8 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 <script src="./fish-bitmap-catalog.js?v=20261108-vampire-s001"></script>
 <script src="./assets/fish-expansion/ready.js?v=20261108-batch001-ready"></script>
 <script src="./fish-expansion-catalog.js?v=20261108-batch001"></script>
+<script src="./assets/fish-expansion-023/ready.js?v=20261108-batch023"></script>
+<script src="./fish-expansion-catalog-023.js?v=20261108-batch023"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
 <script src="./foley.js?v=20261108-chest-prize-bells-v1"></script>
 <script src="./ambient.js?v=20261108-deep-dual-ambience-v2"></script>
@@ -3818,6 +3820,7 @@ species.forEach(function(sp){
 });
 if(window.HumanFishingArt){window.HumanFishingArt.extend(species);if(window.HumanFishingArt.migrateSave&&window.HumanFishingArt.migrateSave(save))persist();}
 if(window.HumanFishingFishExpansion&&window.HumanFishingFishExpansion.extend)window.HumanFishingFishExpansion.extend(species);
+if(window.HumanFishingFishExpansion023&&window.HumanFishingFishExpansion023.extend)window.HumanFishingFishExpansion023.extend(species);
 if(!save.fever||typeof save.fever!=='object')save.fever={count:0,ready:false,total:0,activations:0};
 // Legacy saves could have 6/6 visually full while never becoming READY.
 // Restore readiness rather than leave the player stranded at full gauge.

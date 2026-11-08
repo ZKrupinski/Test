@@ -3,14 +3,14 @@
   "batch": "002",
   "total": 12,
   "goal": "anatomically distinct fish originals only, isolated transparent RGBA, never posters/infographics",
-  "status": "READY_FOR_INDEPENDENT_GPT_ORIGINAL_PRODUCTION_NOT_GENERATED",
+  "status": "10 DISTINCT GPT PNGs EXPORTED, 2 STILL NOT_GENERATED, 0 NEW LIVE",
   "stageAssignmentsVerified": false,
   "source": {
     "name": "ASFiS (FAO division fish taxon list)",
     "url": "https://github.com/WorldFishCenter/asfis-species-list/blob/master/data/processed/species_list_isscaap.csv",
     "note": "All 12 scientific binomials matched in source with no warning; geographic assignment still provisional."
   },
-  "imageIdReservation": "F319 onward only after image validation and collision-free install; do not assign IDs to this unrendered queue",
+  "imageIdReservation": "F319–F328 reserved for ten prepared PNGs. Other names get an ID only after a verified new image.",
   "candidates": [
     {
       "scientificName": "Callorhinchus callorynchus",
@@ -23,10 +23,19 @@
       "sourceTaxonMatched": true,
       "existingArtDuplicateCheck": "PENDING",
       "lifeRegionVerified": false,
-      "artStatus": "NOT_GENERATED",
-      "gameId": null,
-      "imageFile": null,
-      "countsAsGameFish": false
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "gameId": "F319",
+      "imageFile": "assets/fish/individual/F319.png",
+      "countsAsGameFish": false,
+      "assetReady": "EXPORTED_NOT_INSTALLED",
+      "behaviorProfile": {
+        "archetype": "callorhinchus_callorynchus",
+        "mode": "wander",
+        "speedMultiplier": 0.66,
+        "swimAmpMultiplier": 0.95,
+        "agilityMultiplier": 0.48,
+        "turnSeconds": 11
+      }
     },
     {
       "scientificName": "Chelidonichthys lucerna",
@@ -39,10 +48,19 @@
       "sourceTaxonMatched": true,
       "existingArtDuplicateCheck": "PENDING",
       "lifeRegionVerified": false,
-      "artStatus": "NOT_GENERATED",
-      "gameId": null,
-      "imageFile": null,
-      "countsAsGameFish": false
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "gameId": "F320",
+      "imageFile": "assets/fish/individual/F320.png",
+      "countsAsGameFish": false,
+      "assetReady": "EXPORTED_NOT_INSTALLED",
+      "behaviorProfile": {
+        "archetype": "chelidonichthys_lucerna",
+        "mode": "dart",
+        "speedMultiplier": 1.08,
+        "swimAmpMultiplier": 1.18,
+        "agilityMultiplier": 1.22,
+        "turnSeconds": 6
+      }
     },
     {
       "scientificName": "Sphyraena barracuda",
@@ -55,10 +73,19 @@
       "sourceTaxonMatched": true,
       "existingArtDuplicateCheck": "PENDING",
       "lifeRegionVerified": false,
-      "artStatus": "NOT_GENERATED",
-      "gameId": null,
-      "imageFile": null,
-      "countsAsGameFish": false
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "gameId": "F321",
+      "imageFile": "assets/fish/individual/F321.png",
+      "countsAsGameFish": false,
+      "assetReady": "EXPORTED_NOT_INSTALLED",
+      "behaviorProfile": {
+        "archetype": "sphyraena_barracuda",
+        "mode": "dart",
+        "speedMultiplier": 1.6,
+        "swimAmpMultiplier": 0.68,
+        "agilityMultiplier": 1.85,
+        "turnSeconds": 7
+      }
     },
     {
       "scientificName": "Ginglymostoma cirratum",
@@ -71,10 +98,19 @@
       "sourceTaxonMatched": true,
       "existingArtDuplicateCheck": "PENDING",
       "lifeRegionVerified": false,
-      "artStatus": "NOT_GENERATED",
-      "gameId": null,
-      "imageFile": null,
-      "countsAsGameFish": false
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "gameId": "F322",
+      "imageFile": "assets/fish/individual/F322.png",
+      "countsAsGameFish": false,
+      "assetReady": "EXPORTED_NOT_INSTALLED",
+      "behaviorProfile": {
+        "archetype": "ginglymostoma_cirratum",
+        "mode": "cruise",
+        "speedMultiplier": 0.58,
+        "swimAmpMultiplier": 0.58,
+        "agilityMultiplier": 0.56,
+        "turnSeconds": 13
+      }
     },
     {
       "scientificName": "Lampris guttatus",
@@ -87,10 +123,19 @@
       "sourceTaxonMatched": true,
       "existingArtDuplicateCheck": "PENDING",
       "lifeRegionVerified": false,
-      "artStatus": "NOT_GENERATED",
-      "gameId": null,
-      "imageFile": null,
-      "countsAsGameFish": false
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "gameId": "F323",
+      "imageFile": "assets/fish/individual/F323.png",
+      "countsAsGameFish": false,
+      "assetReady": "EXPORTED_NOT_INSTALLED",
+      "behaviorProfile": {
+        "archetype": "lampris_guttatus",
+        "mode": "wander",
+        "speedMultiplier": 0.87,
+        "swimAmpMultiplier": 1.12,
+        "agilityMultiplier": 0.74,
+        "turnSeconds": 12
+      }
     },
     {
       "scientificName": "Trichiurus lepturus",
@@ -103,10 +148,19 @@
       "sourceTaxonMatched": true,
       "existingArtDuplicateCheck": "PENDING",
       "lifeRegionVerified": false,
-      "artStatus": "NOT_GENERATED",
-      "gameId": null,
-      "imageFile": null,
-      "countsAsGameFish": false
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "gameId": "F324",
+      "imageFile": "assets/fish/individual/F324.png",
+      "countsAsGameFish": false,
+      "assetReady": "EXPORTED_NOT_INSTALLED",
+      "behaviorProfile": {
+        "archetype": "trichiurus_lepturus",
+        "mode": "wander",
+        "speedMultiplier": 1.15,
+        "swimAmpMultiplier": 1.72,
+        "agilityMultiplier": 1.27,
+        "turnSeconds": 7
+      }
     },
     {
       "scientificName": "Hoplostethus atlanticus",
@@ -119,10 +173,19 @@
       "sourceTaxonMatched": true,
       "existingArtDuplicateCheck": "PENDING",
       "lifeRegionVerified": false,
-      "artStatus": "NOT_GENERATED",
-      "gameId": null,
-      "imageFile": null,
-      "countsAsGameFish": false
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "gameId": "F325",
+      "imageFile": "assets/fish/individual/F325.png",
+      "countsAsGameFish": false,
+      "assetReady": "EXPORTED_NOT_INSTALLED",
+      "behaviorProfile": {
+        "archetype": "hoplostethus_atlanticus",
+        "mode": "hover",
+        "speedMultiplier": 0.62,
+        "swimAmpMultiplier": 0.84,
+        "agilityMultiplier": 0.84,
+        "turnSeconds": 9
+      }
     },
     {
       "scientificName": "Raja clavata",
@@ -167,10 +230,19 @@
       "sourceTaxonMatched": true,
       "existingArtDuplicateCheck": "PENDING",
       "lifeRegionVerified": false,
-      "artStatus": "NOT_GENERATED",
-      "gameId": null,
-      "imageFile": null,
-      "countsAsGameFish": false
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "gameId": "F326",
+      "imageFile": "assets/fish/individual/F326.png",
+      "countsAsGameFish": false,
+      "assetReady": "EXPORTED_NOT_INSTALLED",
+      "behaviorProfile": {
+        "archetype": "polydactylus_sexfilis",
+        "mode": "wander",
+        "speedMultiplier": 0.91,
+        "swimAmpMultiplier": 1.12,
+        "agilityMultiplier": 0.95,
+        "turnSeconds": 9
+      }
     },
     {
       "scientificName": "Scarus ghobban",
@@ -183,10 +255,19 @@
       "sourceTaxonMatched": true,
       "existingArtDuplicateCheck": "PENDING",
       "lifeRegionVerified": false,
-      "artStatus": "NOT_GENERATED",
-      "gameId": null,
-      "imageFile": null,
-      "countsAsGameFish": false
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "gameId": "F327",
+      "imageFile": "assets/fish/individual/F327.png",
+      "countsAsGameFish": false,
+      "assetReady": "EXPORTED_NOT_INSTALLED",
+      "behaviorProfile": {
+        "archetype": "scarus_ghobban",
+        "mode": "dart",
+        "speedMultiplier": 0.95,
+        "swimAmpMultiplier": 1.32,
+        "agilityMultiplier": 1.5,
+        "turnSeconds": 7
+      }
     },
     {
       "scientificName": "Antigonia capros",
@@ -199,10 +280,19 @@
       "sourceTaxonMatched": true,
       "existingArtDuplicateCheck": "PENDING",
       "lifeRegionVerified": false,
-      "artStatus": "NOT_GENERATED",
-      "gameId": null,
-      "imageFile": null,
-      "countsAsGameFish": false
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "gameId": "F328",
+      "imageFile": "assets/fish/individual/F328.png",
+      "countsAsGameFish": false,
+      "assetReady": "EXPORTED_NOT_INSTALLED",
+      "behaviorProfile": {
+        "archetype": "antigonia_capros",
+        "mode": "hover",
+        "speedMultiplier": 0.68,
+        "swimAmpMultiplier": 1.38,
+        "agilityMultiplier": 0.8,
+        "turnSeconds": 12
+      }
     }
   ]
 }
