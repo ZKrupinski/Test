@@ -190,6 +190,8 @@ jobs:
             "runtimeTick.indexOf('drawOcto(time);drawRod(time);drawHelpers(time)',sidekicks)",
             "runtimeTick.indexOf('drawOcto(time);drawRod(time);',sidekicks)",
             'smoke test visual stage without obsolete vector helpers')
+          smoke_qa=replace_once(smoke_qa,"'조력자'","'응원단'",
+            'shop navigation smoke test expects new cheering squad label')
           assert '조력자' not in html
           assert "helper:'응원단'" in html
           assert "window.drawOctopusSidekicks(ctx,time,octo)" in html
