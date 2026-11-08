@@ -20,6 +20,11 @@ for row in read('fish-art-batch-002-queue.json')['candidates']:
         known[key(row['scientificName'])] = row['artStatus']
 for row in read('fish-art-batch-004-queue.json')['candidates']:
     known[key(row['scientificName'])] = row['artStatus']
+# Include new review batches so continuing work never regenerates them blindly.
+for manifest_path in sorted((ROOT / 'art-review').glob('*/review-manifest.json')):
+    manifest = json.loads(manifest_path.read_text())
+    for row in manifest.get('species', []):
+        known[key(row['scientificName'])] = row.get('status', 'ART_REVIEW')
 current = ['Raja clavata', 'Argyrosomus regius']
 for name in current:
     known[key(name)] = 'CURRENT_ART_REVIEW_BATCH'

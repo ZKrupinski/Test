@@ -1,0 +1,201 @@
+{
+  "batch": "006-review",
+  "created": "2026-11-08",
+  "generationMethod": "built-in image_gen",
+  "status": "ART_REVIEW_NOT_LIVE",
+  "species": [
+    {
+      "scientificName": "Anabas testudineus",
+      "nameKo": "아나바스",
+      "reference": "https://www.nparks.gov.sg/florafaunaweb/fauna/9/1/913",
+      "recommendedStage": 3,
+      "sizeClassProposal": "SMALL",
+      "reviewNotes": "23 cm reference; Asia freshwater; rectangular body and serrated gill cover; no threadlike gourami pelvic fins",
+      "prompt": "Create one isolated high-resolution bitmap fish illustration for a premium casual fishing game. Exact full-body lateral side view, head RIGHT, tail LEFT. Beautiful clean three-dimensional hand-painted shading, lifelike species-specific anatomy, crisp readable silhouette, subtle natural textures, no cartoon eyes, no heavy outline. One animal only, NO sheet or collage. Subject description: Adult Asian climbing perch. Compact elongated rectangular body, blunt round head, thick large overlapping scales, serrated operculum edge, a long continuous spiny dorsal with a rounded soft posterior section, short sturdy rounded pectoral, blunt nearly truncate rounded tail. Olive grey bronze muted coloration with small dark opercular spot. No gourami threadlike pelvic feelers. Emphasize rectangular rather than disc body and serrated gill cover. Composition: landscape canvas with the fish occupying only central 65 percent of width and central 60 percent of height, a broad empty transparent border on ALL sides including whiskers and fin tips. Genuine transparent RGBA background, clean antialiased natural-colored edges. NO red/yellow fringe, NO colored outline, no cast shadow, no water, no bubbles, no floor, no checkerboard, no labels, no text, no logo, no extra animal, no clipping. Preserve natural species shape rather than recoloring a generic fish. Draw only the fish.",
+      "editPrompt": null,
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "countsAsGameFish": false,
+      "imageFile": "anabas-testudineus-review.png",
+      "bytes": 1496490,
+      "sha256": "5447f4db7f47ec46fbdc583dcec9da9584973f11992835e6fc793ef33f1876c7",
+      "gitBlobSha": "d28dc6922e34e7cfa70db7f9341679860deda4e1",
+      "width": 1774,
+      "height": 887,
+      "mode": "RGBA",
+      "alphaBoundingBox": [
+        33,
+        21,
+        1718,
+        887
+      ],
+      "minTransparentMargin": 0,
+      "reviewHolds": [
+        "Full approved/staged artwork comparison and gameplay metadata review required",
+        "Visible edge color contamination requires cleanup before installation",
+        "Transparent safety margin below 100px"
+      ]
+    },
+    {
+      "scientificName": "Gymnarchus niloticus",
+      "nameKo": "아바아바",
+      "reference": "https://www.fishbase.se/Fieldguide/FieldGuideSummary.php?c_code=404&genusname=Gymnarchus&speciesname=niloticus",
+      "recommendedStage": 2,
+      "sizeClassProposal": "LARGE",
+      "reviewNotes": "Up to 167 cm reference; Africa freshwater; correct source queue SMALL and stage 0; long dorsal and absent anal/caudal/pelvic fins",
+      "prompt": "Create one isolated high-resolution bitmap fish illustration for a premium casual fishing game. Exact full-body lateral side view, head RIGHT, tail LEFT. Beautiful clean three-dimensional hand-painted shading, lifelike species-specific anatomy, crisp readable silhouette, subtle natural textures, no cartoon eyes, no heavy outline. One animal only, NO sheet or collage. Subject description: Adult aba aba African knifefish. Extremely long slender grey body tapering into a naked needle-like tail tip, blunt prominent fleshy snout, tiny eye. A single long softly undulating ribbon DORSAL fin extending along almost the entire back, stopping before naked tail. Small pectoral fins only. Absolutely NO anal fin, NO pelvic fins, NO caudal fin. Belly edge completely smooth. Dark charcoal grey dorsal body, lighter grey belly. Different from a black ghost knifefish: ribbon fin on TOP, not underneath. Almost straight posture with gentle natural tail curve. Composition: landscape canvas with the fish occupying only central 65 percent of width and central 60 percent of height, a broad empty transparent border on ALL sides including whiskers and fin tips. Genuine transparent RGBA background, clean antialiased natural-colored edges. NO red/yellow fringe, NO colored outline, no cast shadow, no water, no bubbles, no floor, no checkerboard, no labels, no text, no logo, no extra animal, no clipping. Preserve natural species shape rather than recoloring a generic fish. Draw only the fish.",
+      "editPrompt": null,
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "countsAsGameFish": false,
+      "imageFile": "gymnarchus-niloticus-review.png",
+      "bytes": 678116,
+      "sha256": "99bd1f2fe97a9090caead214edb2551f5433679b120d8b7dbae311f591c5ad8a",
+      "gitBlobSha": "d58b2a74509f1480839c6e80ce752e15924d7a5c",
+      "width": 1774,
+      "height": 887,
+      "mode": "RGBA",
+      "alphaBoundingBox": [
+        49,
+        19,
+        1738,
+        861
+      ],
+      "minTransparentMargin": 19,
+      "reviewHolds": [
+        "Full approved/staged artwork comparison and gameplay metadata review required",
+        "Transparent safety margin below 100px"
+      ]
+    },
+    {
+      "scientificName": "Luciopimelodus pati",
+      "nameKo": "파티메기",
+      "reference": "https://www.fishbase.org/summary/12117",
+      "recommendedStage": null,
+      "sizeClassProposal": "LARGE",
+      "reviewNotes": "Up to 103 cm reference; La Plata/Blanco basins, not Amazon; game stage unresolved; forked tail and elongated adipose fin",
+      "prompt": "Create one isolated high-resolution bitmap fish illustration for a premium casual fishing game. Exact full-body lateral side view, head RIGHT, tail LEFT. Beautiful clean three-dimensional hand-painted shading, lifelike species-specific anatomy, crisp readable silhouette, subtle natural textures, no cartoon eyes, no heavy outline. One animal only, NO sheet or collage. Subject description: Adult South American pati catfish. Long streamlined smooth scaleless silvery blue-grey body, broad flattened rather elongated head and broad terminal mouth, long fine maxillary whiskers sweeping backward without tangles, small eyes, short triangular dorsal fin, elongated low adipose fin on posterior back, distinctly deeply forked caudal fin and muscular narrow tail peduncle. Natural pale silver belly. No armor plates, no huge sailfin, no spotted Synodontis pattern. Entire whiskers and tail visible. Composition: landscape canvas with the fish occupying only central 65 percent of width and central 60 percent of height, a broad empty transparent border on ALL sides including whiskers and fin tips. Genuine transparent RGBA background, clean antialiased natural-colored edges. NO red/yellow fringe, NO colored outline, no cast shadow, no water, no bubbles, no floor, no checkerboard, no labels, no text, no logo, no extra animal, no clipping. Preserve natural species shape rather than recoloring a generic fish. Draw only the fish.",
+      "editPrompt": null,
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "countsAsGameFish": false,
+      "imageFile": "luciopimelodus-pati-review.png",
+      "bytes": 807727,
+      "sha256": "8f8faa7372e422c4896dc30ac79d79ee5607c12acd88ec398579fea058873501",
+      "gitBlobSha": "6aa527a24670d756bcb47ed34f2c5416d76ce86d",
+      "width": 1774,
+      "height": 887,
+      "mode": "RGBA",
+      "alphaBoundingBox": [
+        48,
+        35,
+        1746,
+        871
+      ],
+      "minTransparentMargin": 16,
+      "reviewHolds": [
+        "Full approved/staged artwork comparison and gameplay metadata review required",
+        "Visible edge color contamination requires cleanup before installation",
+        "Transparent safety margin below 100px",
+        "No verified matching game habitat assigned"
+      ]
+    },
+    {
+      "scientificName": "Abramis brama",
+      "nameKo": "유럽브림",
+      "reference": "https://www.fao.org/4/69608e/69608e.pdf",
+      "recommendedStage": 4,
+      "sizeClassProposal": "MEDIUM",
+      "reviewNotes": "European freshwater bream; unusually deep body, small subinferior mouth and long anal fin; size class is game design",
+      "prompt": "Create one isolated high-resolution bitmap fish illustration for a premium casual fishing game. Exact full-body lateral side view, head RIGHT, tail LEFT. Beautiful clean three-dimensional hand-painted shading, lifelike species-specific anatomy, crisp readable silhouette, subtle natural textures, no cartoon eyes, no heavy outline. One animal only, NO sheet or collage. Subject description: Adult common freshwater bream. Very deep laterally compressed bronze-silver slab-sided body with tall hump-backed triangular profile, small head and small eye, small subinferior protrusible mouth without barbels. Short high triangular dorsal fin, distinctly long swept anal fin with base about twice dorsal base length, slim caudal peduncle and deeply forked charcoal tail. Subtle bronze scale sheen. No carp barbels and no long carp dorsal fin. Body height must be unusually deep compared with head. Composition: landscape canvas with the fish occupying only central 65 percent of width and central 60 percent of height, a broad empty transparent border on ALL sides including whiskers and fin tips. Genuine transparent RGBA background, clean antialiased natural-colored edges. NO red/yellow fringe, NO colored outline, no cast shadow, no water, no bubbles, no floor, no checkerboard, no labels, no text, no logo, no extra animal, no clipping. Preserve natural species shape rather than recoloring a generic fish. Draw only the fish.",
+      "editPrompt": "Background extraction only. Keep this exact fish, every fin, tail and all internal painting unchanged. Erase the ENTIRE fuzzy grey luminous halo/background around the animal, leaving fully transparent alpha pixels everywhere outside the precise fish silhouette. No glow or cast shadow. Preserve natural translucent fin membranes but remove all exterior haze. Do not add an outline. Add generous completely empty transparent safety margin on all sides. Output clean transparent RGBA PNG cutout, one fish, no text.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "countsAsGameFish": false,
+      "imageFile": "abramis-brama-review.png",
+      "bytes": 1779586,
+      "sha256": "47425a640de7f86e6dc5bc1189afe191eaed25992bdc0802c26b810c712d35e1",
+      "gitBlobSha": "43fd69cab7c1b994608a22c0ac0e866ce3f8bd2b",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "alphaBoundingBox": [
+        0,
+        103,
+        1484,
+        996
+      ],
+      "minTransparentMargin": 0,
+      "reviewHolds": [
+        "Full approved/staged artwork comparison and gameplay metadata review required",
+        "Exterior luminous halo remains; background extraction retry did not resolve it; original draft retained",
+        "Transparent safety margin below 100px"
+      ]
+    },
+    {
+      "scientificName": "Atelomycterus marmoratus",
+      "nameKo": "산호고양이상어",
+      "reference": "https://sharks.linnaeus.naturalis.nl/linnaeus_ng/app/views/species/taxon.php?epi=74&id=62579",
+      "recommendedStage": 6,
+      "sizeClassProposal": "MEDIUM",
+      "reviewNotes": "Up to 70 cm reference; Indo-West Pacific reefs, not open ocean; slender body and rear subequal dorsal fins",
+      "prompt": "Create one isolated high-resolution bitmap fish illustration for a premium casual fishing game. Exact full-body lateral side view, head RIGHT, tail LEFT. Beautiful clean three-dimensional hand-painted shading, lifelike species-specific anatomy, crisp readable silhouette, subtle natural textures, no cartoon eyes, no heavy outline. One animal only, NO sheet or collage. Subject description: Adult female coral catshark. Very slender near-cylindrical body and short narrow rounded snout, catlike lateral oval eye, five small gill slits, expanded anterior nasal flaps near small mouth. Two similar-sized relatively tall backward swept dorsal fins far back: first near pelvic fin insertion, second above small anal fin. Long low asymmetric caudal fin, rounded pectorals. Authentic muted dark grey-brown marbled large black marks and small off-white spots, no bright colors. Small reef shark anatomy, not a bulky great white or nurse shark. No claspers. Composition: landscape canvas with the fish occupying only central 65 percent of width and central 60 percent of height, a broad empty transparent border on ALL sides including whiskers and fin tips. Genuine transparent RGBA background, clean antialiased natural-colored edges. NO red/yellow fringe, NO colored outline, no cast shadow, no water, no bubbles, no floor, no checkerboard, no labels, no text, no logo, no extra animal, no clipping. Preserve natural species shape rather than recoloring a generic fish. Draw only the fish.",
+      "editPrompt": null,
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "countsAsGameFish": false,
+      "imageFile": "atelomycterus-marmoratus-review.png",
+      "bytes": 642738,
+      "sha256": "0e3fab4025be1a45fdfe1e909da366b0cd99211141191bc8feb8ed0c1efe0ff1",
+      "gitBlobSha": "16d69c5edb57ceefe587d20431a4c7df20e26cc1",
+      "width": 1774,
+      "height": 887,
+      "mode": "RGBA",
+      "alphaBoundingBox": [
+        57,
+        55,
+        1732,
+        823
+      ],
+      "minTransparentMargin": 42,
+      "reviewHolds": [
+        "Full approved/staged artwork comparison and gameplay metadata review required",
+        "Visible edge color contamination requires cleanup before installation",
+        "Transparent safety margin below 100px"
+      ]
+    },
+    {
+      "scientificName": "Atropus atropos",
+      "nameKo": "클레프트벨리전갱이",
+      "reference": "https://www.fao.org/4/x2400e/x2400e52.pdf",
+      "recommendedStage": null,
+      "sizeClassProposal": "MEDIUM",
+      "reviewNotes": "Cleftbelly trevally; long pelvic fins and compressed body; source queue LARGE not adopted; precise game habitat pending",
+      "prompt": "Create one isolated high-resolution bitmap fish illustration for a premium casual fishing game. Exact full-body lateral side view, head RIGHT, tail LEFT. Beautiful clean three-dimensional hand-painted shading, lifelike species-specific anatomy, crisp readable silhouette, subtle natural textures, no cartoon eyes, no heavy outline. One animal only, NO sheet or collage. Subject description: Adult cleftbelly trevally. Deep compressed oval silver body with high rounded forehead and steep concave lower front profile, small mouth, greenish metallic grey back, silver sides. Long dark blade-like pelvic fins projecting down and backwards, belly midline groove suggested subtly in shading; long sickle-like pectoral fin, tall swept anterior lobes to second dorsal and anal fin, narrow caudal peduncle and strongly forked yellow-grey tail. Real carangid fin anatomy, not a tuna shape, not a pompano with short pelvic fins. No cartoon mouth. Composition: landscape canvas with the fish occupying only central 65 percent of width and central 60 percent of height, a broad empty transparent border on ALL sides including whiskers and fin tips. Genuine transparent RGBA background, clean antialiased natural-colored edges. NO red/yellow fringe, NO colored outline, no cast shadow, no water, no bubbles, no floor, no checkerboard, no labels, no text, no logo, no extra animal, no clipping. Preserve natural species shape rather than recoloring a generic fish. Draw only the fish.",
+      "editPrompt": "Background extraction only. Keep this exact fish, every fin, tail and all internal painting unchanged. Erase the ENTIRE fuzzy grey luminous halo/background around the animal, leaving fully transparent alpha pixels everywhere outside the precise fish silhouette. No glow or cast shadow. Preserve natural translucent fin membranes but remove all exterior haze. Do not add an outline. Add generous completely empty transparent safety margin on all sides. Output clean transparent RGBA PNG cutout, one fish, no text.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "countsAsGameFish": false,
+      "imageFile": "atropus-atropos-review.png",
+      "bytes": 1776278,
+      "sha256": "c55ed778bbc2f69f153032590a27a59bf24b491c8e4010eb0ca3f54d67ef8015",
+      "gitBlobSha": "093a759666920e23486882b20d00d536ee2aa10b",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "alphaBoundingBox": [
+        0,
+        20,
+        1506,
+        1024
+      ],
+      "minTransparentMargin": 0,
+      "reviewHolds": [
+        "Full approved/staged artwork comparison and gameplay metadata review required",
+        "Exterior luminous halo remains; background extraction retry did not resolve it; original draft retained",
+        "Transparent safety margin below 100px",
+        "No verified matching game habitat assigned"
+      ]
+    }
+  ]
+}
