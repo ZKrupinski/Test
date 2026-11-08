@@ -3,7 +3,7 @@
   "batch": "002",
   "total": 12,
   "goal": "anatomically distinct fish originals only, isolated transparent RGBA, never posters/infographics",
-  "status": "10 DISTINCT GPT PNGs EXPORTED; 2 GENERATED ART_REVIEW WITH ALPHA HOLDS; 0 NEW LIVE",
+  "status": "Ten original 2/3-batch PNGs ready for fast-pack install; two later Work drawings (F334/F335) already LIVE with review flags",
   "stageAssignmentsVerified": false,
   "source": {
     "name": "ASFiS (FAO division fish taxon list)",
@@ -35,7 +35,8 @@
         "swimAmpMultiplier": 0.95,
         "agilityMultiplier": 0.48,
         "turnSeconds": 11
-      }
+      },
+      "fastPack": "fish-art-fast-pack-17.zip"
     },
     {
       "scientificName": "Chelidonichthys lucerna",
@@ -60,7 +61,8 @@
         "swimAmpMultiplier": 1.18,
         "agilityMultiplier": 1.22,
         "turnSeconds": 6
-      }
+      },
+      "fastPack": "fish-art-fast-pack-17.zip"
     },
     {
       "scientificName": "Sphyraena barracuda",
@@ -85,7 +87,8 @@
         "swimAmpMultiplier": 0.68,
         "agilityMultiplier": 1.85,
         "turnSeconds": 7
-      }
+      },
+      "fastPack": "fish-art-fast-pack-17.zip"
     },
     {
       "scientificName": "Ginglymostoma cirratum",
@@ -110,7 +113,8 @@
         "swimAmpMultiplier": 0.58,
         "agilityMultiplier": 0.56,
         "turnSeconds": 13
-      }
+      },
+      "fastPack": "fish-art-fast-pack-17.zip"
     },
     {
       "scientificName": "Lampris guttatus",
@@ -135,7 +139,8 @@
         "swimAmpMultiplier": 1.12,
         "agilityMultiplier": 0.74,
         "turnSeconds": 12
-      }
+      },
+      "fastPack": "fish-art-fast-pack-17.zip"
     },
     {
       "scientificName": "Trichiurus lepturus",
@@ -160,7 +165,8 @@
         "swimAmpMultiplier": 1.72,
         "agilityMultiplier": 1.27,
         "turnSeconds": 7
-      }
+      },
+      "fastPack": "fish-art-fast-pack-17.zip"
     },
     {
       "scientificName": "Hoplostethus atlanticus",
@@ -185,7 +191,8 @@
         "swimAmpMultiplier": 0.84,
         "agilityMultiplier": 0.84,
         "turnSeconds": 9
-      }
+      },
+      "fastPack": "fish-art-fast-pack-17.zip"
     },
     {
       "scientificName": "Raja clavata",
@@ -198,10 +205,10 @@
       "sourceTaxonMatched": true,
       "existingArtDuplicateCheck": "PENDING",
       "lifeRegionVerified": false,
-      "artStatus": "ART_REVIEW",
-      "gameId": null,
-      "imageFile": null,
-      "countsAsGameFish": false,
+      "artStatus": "LIVE_WITH_REVIEW_FLAGS",
+      "gameId": "F334",
+      "imageFile": "assets/fish/individual/F334.png",
+      "countsAsGameFish": true,
       "reviewImageFile": "art-review/batch-005/raja-clavata-review.png",
       "reviewManifest": "art-review/batch-005/review-manifest.json",
       "reviewHolds": [
@@ -209,7 +216,9 @@
         "Safety margin must meet installation rules",
         "Full comparison against original 304 and all staged artwork pending",
         "Species metadata and final gameplay angle approval pending"
-      ]
+      ],
+      "assetReady": "INSTALLED_VIA_WORK_BATCH006_WITH_UNRESOLVED_ART_FLAGS",
+      "reviewResolvedInBatch": "work-005006"
     },
     {
       "scientificName": "Argyrosomus regius",
@@ -222,10 +231,10 @@
       "sourceTaxonMatched": true,
       "existingArtDuplicateCheck": "PENDING",
       "lifeRegionVerified": false,
-      "artStatus": "ART_REVIEW",
-      "gameId": null,
-      "imageFile": null,
-      "countsAsGameFish": false,
+      "artStatus": "LIVE_WITH_REVIEW_FLAGS",
+      "gameId": "F335",
+      "imageFile": "assets/fish/individual/F335.png",
+      "countsAsGameFish": true,
       "reviewImageFile": "art-review/batch-005/argyrosomus-regius-review.png",
       "reviewManifest": "art-review/batch-005/review-manifest.json",
       "reviewHolds": [
@@ -233,7 +242,9 @@
         "Safety margin must meet installation rules",
         "Full comparison against original 304 and all staged artwork pending",
         "Species metadata and final gameplay angle approval pending"
-      ]
+      ],
+      "assetReady": "INSTALLED_VIA_WORK_BATCH006_WITH_UNRESOLVED_ART_FLAGS",
+      "reviewResolvedInBatch": "work-005006"
     },
     {
       "scientificName": "Polydactylus sexfilis",
@@ -258,7 +269,8 @@
         "swimAmpMultiplier": 1.12,
         "agilityMultiplier": 0.95,
         "turnSeconds": 9
-      }
+      },
+      "fastPack": "fish-art-fast-pack-17.zip"
     },
     {
       "scientificName": "Scarus ghobban",
@@ -283,7 +295,8 @@
         "swimAmpMultiplier": 1.32,
         "agilityMultiplier": 1.5,
         "turnSeconds": 7
-      }
+      },
+      "fastPack": "fish-art-fast-pack-17.zip"
     },
     {
       "scientificName": "Antigonia capros",
@@ -308,7 +321,8 @@
         "swimAmpMultiplier": 1.38,
         "agilityMultiplier": 0.8,
         "turnSeconds": 12
-      }
+      },
+      "fastPack": "fish-art-fast-pack-17.zip"
     }
   ]
 }

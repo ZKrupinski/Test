@@ -1,10 +1,10 @@
 {
   "version": "2026-11-08",
   "batch": "001",
-  "notes": "Separate originals vs 15 duplicated ghostwriter filenames; 11 new fish may be installed after validated ZIP upload. Hold 3 anatomical/silhouette reviews; F240 is existing Chimaera alternate art and MUST NOT increment fish collection.",
+  "notes": "6 PNGs pass RGBA/alpha margin checks and are ready for unified fast-pack install. 5 formerly marked READY require edge-clip review because original alpha touches canvas (F305/F308/F309/F313/F317). 3 previous anatomy/silhouette holds remain. F240 is an existing species replacement, not a new fish.",
   "latestLiveOriginalFish": 291,
-  "readyForUpload": 11,
-  "reviewHold": 3,
+  "readyForUpload": 6,
+  "reviewHold": 8,
   "existingReplacement": 1,
   "stages": 12,
   "records": [
@@ -15,7 +15,7 @@
       "habitat": 6,
       "artSizeClass": "MEDIUM",
       "rarity": "UNCOMMON",
-      "artStatus": "READY_FOR_IMPORT_QA",
+      "artStatus": "HOLD_SOURCE_EDGE_CLIP_REVIEW",
       "sha256Prefix": "ddb8086377e78a58",
       "behaviorProfile": {
         "archetype": "territorial_spine_guard",
@@ -27,7 +27,8 @@
       },
       "originalArtAvailable": true,
       "renderSource": "ChatGPT-generated original transparent PNG",
-      "gameAsset": "./assets/fish/individual/F305.png"
+      "gameAsset": "./assets/fish/individual/F305.png",
+      "edgeHoldReason": "Original PNG alpha bounding box touches canvas at one or more edges. Not activated or added to species count."
     },
     {
       "gameId": "F306",
@@ -48,7 +49,8 @@
       },
       "originalArtAvailable": true,
       "renderSource": "ChatGPT-generated original transparent PNG",
-      "gameAsset": "./assets/fish/individual/F306.png"
+      "gameAsset": "./assets/fish/individual/F306.png",
+      "fastPack": "fish-art-fast-pack-17.zip"
     },
     {
       "gameId": "F307",
@@ -78,7 +80,7 @@
       "habitat": 9,
       "artSizeClass": "LARGE",
       "rarity": "RARE",
-      "artStatus": "READY_FOR_IMPORT_QA",
+      "artStatus": "HOLD_SOURCE_EDGE_CLIP_REVIEW",
       "sha256Prefix": "e46c1da69576b990",
       "behaviorProfile": {
         "archetype": "openwater_long_fin_glide",
@@ -90,7 +92,8 @@
       },
       "originalArtAvailable": true,
       "renderSource": "ChatGPT-generated original transparent PNG",
-      "gameAsset": "./assets/fish/individual/F308.png"
+      "gameAsset": "./assets/fish/individual/F308.png",
+      "edgeHoldReason": "Original PNG alpha bounding box touches canvas at one or more edges. Not activated or added to species count."
     },
     {
       "gameId": "F309",
@@ -99,7 +102,7 @@
       "habitat": 9,
       "artSizeClass": "LARGE",
       "rarity": "EPIC",
-      "artStatus": "READY_FOR_IMPORT_QA",
+      "artStatus": "HOLD_SOURCE_EDGE_CLIP_REVIEW",
       "sha256Prefix": "f6071779dcfc4b3f",
       "behaviorProfile": {
         "archetype": "longtail_turn_and_burst",
@@ -111,7 +114,8 @@
       },
       "originalArtAvailable": true,
       "renderSource": "ChatGPT-generated original transparent PNG",
-      "gameAsset": "./assets/fish/individual/F309.png"
+      "gameAsset": "./assets/fish/individual/F309.png",
+      "edgeHoldReason": "Original PNG alpha bounding box touches canvas at one or more edges. Not activated or added to species count."
     },
     {
       "gameId": "F310",
@@ -153,7 +157,8 @@
       },
       "originalArtAvailable": true,
       "renderSource": "ChatGPT-generated original transparent PNG",
-      "gameAsset": "./assets/fish/individual/F311.png"
+      "gameAsset": "./assets/fish/individual/F311.png",
+      "fastPack": "fish-art-fast-pack-17.zip"
     },
     {
       "gameId": "F312",
@@ -174,7 +179,8 @@
       },
       "originalArtAvailable": true,
       "renderSource": "ChatGPT-generated original transparent PNG",
-      "gameAsset": "./assets/fish/individual/F312.png"
+      "gameAsset": "./assets/fish/individual/F312.png",
+      "fastPack": "fish-art-fast-pack-17.zip"
     },
     {
       "gameId": "F313",
@@ -183,7 +189,7 @@
       "habitat": 7,
       "artSizeClass": "LARGE",
       "rarity": "EPIC",
-      "artStatus": "READY_FOR_IMPORT_QA",
+      "artStatus": "HOLD_SOURCE_EDGE_CLIP_REVIEW",
       "sha256Prefix": "6120d4bb0920b891",
       "behaviorProfile": {
         "archetype": "seabed_wide_turn_glide",
@@ -195,7 +201,8 @@
       },
       "originalArtAvailable": true,
       "renderSource": "ChatGPT-generated original transparent PNG",
-      "gameAsset": "./assets/fish/individual/F313.png"
+      "gameAsset": "./assets/fish/individual/F313.png",
+      "edgeHoldReason": "Original PNG alpha bounding box touches canvas at one or more edges. Not activated or added to species count."
     },
     {
       "gameId": "F314",
@@ -216,7 +223,8 @@
       },
       "originalArtAvailable": true,
       "renderSource": "ChatGPT-generated original transparent PNG",
-      "gameAsset": "./assets/fish/individual/F314.png"
+      "gameAsset": "./assets/fish/individual/F314.png",
+      "fastPack": "fish-art-fast-pack-17.zip"
     },
     {
       "gameId": "F315",
@@ -237,7 +245,8 @@
       },
       "originalArtAvailable": true,
       "renderSource": "ChatGPT-generated original transparent PNG",
-      "gameAsset": "./assets/fish/individual/F315.png"
+      "gameAsset": "./assets/fish/individual/F315.png",
+      "fastPack": "fish-art-fast-pack-17.zip"
     },
     {
       "gameId": "F316",
@@ -258,7 +267,8 @@
       },
       "originalArtAvailable": true,
       "renderSource": "ChatGPT-generated original transparent PNG",
-      "gameAsset": "./assets/fish/individual/F316.png"
+      "gameAsset": "./assets/fish/individual/F316.png",
+      "fastPack": "fish-art-fast-pack-17.zip"
     },
     {
       "gameId": "F240",
@@ -288,7 +298,7 @@
       "habitat": 8,
       "artSizeClass": "MEDIUM",
       "rarity": "UNCOMMON",
-      "artStatus": "READY_FOR_IMPORT_QA",
+      "artStatus": "HOLD_SOURCE_EDGE_CLIP_REVIEW",
       "sha256Prefix": "aeb0935a16ad93e0",
       "behaviorProfile": {
         "archetype": "reflective_steep_turn",
@@ -300,7 +310,8 @@
       },
       "originalArtAvailable": true,
       "renderSource": "ChatGPT-generated original transparent PNG",
-      "gameAsset": "./assets/fish/individual/F317.png"
+      "gameAsset": "./assets/fish/individual/F317.png",
+      "edgeHoldReason": "Original PNG alpha bounding box touches canvas at one or more edges. Not activated or added to species count."
     },
     {
       "gameId": "F318",

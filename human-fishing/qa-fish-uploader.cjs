@@ -6,7 +6,8 @@ const workflows=[
 ['fish-art-import-batch-001.zip','.github/workflows/install-fish-art-batch001.yml'],
 ['fish-art-import-batch-023.zip','.github/workflows/install-fish-art-batch023.yml'],
 ['fish-art-import-batch-004.zip','.github/workflows/install-fish-art-batch004.yml'],
-['special-creature-import.zip','.github/workflows/install-special-creature-art.yml']
+['special-creature-import.zip','.github/workflows/install-special-creature-art.yml'],
+['fish-art-fast-pack-17.zip','.github/workflows/install-fish-art-fast-pack.yml']
 ];
 for(const [name,workflow] of workflows){
  assert.ok(s.includes(name),'Missing uploader ZIP mapping: '+name);

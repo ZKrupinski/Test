@@ -35,7 +35,8 @@ for(const candidate of curation.candidates)
 const dir=base+'assets/fish/individual';
 const approved=new Map();
 for(const batch of ['001','023','004','006']){
- const manifestPath=base+'assets/fish-expansion-'+batch+'/installed-manifest.json';
+ const folder=batch==='001'?'assets/fish-expansion/':'assets/fish-expansion-'+batch+'/';
+ const manifestPath=base+folder+'installed-manifest.json';
  if(!fs.existsSync(manifestPath))continue;
  const installed=JSON.parse(fs.readFileSync(manifestPath,'utf8'));
  for(const row of installed.species||[])approved.set(row.gameId,row.sha256);

@@ -17,7 +17,7 @@ function test(one,two){
  return {list,records:window.HumanFishingFishExpansion023.records};
 }
 assert.equal(test(false,false).list.length,291);
-assert.equal(test(true,true).list.length,312);
+assert.equal(test(true,true).list.length,307);
 const result=test(false,true);
 assert.equal(result.list.length,301);
 assert.equal(new Set(result.list.map(x=>x.id)).size,result.list.length);
@@ -27,7 +27,7 @@ assert.ok(result.records.every(x=>q.candidates.some(c=>c.scientificName===x.scie
 assert.ok(main.includes('HumanFishingFishExpansion023.extend(species)'));
 assert.ok(main.includes('assets/fish-expansion-023/ready.js'));
 const ready=fs.readFileSync(root+'assets/fish-expansion-023/ready.js','utf8').includes('=true');
-assert.equal(q.candidates.filter(x=>['NOT_GENERATED','ART_REVIEW'].includes(x.artStatus)).length,2);
+assert.equal(q.candidates.filter(x=>x.artStatus==='LIVE_WITH_REVIEW_FLAGS').length,2);
 assert.equal(q.candidates.filter(x=>x.artStatus==='READY_FOR_IMPORT_QA'||x.artStatus==='LIVE').length,10);
 if(ready)for(const x of result.records)assert.ok(fs.existsSync(root+'assets/fish/individual/'+x.id+'.png'),x.id);
 assert.equal(q.candidates.filter(x=>x.artStatus==='LIVE').length,ready?10:0);

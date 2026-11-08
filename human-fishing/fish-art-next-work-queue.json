@@ -6,8 +6,12 @@
   "remainingCandidateCount": 1502,
   "remainingCountMeaning": "Candidates without matched production records; not proof every candidate is unique or has no Library art",
   "currentBatch": [
-    "Raja clavata",
-    "Argyrosomus regius"
+    "Oxyeleotris marmorata",
+    "Ctenopoma kingsleyae",
+    "Bostrychus africanus",
+    "Mylossoma duriventre",
+    "Basilichthys australis",
+    "Boulengerochromis microlepis"
   ],
   "generationBatchSize": 6,
   "regionAssignmentsAreProvisional": true,
@@ -482,5 +486,6 @@
       "reviewOrder": 24,
       "batch": "REVIEW-04"
     }
-  ]
+  ],
+  "note": "F334 Raja clavata and F335 Argyrosomus regius already assigned LIVE via work-005006; no longer current production targets. New currentBatch denotes PREFLIGHT_REQUIRED candidates, not completed artwork."
 }

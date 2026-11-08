@@ -1,0 +1,171 @@
+{
+  "version": "2026-11-08",
+  "purpose": "Consolidate existing original artwork before generating more; never count mere planned names as live.",
+  "confirmedLiveBeforeFastPack": 304,
+  "originalFirstSourceReady": [
+    "F306",
+    "F311",
+    "F312",
+    "F314",
+    "F315",
+    "F316"
+  ],
+  "originalFirstSourceEdgeHolds": [
+    "F305",
+    "F308",
+    "F309",
+    "F313",
+    "F317"
+  ],
+  "originalFirstOtherHolds": [
+    "F307",
+    "F310",
+    "F318"
+  ],
+  "originalSecondSourceReady": [
+    "F319",
+    "F320",
+    "F321",
+    "F322",
+    "F323",
+    "F324",
+    "F325",
+    "F326",
+    "F327",
+    "F328"
+  ],
+  "alreadyReconciledWork": [
+    "F334",
+    "F335"
+  ],
+  "specialAssetReady": [
+    "S001"
+  ],
+  "fastPack": "fish-art-fast-pack-17.zip",
+  "targetAfterInstall": {
+    "fishCount": 320,
+    "specialCount": 1,
+    "allCatchableSpeciesCount": 321
+  },
+  "presentOnlyAsArtReview": {
+    "silhouetteCandidates": 52,
+    "individualAltImagesNeedCuration": 18,
+    "note": "Library titled standalone files are not automatically distinct new taxa; compare their scientific name and silhouette to live catalog."
+  },
+  "looseArtwork": [
+    {
+      "suggestedSubject": "가시가오리",
+      "sourceLibraryFilename": "오른쪽으로 헤엄치는 가시가오리 스프라이트.png",
+      "existingGameId": "F334",
+      "status": "ALTERNATE_REVIEW_NOT_ADDITIONAL"
+    },
+    {
+      "suggestedSubject": "미거",
+      "sourceLibraryFilename": "정돈된 은빛 물고기 스프라이트.png",
+      "existingGameId": "F335",
+      "status": "ALTERNATE_REVIEW_NOT_ADDITIONAL"
+    },
+    {
+      "suggestedSubject": "아바아바",
+      "sourceLibraryFilename": "아바아바 나이프피시 측면 스프라이트.png",
+      "existingGameId": "F337",
+      "status": "ALTERNATE_REVIEW_NOT_ADDITIONAL"
+    },
+    {
+      "suggestedSubject": "아바아바",
+      "sourceLibraryFilename": "수염 없는 아바아 칼고기 스프라이트.png",
+      "existingGameId": "F337",
+      "status": "ALTERNATE_REVIEW_NOT_ADDITIONAL"
+    },
+    {
+      "suggestedSubject": "파티메기",
+      "sourceLibraryFilename": "은빛 파티메기 수영 스프라이트.png",
+      "existingGameId": "F338",
+      "status": "ALTERNATE_REVIEW_NOT_ADDITIONAL"
+    },
+    {
+      "suggestedSubject": "유럽브림",
+      "sourceLibraryFilename": "청동빛 유럽브림 스프라이트.png",
+      "existingGameId": "F339",
+      "status": "ALTERNATE_REVIEW_NOT_ADDITIONAL"
+    },
+    {
+      "suggestedSubject": "산호고양이상어",
+      "sourceLibraryFilename": "산호고양이상어 게임 스프라이트.png",
+      "existingGameId": "F340",
+      "status": "ALTERNATE_REVIEW_NOT_ADDITIONAL"
+    },
+    {
+      "suggestedSubject": "클레프트벨리전갱이",
+      "sourceLibraryFilename": "푸른 등빛 클레프트벨리전갱이.png",
+      "existingGameId": "F341",
+      "status": "ALTERNATE_REVIEW_NOT_ADDITIONAL"
+    },
+    {
+      "suggestedSubject": "뱀파이어오징어",
+      "sourceLibraryFilename": "심해 흡혈오징어의 빛나는 망토.png",
+      "existingGameId": "S001",
+      "status": "ALTERNATE_REVIEW_NOT_ADDITIONAL"
+    },
+    {
+      "suggestedSubject": "참다랑어",
+      "sourceLibraryFilename": "사실적인 대형 참다랑어 일러스트.png",
+      "existingGameId": null,
+      "status": "COMPARE_BASE_AND_CURATION_FIRST"
+    },
+    {
+      "suggestedSubject": "농어",
+      "sourceLibraryFilename": "입 벌린 은빛 농어 생생한 측면 초상.png",
+      "existingGameId": null,
+      "status": "COMPARE_BASE_AND_CURATION_FIRST"
+    },
+    {
+      "suggestedSubject": "바위물고기",
+      "sourceLibraryFilename": "붉은 지느러미의 바위물고기.png",
+      "existingGameId": null,
+      "status": "COMPARE_BASE_AND_CURATION_FIRST"
+    },
+    {
+      "suggestedSubject": "만새기",
+      "sourceLibraryFilename": "생생한 청록빛 만새기 물고기 스티커.png",
+      "existingGameId": null,
+      "status": "COMPARE_BASE_AND_CURATION_FIRST"
+    },
+    {
+      "suggestedSubject": "심해아귀",
+      "sourceLibraryFilename": "심해 아귀의 푸른 유혹.png",
+      "existingGameId": null,
+      "status": "COMPARE_BASE_AND_CURATION_FIRST"
+    },
+    {
+      "suggestedSubject": "산갈치",
+      "sourceLibraryFilename": "붉은 지느러미의 거대 산갈치.png",
+      "existingGameId": null,
+      "status": "COMPARE_BASE_AND_CURATION_FIRST"
+    },
+    {
+      "suggestedSubject": "잎해룡",
+      "sourceLibraryFilename": "정교한 잎해룡의 측면 초상.png",
+      "existingGameId": null,
+      "status": "COMPARE_BASE_AND_CURATION_FIRST"
+    },
+    {
+      "suggestedSubject": "청새치",
+      "sourceLibraryFilename": "화려한 돛을 펼친 청새치.png",
+      "existingGameId": null,
+      "status": "COMPARE_BASE_AND_CURATION_FIRST"
+    },
+    {
+      "suggestedSubject": "복합 5종 카드 시트",
+      "sourceLibraryFilename": "심해와 이국어류 도감 시트.png",
+      "existingGameId": null,
+      "status": "SHEET_WITH_LABELS_DO_NOT_SLICE_AS_GAME_ART"
+    }
+  ],
+  "rules": {
+    "prioritize": "Verified unique full-body individual PNG with correct taxon and alpha before new generation",
+    "draftsDoNotCountAsLive": true,
+    "neverRegisterPaletteDuplicates": true,
+    "realSpeciesAndFictionalDistinct": true
+  }
+}

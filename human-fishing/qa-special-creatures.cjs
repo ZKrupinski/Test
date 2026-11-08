@@ -12,8 +12,10 @@ function load(ready){
  window.HumanFishingArt.extend(list);
  return {list,art:window.HumanFishingArt,images};
 }
-assert.equal(data.candidates.length,8);
-assert.ok(data.candidates.slice(5).every(x=>x.scientificName===null&&x.origin==='ORIGINAL_FICTIONAL'));
+assert.equal(data.candidates.length,24);
+assert.equal(new Set(data.candidates.map(x=>x.id)).size,24);
+assert.ok(data.candidates.slice(8).every(x=>x.origin==='ORIGINAL_FICTIONAL'&&x.gameStatus==='CONCEPT_NO_ART'&&x.imagePath===null));
+assert.ok(data.candidates.slice(5,8).every(x=>x.scientificName===null&&x.origin==='ORIGINAL_FICTIONAL'));
 const off=load(false),on=load(true);
 assert.equal(off.list.length,291);
 assert.equal(on.list.length,292);
