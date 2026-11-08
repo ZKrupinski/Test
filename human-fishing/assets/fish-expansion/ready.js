@@ -1,1 +1,1 @@
-window.HumanFishingFishExpansionAssetsReady=false;
+window.HumanFishingFishExpansionAssetsReady=true;

@@ -1,1 +1,1 @@
-window.HumanFishingSpecialAssetsReady=false;
+window.HumanFishingSpecialAssetsReady=true;

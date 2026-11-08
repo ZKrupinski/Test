@@ -167,5 +167,28 @@
     "draftsDoNotCountAsLive": true,
     "neverRegisterPaletteDuplicates": true,
     "realSpeciesAndFictionalDistinct": true
+  },
+  "fastPackInstalled": true,
+  "confirmedLiveAfterFastPack": 320,
+  "verifiedSpecialLive": 1,
+  "installedDirectVia": "GitHub create_blob/tree/commit/ref (not browser ZIP)",
+  "installedOriginalHashes": {
+    "F306": "4dff6bf433b02aeee3d434f7a3e1ab0bcaa6ac17bd556e932014c2dd1cc90ce6",
+    "F311": "d3604cd95f2ef11a586108e646a5b034f7840fa222742a608eb165efb35f9c24",
+    "F312": "fd813fc0a0c3254fbc7d1ca22c7d1850a0fbd422de0a63d99ca3e353a80091c1",
+    "F314": "4e47b758323e1c1c89884be3a4f64ccd1e5630da94e3a8d6e36af063b6adea71",
+    "F315": "82e67bcfe4a65d92958c33ca4797f9ebdc78242c2ceda7eb7f4cb23d309c0697",
+    "F316": "bcb2cb2c39c15c6b05c556c1dcd879bb0e7e36cc93462b453ece9b41db8d8436",
+    "F319": "fc69e365f6814f94c18cccc6bf76846858753a6a93cc195aa9703f647e3eb76d",
+    "F320": "932173469defc27554760498ef3df45632998c39f67ae3f304c7f2de4e6966bc",
+    "F321": "e9089c707df6ec8c9731a79516efff16f56d0b831b2c71db983f3a121e04bac3",
+    "F322": "589f2c6b3411ef378cb1c9edf428b807a9f700bae8c5e5f05f6e4d2909517d49",
+    "F323": "276b6a78db29983b39edfa5e5c07295d7f4db4726efd201b2867466379dda7e6",
+    "F324": "613ae57dd502dd2adbbddcbcf373ebc052419a8b8fef14e5560f6e03b5f2d9f6",
+    "F325": "963969f5f1eaf3f22a4d0f23348d173f12aa0d41458e93c04ee9fb97ee6503c6",
+    "F326": "3c0373cbf7496b731fc641b4a835bd9715abb4c2f5fe7d8c5b91fbe655907554",
+    "F327": "19e8fc514ebec1152fd179433e333bc058659b709fbcff5f2fbbf82c5455354f",
+    "F328": "402bfcde662bbb609f565e6098f52a63707e8449f8de68f6277150d7418831e2",
+    "S001": "fcc2b657fe592a2f8e0e7e844871b4d50d6b48880d9b81c7099bf1f7f02c68a2"
   }
 }

@@ -1,9 +1,9 @@
 {
   "version": "2026-11-08",
   "batch": "001",
-  "notes": "6 PNGs pass RGBA/alpha margin checks and are ready for unified fast-pack install. 5 formerly marked READY require edge-clip review because original alpha touches canvas (F305/F308/F309/F313/F317). 3 previous anatomy/silhouette holds remain. F240 is an existing species replacement, not a new fish.",
-  "latestLiveOriginalFish": 291,
-  "readyForUpload": 6,
+  "notes": "Six original source PNGs fully verified and installed by GitHub blob SHA: F306, F311, F312, F314, F315, F316; 8 quality holds kept inactive; F240 existing replacement not added.",
+  "latestLiveOriginalFish": 320,
+  "readyForUpload": 0,
   "reviewHold": 8,
   "existingReplacement": 1,
   "stages": 12,
@@ -37,7 +37,7 @@
       "habitat": 7,
       "artSizeClass": "LARGE",
       "rarity": "RARE",
-      "artStatus": "READY_FOR_IMPORT_QA",
+      "artStatus": "LIVE",
       "sha256Prefix": "4dff6bf433b02aee",
       "behaviorProfile": {
         "archetype": "surface_sprint_sharp_turn",
@@ -145,7 +145,7 @@
       "habitat": 8,
       "artSizeClass": "MEDIUM",
       "rarity": "RARE",
-      "artStatus": "READY_FOR_IMPORT_QA",
+      "artStatus": "LIVE",
       "sha256Prefix": "d3604cd95f2ef11a",
       "behaviorProfile": {
         "archetype": "upright_still_then_strike",
@@ -167,7 +167,7 @@
       "habitat": 7,
       "artSizeClass": "MEDIUM",
       "rarity": "UNCOMMON",
-      "artStatus": "READY_FOR_IMPORT_QA",
+      "artStatus": "LIVE",
       "sha256Prefix": "fd813fc0a0c3254f",
       "behaviorProfile": {
         "archetype": "mudbank_low_hover_strike",
@@ -211,7 +211,7 @@
       "habitat": 7,
       "artSizeClass": "MEDIUM",
       "rarity": "RARE",
-      "artStatus": "READY_FOR_IMPORT_QA",
+      "artStatus": "LIVE",
       "sha256Prefix": "4e47b758323e1c1c",
       "behaviorProfile": {
         "archetype": "pectoral_fan_display_turn",
@@ -233,7 +233,7 @@
       "habitat": 7,
       "artSizeClass": "LARGE",
       "rarity": "LEGEND",
-      "artStatus": "READY_FOR_IMPORT_QA",
+      "artStatus": "LIVE",
       "sha256Prefix": "82e67bcfe4a65d92",
       "behaviorProfile": {
         "archetype": "seabed_rostrum_patrol",
@@ -255,7 +255,7 @@
       "habitat": 3,
       "artSizeClass": "LARGE",
       "rarity": "RARE",
-      "artStatus": "READY_FOR_IMPORT_QA",
+      "artStatus": "LIVE",
       "sha256Prefix": "bcb2cb2c39c15c6b",
       "behaviorProfile": {
         "archetype": "eel_sinuous_rapid_dart",
@@ -334,5 +334,7 @@
       "renderSource": "ChatGPT-generated original transparent PNG",
       "gameAsset": "./assets/fish/individual/F318.png"
     }
-  ]
+  ],
+  "liveInstalled": 6,
+  "status": "SIX VERIFIED ORIGINALS INSTALLED; EIGHT QUALITY HOLDS; ONE EXISTING ALTERNATE"
 }

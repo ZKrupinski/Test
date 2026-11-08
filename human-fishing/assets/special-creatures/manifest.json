@@ -1,0 +1,25 @@
+{
+  "batch": "special-001",
+  "status": "INSTALLED_AND_LIVE",
+  "version": "2026-11-08",
+  "creatures": [
+    {
+      "gameId": "S001",
+      "scientificName": "Vampyroteuthis infernalis",
+      "nameKo": "뱀파이어오징어",
+      "habitat": 10,
+      "size": "SPECIAL",
+      "rarity": "EPIC",
+      "filename": "S001.png",
+      "sha256": "fcc2b657fe592a2f8e0e7e844871b4d50d6b48880d9b81c7099bf1f7f02c68a2",
+      "width": 2048,
+      "height": 1024,
+      "gitBlobSha": "4a52e39b22a43dd2d51bf6d1c56b9c18c0a15d99",
+      "artStatus": "LIVE",
+      "source": "ChatGPT individual original PNG",
+      "originalPixelsPreserved": true,
+      "id": "S001",
+      "status": "INSTALLED"
+    }
+  ]
+}

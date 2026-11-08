@@ -14,7 +14,7 @@
       "rarity": "EPIC",
       "size": "SPECIAL",
       "silhouette": "막으로 연결된 8팔·두 지느러미·발광·외투 뒤집기",
-      "gameStatus": "SOURCE_VERIFIED_READY_FOR_INSTALL",
+      "gameStatus": "LIVE",
       "behavior": "slow_hover_webbed_cloak_eversion_blue_bioluminescent_escape",
       "imagePath": "assets/special-creatures/S001.png",
       "artSourceArchive": "special-creature-import.zip",
@@ -376,7 +376,8 @@
       "countsToward1600FishGoal": false
     }
   ],
-  "artReadyButNotLive": 1,
+  "artReadyButNotLive": 0,
   "plannedWithoutArt": 23,
-  "contentGoal": 24
+  "contentGoal": 24,
+  "liveCount": 1
 }

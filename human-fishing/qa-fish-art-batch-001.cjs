@@ -5,7 +5,8 @@ const m=JSON.parse(fs.readFileSync(base+'fish-art-batch-001-assignments.json','u
 const code=fs.readFileSync(base+'fish-expansion-catalog.js','utf8');
 const html=fs.readFileSync(base+'index.html','utf8');
 assert.equal(m.records.length,15);
-assert.equal(m.readyForUpload,6);
+assert.equal(m.readyForUpload,0);
+assert.equal(m.liveInstalled,6);
 assert.equal(m.records.filter(x=>x.artStatus.startsWith('HOLD')).length,8);
 assert.equal(m.records.filter(x=>x.gameId==='F240').length,1);
 assert.equal(new Set(m.records.map(x=>x.gameId)).size,15);
