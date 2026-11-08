@@ -42,8 +42,8 @@ class MockContext{
  createBiquadFilter(){return{
   type:'lowpass',frequency:{...param(8000),
     linearRampToValueAtTime(v){this.value=v;filterSchedules++;return this}},
-  Q:param(.5),connect(){}}}
- createBufferSource(){return {buffer:null,loop:false,connect(){},
+  Q:param(.5),gain:param(0),connect(){}}}
+ createBufferSource(){return {buffer:null,loop:false,playbackRate:param(1),connect(){},
   start(){starts++},stop(){stops++}}}
  decodeAudioData(bytes){return Promise.resolve({duration:11,bytes:bytes.byteLength})}
  resume(){this.state='running';return Promise.resolve()}
@@ -76,10 +76,20 @@ assert.ok(ambient,'Ambient bus not installed');
   'No underwater loop should be audible above the surface');
  assert.equal(starts,2,'Surface + underwater loops should each start once');
  ambient.update(0,true,true);
- assert.equal(ambient.getState().surfaceGain,0,
-  'Surface wildlife and waves must fade away when submerged');
- assert.equal(ambient.getState().waterGain,.73,
-  'Common muffled diver bed must rise under the waterline');
+ assert.equal(ambient.getState().surfaceGain,.22,
+  'Regional surface ambience must remain audible WHILE underwater');
+ assert.equal(ambient.getState().waterGain,.79,
+  'Deeper muffled diver bed must play simultaneously with surface');
+ assert.equal(ambient.getState().underwaterLowpass,255,
+  'Underwater mix must attenuate highs far below the old 580Hz cutoff');
+ assert.equal(ambient.getState().underwaterPitch,.86,
+  'Diver bubbles and pressure recording must play lower and slower');
+ assert.equal(ambient.getState().underwaterBassDb,4.5,
+  'Underwater low shelf must add warmth to deep pressure tones');
+ assert.equal(ambient.getState().surfaceCutoff,820,
+  'The quiet surface bed should be low-passed, not killed underwater');
+ assert.equal(starts,2,
+  'Both surface AND underwater recordings must remain live concurrently');
  const before=filterSchedules;
  for(let i=0;i<300;i++)ambient.update(0,true,true);
  assert.equal(filterSchedules,before,
@@ -129,5 +139,5 @@ assert.ok(ambient,'Ambient bus not installed');
  sim.introEntrance.active=false;sim.view='tank';sim.updateAmbience();
  assert.deepEqual(calls.at(-1),[6,true,true],
   'Aquarium should have submerged environmental audio');
- console.log('PASS: 12 region ambiences + 1 common underwater, 0.83-1.15s lowpass crossfade, no autoplay, minimal fetching, 7px hysteresis, zone swap, overlay pause.');
+ console.log('PASS: 12 distinct surface themes coexist at .22 with darker underwater (.79 /255Hz /-14% pitch /+4.5dB bass); crossfade, autoplay, cache and region swap.');
 })().catch(e=>{console.error(e);process.exitCode=1});
