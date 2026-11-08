@@ -1,0 +1,43 @@
+name: Audit codex PNG visibility once
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/audit-codex-images-once.yml']
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan installed image pixels and alpha channels
+        run: |
+          python -m pip install -q Pillow
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import collections, json
+          dirs=[Path('human-fishing/assets/fish/individual'),Path('human-fishing/assets/special-creatures')]
+          files=[p for d in dirs for p in d.glob('*.png') if p.stem.startswith(('F','S'))]
+          results=[]; failed=[]; odd=[]
+          for p in files:
+           try:
+            with Image.open(p) as im:
+             im.load()
+             if im.mode!='RGBA': odd.append((p.stem,'MODE '+im.mode))
+             a=im.getchannel('A')
+             b=a.getbbox(); n=a.histogram()
+             solid=sum(n[160:]); nonzero=sum(n[1:])
+             pct=nonzero/(im.width*im.height)
+             bright=sum(n[50:])/max(1,nonzero)
+             obj={'id':p.stem,'size':im.size,'bbox':b,'nonzeroPct':round(pct,5),'visible50Pct':round(bright,4),'solidPixels':solid}
+             results.append(obj)
+             if not b or solid<250 or pct<.008:odd.append(obj)
+           except Exception as e: failed.append((p.name,str(e)))
+          print('FILES',len(files),'PNG_OK',len(results),'FAIL',failed)
+          print('LOW_VISIBILITY',json.dumps(odd,ensure_ascii=False))
+          print('SMALLEST_FILL',json.dumps(sorted(results,key=lambda z:z['nonzeroPct'])[:25],ensure_ascii=False))
+          print('SPECIALLIST',json.dumps([z for z in results if z['id'].startswith('S')],ensure_ascii=False))
+          assert not failed, 'Corrupt original PNG detected'
+          assert not odd, 'Nearly-invisible or non-RGBA original PNG detected'
+          PY
