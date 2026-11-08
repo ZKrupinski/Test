@@ -2,7 +2,7 @@
   "version": "2026-11-08",
   "batch": "004",
   "speciesGoal": 5,
-  "status": "FIVE DISTINCT GPT BITMAP PNGS PREPARED — AWAITING FULL GITHUB IMAGE UPLOAD",
+  "status": "FIVE UNIQUE BITMAPS INSTALLED AND LIVE",
   "source": {
     "name": "ASFiS fish division",
     "url": "https://github.com/WorldFishCenter/asfis-species-list/blob/master/data/processed/species_list_isscaap.csv",
@@ -19,9 +19,9 @@
       "rarity": "RARE",
       "morphology": "needle_crocodile_beak_ganoid_scales_rear_dorsal",
       "behavior": "surface_ambush_short_burst",
-      "artStatus": "READY_FOR_IMPORT_QA",
+      "artStatus": "LIVE",
       "gameId": "F329",
-      "live": false,
+      "live": true,
       "regionVerified": false,
       "silhouetteVerified": true,
       "imageFile": "assets/fish/individual/F329.png",
@@ -36,7 +36,7 @@
         "agilityMultiplier": 1.4,
         "turnSeconds": 13
       },
-      "countsAsGameFish": false
+      "countsAsGameFish": true
     },
     {
       "scientificName": "Heterotis niloticus",
@@ -47,9 +47,9 @@
       "rarity": "EPIC",
       "morphology": "thick_bronze_body_small_mouth_rear_dorsal_and_anal",
       "behavior": "wide_turn_watercolumn_glide",
-      "artStatus": "READY_FOR_IMPORT_QA",
+      "artStatus": "LIVE",
       "gameId": "F330",
-      "live": false,
+      "live": true,
       "regionVerified": false,
       "silhouetteVerified": true,
       "imageFile": "assets/fish/individual/F330.png",
@@ -64,7 +64,7 @@
         "agilityMultiplier": 0.56,
         "turnSeconds": 12
       },
-      "countsAsGameFish": false
+      "countsAsGameFish": true
     },
     {
       "scientificName": "Macrourus holotrachys",
@@ -75,9 +75,9 @@
       "rarity": "EPIC",
       "morphology": "huge_head_large_eye_deep_tail_taper_without_large_fin",
       "behavior": "deep_hover_brief_escape",
-      "artStatus": "READY_FOR_IMPORT_QA",
+      "artStatus": "LIVE",
       "gameId": "F331",
-      "live": false,
+      "live": true,
       "regionVerified": false,
       "silhouetteVerified": true,
       "imageFile": "assets/fish/individual/F331.png",
@@ -92,7 +92,7 @@
         "agilityMultiplier": 0.83,
         "turnSeconds": 9
       },
-      "countsAsGameFish": false
+      "countsAsGameFish": true
     },
     {
       "scientificName": "Cetorhinus maximus",
@@ -103,9 +103,9 @@
       "rarity": "LEGEND",
       "morphology": "enormous_filter_open_mouth_long_gill_slits_asymmetric_tail",
       "behavior": "huge_slow_filter_feeding_patrol",
-      "artStatus": "READY_FOR_IMPORT_QA",
+      "artStatus": "LIVE",
       "gameId": "F332",
-      "live": false,
+      "live": true,
       "regionVerified": false,
       "silhouetteVerified": true,
       "imageFile": "assets/fish/individual/F332.png",
@@ -120,7 +120,7 @@
         "agilityMultiplier": 0.44,
         "turnSeconds": 15
       },
-      "countsAsGameFish": false
+      "countsAsGameFish": true
     },
     {
       "scientificName": "Aluterus monoceros",
@@ -131,9 +131,9 @@
       "rarity": "RARE",
       "morphology": "single_frontal_spine_leaf_shaped_flat_body",
       "behavior": "cautious_reef_hover_short_side_turn",
-      "artStatus": "READY_FOR_IMPORT_QA",
+      "artStatus": "LIVE",
       "gameId": "F333",
-      "live": false,
+      "live": true,
       "regionVerified": false,
       "silhouetteVerified": true,
       "imageFile": "assets/fish/individual/F333.png",
@@ -148,7 +148,7 @@
         "agilityMultiplier": 1.12,
         "turnSeconds": 9
       },
-      "countsAsGameFish": false
+      "countsAsGameFish": true
     }
   ],
   "imageIdReservation": "F329–F333 reserved for original art batch 004; registered only after atomic PNG asset installation."

@@ -1,0 +1,251 @@
+{
+  "batch": "004",
+  "version": "2026-11-08",
+  "status": "INSTALLED_AND_LIVE",
+  "fishCount": 5,
+  "role": "Five verified original transparent bitmap sprites installed with batch 004 activation",
+  "originalPixelScalePreserved": true,
+  "sourceReference": "https://github.com/WorldFishCenter/asfis-species-list/blob/master/data/processed/species_list_isscaap.csv",
+  "species": [
+    {
+      "gameId": "F329",
+      "scientificName": "Lepisosteus osseus",
+      "nameKo": "롱노즈가아",
+      "habitat": 4,
+      "size": "LARGE",
+      "rarity": "RARE",
+      "behavior": {
+        "archetype": "ambush_stillness_surface_lunge",
+        "mode": "dart",
+        "speedMultiplier": 0.87,
+        "swimAmpMultiplier": 1.05,
+        "agilityMultiplier": 1.4,
+        "turnSeconds": 13
+      },
+      "filename": "F329.png",
+      "sha256": "6374545f57c5ec04387c42851c4133f4782474ff0b5d65a44b6e9827271993a6",
+      "width": 1899,
+      "height": 558,
+      "alphaBoundingBox": [
+        125,
+        125,
+        1774,
+        434
+      ],
+      "sourceOriginal": "긴_주둥이_가어의_측면_초상.png",
+      "artStatus": "LIVE",
+      "sourcePixelSize": [
+        1672,
+        941
+      ],
+      "noResampling": true,
+      "originalGameId": null,
+      "maxSilhouetteSimilarityToEarlierArt": [
+        [
+          0.639,
+          "F316.png"
+        ],
+        [
+          0.626,
+          "F315.png"
+        ],
+        [
+          0.551,
+          "F321.png"
+        ]
+      ]
+    },
+    {
+      "gameId": "F330",
+      "scientificName": "Heterotis niloticus",
+      "nameKo": "아프리카보니텅",
+      "habitat": 2,
+      "size": "LARGE",
+      "rarity": "EPIC",
+      "behavior": {
+        "archetype": "wide_turn_watercolumn_glide",
+        "mode": "cruise",
+        "speedMultiplier": 0.74,
+        "swimAmpMultiplier": 0.9,
+        "agilityMultiplier": 0.56,
+        "turnSeconds": 12
+      },
+      "filename": "F330.png",
+      "sha256": "6a6fcaf225fc0a006f6e12e64a20045d378f5cec2f88154ed8bfbd7a89a8f7df",
+      "width": 1894,
+      "height": 791,
+      "alphaBoundingBox": [
+        125,
+        124,
+        1770,
+        666
+      ],
+      "sourceOriginal": "아프리카_골설어_정밀_일러스트.png",
+      "artStatus": "LIVE",
+      "sourcePixelSize": [
+        1672,
+        941
+      ],
+      "noResampling": true,
+      "originalGameId": null,
+      "maxSilhouetteSimilarityToEarlierArt": [
+        [
+          0.803,
+          "F312.png"
+        ],
+        [
+          0.716,
+          "F327.png"
+        ],
+        [
+          0.659,
+          "F320.png"
+        ]
+      ]
+    },
+    {
+      "gameId": "F331",
+      "scientificName": "Macrourus holotrachys",
+      "nameKo": "거친머리그레나디어",
+      "habitat": 10,
+      "size": "MEDIUM",
+      "rarity": "EPIC",
+      "behavior": {
+        "archetype": "deep_hover_brief_escape",
+        "mode": "hover",
+        "speedMultiplier": 0.55,
+        "swimAmpMultiplier": 0.7,
+        "agilityMultiplier": 0.83,
+        "turnSeconds": 9
+      },
+      "filename": "F331.png",
+      "sha256": "b8e7d6e8ff04ebf11cd8a59e4c9442478f263a14320c7f46a27effaab0c2a693",
+      "width": 1895,
+      "height": 729,
+      "alphaBoundingBox": [
+        124,
+        125,
+        1770,
+        605
+      ],
+      "sourceOriginal": "リアルなラフヘッドグレナディア標本.png",
+      "artStatus": "LIVE",
+      "sourcePixelSize": [
+        1672,
+        941
+      ],
+      "noResampling": true,
+      "originalGameId": null,
+      "maxSilhouetteSimilarityToEarlierArt": [
+        [
+          0.656,
+          "F324.png"
+        ],
+        [
+          0.534,
+          "F322.png"
+        ],
+        [
+          0.512,
+          "F321.png"
+        ]
+      ]
+    },
+    {
+      "gameId": "F332",
+      "scientificName": "Cetorhinus maximus",
+      "nameKo": "돌묵상어",
+      "habitat": 9,
+      "size": "LARGE",
+      "rarity": "LEGEND",
+      "behavior": {
+        "archetype": "huge_slow_filter_feeding_patrol",
+        "mode": "cruise",
+        "speedMultiplier": 0.38,
+        "swimAmpMultiplier": 0.62,
+        "agilityMultiplier": 0.44,
+        "turnSeconds": 15
+      },
+      "filename": "F332.png",
+      "sha256": "90cea45ee907192b606e81c0081c79785011678d73b0d046eda19b493a54575e",
+      "width": 1904,
+      "height": 1111,
+      "alphaBoundingBox": [
+        125,
+        124,
+        1780,
+        986
+      ],
+      "sourceOriginal": "거대한_입을_벌린_돌묵상어_측면도.png",
+      "artStatus": "LIVE",
+      "sourcePixelSize": [
+        1672,
+        941
+      ],
+      "noResampling": true,
+      "originalGameId": null,
+      "maxSilhouetteSimilarityToEarlierArt": [
+        [
+          0.629,
+          "F312.png"
+        ],
+        [
+          0.613,
+          "F308.png"
+        ],
+        [
+          0.608,
+          "F327.png"
+        ]
+      ]
+    },
+    {
+      "gameId": "F333",
+      "scientificName": "Aluterus monoceros",
+      "nameKo": "유니콘쥐치",
+      "habitat": 6,
+      "size": "MEDIUM",
+      "rarity": "RARE",
+      "behavior": {
+        "archetype": "cautious_reef_hover_short_side_turn",
+        "mode": "hover",
+        "speedMultiplier": 0.72,
+        "swimAmpMultiplier": 1.35,
+        "agilityMultiplier": 1.12,
+        "turnSeconds": 9
+      },
+      "filename": "F333.png",
+      "sha256": "5f3a4446ed1054a69b3b9ef5aff5e85615e6d88a1f1ef80bfdf2098ea2e52441",
+      "width": 1869,
+      "height": 966,
+      "alphaBoundingBox": [
+        123,
+        125,
+        1744,
+        841
+      ],
+      "sourceOriginal": "사실적인_유니콘_쥐치_일러스트.png",
+      "artStatus": "LIVE",
+      "sourcePixelSize": [
+        1672,
+        941
+      ],
+      "noResampling": true,
+      "originalGameId": null,
+      "maxSilhouetteSimilarityToEarlierArt": [
+        [
+          0.813,
+          "F312.png"
+        ],
+        [
+          0.755,
+          "F327.png"
+        ],
+        [
+          0.742,
+          "F320.png"
+        ]
+      ]
+    }
+  ]
+}

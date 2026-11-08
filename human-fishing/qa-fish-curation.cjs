@@ -1,8 +1,8 @@
 'use strict';
 /* Enforce original 304 untouched and reject duplicate/recolor filler.
- * Approved new-silhouette art is staged separately, never counted as live.
+ * Approved new-silhouette installations must match their verified image hashes.
  */
-const fs=require('node:fs'),assert=require('node:assert/strict'),path=require('node:path');
+const fs=require('node:fs'),assert=require('node:assert/strict'),path=require('node:path'),crypto=require('node:crypto');
 const base='human-fishing/';
 const index=fs.readFileSync(base+'index.html','utf8');
 const manifest=JSON.parse(fs.readFileSync(base+'assets/fish/manifest.json','utf8'));
@@ -33,7 +33,18 @@ for(const candidate of curation.candidates)
  assert.ok(!oldNames.has(candidate.name),
   'Review rejected an unchanged old species name: '+candidate.name);
 const dir=base+'assets/fish/individual';
-for(let i=305;i<=904;i++)
- assert.ok(!fs.existsSync(path.join(dir,'F'+String(i).padStart(3,'0')+'.png')),
-  'Retired duplicate artwork is still present: F'+i);
-console.log('PASS: original 304 fish/saves intact, 600 duplicate/recolor PNGs fully removed, 52 distinct-silhouette candidates separated from live catalog, no padded species count.');
+const approved=new Map();
+for(const batch of ['001','023','004']){
+ const manifestPath=base+'assets/fish-expansion-'+batch+'/installed-manifest.json';
+ if(!fs.existsSync(manifestPath))continue;
+ const installed=JSON.parse(fs.readFileSync(manifestPath,'utf8'));
+ for(const row of installed.species||[])approved.set(row.gameId,row.sha256);
+}
+for(let i=305;i<=904;i++){
+ const id='F'+String(i).padStart(3,'0'),file=path.join(dir,id+'.png');
+ if(!fs.existsSync(file))continue;
+ assert.ok(approved.has(id),'Retired duplicate artwork is still present: '+id);
+ assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),approved.get(id),
+  'Installed artwork differs from its verified original: '+id);
+}
+console.log('PASS: original 304 fish/saves intact, retired recolors excluded and installed original sprite hashes verified, 52 distinct-silhouette candidates separated from live catalog, no padded species count.');
