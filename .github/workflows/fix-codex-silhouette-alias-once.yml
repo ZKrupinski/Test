@@ -1,0 +1,265 @@
+name: Fix codex blank silhouettes and duplicate coral fish
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/fix-codex-silhouette-alias-once.yml']
+permissions:
+  contents: write
+concurrency:
+  group: human-fishing-codex-duplicate-fix
+  cancel-in-progress: false
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Fix aliases, codex loading and tests without changing original PNGs
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, re
+          root=Path('human-fishing')
+          paths={
+           'catalog':root/'fish-bitmap-catalog.js',
+           'index':root/'index.html',
+           'manifest':root/'assets/fish/manifest.json',
+           'visual':root/'qa-fish-visual-catalog.cjs',
+           'special':root/'qa-special-creatures.cjs',
+           'plan':root/'qa-fish-production-plan.cjs',
+           'workflow':Path('.github/workflows/human-fishing-qa.yml'),
+          }
+          originals={k:p.read_text() for k,p in paths.items()}
+          c=originals['catalog'];html=originals['index']
+          def one(txt,old,new,label):
+           found=txt.count(old)
+           assert found==1, label+' match '+str(found)
+           return txt.replace(old,new)
+          # Original F122 and variants F265-F272 are repeated art. The eight
+          # variant labels were assigned to the wrong original images.
+          # Do NOT delete source assets; merge saved catches and aquarium slots.
+          newly={
+           'F122':'F121','F265':'F121','F266':'F123','F267':'F124',
+           'F268':'F126','F269':'F125','F270':'F127','F271':'F128','F272':'F129'
+          }
+          match=re.search(r' var visualAliases=(\{[^;]+\});',c)
+          assert match,'Alias registry changed'
+          aliases=json.loads(match.group(1))
+          assert all(k not in aliases for k in newly), 'Already archived coral image'
+          aliases.update(newly)
+          assert len(aliases)==22
+          c=c[:match.start(1)]+json.dumps(aliases,ensure_ascii=False,separators=(',',':'))+c[match.end(1):]
+          c=one(c,
+           "var ids=listZone(list,z).map(function(x){return x.id});",
+           "var ids=listZone(list,z).filter(function(x){return !x.archivedVisualDuplicate}).map(function(x){return x.id});",
+           'No preload for archived visual duplicate')
+          c=one(c,
+           "list.forEach(function(sp){if(baseTierFix[sp.name])sp.rarity=baseTierFix[sp.name];});",
+           "list.forEach(function(sp){if(baseTierFix[sp.name])sp.rarity=baseTierFix[sp.name];if(visualAliases[sp.id])sp.archivedVisualDuplicate=true;});",
+           'Base fish visual archive')
+          c=one(c,
+           "variantCount:64-Object.keys(visualAliases).length",
+           "variantCount:64-Object.keys(visualAliases).filter(function(id){return Number(id.slice(1))>=241}).length",
+           'Actual variant count without base alias')
+          # Silhouette is black, but must have a subtle pale edge over dark blue.
+          html=one(html,
+           "filter:brightness(0);opacity:1",
+           "filter:brightness(0) drop-shadow(0 0 1px #b7d8db) drop-shadow(0 0 3px #81b4b6bd);opacity:1",
+           'Black silhouettes now have readable outlines')
+          html=one(html,
+           "#panelBody .book-fish-caption{",
+           "#panelBody .book-fish-thumb.image-error{color:#c5dae0;font:800 10px system-ui;text-align:center}\n#panelBody .book-fish-caption{",
+           'Broken-image textual diagnostic')
+          # Do not change the fixed base 240 IDs or zone*20 ecology indexing.
+          # Filter archived entries from visible codex and wild spawn candidates.
+          head="function renderBook(filter,query){\n filter=filter===undefined?-3:Number(filter);"
+          assert head in html
+          start=html.index(head)
+          end=html.index('function renderTankSide(){',start)
+          part=html[start:end]
+          part=one(part,"var count=Object.keys(save.owned).length,hCount=",
+            "var catalogueSpecies=species.filter(function(sp){return !sp.archivedVisualDuplicate});\n var count=Object.keys(save.owned).length,hCount=",
+            'Visible codex source')
+          part=part.replace('species.length+humans.length','catalogueSpecies.length+humans.length')
+          part=part.replace('species.filter(function','catalogueSpecies.filter(function')
+          part=one(part,
+           "}).join('')+visibleFish.map(function(sp){",
+           "}).join('')+visibleFish.map(function(sp,photoIndex){",
+           'Codex thumbnail loading index')
+          part=one(part,
+           'loading="lazy" decoding="async"',
+           'loading="'+(photoIndex<48?'eager':'lazy')+'" decoding="async"',
+           'Prioritize first 48 codex images')
+          part=one(part,
+           "'./assets/special-creatures/'+sp.id+'.png?v=20261108-s001':'./assets/fish/individual/'+sp.id+'.png?v=20261106-fish304'",
+           "'./assets/special-creatures/'+sp.id+'.png?v=20261109-codexfix':'./assets/fish/individual/'+sp.id+'.png?v=20261109-codexfix'",
+           'Refresh stale codex image cache')
+          part=one(part,
+           " $('search').oninput=function(){",
+           """ // A failed thumbnail retries once with a fresh URL. If the CDN still
+            // fails, show a readable error rather than an empty-looking tile.
+            document.querySelectorAll('#panelBody .book-fish-thumb img').forEach(function(im){
+             im.addEventListener('error',function(){
+              if(!im.dataset.codexRetried){
+               im.dataset.codexRetried='1';
+               im.src=im.src+(im.src.includes('?')?'&':'?')+'retry=1';
+              }else{
+               var p=im.parentNode;
+               im.style.display='none';
+               p.classList.add('image-error');
+               p.textContent='이미지 로딩 실패 · 재접속';
+              }
+             });
+            });
+            $('search').oninput=function(){""",
+           'Codex retry fallback')
+          html=html[:start]+part+html[end:]
+          html=one(html,
+           "function updateStats(){\n var count=Object.keys(save.owned).length,h=Object.keys(save.human).filter",
+           "function updateStats(){\n var visibleSpecies=species.filter(function(sp){return !sp.archivedVisualDuplicate});\n var count=visibleSpecies.filter(function(sp){return (save.owned[sp.id]||0)>0}).length,h=Object.keys(save.human).filter",
+           'Visible stats count')
+          html=one(html,
+           "+count+'/'+species.length+'　🧑 '+h+'/24';",
+           "+count+'/'+visibleSpecies.length+'　🧑 '+h+'/24';",
+           'Visible stats total')
+          html=one(html,
+           "m==='book'?'물고기 '+species.length+'종 · 인간 24종'",
+           "m==='book'?'물고기 '+species.filter(function(sp){return !sp.archivedVisualDuplicate}).length+'종 · 인간 24종'",
+           'Book menu total')
+          html=one(html,
+           "m==='book'?species.length+' FISH + 24 HUMANS'",
+           "m==='book'?species.filter(function(sp){return !sp.archivedVisualDuplicate}).length+' FISH + 24 HUMANS'",
+           'Book stage total')
+          html=one(html,
+           "options=species.filter(function(sp){return sp.habitat===zone&&sp.rarity===tier});",
+           "options=species.filter(function(sp){return !sp.archivedVisualDuplicate&&sp.habitat===zone&&sp.rarity===tier});",
+           'No duplicated fish in wildlife species roll')
+          html=one(html,
+           "return sp.habitat===zone&&(sp.rarity==='COMMON'||sp.rarity==='UNCOMMON')&&",
+           "return !sp.archivedVisualDuplicate&&sp.habitat===zone&&(sp.rarity==='COMMON'||sp.rarity==='UNCOMMON')&&",
+           'No duplicated fish in visual composition')
+          html=one(html,
+           "return sp.habitat===zone&&sp.rarity===preferred.rarity&&allowed(sp);",
+           "return !sp.archivedVisualDuplicate&&sp.habitat===zone&&sp.rarity===preferred.rarity&&allowed(sp);",
+           'No duplicated fish in fallback species roll')
+          # File bytes are preserved; only metadata changes.
+          manifest=json.loads(originals['manifest'])
+          fishById={x['id']:x for x in manifest['fish']}
+          assert len(manifest['fish'])==304
+          for id,target in newly.items():
+           assert id in fishById and target in fishById
+           fishById[id]['visualAliasOf']=target
+          manifest['counts']['mergedVisualDuplicates']=22
+          manifest['counts']['activeCollectionEntries']=282
+          manifestTxt=json.dumps(manifest,ensure_ascii=False,indent=2)+'\n'
+          # Normalize historic test expectations to actual distinct art entries.
+          vis=originals['visual']
+          vis=one(vis,"assert.equal(Object.keys(alias).length,13);","assert.equal(Object.keys(alias).length,22);",'QA alias count')
+          vis=one(vis,"assert.equal(list.length,291);","assert.equal(list.length,283);",'QA base runtime length')
+          vis=one(vis,
+           "assert.equal(registry.counts.activeCollectionEntries,list.length);",
+           "assert.equal(registry.counts.activeCollectionEntries,list.filter(x=>!x.archivedVisualDuplicate).length);",
+           'QA visible count')
+          vis=one(vis,
+           "assert.equal(art.migrateSave(save),false);",
+           """assert.equal(art.migrateSave(save),false);
+            assert.ok(list.find(x=>x.id==='F122').archivedVisualDuplicate,'Base duplicate must not appear in codex');
+            assert.ok(!list.some(x=>x.id==='F265'||x.id==='F266'),
+             'Wrongly named lookalike reef morphs may not enter the catalog');
+            const reefSave={owned:{F121:1,F122:2,F265:3,F123:4,F266:2},
+             placed:['F122','F265','F266']};
+            assert.equal(art.migrateSave(reefSave),true);
+            assert.deepEqual(JSON.parse(JSON.stringify(reefSave.owned)),{F121:6,F123:6});
+            assert.deepEqual(Array.from(reefSave.placed),['F121','F121','F123']);""",
+           'Save migration tests for 9 coral near duplicates')
+          vis=vis.replace("291 unique codex entries, 13 merged visual duplicates",
+                          "282 distinct visible codex entries, 22 aliases")
+          special=originals['special']
+          special=one(special,"assert.equal(off.list.length,291,","assert.equal(off.list.length,283,",'Special off count')
+          special=one(special,"assert.equal(on.list.length,304,","assert.equal(on.list.length,296,",'Special on count')
+          special=one(special,"assert.equal(new Set(on.list.map(x=>x.id)).size,304);",
+                      "assert.equal(new Set(on.list.map(x=>x.id)).size,296);",'Special unique count')
+          special=special.replace("291 original + 13 active special","283 original records + 13 active special")
+          plan=one(originals['plan'],
+           "assert.equal(art.counts.activeCollectionEntries,291);",
+           "assert.equal(art.counts.activeCollectionEntries,282);",
+           'Production target live codex count')
+          ci=originals['workflow']
+          ci=one(ci,
+           "      - name: Verify 10 batch023 sprites, save compatibility and 5 pending fourth-round candidates",
+           "      - name: Verify codex silhouette visibility, originals and archived reef duplicates\n        run: node human-fishing/qa-codex-visibility.cjs\n      - name: Verify 10 batch023 sprites, save compatibility and 5 pending fourth-round candidates",
+           'CI codex display regression test')
+          audit=r"""'use strict';
+          const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+          const root='human-fishing/';
+          const html=fs.readFileSync(root+'index.html','utf8');
+          const catalog=fs.readFileSync(root+'fish-bitmap-catalog.js','utf8');
+          const manifest=JSON.parse(fs.readFileSync(root+'assets/fish/manifest.json','utf8'));
+          const baseFiles=fs.readdirSync(root+'assets/fish/individual');
+          const missingBase=manifest.fish.filter(x=>!baseFiles.includes(x.id+'.png'));
+          assert.deepEqual(missingBase,[],'Original registered PNG missing');
+          assert.equal(manifest.counts.activeCollectionEntries,282);
+          assert.equal(manifest.counts.mergedVisualDuplicates,22);
+          assert.match(html,/\.book-fish-card\.locked \.book-fish-thumb img\{\s*filter:brightness\(0\) drop-shadow/);
+          assert.match(html,/photoIndex<48\?'eager':'lazy'/);
+          assert.match(html,/codexRetried/);
+          assert.match(html,/image-error/);
+          assert.match(html,/catalogueSpecies=species\.filter\(function\(sp\)\{return !sp\.archivedVisualDuplicate/);
+          assert.match(html,/!sp\.archivedVisualDuplicate&&sp\.habitat===zone&&sp\.rarity===tier/);
+          const env={window:{HumanFishingFishAssetsReady:true},Image:function(){},Promise};
+          vm.runInNewContext(catalog,env);
+          const art=env.window.HumanFishingArt;
+          const aliases=JSON.parse(catalog.match(/var visualAliases=(\{[^;]+\});/)[1]);
+          const expected={
+            F122:'F121',F265:'F121',F266:'F123',F267:'F124',F268:'F126',
+            F269:'F125',F270:'F127',F271:'F128',F272:'F129'};
+          for(const [id,target] of Object.entries(expected)){
+           assert.equal(aliases[id],target);
+           assert.equal(manifest.fish.find(f=>f.id===id).visualAliasOf,target);
+          }
+          const text=html.slice(html.indexOf('var raw=['),html.indexOf('var humans=['));
+          const names=[...text.matchAll(/'([^'|]+)\|([^']+)'/g)].flatMap(x=>x[2].split(','));
+          const fish=names.map((name,i)=>({id:'F'+String(i+1).padStart(3,'0'),name,habitat:Math.floor(i/20),index:i%20}));
+          art.extend(fish);
+          assert.equal(fish.length,283);
+          assert.equal(fish.filter(x=>!x.archivedVisualDuplicate).length,282);
+          const source=html.match(/<script>([\s\S]*?)<\/script>/)[1];
+          new vm.Script(source,'human-fishing.js');
+          console.log('PASS: 304 original PNGs, black silhouette outline, load retry, 9 archived coral lookalikes, 282 visible unique original entries');
+          """
+          audit= '\n'.join(line[10:] if line.startswith('          ') else line for line in audit.splitlines())+'\n'
+          files={
+            paths['catalog']:c,
+            paths['index']:html,
+            paths['manifest']:manifestTxt,
+            paths['visual']:vis,
+            paths['special']:special,
+            paths['plan']:plan,
+            paths['workflow']:ci,
+            root/'qa-codex-visibility.cjs':audit
+          }
+          assert len(aliases)==22
+          for p,s in files.items():p.write_text(s)
+          print('PATCH_READY: archived 9 coral duplicate labels, visible outlines, eager first 48 and reload-on-error')
+          PY
+      - name: Validate archived fish, saves, original images and game runtime
+        run: |
+          node human-fishing/qa-codex-visibility.cjs
+          node human-fishing/qa-fish-visual-catalog.cjs
+          node human-fishing/qa-special-creatures.cjs
+          node human-fishing/qa-fish-production-plan.cjs
+          node human-fishing/qa-fish-curation.cjs
+          node human-fishing/qa-smoke.cjs
+          git diff --check
+      - name: Commit validated patch and remove temporary job
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add human-fishing/index.html human-fishing/fish-bitmap-catalog.js
+          git add human-fishing/assets/fish/manifest.json human-fishing/qa-codex-visibility.cjs
+          git add human-fishing/qa-fish-visual-catalog.cjs human-fishing/qa-special-creatures.cjs
+          git add human-fishing/qa-fish-production-plan.cjs .github/workflows/human-fishing-qa.yml
+          git rm .github/workflows/fix-codex-silhouette-alias-once.yml
+          git diff --cached --quiet || git commit -m 'Restore readable codex silhouettes and archive nine duplicate reef artworks without changing PNGs'
+          git push origin HEAD:main
