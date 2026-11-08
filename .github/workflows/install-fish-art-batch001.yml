@@ -1,0 +1,87 @@
+name: Install verified GPT fish art batch 001
+on:
+  push:
+    branches: [main]
+    paths:
+      - "human-fishing/fish-art-import-batch-001.zip"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: human-fishing-gpt-art-import-001
+  cancel-in-progress: false
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate uniquely assigned fish PNG originals, art IDs and candidate taxonomy
+        run: |
+          python -m pip install -q Pillow
+          python <<'PY'
+          import hashlib,json,zipfile,io
+          from pathlib import Path
+          from PIL import Image,ImageChops
+          base=Path('human-fishing')
+          archive=base/'fish-art-import-batch-001.zip'
+          assert archive.is_file(),'Upload prepared fish-art-import-batch-001.zip to human-fishing/'
+          assignment=json.loads((base/'fish-art-batch-001-assignments.json').read_text())
+          approved={x['gameId']:x for x in assignment['records'] if x['artStatus']=='READY_FOR_IMPORT_QA'}
+          assert len(approved)==11
+          with zipfile.ZipFile(archive) as z:
+              names=z.namelist()
+              expected={'fish-manifest.json'}|{id+'.png' for id in approved}
+              assert set(names)==expected,'Unexpected missing or extra images'
+              assert all('/' not in n and '\\' not in n for n in names)
+              raw=json.loads(z.read('fish-manifest.json'))
+              fish=raw['species']
+              assert len(fish)==11
+              assert {x['gameId'] for x in fish}==set(approved)
+              existing=[p for p in (base/'assets/fish/individual').glob('F*.png')]
+              fingerprints=[]
+              for row in fish:
+                  id=row['gameId']; a=approved[id]
+                  assert a['scientificName']==row['scientificName']
+                  assert a['name']==row['nameKo'] and a['habitat']==row['habitat']
+                  assert a['rarity']==row['rarity'] and a['artSizeClass']==row['size']
+                  assert a['sha256Prefix']==row['sha256'][:16]
+                  assert not (base/'assets/fish/individual'/ (id+'.png')).exists(), id+' would overwrite existing artwork'
+                  imgdata=z.read(id+'.png')
+                  assert hashlib.sha256(imgdata).hexdigest()==row['sha256']
+                  img=Image.open(io.BytesIO(imgdata))
+                  assert img.mode=='RGBA' and img.format=='PNG'
+                  assert img.width>=1024 and img.height>=512
+                  alpha=img.getchannel('A')
+                  box=alpha.getbbox()
+                  assert box and box[0]>=8 and box[1]>=8
+                  assert box[2]<=img.width-8 and box[3]<=img.height-8
+                  assert alpha.getextrema()==(0,255)
+                  # Compare actual image silhouette-and-color fingerprints, not just file hashes.
+                  r=Image.new('RGB',img.size,(15,22,30))
+                  r.paste(img,mask=alpha)
+                  compact=r.resize((24,24)).convert('RGB')
+                  fingerprints.append((id,compact))
+              for k,(id,img) in enumerate(fingerprints):
+                  for id2,img2 in fingerprints[:k]:
+                      diff=ImageChops.difference(img,img2)
+                      assert not (diff.getbbox() is None),'Exact repeated art '+id+' '+id2
+              for row in fish:
+                  id=row['gameId']
+                  target=base/'assets/fish/individual'/ (id+'.png')
+                  target.write_bytes(z.read(id+'.png'))
+          ready=base/'assets/fish-expansion/ready.js'
+          ready.parent.mkdir(exist_ok=True,parents=True)
+          ready.write_text('window.HumanFishingFishExpansionAssetsReady=true;\n')
+          (base/'assets/fish-expansion/installed-manifest.json').write_text(json.dumps(raw,ensure_ascii=False,indent=2)+'\n')
+          archive.unlink()
+          print('11 unique GPT fish originals installed, IDs F305..F317 with reserved gaps. Legacy F001..F304 untouched.')
+          PY
+      - name: Commit all 11 validated fish sprites as one atomic update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add human-fishing/assets/fish/individual/F*.png human-fishing/assets/fish-expansion/ready.js human-fishing/assets/fish-expansion/installed-manifest.json human-fishing/fish-art-import-batch-001.zip
+          git diff --cached --quiet || git commit -m "Install 11 unique fish bitmap originals and activate expansion"
+          git push origin HEAD:main

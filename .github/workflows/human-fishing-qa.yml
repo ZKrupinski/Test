@@ -41,6 +41,8 @@ jobs:
         run: node human-fishing/qa-smoke.cjs
       - name: Verify 304 approved originals retained and overlapping recolor filler removed
         run: node human-fishing/qa-fish-curation.cjs
+      - name: Verify curated GPT fish batch 001 assignments, activation and unique movement
+        run: node human-fishing/qa-fish-art-batch-001.cjs
       - name: Verify real and fictional special creature roster and S001 install gate
         run: node human-fishing/qa-special-creatures.cjs
       - name: Verify 1,600-fish expansion taxonomy queue and image QA gates

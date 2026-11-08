@@ -402,6 +402,8 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 <script src="./assets/fish/ready.js?v=20261106-fish304"></script>
 <script src="./assets/special-creatures/ready.js?v=20261108-s001"></script>
 <script src="./fish-bitmap-catalog.js?v=20261108-vampire-s001"></script>
+<script src="./assets/fish-expansion/ready.js?v=20261108-batch001-ready"></script>
+<script src="./fish-expansion-catalog.js?v=20261108-batch001"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
 <script src="./foley.js?v=20261108-chest-prize-bells-v1"></script>
 <script src="./ambient.js?v=20261108-deep-dual-ambience-v2"></script>
@@ -1184,10 +1186,10 @@ function renderBook(filter,query){
  '<option value="-3" '+(filter===-3?'selected':'')+'>전체 생물 · '+(species.length+humans.length)+'종</option>'+
  '<option value="-2" '+(filter===-2?'selected':'')+'>🧑 인간 도감 · 24종</option>'+
  '<option value="-1" '+(filter===-1?'selected':'')+'>🐟 물고기 도감 · '+species.filter(function(s){return !s.specialCreature}).length+'종</option>'+
-  '<option value="-4" '+(filter===-4?'selected':'')+'>🆕 추가 일러스트 · '+species.filter(function(sp){return sp.artVariant}).length+'종</option>'+ 
+  '<option value="-4" '+(filter===-4?'selected':'')+'>🆕 추가 일러스트 · '+species.filter(function(sp){return sp.artVariant||sp.expansionSpecies}).length+'종</option>'+ 
  '<option value="-5" '+(filter===-5?'selected':'')+'>✨ 특수 생물 · '+species.filter(function(sp){return sp.specialCreature}).length+'종</option>'+
  habitats.map(function(n,i){return '<option value="'+i+'" '+(filter===i?'selected':'')+'>'+escapeHtml(n)+'</option>'}).join('')+'</select></div>';
- var visibleFish=filter===-3||filter===-1||filter===-4||filter===-5||filter>=0?species.filter(function(x){return filter===-5?!!x.specialCreature:filter===-4?!!x.artVariant:filter===-1?!x.specialCreature:filter<0||x.habitat===filter}):[];
+ var visibleFish=filter===-3||filter===-1||filter===-4||filter===-5||filter>=0?species.filter(function(x){return filter===-5?!!x.specialCreature:filter===-4?!!(x.artVariant||x.expansionSpecies):filter===-1?!x.specialCreature:filter<0||x.habitat===filter}):[];
  var visibleHuman=filter===-3||filter===-2?humans.map(function(n,id){return{id:id,name:n}}):[];
  var cards='<div class="cards book-cards">'+visibleHuman.map(function(a){
   var id=String(a.id),n=save.human[id]||0,tier=humanTier(a.id);
@@ -3815,6 +3817,7 @@ species.forEach(function(sp){
  sp.level=Math.min(75,1+sp.habitat*3+Math.floor(k/3)*3+(k>=15?(k-13)*2:0));
 });
 if(window.HumanFishingArt){window.HumanFishingArt.extend(species);if(window.HumanFishingArt.migrateSave&&window.HumanFishingArt.migrateSave(save))persist();}
+if(window.HumanFishingFishExpansion&&window.HumanFishingFishExpansion.extend)window.HumanFishingFishExpansion.extend(species);
 if(!save.fever||typeof save.fever!=='object')save.fever={count:0,ready:false,total:0,activations:0};
 // Legacy saves could have 6/6 visually full while never becoming READY.
 // Restore readiness rather than leave the player stranded at full gauge.
@@ -4109,6 +4112,15 @@ function makeWildFish(sp,x,y,dir,small,schoolId){
   f.swimFreq=rnd(.12,.24);f.swimAmp=rnd(15,26);f.agility=.68;
   f.nextDart=eco.t+rnd(6,11);f.nextTurn=eco.t+rnd(6,10);
   f.specialPulseAt=eco.t+rnd(4,9);
+ }
+ if(sp.expansionSpecies&&sp.behaviorProfile){
+  var bp=sp.behaviorProfile;
+  f.speed=Math.max(6,f.speed*bp.speedMultiplier);f.vx=dir*f.speed;
+  f.swimMode=bp.mode;f.swimAmp=Math.max(2,f.swimAmp*bp.swimAmpMultiplier);
+  f.agility=Math.max(.25,f.agility*bp.agilityMultiplier);
+  f.nextTurn=eco.t+bp.turnSeconds*rnd(.82,1.18);
+  f.nextDart=eco.t+rnd(2.2,5.5)*(bp.mode==='dart'?.68:1.25);
+  f.schoolId=0;
  }
  f.y=ecoSafeDepth(f,y);f.homeY=f.y;
  return f;

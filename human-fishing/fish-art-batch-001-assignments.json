@@ -1,0 +1,327 @@
+{
+  "version": "2026-11-08",
+  "batch": "001",
+  "notes": "Separate originals vs 15 duplicated ghostwriter filenames; 11 new fish may be installed after validated ZIP upload. Hold 3 anatomical/silhouette reviews; F240 is existing Chimaera alternate art and MUST NOT increment fish collection.",
+  "latestLiveOriginalFish": 291,
+  "readyForUpload": 11,
+  "reviewHold": 3,
+  "existingReplacement": 1,
+  "stages": 12,
+  "records": [
+    {
+      "gameId": "F305",
+      "scientificName": "Abalistes stellaris",
+      "name": "별무늬쥐치",
+      "habitat": 6,
+      "artSizeClass": "MEDIUM",
+      "rarity": "UNCOMMON",
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "sha256Prefix": "ddb8086377e78a58",
+      "behaviorProfile": {
+        "archetype": "territorial_spine_guard",
+        "mode": "hover",
+        "speedMultiplier": 0.85,
+        "swimAmpMultiplier": 1.55,
+        "turnSeconds": 7,
+        "agilityMultiplier": 0.8
+      },
+      "originalArtAvailable": true,
+      "renderSource": "ChatGPT-generated original transparent PNG",
+      "gameAsset": "./assets/fish/individual/F305.png"
+    },
+    {
+      "gameId": "F306",
+      "scientificName": "Ablennes hians",
+      "name": "롱톰니들피시",
+      "habitat": 7,
+      "artSizeClass": "LARGE",
+      "rarity": "RARE",
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "sha256Prefix": "4dff6bf433b02aee",
+      "behaviorProfile": {
+        "archetype": "surface_sprint_sharp_turn",
+        "mode": "dart",
+        "speedMultiplier": 1.35,
+        "swimAmpMultiplier": 0.8,
+        "turnSeconds": 8,
+        "agilityMultiplier": 1.85
+      },
+      "originalArtAvailable": true,
+      "renderSource": "ChatGPT-generated original transparent PNG",
+      "gameAsset": "./assets/fish/individual/F306.png"
+    },
+    {
+      "gameId": "F307",
+      "scientificName": "Acanthodoras spinosissimus",
+      "name": "가시갑옷메기",
+      "habitat": 1,
+      "artSizeClass": "SMALL",
+      "rarity": "UNCOMMON",
+      "artStatus": "HOLD_ANATOMY_REVIEW",
+      "sha256Prefix": "e8e92755efeb888f",
+      "behaviorProfile": {
+        "archetype": "armored_bottom_sidestep",
+        "mode": "hover",
+        "speedMultiplier": 0.6,
+        "swimAmpMultiplier": 0.7,
+        "turnSeconds": 10,
+        "agilityMultiplier": 0.95
+      },
+      "originalArtAvailable": true,
+      "renderSource": "ChatGPT-generated original transparent PNG",
+      "gameAsset": "./assets/fish/individual/F307.png"
+    },
+    {
+      "gameId": "F308",
+      "scientificName": "Alectis ciliaris",
+      "name": "아프리칸폼파노",
+      "habitat": 9,
+      "artSizeClass": "LARGE",
+      "rarity": "RARE",
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "sha256Prefix": "e46c1da69576b990",
+      "behaviorProfile": {
+        "archetype": "openwater_long_fin_glide",
+        "mode": "cruise",
+        "speedMultiplier": 1,
+        "swimAmpMultiplier": 0.55,
+        "turnSeconds": 13,
+        "agilityMultiplier": 1
+      },
+      "originalArtAvailable": true,
+      "renderSource": "ChatGPT-generated original transparent PNG",
+      "gameAsset": "./assets/fish/individual/F308.png"
+    },
+    {
+      "gameId": "F309",
+      "scientificName": "Alopias pelagicus",
+      "name": "원양환도상어",
+      "habitat": 9,
+      "artSizeClass": "LARGE",
+      "rarity": "EPIC",
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "sha256Prefix": "f6071779dcfc4b3f",
+      "behaviorProfile": {
+        "archetype": "longtail_turn_and_burst",
+        "mode": "dart",
+        "speedMultiplier": 1.4,
+        "swimAmpMultiplier": 0.65,
+        "turnSeconds": 16,
+        "agilityMultiplier": 1.3
+      },
+      "originalArtAvailable": true,
+      "renderSource": "ChatGPT-generated original transparent PNG",
+      "gameAsset": "./assets/fish/individual/F309.png"
+    },
+    {
+      "gameId": "F310",
+      "scientificName": "Uranoscopus scaber",
+      "name": "별바라기고기",
+      "habitat": 7,
+      "artSizeClass": "MEDIUM",
+      "rarity": "RARE",
+      "artStatus": "HOLD_ANATOMY_REVIEW",
+      "sha256Prefix": "716f9934bb29488b",
+      "behaviorProfile": {
+        "archetype": "sand_ambush_quick_burst",
+        "mode": "hover",
+        "speedMultiplier": 0.6,
+        "swimAmpMultiplier": 0.85,
+        "turnSeconds": 15,
+        "agilityMultiplier": 1
+      },
+      "originalArtAvailable": true,
+      "renderSource": "ChatGPT-generated original transparent PNG",
+      "gameAsset": "./assets/fish/individual/F310.png"
+    },
+    {
+      "gameId": "F311",
+      "scientificName": "Zeus faber",
+      "name": "달고기",
+      "habitat": 8,
+      "artSizeClass": "MEDIUM",
+      "rarity": "RARE",
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "sha256Prefix": "d3604cd95f2ef11a",
+      "behaviorProfile": {
+        "archetype": "upright_still_then_strike",
+        "mode": "hover",
+        "speedMultiplier": 0.85,
+        "swimAmpMultiplier": 1.2,
+        "turnSeconds": 9,
+        "agilityMultiplier": 1
+      },
+      "originalArtAvailable": true,
+      "renderSource": "ChatGPT-generated original transparent PNG",
+      "gameAsset": "./assets/fish/individual/F311.png"
+    },
+    {
+      "gameId": "F312",
+      "scientificName": "Batrachoides surinamensis",
+      "name": "수리남두꺼비고기",
+      "habitat": 7,
+      "artSizeClass": "MEDIUM",
+      "rarity": "UNCOMMON",
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "sha256Prefix": "fd813fc0a0c3254f",
+      "behaviorProfile": {
+        "archetype": "mudbank_low_hover_strike",
+        "mode": "hover",
+        "speedMultiplier": 0.7,
+        "swimAmpMultiplier": 0.8,
+        "turnSeconds": 9,
+        "agilityMultiplier": 0.95
+      },
+      "originalArtAvailable": true,
+      "renderSource": "ChatGPT-generated original transparent PNG",
+      "gameAsset": "./assets/fish/individual/F312.png"
+    },
+    {
+      "gameId": "F313",
+      "scientificName": "Rhina ancylostoma",
+      "name": "보우마우스기타피시",
+      "habitat": 7,
+      "artSizeClass": "LARGE",
+      "rarity": "EPIC",
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "sha256Prefix": "6120d4bb0920b891",
+      "behaviorProfile": {
+        "archetype": "seabed_wide_turn_glide",
+        "mode": "wander",
+        "speedMultiplier": 0.85,
+        "swimAmpMultiplier": 0.65,
+        "turnSeconds": 9,
+        "agilityMultiplier": 1.15
+      },
+      "originalArtAvailable": true,
+      "renderSource": "ChatGPT-generated original transparent PNG",
+      "gameAsset": "./assets/fish/individual/F313.png"
+    },
+    {
+      "gameId": "F314",
+      "scientificName": "Dactylopterus volitans",
+      "name": "날치성대",
+      "habitat": 7,
+      "artSizeClass": "MEDIUM",
+      "rarity": "RARE",
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "sha256Prefix": "4e47b758323e1c1c",
+      "behaviorProfile": {
+        "archetype": "pectoral_fan_display_turn",
+        "mode": "wander",
+        "speedMultiplier": 0.8,
+        "swimAmpMultiplier": 1.35,
+        "turnSeconds": 8,
+        "agilityMultiplier": 0.9
+      },
+      "originalArtAvailable": true,
+      "renderSource": "ChatGPT-generated original transparent PNG",
+      "gameAsset": "./assets/fish/individual/F314.png"
+    },
+    {
+      "gameId": "F315",
+      "scientificName": "Pristis zijsron",
+      "name": "그린톱가오리",
+      "habitat": 7,
+      "artSizeClass": "LARGE",
+      "rarity": "LEGEND",
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "sha256Prefix": "82e67bcfe4a65d92",
+      "behaviorProfile": {
+        "archetype": "seabed_rostrum_patrol",
+        "mode": "cruise",
+        "speedMultiplier": 0.7,
+        "swimAmpMultiplier": 0.55,
+        "turnSeconds": 10,
+        "agilityMultiplier": 1.05
+      },
+      "originalArtAvailable": true,
+      "renderSource": "ChatGPT-generated original transparent PNG",
+      "gameAsset": "./assets/fish/individual/F315.png"
+    },
+    {
+      "gameId": "F316",
+      "scientificName": "Mastacembelus erythrotaenia",
+      "name": "파이어일",
+      "habitat": 3,
+      "artSizeClass": "LARGE",
+      "rarity": "RARE",
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "sha256Prefix": "bcb2cb2c39c15c6b",
+      "behaviorProfile": {
+        "archetype": "eel_sinuous_rapid_dart",
+        "mode": "dart",
+        "speedMultiplier": 1.15,
+        "swimAmpMultiplier": 1.65,
+        "turnSeconds": 14,
+        "agilityMultiplier": 1.35
+      },
+      "originalArtAvailable": true,
+      "renderSource": "ChatGPT-generated original transparent PNG",
+      "gameAsset": "./assets/fish/individual/F316.png"
+    },
+    {
+      "gameId": "F240",
+      "scientificName": "Chimaera monstrosa",
+      "name": "은상어",
+      "habitat": 11,
+      "artSizeClass": "SPECIAL",
+      "rarity": "RARE",
+      "artStatus": "EXISTING_F240_ALTERNATE_NOT_NEW",
+      "sha256Prefix": "df19fadbc799f0cf",
+      "behaviorProfile": {
+        "archetype": "deep_glide_curved_turn",
+        "mode": "wander",
+        "speedMultiplier": 0.85,
+        "swimAmpMultiplier": 1.25,
+        "turnSeconds": 8,
+        "agilityMultiplier": 0.8
+      },
+      "originalArtAvailable": true,
+      "renderSource": "ChatGPT-generated original transparent PNG",
+      "gameAsset": "./assets/fish/individual/F240.png"
+    },
+    {
+      "gameId": "F317",
+      "scientificName": "Selene vomer",
+      "name": "룩다운",
+      "habitat": 8,
+      "artSizeClass": "MEDIUM",
+      "rarity": "UNCOMMON",
+      "artStatus": "READY_FOR_IMPORT_QA",
+      "sha256Prefix": "aeb0935a16ad93e0",
+      "behaviorProfile": {
+        "archetype": "reflective_steep_turn",
+        "mode": "dart",
+        "speedMultiplier": 1,
+        "swimAmpMultiplier": 1.7,
+        "turnSeconds": 8,
+        "agilityMultiplier": 1.4
+      },
+      "originalArtAvailable": true,
+      "renderSource": "ChatGPT-generated original transparent PNG",
+      "gameAsset": "./assets/fish/individual/F317.png"
+    },
+    {
+      "gameId": "F318",
+      "scientificName": "Psettodes belcheri",
+      "name": "아프리카가시넙치",
+      "habitat": 7,
+      "artSizeClass": "MEDIUM",
+      "rarity": "UNCOMMON",
+      "artStatus": "HOLD_SILHOUETTE_DUPLICATE_REVIEW",
+      "sha256Prefix": "5541474f8b370c8f",
+      "behaviorProfile": {
+        "archetype": "flatfish_seabed_burrow",
+        "mode": "hover",
+        "speedMultiplier": 0.5,
+        "swimAmpMultiplier": 0.65,
+        "turnSeconds": 13,
+        "agilityMultiplier": 0.8
+      },
+      "originalArtAvailable": true,
+      "renderSource": "ChatGPT-generated original transparent PNG",
+      "gameAsset": "./assets/fish/individual/F318.png"
+    }
+  ]
+}
