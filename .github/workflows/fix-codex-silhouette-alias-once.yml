@@ -67,10 +67,10 @@ jobs:
            "filter:brightness(0);opacity:1",
            "filter:brightness(0) drop-shadow(0 0 1px #b7d8db) drop-shadow(0 0 3px #81b4b6bd);opacity:1",
            'Black silhouettes now have readable outlines')
-          html=one(html,
+          assert html.count("#panelBody .book-fish-caption{")>=1
+          html=html.replace(
            "#panelBody .book-fish-caption{",
-           "#panelBody .book-fish-thumb.image-error{color:#c5dae0;font:800 10px system-ui;text-align:center}\n#panelBody .book-fish-caption{",
-           'Broken-image textual diagnostic')
+           "#panelBody .book-fish-thumb.image-error{color:#c5dae0;font:800 10px system-ui;text-align:center}\\n#panelBody .book-fish-caption{",1)
           # Do not change the fixed base 240 IDs or zone*20 ecology indexing.
           # Filter archived entries from visible codex and wild spawn candidates.
           head="function renderBook(filter,query){\n filter=filter===undefined?-3:Number(filter);"
