@@ -29,7 +29,6 @@ jobs:
            'special':root/'qa-special-creatures.cjs',
            'plan':root/'qa-fish-production-plan.cjs',
            'smoke':root/'qa-smoke.cjs',
-           'workflow':Path('.github/workflows/human-fishing-qa.yml'),
           }
           originals={k:p.read_text() for k,p in paths.items()}
           c=originals['catalog'];html=originals['index']
@@ -203,11 +202,6 @@ jobs:
            'Smoke QA expects readable black silhouette rim')
           smoke=one(smoke,'20261106-fish304"[^>]+>','20261109-codexfix"[^>]+>',
            'Smoke QA codex uses new cache key')
-          ci=originals['workflow']
-          ci=one(ci,
-           "      - name: Verify 10 batch023 sprites, save compatibility and 5 pending fourth-round candidates",
-           "      - name: Verify codex silhouette visibility, originals and archived reef duplicates\n        run: node human-fishing/qa-codex-visibility.cjs\n      - name: Verify 10 batch023 sprites, save compatibility and 5 pending fourth-round candidates",
-           'CI codex display regression test')
           audit=r"""'use strict';
           const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
           const root='human-fishing/';
@@ -254,7 +248,6 @@ jobs:
             paths['visual']:vis,
             paths['special']:special,
             paths['plan']:plan,
-            paths['workflow']:ci,
             paths['smoke']:smoke,
             root/'qa-codex-visibility.cjs':audit
           }
@@ -278,7 +271,7 @@ jobs:
           git add human-fishing/index.html human-fishing/fish-bitmap-catalog.js
           git add human-fishing/assets/fish/manifest.json human-fishing/qa-codex-visibility.cjs
           git add human-fishing/qa-fish-visual-catalog.cjs human-fishing/qa-special-creatures.cjs
-          git add human-fishing/qa-fish-production-plan.cjs human-fishing/qa-smoke.cjs .github/workflows/human-fishing-qa.yml
+          git add human-fishing/qa-fish-production-plan.cjs human-fishing/qa-smoke.cjs
           git rm .github/workflows/fix-codex-silhouette-alias-once.yml
           git diff --cached --quiet || git commit -m 'Restore readable codex silhouettes and archive nine duplicate reef artworks without changing PNGs'
           git push origin HEAD:main
