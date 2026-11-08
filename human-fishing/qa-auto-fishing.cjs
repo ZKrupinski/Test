@@ -6,6 +6,12 @@ assert.ok(begin>0&&end>begin,'Auto-fishing runtime block not installed');
 assert.ok(text.includes('autoFishingStep(dt);\n   updateJoystick(dt);'),
  'Auto steering must run BEFORE original joystick movement');
 assert.match(text,/id="autoFishStatus"/);
+assert.match(text,/#autoFishStatus\{position:absolute;left:50%;top:98px;transform:translateX\(-50%\)/,
+ 'AUTO FISHING indicator must be centered beneath the top HUD');
+assert.match(text,/font:800 11px\/1\.2 system-ui,sans-serif;letter-spacing:\.4px/,
+ 'Auto-fishing status must be small and unobtrusive');
+assert.doesNotMatch(text,/#autoFishStatus\{position:absolute;right:15px/,
+ 'Do not keep the old top-right autopilot indicator');
 const listeners={},attrs={},status={shown:false};
 const label={classList:{toggle(name,v){if(name==='active')status.shown=v}},
  setAttribute(k,v){attrs[k]=v}};
