@@ -41,6 +41,8 @@ jobs:
         run: node human-fishing/qa-smoke.cjs
       - name: Verify 304 approved originals retained and overlapping recolor filler removed
         run: node human-fishing/qa-fish-curation.cjs
+      - name: Verify eight Work original PNG fish are byte-identical and safely registered
+        run: node human-fishing/qa-fish-art-work-006.cjs
       - name: Verify batch upload web UI paths, token handling and workflow references
         run: node human-fishing/qa-fish-uploader.cjs
       - name: Verify five newly prepared original fish sprite registrations and source PNG gate

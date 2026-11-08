@@ -34,7 +34,7 @@ for(const candidate of curation.candidates)
   'Review rejected an unchanged old species name: '+candidate.name);
 const dir=base+'assets/fish/individual';
 const approved=new Map();
-for(const batch of ['001','023','004']){
+for(const batch of ['001','023','004','006']){
  const manifestPath=base+'assets/fish-expansion-'+batch+'/installed-manifest.json';
  if(!fs.existsSync(manifestPath))continue;
  const installed=JSON.parse(fs.readFileSync(manifestPath,'utf8'));
