@@ -41,6 +41,8 @@ jobs:
         run: node human-fishing/qa-smoke.cjs
       - name: Verify 304 approved originals retained and overlapping recolor filler removed
         run: node human-fishing/qa-fish-curation.cjs
+      - name: Verify 10 batch023 sprites, save compatibility and 5 pending fourth-round candidates
+        run: node human-fishing/qa-fish-art-batch-023.cjs
       - name: Verify strict no-infographic fish artwork queue batch 002
         run: node human-fishing/qa-fish-art-batch-002.cjs
       - name: Verify curated GPT fish batch 001 assignments, activation and unique movement

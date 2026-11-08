@@ -1,0 +1,79 @@
+name: Install Human Fishing bitmap batch 023
+on:
+  push:
+    branches: [main]
+    paths: ['human-fishing/fish-art-import-batch-023.zip']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: install-human-fishing-fish-023
+  cancel-in-progress: false
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify ten fish PNGs and install all together
+        run: |
+          python -m pip install -q Pillow
+          python <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageChops
+          import hashlib,io,json,zipfile
+          base=Path('human-fishing')
+          archive=base/'fish-art-import-batch-023.zip'
+          assert archive.is_file(), 'Upload fish-art-import-batch-023.zip to human-fishing/'
+          expected={f'F{x}.png' for x in range(319,329)}
+          with zipfile.ZipFile(archive) as z:
+              assert set(z.namelist())==expected|{'fish-manifest.json'}, 'Wrong number or names of art PNGs'
+              manifest=json.loads(z.read('fish-manifest.json'))
+              species=manifest['species']
+              assert len(species)==10 and {r['gameId']+'.png' for r in species}==expected
+              compact=[]
+              for sp in species:
+                  ident=sp['gameId']
+                  assert not (base/'assets/fish/individual'/(ident+'.png')).exists(), ident+' already exists'
+                  blob=z.read(ident+'.png')
+                  assert hashlib.sha256(blob).hexdigest()==sp['sha256'], ident+' hash mismatch'
+                  im=Image.open(io.BytesIO(blob))
+                  assert im.format=='PNG' and im.mode=='RGBA'
+                  assert im.width>=1024 and im.height>=512
+                  a=im.getchannel('A')
+                  bb=a.getbbox()
+                  assert bb and bb[0]>=24 and bb[1]>=24 and im.width-bb[2]>=24 and im.height-bb[3]>=24
+                  assert a.getextrema()==(0,255)
+                  composite=Image.new('RGBA',im.size,(14,19,26,255))
+                  composite.alpha_composite(im)
+                  compact.append((ident,composite.convert('RGB').resize((32,24))))
+              for n,(ident,im) in enumerate(compact):
+                  for prev,previmg in compact[:n]:
+                      assert ImageChops.difference(im,previmg).getbbox(), 'Repeated art '+ident+' / '+prev
+              for sp in species:
+                  (base/'assets/fish/individual'/(sp['gameId']+'.png')).write_bytes(z.read(sp['gameId']+'.png'))
+          catalog=base/'assets/fish-expansion-023'
+          catalog.mkdir(parents=True,exist_ok=True)
+          (catalog/'ready.js').write_text('window.HumanFishingFishExpansion023Ready=true;\n')
+          (catalog/'installed-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
+          queue=base/'fish-art-batch-002-queue.json'
+          data=json.loads(queue.read_text())
+          installed={x['gameId'] for x in species}
+          for x in data['candidates']:
+              if x.get('gameId') in installed:
+                  x['artStatus']='LIVE'
+                  x['assetReady']='DEPLOYED_IN_GAME'
+                  x['countsAsGameFish']=True
+          data['status']='TEN DISTINCT ART FILES INSTALLED AND LIVE, TWO UNGENERATED'
+          queue.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
+          archive.unlink()
+          print('F319–F328 art installed; all 291 old fish images untouched')
+          PY
+      - name: Commit validated PNG art
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A human-fishing/assets/fish/individual/ human-fishing/assets/fish-expansion-023/ human-fishing/fish-art-batch-002-queue.json human-fishing/fish-art-import-batch-023.zip
+          git diff --cached --quiet || git commit -m 'Install and activate ten original fish sprites F319-F328'
+          git push origin HEAD:main

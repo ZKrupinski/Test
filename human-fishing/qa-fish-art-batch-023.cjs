@@ -1,0 +1,37 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const root='human-fishing/';
+const source1=fs.readFileSync(root+'fish-expansion-catalog.js','utf8');
+const source2=fs.readFileSync(root+'fish-expansion-catalog-023.js','utf8');
+const main=fs.readFileSync(root+'index.html','utf8');
+const qa004=JSON.parse(fs.readFileSync(root+'fish-art-batch-004-queue.json','utf8'));
+const q=JSON.parse(fs.readFileSync(root+'fish-art-batch-002-queue.json','utf8'));
+function test(one,two){
+ const window={HumanFishingFishExpansionAssetsReady:one,HumanFishingFishExpansion023Ready:two};
+ const cx={window};
+ vm.runInNewContext(source1,cx);vm.runInNewContext(source2,cx);
+ const list=Array.from({length:291},(_,i)=>({id:'BASE'+i}));
+ window.HumanFishingFishExpansion.extend(list);
+ window.HumanFishingFishExpansion023.extend(list);
+ window.HumanFishingFishExpansion023.extend(list);
+ return {list,records:window.HumanFishingFishExpansion023.records};
+}
+assert.equal(test(false,false).list.length,291);
+assert.equal(test(true,true).list.length,312);
+const result=test(false,true);
+assert.equal(result.list.length,301);
+assert.equal(new Set(result.list.map(x=>x.id)).size,result.list.length);
+assert.equal(result.records.length,10);
+assert.ok(result.records.every(x=>x.expansionSpecies&&x.behaviorProfile?.archetype));
+assert.ok(result.records.every(x=>q.candidates.some(c=>c.scientificName===x.scientificName&&c.gameId===x.id)));
+assert.ok(main.includes('HumanFishingFishExpansion023.extend(species)'));
+assert.ok(main.includes('assets/fish-expansion-023/ready.js'));
+const ready=fs.readFileSync(root+'assets/fish-expansion-023/ready.js','utf8').includes('=true');
+assert.equal(q.candidates.filter(x=>x.artStatus==='NOT_GENERATED').length,2);
+assert.equal(q.candidates.filter(x=>x.artStatus==='READY_FOR_IMPORT_QA'||x.artStatus==='LIVE').length,10);
+if(ready)for(const x of result.records)assert.ok(fs.existsSync(root+'assets/fish/individual/'+x.id+'.png'),x.id);
+assert.equal(q.candidates.filter(x=>x.artStatus==='LIVE').length,ready?10:0);
+assert.equal(qa004.candidates.length,5);
+assert.ok(qa004.candidates.every(x=>x.artStatus==='NOT_GENERATED'&&x.gameId===null&&!x.live));
+assert.equal(new Set(qa004.candidates.map(x=>x.scientificName)).size,5);
+console.log('PASS: 291 existing + 11 first + 10 second/third isolated species and 5 fourth-round unrendered species QA');

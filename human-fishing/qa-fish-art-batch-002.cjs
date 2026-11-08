@@ -6,10 +6,10 @@ const approved=JSON.parse(fs.readFileSync(base+'fish-art-batch-001-assignments.j
 const source=JSON.parse(fs.readFileSync(base+'fish-production-candidates.json','utf8'));
 assert.equal(q.candidates.length,12);
 assert.equal(new Set(q.candidates.map(x=>x.scientificName)).size,12);
-assert.equal(q.candidates.filter(x=>x.artStatus==='READY_FOR_IMPORT_QA').length,10);
+assert.equal(q.candidates.filter(x=>['READY_FOR_IMPORT_QA','LIVE'].includes(x.artStatus)).length,10);
 assert.equal(q.candidates.filter(x=>x.artStatus==='NOT_GENERATED').length,2);
-assert.ok(q.candidates.every(x=>!x.countsAsGameFish));
-assert.ok(q.candidates.filter(x=>x.artStatus==='READY_FOR_IMPORT_QA').every(x=>x.gameId&&x.imageFile));
+assert.ok(q.candidates.every(x=>x.countsAsGameFish===(x.artStatus==='LIVE')));
+assert.ok(q.candidates.filter(x=>x.artStatus!=='NOT_GENERATED').every(x=>x.gameId&&x.imageFile));
 assert.ok(q.candidates.every(x=>x.morphologicalDistinctiveness.length>12&&x.behavior.length>5));
 assert.ok(q.candidates.every(x=>source.candidates.some(c=>c.scientificName===x.scientificName)), 'Only source-backed distinct taxa may advance');
 assert.ok(q.candidates.every(x=>!approved.records.some(p=>p.scientificName===x.scientificName)), 'Duplicate in batch 001');
