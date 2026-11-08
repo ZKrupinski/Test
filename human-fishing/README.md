@@ -1,6 +1,6 @@
 # HUMAN FISHING / 인간낚시 — 웹 알파 2.4
 
-**미제작 어종 진행:** [제작 순서·검수 기준](FISH_ART_PRODUCTION_PLAN.md) · [다음 24종 사전 검증 목록](fish-art-next-work-queue.json). 현재 2종 원화는 ART_REVIEW이며 게임 미반영.
+**미제작 어종 진행:** [제작 순서·검수 기준](FISH_ART_PRODUCTION_PLAN.md) · [다음 24종 사전 검증 목록](fish-art-next-work-queue.json). Work 원화 8종(F334–F341)은 원본 PNG 그대로 게임에 설치됨(외곽 잔색 등 원본 검수 이슈는 유지).
 
 **Chat / Work 공통 업로드 기준:** [업로드·배포 가이드](tools/UPLOAD_DEPLOY_GUIDE.md) — PNG 직접 설치, 대용량 전송 검증, ZIP 업로더, 배포 완료 판정.
 
@@ -9,6 +9,14 @@
 **블루탱 14동작 확인:** https://zkrupinski.github.io/Test/human-fishing/?bluetang=1
 
 **소스:** https://github.com/ZKrupinski/Test/tree/main/human-fishing
+
+## 2026-11-08 — Work 원화 8종 원본 그대로 설치
+
+- 배치 005(가시가오리·미거) 2종과 배치 006(아나바스·아바아바·파티메기·유럽브림·산호고양이상어·클레프트벨리전갱이) 6종을 **F334–F341**로 추가했습니다.
+- [설치 매니페스트](assets/fish-expansion-006/installed-manifest.json) 및 [등록 카탈로그](fish-expansion-catalog-006.js)의 원화 바이트는 `art-review/` 내 원본 Git blob SHA를 그대로 참조하며 이미지 자체는 자르거나 보정하거나 축소하지 않았습니다.
+- 기존 활성 296종에 8종을 추가하여 활성 도감 총 304종입니다. 모든 게임 화면은 기존 `HumanFishingArt.bitmap`를 통해 같은 개별 PNG를 사용합니다.
+- **원본의 붉은/노란 외곽 잔색, 광택, 일부 여백 부족은 수정하지 않았으며 잔여 시각 품질 이슈입니다.** 이것은 원본 그대로 적용해 달라는 요청에 따른 설치이지 알파 품질 검수 통과 선언이 아닙니다.
+- 파티메기(F338)는 게임상 남미 담수 슬롯(아마존 화면)을 임시 사용하지만 실제 원산지는 라플라타·블랑코 유역입니다. 클레프트벨리전갱이(F341)도 해초·모래 바다 슬롯은 임시 배정입니다. 원산지 메타데이터를 함께 보관했습니다.
 
 ## 2026-11-08 — 중복 신규 물고기 정리 / 개별 체형 원화로 전환
 

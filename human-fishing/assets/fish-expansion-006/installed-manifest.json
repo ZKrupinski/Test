@@ -1,0 +1,302 @@
+{
+  "batch": "work-005006",
+  "version": "2026-11-08",
+  "status": "INSTALLED_AS_IS_WITH_REVIEW_FLAGS",
+  "count": 8,
+  "originalPixelsPreserved": true,
+  "activation": "window.HumanFishingFishExpansion006Ready=true",
+  "note": "Eight original RGBA review PNGs are installed byte-for-byte, without repainting, cropping or resizing. Source alpha fringe/border issues remain; no visual QA approval is implied.",
+  "species": [
+    {
+      "gameId": "F334",
+      "nameKo": "가시가오리",
+      "scientificName": "Raja clavata",
+      "filename": "F334.png",
+      "sourcePath": "art-review/batch-005/raja-clavata-review.png",
+      "sha256": "5b103543364033d3633846fb20c6528f334c6a938d0698cbea34ceda1e8d1830",
+      "gitBlobSha": "856690c3523bb457d8f0fadc2d0035643cfcc543",
+      "width": 2172,
+      "height": 724,
+      "alphaBoundingBox": [
+        0,
+        2,
+        2158,
+        724
+      ],
+      "habitat": 8,
+      "nativeRegion": "북동대서양·지중해 저서",
+      "regionProvisional": false,
+      "rarity": "RARE",
+      "size": "LARGE",
+      "artStatus": "LIVE_AS_ORIGINAL_WITH_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Visible red/yellow edge contamination remains after imagegen revision; not approved for game use",
+        "Safety margin must meet installation rules",
+        "Full comparison against original 304 and all staged artwork pending",
+        "Species metadata and final gameplay angle approval pending"
+      ],
+      "behavior": {
+        "archetype": "bottom_glide_sudden_fan_escape",
+        "mode": "hover",
+        "speedMultiplier": 0.65,
+        "swimAmpMultiplier": 0.72,
+        "agilityMultiplier": 0.91,
+        "turnSeconds": 11
+      }
+    },
+    {
+      "gameId": "F335",
+      "nameKo": "미거",
+      "scientificName": "Argyrosomus regius",
+      "filename": "F335.png",
+      "sourcePath": "art-review/batch-005/argyrosomus-regius-review.png",
+      "sha256": "6361f8493fe9a4abbe15375035fdb67618cde5154f640b6a231b1e5e6f49cade",
+      "gitBlobSha": "fa85db51048ec7b175eaa385c8dea6c694683b61",
+      "width": 1671,
+      "height": 941,
+      "alphaBoundingBox": [
+        0,
+        129,
+        1607,
+        805
+      ],
+      "habitat": 8,
+      "nativeRegion": "동대서양·지중해 연안",
+      "regionProvisional": false,
+      "rarity": "RARE",
+      "size": "LARGE",
+      "artStatus": "LIVE_AS_ORIGINAL_WITH_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Visible red/yellow edge contamination remains after imagegen revision; not approved for game use",
+        "Safety margin must meet installation rules",
+        "Full comparison against original 304 and all staged artwork pending",
+        "Species metadata and final gameplay angle approval pending"
+      ],
+      "behavior": {
+        "archetype": "coastal_predator_accelerate_then_cruise",
+        "mode": "cruise",
+        "speedMultiplier": 1.03,
+        "swimAmpMultiplier": 0.77,
+        "agilityMultiplier": 1.22,
+        "turnSeconds": 8
+      }
+    },
+    {
+      "gameId": "F336",
+      "nameKo": "아나바스",
+      "scientificName": "Anabas testudineus",
+      "filename": "F336.png",
+      "sourcePath": "art-review/batch-006/anabas-testudineus-review.png",
+      "sha256": "5447f4db7f47ec46fbdc583dcec9da9584973f11992835e6fc793ef33f1876c7",
+      "gitBlobSha": "d28dc6922e34e7cfa70db7f9341679860deda4e1",
+      "width": 1774,
+      "height": 887,
+      "alphaBoundingBox": [
+        33,
+        21,
+        1718,
+        887
+      ],
+      "habitat": 3,
+      "nativeRegion": "남아시아·동남아시아 담수",
+      "regionProvisional": false,
+      "rarity": "UNCOMMON",
+      "size": "SMALL",
+      "artStatus": "LIVE_AS_ORIGINAL_WITH_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Full approved/staged artwork comparison and gameplay metadata review required",
+        "Visible edge color contamination requires cleanup before installation",
+        "Transparent safety margin below 100px"
+      ],
+      "behavior": {
+        "archetype": "swamp_perch_pause_and_dart",
+        "mode": "dart",
+        "speedMultiplier": 1.11,
+        "swimAmpMultiplier": 0.98,
+        "agilityMultiplier": 1.56,
+        "turnSeconds": 7
+      }
+    },
+    {
+      "gameId": "F337",
+      "nameKo": "아바아바",
+      "scientificName": "Gymnarchus niloticus",
+      "filename": "F337.png",
+      "sourcePath": "art-review/batch-006/gymnarchus-niloticus-review.png",
+      "sha256": "99bd1f2fe97a9090caead214edb2551f5433679b120d8b7dbae311f591c5ad8a",
+      "gitBlobSha": "d58b2a74509f1480839c6e80ce752e15924d7a5c",
+      "width": 1774,
+      "height": 887,
+      "alphaBoundingBox": [
+        49,
+        19,
+        1738,
+        861
+      ],
+      "habitat": 2,
+      "nativeRegion": "아프리카 민물",
+      "regionProvisional": false,
+      "rarity": "EPIC",
+      "size": "LARGE",
+      "artStatus": "LIVE_AS_ORIGINAL_WITH_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Full approved/staged artwork comparison and gameplay metadata review required",
+        "Transparent safety margin below 100px"
+      ],
+      "behavior": {
+        "archetype": "ribbon_dorsal_slow_patrol",
+        "mode": "wander",
+        "speedMultiplier": 0.71,
+        "swimAmpMultiplier": 1.36,
+        "agilityMultiplier": 0.84,
+        "turnSeconds": 12
+      }
+    },
+    {
+      "gameId": "F338",
+      "nameKo": "파티메기",
+      "scientificName": "Luciopimelodus pati",
+      "filename": "F338.png",
+      "sourcePath": "art-review/batch-006/luciopimelodus-pati-review.png",
+      "sha256": "8f8faa7372e422c4896dc30ac79d79ee5607c12acd88ec398579fea058873501",
+      "gitBlobSha": "6aa527a24670d756bcb47ed34f2c5416d76ce86d",
+      "width": 1774,
+      "height": 887,
+      "alphaBoundingBox": [
+        48,
+        35,
+        1746,
+        871
+      ],
+      "habitat": 1,
+      "nativeRegion": "라플라타·블랑코강 유역",
+      "regionProvisional": true,
+      "rarity": "RARE",
+      "size": "LARGE",
+      "artStatus": "LIVE_AS_ORIGINAL_WITH_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Full approved/staged artwork comparison and gameplay metadata review required",
+        "Visible edge color contamination requires cleanup before installation",
+        "Transparent safety margin below 100px",
+        "No verified matching game habitat assigned"
+      ],
+      "behavior": {
+        "archetype": "river_catfish_sprint_and_hold",
+        "mode": "dart",
+        "speedMultiplier": 1.18,
+        "swimAmpMultiplier": 0.78,
+        "agilityMultiplier": 1.51,
+        "turnSeconds": 8
+      }
+    },
+    {
+      "gameId": "F339",
+      "nameKo": "유럽브림",
+      "scientificName": "Abramis brama",
+      "filename": "F339.png",
+      "sourcePath": "art-review/batch-006/abramis-brama-review.png",
+      "sha256": "47425a640de7f86e6dc5bc1189afe191eaed25992bdc0802c26b810c712d35e1",
+      "gitBlobSha": "43fd69cab7c1b994608a22c0ac0e866ce3f8bd2b",
+      "width": 1536,
+      "height": 1024,
+      "alphaBoundingBox": [
+        0,
+        103,
+        1484,
+        996
+      ],
+      "habitat": 4,
+      "nativeRegion": "유럽 온대 담수",
+      "regionProvisional": false,
+      "rarity": "UNCOMMON",
+      "size": "MEDIUM",
+      "artStatus": "LIVE_AS_ORIGINAL_WITH_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Full approved/staged artwork comparison and gameplay metadata review required",
+        "Exterior luminous halo remains; background extraction retry did not resolve it; original draft retained",
+        "Transparent safety margin below 100px"
+      ],
+      "behavior": {
+        "archetype": "benthic_bream_school_turn",
+        "mode": "cruise",
+        "speedMultiplier": 0.79,
+        "swimAmpMultiplier": 0.85,
+        "agilityMultiplier": 0.77,
+        "turnSeconds": 10
+      }
+    },
+    {
+      "gameId": "F340",
+      "nameKo": "산호고양이상어",
+      "scientificName": "Atelomycterus marmoratus",
+      "filename": "F340.png",
+      "sourcePath": "art-review/batch-006/atelomycterus-marmoratus-review.png",
+      "sha256": "0e3fab4025be1a45fdfe1e909da366b0cd99211141191bc8feb8ed0c1efe0ff1",
+      "gitBlobSha": "16d69c5edb57ceefe587d20431a4c7df20e26cc1",
+      "width": 1774,
+      "height": 887,
+      "alphaBoundingBox": [
+        57,
+        55,
+        1732,
+        823
+      ],
+      "habitat": 6,
+      "nativeRegion": "인도·서태평양 암초",
+      "regionProvisional": false,
+      "rarity": "RARE",
+      "size": "MEDIUM",
+      "artStatus": "LIVE_AS_ORIGINAL_WITH_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Full approved/staged artwork comparison and gameplay metadata review required",
+        "Visible edge color contamination requires cleanup before installation",
+        "Transparent safety margin below 100px"
+      ],
+      "behavior": {
+        "archetype": "coral_catshark_low_patrol_escape",
+        "mode": "hover",
+        "speedMultiplier": 0.57,
+        "swimAmpMultiplier": 0.72,
+        "agilityMultiplier": 0.99,
+        "turnSeconds": 13
+      }
+    },
+    {
+      "gameId": "F341",
+      "nameKo": "클레프트벨리전갱이",
+      "scientificName": "Atropus atropos",
+      "filename": "F341.png",
+      "sourcePath": "art-review/batch-006/atropus-atropos-review.png",
+      "sha256": "c55ed778bbc2f69f153032590a27a59bf24b491c8e4010eb0ca3f54d67ef8015",
+      "gitBlobSha": "093a759666920e23486882b20d00d536ee2aa10b",
+      "width": 1536,
+      "height": 1024,
+      "alphaBoundingBox": [
+        0,
+        20,
+        1506,
+        1024
+      ],
+      "habitat": 7,
+      "nativeRegion": "인도·서태평양 연안",
+      "regionProvisional": true,
+      "rarity": "RARE",
+      "size": "MEDIUM",
+      "artStatus": "LIVE_AS_ORIGINAL_WITH_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Full approved/staged artwork comparison and gameplay metadata review required",
+        "Exterior luminous halo remains; background extraction retry did not resolve it; original draft retained",
+        "Transparent safety margin below 100px",
+        "No verified matching game habitat assigned"
+      ],
+      "behavior": {
+        "archetype": "cleftbelly_shallow_coast_dash",
+        "mode": "dart",
+        "speedMultiplier": 1.31,
+        "swimAmpMultiplier": 1.14,
+        "agilityMultiplier": 1.52,
+        "turnSeconds": 7
+      }
+    }
+  ]
+}
