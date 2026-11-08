@@ -1693,13 +1693,13 @@ console.log('PASS: rare Fever targets visibly reel up, evade at mouth, return al
   'Each codex card must have a landscape footprint');
  assert.match(html,/#panelBody \.book-fish-thumb img\{[\s\S]*?object-fit:contain/,
   'Fish illustrations must fill the available thumbnail area without cropping');
- assert.match(html,/#panelBody \.book-cards \.book-fish-card\.locked \.book-fish-thumb img\{\s*filter:brightness\(0\);opacity:1/,
+ assert.match(html,/#panelBody \.book-cards \.book-fish-card\.locked \.book-fish-thumb img\{\s*filter:brightness\(0\) drop-shadow/,
   'Locked species must display a clean black silhouette preserving PNG transparency');
  assert.match(html,/#panelBody \.book-fish-caption\{[\s\S]*?white-space:nowrap/,
   'Species name and detail must share one unwrapped line beneath the image');
  game.renderCodex(-1,'');
  const markup=element('panelBody').innerHTML;
- const thumbs=[...markup.matchAll(/<img src="\.\/assets\/fish\/individual\/(F\d{3})\.png\?v=20261106-fish304"[^>]+>/g)];
+ const thumbs=[...markup.matchAll(/<img src="\.\/assets\/fish\/individual\/(F\d{3})\.png\?v=20261109-codexfix"[^>]+>/g)];
  assert.equal(thumbs.length,game.species.length,
   'Every species, including the 64 variants, must have an actual codex PNG thumbnail');
  // This VM loads only the inline base catalog (240). At runtime the

@@ -219,9 +219,9 @@ nav{flex-wrap:nowrap}
  border-color:#435d69
 }
 #panelBody .book-cards .book-fish-card.locked .book-fish-thumb img{
- filter:brightness(0);opacity:1
+ filter:brightness(0) drop-shadow(0 0 1px #b7d8db) drop-shadow(0 0 3px #81b4b6bd);opacity:1
 }
-#panelBody .book-fish-caption{
+#panelBody .book-fish-thumb.image-error{color:#c5dae0;font:800 10px system-ui;text-align:center}\n#panelBody .book-fish-caption{
  width:100%;height:23px;flex:0 0 23px;display:flex;
  align-items:center;gap:6px;white-space:nowrap;overflow:hidden;
  border-top:1px solid #ffffff1b;padding:3px 3px 0
@@ -1115,8 +1115,9 @@ function buildHum(){
  }
 }
 function updateStats(){
- var count=Object.keys(save.owned).length,h=Object.keys(save.human).filter(function(k){return save.human[k]>0}).length;
- $('coins').textContent='◈ '+save.coins.toLocaleString()+'　🐟 '+count+'/'+species.length+'　🧑 '+h+'/24';
+ var visibleSpecies=species.filter(function(sp){return !sp.archivedVisualDuplicate});
+ var count=visibleSpecies.filter(function(sp){return (save.owned[sp.id]||0)>0}).length,h=Object.keys(save.human).filter(function(k){return save.human[k]>0}).length;
+ $('coins').textContent='◈ '+save.coins.toLocaleString()+'　🐟 '+count+'/'+visibleSpecies.length+'　🧑 '+h+'/24';
 }
 function setMode(m){
  if(m==='human')m='fish';
@@ -1127,10 +1128,10 @@ function setMode(m){
   $('nav'+n).classList.toggle('active',({Fish:'fish',Tank:'tank',Book:'book',Grow:'grow'})[n]===m);
  });
  $('action').style.display=m==='fish'?'':'none';
- $('hintTitle').textContent=m==='tank'?'물고기와 엘리트 인간을 함께 전시하세요':m==='book'?'물고기 '+species.length+'종 · 인간 24종':m==='grow'?'진주로 문어를 성장시켜요':'물고기 또는 인간 가까이 찌를 드래그!';
+ $('hintTitle').textContent=m==='tank'?'물고기와 엘리트 인간을 함께 전시하세요':m==='book'?'물고기 '+species.filter(function(sp){return !sp.archivedVisualDuplicate}).length+'종 · 인간 24종':m==='grow'?'진주로 문어를 성장시켜요':'물고기 또는 인간 가까이 찌를 드래그!';
  $('hint').textContent=m==='tank'?'잡은 인간은 거품 캡슐 속에서 헤엄칩니다.':m==='fish'?'손을 떼면 포획! 인간은 강한 저항 연출이 있어요.':'통합 도감과 성장 시스템';
  $('stageName').textContent=m==='tank'?'생물 아쿠아리움':m==='book'?'통합 생물 도감':m==='grow'?'문어 성장':habitats[zone]+' · 인간 출몰';
- $('stageNo').textContent=m==='tank'?'MY AQUARIUM':m==='book'?species.length+' FISH + 24 HUMANS':m==='grow'?'UPGRADES':'STAGE '+String(zone+1).padStart(2,'0')+' / 12';
+ $('stageNo').textContent=m==='tank'?'MY AQUARIUM':m==='book'?species.filter(function(sp){return !sp.archivedVisualDuplicate}).length+' FISH + 24 HUMANS':m==='grow'?'UPGRADES':'STAGE '+String(zone+1).padStart(2,'0')+' / 12';
  bob={x:680,y:430};
  if(m==='book')renderBook(-3,'');
  if(m==='grow')renderGrow();
@@ -1202,15 +1203,16 @@ function sortFishForCodexByRegion(list){
 }
 function renderBook(filter,query){
  filter=filter===undefined?-3:Number(filter);query=query||'';
+ var catalogueSpecies=species.filter(function(sp){return !sp.archivedVisualDuplicate});
  var count=Object.keys(save.owned).length,hCount=Object.keys(save.human).filter(function(k){return save.human[k]>0}).length;
  var tool='<div class="toolbar"><input id="search" placeholder="인간·물고기 이름 검색" value="'+escapeHtml(query)+'"><select id="filter">'+
- '<option value="-3" '+(filter===-3?'selected':'')+'>전체 생물 · '+(species.length+humans.length)+'종</option>'+
+ '<option value="-3" '+(filter===-3?'selected':'')+'>전체 생물 · '+(catalogueSpecies.length+humans.length)+'종</option>'+
  '<option value="-2" '+(filter===-2?'selected':'')+'>🧑 인간 도감 · 24종</option>'+
- '<option value="-1" '+(filter===-1?'selected':'')+'>🐟 물고기 도감 · '+species.filter(function(s){return !s.specialCreature}).length+'종</option>'+
-  '<option value="-4" '+(filter===-4?'selected':'')+'>🆕 추가 일러스트 · '+species.filter(function(sp){return sp.artVariant||sp.expansionSpecies}).length+'종</option>'+ 
- '<option value="-5" '+(filter===-5?'selected':'')+'>✨ 특수 생물 · '+species.filter(function(sp){return sp.specialCreature}).length+'종</option>'+
+ '<option value="-1" '+(filter===-1?'selected':'')+'>🐟 물고기 도감 · '+catalogueSpecies.filter(function(s){return !s.specialCreature}).length+'종</option>'+
+  '<option value="-4" '+(filter===-4?'selected':'')+'>🆕 추가 일러스트 · '+catalogueSpecies.filter(function(sp){return sp.artVariant||sp.expansionSpecies}).length+'종</option>'+
+ '<option value="-5" '+(filter===-5?'selected':'')+'>✨ 특수 생물 · '+catalogueSpecies.filter(function(sp){return sp.specialCreature}).length+'종</option>'+
  habitats.map(function(n,i){return '<option value="'+i+'" '+(filter===i?'selected':'')+'>'+escapeHtml(n)+'</option>'}).join('')+'</select></div>';
- var visibleFish=sortFishForCodexByRegion(filter===-3||filter===-1||filter===-4||filter===-5||filter>=0?species.filter(function(x){return filter===-5?!!x.specialCreature:filter===-4?!!(x.artVariant||x.expansionSpecies):filter===-1?!x.specialCreature:filter<0||x.habitat===filter}):[]);
+ var visibleFish=sortFishForCodexByRegion(filter===-3||filter===-1||filter===-4||filter===-5||filter>=0?catalogueSpecies.filter(function(x){return filter===-5?!!x.specialCreature:filter===-4?!!(x.artVariant||x.expansionSpecies):filter===-1?!x.specialCreature:filter<0||x.habitat===filter}):[]);
  var visibleHuman=filter===-3||filter===-2?humans.map(function(n,id){return{id:id,name:n}}):[];
  var cards='<div class="cards book-cards">'+visibleHuman.map(function(a){
   var id=String(a.id),n=save.human[id]||0,tier=humanTier(a.id);
@@ -1218,13 +1220,13 @@ function renderBook(filter,query){
   return '<div class="card book-human-card '+(n?'':'locked')+'" data-name="'+escapeHtml(a.name)+'" title="'+escapeHtml(a.name+' · '+tier)+'">'+
    '<div class="face">'+(n?(tier==='BOSS'?'👑':'🧑'):'◈')+'</div>'+
    '<div class="book-fish-caption"><span class="name">'+name+'</span><span class="book-detail">'+detail+'</span></div></div>';
- }).join('')+visibleFish.map(function(sp){
+ }).join('')+visibleFish.map(function(sp,photoIndex){
   var n=save.owned[sp.id]||0,visual=fishVisualProfile(sp);
   var className=sp.specialCreature?'특수 생물':({SMALL:'소형',MEDIUM:'중형',LARGE:'대형',SPECIAL:'특수형'}[visual.category]||'어종');
   // All 304 names have a dedicated original RGBA PNG in this folder.
   // The browser only loads visible cards; no canvas cutting, scaling the
   // atlas, proxy artwork or downloaded picture substitutes.
-  var source=sp.specialCreature?'./assets/special-creatures/'+sp.id+'.png?v=20261108-s001':'./assets/fish/individual/'+sp.id+'.png?v=20261106-fish304';
+  var source=sp.specialCreature?'./assets/special-creatures/'+sp.id+'.png?v=20261109-codexfix':'./assets/fish/individual/'+sp.id+'.png?v=20261109-codexfix';
   var name=n?escapeHtml(sp.name):'???';
   var detail=n?className+' · '+sp.rarity+' · ×'+n:sp.id+' · 미발견';
   var info=sp.name+' · '+habitats[sp.habitat]+' · '+className+' · '+sp.rarity+
@@ -1233,16 +1235,31 @@ function renderBook(filter,query){
   return '<div class="card book-fish-card '+(n?'':'locked')+
    '" data-name="'+escapeHtml(sp.name)+'" title="'+escapeHtml(info)+'">'+
    '<div class="book-fish-thumb"><img src="'+source+'" alt="'+escapeHtml(alt)+
-   '" loading="lazy" decoding="async" draggable="false"></div>'+
+   '" loading="'+(photoIndex<48?'eager':'lazy')+'" decoding="async" draggable="false"></div>'+
    '<div class="book-fish-caption"><span class="name">'+name+
    '</span><span class="book-detail">'+escapeHtml(detail)+'</span></div></div>';
  }).join('')+'</div>';
- var normalTotal=species.filter(function(sp){return !sp.specialCreature}).length;
- var normalCount=species.filter(function(sp){return !sp.specialCreature&&(save.owned[sp.id]||0)>0}).length;
+ var normalTotal=catalogueSpecies.filter(function(sp){return !sp.specialCreature}).length;
+ var normalCount=catalogueSpecies.filter(function(sp){return !sp.specialCreature&&(save.owned[sp.id]||0)>0}).length;
  var specialTotal=species.length-normalTotal;
- var specialCount=species.filter(function(sp){return sp.specialCreature&&(save.owned[sp.id]||0)>0}).length;
- openPanel('통합 생물 도감','물고기 '+normalCount+'/'+normalTotal+' · 특수 생물 '+specialCount+'/'+specialTotal+' · 인간 '+hCount+'/24 · '+(species.length+humans.length)+'종 컬렉션',tool+cards);
- $('search').oninput=function(){
+ var specialCount=catalogueSpecies.filter(function(sp){return sp.specialCreature&&(save.owned[sp.id]||0)>0}).length;
+ openPanel('통합 생물 도감','물고기 '+normalCount+'/'+normalTotal+' · 특수 생물 '+specialCount+'/'+specialTotal+' · 인간 '+hCount+'/24 · '+(catalogueSpecies.length+humans.length)+'종 컬렉션',tool+cards);
+ // A failed thumbnail retries once with a fresh URL. If the CDN still
+  // fails, show a readable error rather than an empty-looking tile.
+  document.querySelectorAll('#panelBody .book-fish-thumb img').forEach(function(im){
+   im.addEventListener('error',function(){
+    if(!im.dataset.codexRetried){
+     im.dataset.codexRetried='1';
+     im.src=im.src+(im.src.includes('?')?'&':'?')+'retry=1';
+    }else{
+     var p=im.parentNode;
+     im.style.display='none';
+     p.classList.add('image-error');
+     p.textContent='이미지 로딩 실패 · 재접속';
+    }
+   });
+  });
+  $('search').oninput=function(){
   var q=this.value.toLowerCase();
   document.querySelectorAll('#panelBody .cards .card').forEach(function(card){card.style.display=card.dataset.name.toLowerCase().includes(q)?'':'none'});
  };
@@ -4036,7 +4053,7 @@ function chooseWildSpecies(){
   var wanted=tierOrder.indexOf(targetTier),options=[];
   while(wanted>=0&&!options.length){
    var tier=tierOrder[wanted--];
-   options=species.filter(function(sp){return sp.habitat===zone&&sp.rarity===tier});
+   options=species.filter(function(sp){return !sp.archivedVisualDuplicate&&sp.habitat===zone&&sp.rarity===tier});
   }
   if(options.length){
    var variants=options.filter(function(sp){return sp.artVariant});
@@ -4132,7 +4149,7 @@ function ecoVisualRepresentative(category){
  // Visual variety uses only common and uncommon habitat residents; rare
  // encounter/catch probabilities remain separate from the size categories.
  var candidates=species.filter(function(sp){
-  return sp.habitat===zone&&(sp.rarity==='COMMON'||sp.rarity==='UNCOMMON')&&
+  return !sp.archivedVisualDuplicate&&sp.habitat===zone&&(sp.rarity==='COMMON'||sp.rarity==='UNCOMMON')&&
    fishVisualProfile(sp).category===category;
  });
  if(!candidates.length)return null;
@@ -4165,7 +4182,7 @@ function ecoDistinctSpawnSpecies(preferred){
  // Only same-rarity alternatives: do not secretly upgrade easy fish into
  // valuable rare fish, nor erase the rarity difference between stages.
  var pool=species.filter(function(sp){
-  return sp.habitat===zone&&sp.rarity===preferred.rarity&&allowed(sp);
+  return !sp.archivedVisualDuplicate&&sp.habitat===zone&&sp.rarity===preferred.rarity&&allowed(sp);
  });
  if(!pool.length)return null;
  var desired=fishVisualProfile(preferred).category;

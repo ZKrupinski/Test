@@ -30,7 +30,7 @@
 
  // Curated near-identical/recolored images: preserve all original PNGs and IDs for saves,
  // but never count these as separate visible collectible species.
- var visualAliases={"F241":"F061","F242":"F061","F243":"F061","F244":"F061","F246":"F001","F247":"F001","F248":"F001","F251":"F249","F253":"F252","F262":"F261","F284":"F282","F298":"F297","F299":"F297"};
+ var visualAliases={"F241":"F061","F242":"F061","F243":"F061","F244":"F061","F246":"F001","F247":"F001","F248":"F001","F251":"F249","F253":"F252","F262":"F261","F284":"F282","F298":"F297","F299":"F297","F122":"F121","F265":"F121","F266":"F123","F267":"F124","F268":"F126","F269":"F125","F270":"F127","F271":"F128","F272":"F129"};
  function migrateSave(save){
   if(!save||typeof save!=='object')return false;
   var changed=false,owned=save.owned;
@@ -96,14 +96,14 @@
  }
  function primeHabitat(z,list){
   if(!enabled)return Promise.resolve();
-  var ids=listZone(list,z).map(function(x){return x.id});
+  var ids=listZone(list,z).filter(function(x){return !x.archivedVisualDuplicate}).map(function(x){return x.id});
   var key=String(z);
   if(!preload[key])preload[key]=Promise.all(ids.map(waitImage)).then(function(){return true;});
   return preload[key];
  }
  function extend(list){
   if(!enabled||installed)return list;
-  list.forEach(function(sp){if(baseTierFix[sp.name])sp.rarity=baseTierFix[sp.name];});
+  list.forEach(function(sp){if(baseTierFix[sp.name])sp.rarity=baseTierFix[sp.name];if(visualAliases[sp.id])sp.archivedVisualDuplicate=true;});
   groups.forEach(function(group,g){
    group.names.forEach(function(name,j){
     var id='F'+String(241+g*8+j).padStart(3,'0');
@@ -127,7 +127,7 @@
   enabled:enabled,specialEnabled:specialEnabled,specialCount:specialEnabled?approvedSpecialRoster.length:0,
   extend:extend,bitmap:imageFor,primeHabitat:primeHabitat,
   visualAliases:visualAliases,migrateSave:migrateSave,
-  variantsFor:variantsFor,originalCount:240,variantCount:64-Object.keys(visualAliases).length,archivedVariantCount:64,
+  variantsFor:variantsFor,originalCount:240,variantCount:64-Object.keys(visualAliases).filter(function(id){return Number(id.slice(1))>=241}).length,archivedVariantCount:64,
   assetPath:'./assets/fish/individual/'
  };
 })();

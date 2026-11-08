@@ -1586,7 +1586,8 @@
       "width": 280,
       "height": 171,
       "png": "individual/F122.png",
-      "alphaMethod": "largest-full-connected-component"
+      "alphaMethod": "largest-full-connected-component",
+      "visualAliasOf": "F121"
     },
     {
       "id": "F123",
@@ -3515,7 +3516,8 @@
       "width": 230,
       "height": 142,
       "png": "individual/F265.png",
-      "alphaMethod": "largest-full-connected-component"
+      "alphaMethod": "largest-full-connected-component",
+      "visualAliasOf": "F121"
     },
     {
       "id": "F266",
@@ -3530,7 +3532,8 @@
       "width": 233,
       "height": 155,
       "png": "individual/F266.png",
-      "alphaMethod": "largest-full-connected-component"
+      "alphaMethod": "largest-full-connected-component",
+      "visualAliasOf": "F123"
     },
     {
       "id": "F267",
@@ -3545,7 +3548,8 @@
       "width": 205,
       "height": 149,
       "png": "individual/F267.png",
-      "alphaMethod": "largest-full-connected-component"
+      "alphaMethod": "largest-full-connected-component",
+      "visualAliasOf": "F124"
     },
     {
       "id": "F268",
@@ -3560,7 +3564,8 @@
       "width": 235,
       "height": 147,
       "png": "individual/F268.png",
-      "alphaMethod": "largest-full-connected-component"
+      "alphaMethod": "largest-full-connected-component",
+      "visualAliasOf": "F126"
     },
     {
       "id": "F269",
@@ -3575,7 +3580,8 @@
       "width": 223,
       "height": 140,
       "png": "individual/F269.png",
-      "alphaMethod": "largest-full-connected-component"
+      "alphaMethod": "largest-full-connected-component",
+      "visualAliasOf": "F125"
     },
     {
       "id": "F270",
@@ -3590,7 +3596,8 @@
       "width": 240,
       "height": 154,
       "png": "individual/F270.png",
-      "alphaMethod": "largest-full-connected-component"
+      "alphaMethod": "largest-full-connected-component",
+      "visualAliasOf": "F127"
     },
     {
       "id": "F271",
@@ -3605,7 +3612,8 @@
       "width": 236,
       "height": 151,
       "png": "individual/F271.png",
-      "alphaMethod": "largest-full-connected-component"
+      "alphaMethod": "largest-full-connected-component",
+      "visualAliasOf": "F128"
     },
     {
       "id": "F272",
@@ -3620,7 +3628,8 @@
       "width": 239,
       "height": 153,
       "png": "individual/F272.png",
-      "alphaMethod": "largest-full-connected-component"
+      "alphaMethod": "largest-full-connected-component",
+      "visualAliasOf": "F129"
     },
     {
       "id": "F273",
@@ -4113,8 +4122,8 @@
     "original": 240,
     "originalColorMorphs": 64,
     "total": 304,
-    "activeCollectionEntries": 291,
-    "mergedVisualDuplicates": 13
+    "activeCollectionEntries": 282,
+    "mergedVisualDuplicates": 22
   },
   "note": "304 original PNGs preserved. Runtime codex keeps 240 original species plus 51 distinct illustrated additional entries; 13 strongly overlapping visual variants are merged into canonical records with saved inventories migrated. Rarity metadata is synchronized with live gameplay. 52 unshipped artwork candidates remain under review."
 }

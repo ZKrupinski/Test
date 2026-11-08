@@ -41,12 +41,12 @@ function load(ready){
  return {list,art:window.HumanFishingArt,images};
 }
 const off=load(false),on=load(true);
-assert.equal(off.list.length,291,'No extra fish registered without ready flag');
-assert.equal(on.list.length,304,'291 original + 13 active special');
+assert.equal(off.list.length,283,'No extra fish registered without ready flag');
+assert.equal(on.list.length,296,'283 original records + 13 active special');
 assert.equal(off.art.specialCount,0);
 assert.equal(on.art.specialCount,13);
 assert.equal(on.list.filter(x=>x.specialCreature).length,13);
-assert.equal(new Set(on.list.map(x=>x.id)).size,304);
+assert.equal(new Set(on.list.map(x=>x.id)).size,296);
 for(const row of liveRows){
  const sp=on.list.find(x=>x.id===row.id);
  assert.ok(sp&&sp.specialCreature);

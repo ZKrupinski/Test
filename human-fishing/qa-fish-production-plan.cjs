@@ -6,7 +6,7 @@ const base='human-fishing/';
 const data=JSON.parse(fs.readFileSync(base+'fish-production-candidates.json','utf8'));
 const art=JSON.parse(fs.readFileSync(base+'assets/fish/manifest.json','utf8'));
 const known=JSON.parse(fs.readFileSync(base+'fish-art-curation.json','utf8'));
-assert.equal(art.counts.activeCollectionEntries,291);
+assert.equal(art.counts.activeCollectionEntries,282);
 assert.ok(data.goal.scientificSourceCandidateCount>=1309);
 assert.ok(data.goal.potentialAfterEveryCandidateIsApproved>=1600);
 assert.equal(data.candidates.length,data.goal.scientificSourceCandidateCount);
