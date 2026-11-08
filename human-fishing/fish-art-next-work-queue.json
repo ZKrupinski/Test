@@ -2,14 +2,14 @@
   "version": "2026-11-09",
   "role": "Production review order, NOT a list of approved or live fish",
   "sourceCandidateCount": 1539,
-  "knownArtOrCurrentBatchMatched": 63,
-  "remainingCandidateCount": 1476,
+  "knownArtOrCurrentBatchMatched": 69,
+  "remainingCandidateCount": 1470,
   "remainingCountMeaning": "Candidates without matched production records; not proof every candidate is unique or has no Library art",
   "currentBatch": [
     "Piaractus brachypomus",
-    "Ageneiosus militaris",
+    "Gobionellus oceanicus",
     "Calophysus macropterus",
-    "Pristolepis fasciata",
+    "Pterodoras granulosus",
     "Channallabes apus",
     "Chromidotilapia batesii"
   ],
@@ -19,15 +19,15 @@
     "열대 산호초": 351,
     "온대 연안": 337,
     "외양·대형 어종": 316,
-    "열대 수초 수조": 12,
-    "해초·모래 바다": 181,
-    "아시아 강·습지": 87,
+    "해초·모래 바다": 180,
+    "아시아 강·습지": 86,
     "아프리카 호수·강": 66,
-    "냉수 강·호수": 33,
+    "냉수 강·호수": 32,
     "동아시아 담수": 47,
-    "아마존 유역": 34,
+    "아마존 유역": 33,
     "심해·발광": 10,
-    "한대·냉해": 2
+    "열대 수초 수조": 11,
+    "한대·냉해": 1
   },
   "nextReviewCandidates": [
     {
@@ -50,12 +50,12 @@
       "batch": "REVIEW-01"
     },
     {
-      "candidateId": "P0019",
-      "scientificName": "Ageneiosus militaris",
+      "candidateId": "P0584",
+      "scientificName": "Gobionellus oceanicus",
       "proposedStage": 0,
       "proposedStageName": "열대 수초 수조",
       "proposedSizeClass": "SMALL",
-      "family": "Auchenipteridae",
+      "family": "Gobiidae",
       "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
       "status": "PREFLIGHT_REQUIRED",
       "gameId": null,
@@ -88,13 +88,13 @@
       "batch": "REVIEW-01"
     },
     {
-      "candidateId": "P1168",
-      "scientificName": "Pristolepis fasciata",
+      "candidateId": "P1206",
+      "scientificName": "Pterodoras granulosus",
       "proposedStage": 1,
       "proposedStageName": "아마존 유역",
       "proposedSizeClass": "MEDIUM",
-      "family": "Pristolepididae",
-      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "family": "Doradidae",
+      "morphologyGuide": "골판갑과 극단적인 측면 가시",
       "status": "PREFLIGHT_REQUIRED",
       "gameId": null,
       "requiredBeforeGeneration": [
@@ -164,13 +164,13 @@
       "batch": "REVIEW-02"
     },
     {
-      "candidateId": "P0453",
-      "scientificName": "Dormitator maculatus",
+      "candidateId": "P0885",
+      "scientificName": "Microthrissa moeruensis",
       "proposedStage": 3,
       "proposedStageName": "아시아 강·습지",
-      "proposedSizeClass": "LARGE",
-      "family": "Eleotridae",
-      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "proposedSizeClass": "SMALL",
+      "family": "Clupeidae",
+      "morphologyGuide": "가늘고 반짝이는 작은 군영 어류",
       "status": "PREFLIGHT_REQUIRED",
       "gameId": null,
       "requiredBeforeGeneration": [
@@ -183,13 +183,13 @@
       "batch": "REVIEW-02"
     },
     {
-      "candidateId": "P0320",
-      "scientificName": "Chitala lopis",
+      "candidateId": "P0366",
+      "scientificName": "Corica soborna",
       "proposedStage": 4,
       "proposedStageName": "냉수 강·호수",
       "proposedSizeClass": "SMALL",
-      "family": "Notopteridae",
-      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "family": "Clupeidae",
+      "morphologyGuide": "가늘고 반짝이는 작은 군영 어류",
       "status": "PREFLIGHT_REQUIRED",
       "gameId": null,
       "requiredBeforeGeneration": [
@@ -202,12 +202,12 @@
       "batch": "REVIEW-02"
     },
     {
-      "candidateId": "P1088",
-      "scientificName": "Perca flavescens",
+      "candidateId": "P1038",
+      "scientificName": "Papyrocranus afer",
       "proposedStage": 4,
       "proposedStageName": "냉수 강·호수",
-      "proposedSizeClass": "LARGE",
-      "family": "Percidae",
+      "proposedSizeClass": "MEDIUM",
+      "family": "Notopteridae",
       "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
       "status": "PREFLIGHT_REQUIRED",
       "gameId": null,
@@ -316,13 +316,13 @@
       "batch": "REVIEW-03"
     },
     {
-      "candidateId": "P0078",
-      "scientificName": "Aphia minuta",
+      "candidateId": "P0185",
+      "scientificName": "Buglossidium luteum",
       "proposedStage": 7,
       "proposedStageName": "해초·모래 바다",
-      "proposedSizeClass": "SMALL",
-      "family": "Gobiidae",
-      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "proposedSizeClass": "LARGE",
+      "family": "Soleidae",
+      "morphologyGuide": "혀모양 극편평 체형",
       "status": "PREFLIGHT_REQUIRED",
       "gameId": null,
       "requiredBeforeGeneration": [
@@ -449,25 +449,6 @@
       "batch": "REVIEW-04"
     },
     {
-      "candidateId": "P0451",
-      "scientificName": "Dissostichus eleginoides",
-      "proposedStage": 11,
-      "proposedStageName": "한대·냉해",
-      "proposedSizeClass": "MEDIUM",
-      "family": "Nototheniidae",
-      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
-      "status": "PREFLIGHT_REQUIRED",
-      "gameId": null,
-      "requiredBeforeGeneration": [
-        "accepted_taxon_and_synonym_check",
-        "existing_304_and_staged_art_visual_comparison",
-        "habitat_and_adult_size_sources",
-        "two_non_color_shape_differences"
-      ],
-      "reviewOrder": 23,
-      "batch": "REVIEW-04"
-    },
-    {
       "candidateId": "P1060",
       "scientificName": "Paranotothenia magellanica",
       "proposedStage": 11,
@@ -483,7 +464,7 @@
         "habitat_and_adult_size_sources",
         "two_non_color_shape_differences"
       ],
-      "reviewOrder": 24,
+      "reviewOrder": 23,
       "batch": "REVIEW-04"
     }
   ]
