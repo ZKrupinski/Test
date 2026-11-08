@@ -24,6 +24,8 @@ assert.equal(on.art.specialCount,1);
 assert.equal(on.art.bitmap('S001'),null);
 assert.equal(on.images[0].src,'./assets/special-creatures/S001.png?v=20261108-s001');
 assert.match(html,/value="-5"/);
+assert.match(html,/specialPulseAt/);
+assert.match(html,/sp\.specialCreature/);
 assert.match(html,/assets\/special-creatures\/ready\.js/);
 assert.match(html,/sp\.specialCreature\?'\.\/assets\/special-creatures\//);
 const ready=fs.readFileSync('human-fishing/assets/special-creatures/ready.js','utf8');
