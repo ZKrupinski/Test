@@ -28,6 +28,7 @@ jobs:
            'visual':root/'qa-fish-visual-catalog.cjs',
            'special':root/'qa-special-creatures.cjs',
            'plan':root/'qa-fish-production-plan.cjs',
+           'smoke':root/'qa-smoke.cjs',
            'workflow':Path('.github/workflows/human-fishing-qa.yml'),
           }
           originals={k:p.read_text() for k,p in paths.items()}
@@ -193,6 +194,12 @@ jobs:
            "assert.equal(art.counts.activeCollectionEntries,291);",
            "assert.equal(art.counts.activeCollectionEntries,282);",
            'Production target live codex count')
+          smoke=originals['smoke']
+          smoke=one(smoke,r"filter:brightness\\(0\\);opacity:1",
+           r"filter:brightness\\(0\\) drop-shadow",
+           'Smoke QA expects readable black silhouette rim')
+          smoke=one(smoke,'20261106-fish304"[^>]+>','20261109-codexfix"[^>]+>',
+           'Smoke QA codex uses new cache key')
           ci=originals['workflow']
           ci=one(ci,
            "      - name: Verify 10 batch023 sprites, save compatibility and 5 pending fourth-round candidates",
@@ -245,6 +252,7 @@ jobs:
             paths['special']:special,
             paths['plan']:plan,
             paths['workflow']:ci,
+            paths['smoke']:smoke,
             root/'qa-codex-visibility.cjs':audit
           }
           assert len(aliases)==22
@@ -267,7 +275,7 @@ jobs:
           git add human-fishing/index.html human-fishing/fish-bitmap-catalog.js
           git add human-fishing/assets/fish/manifest.json human-fishing/qa-codex-visibility.cjs
           git add human-fishing/qa-fish-visual-catalog.cjs human-fishing/qa-special-creatures.cjs
-          git add human-fishing/qa-fish-production-plan.cjs .github/workflows/human-fishing-qa.yml
+          git add human-fishing/qa-fish-production-plan.cjs human-fishing/qa-smoke.cjs .github/workflows/human-fishing-qa.yml
           git rm .github/workflows/fix-codex-silhouette-alias-once.yml
           git diff --cached --quiet || git commit -m 'Restore readable codex silhouettes and archive nine duplicate reef artworks without changing PNGs'
           git push origin HEAD:main
