@@ -1,0 +1,116 @@
+{
+  "version": "2026-11-08",
+  "batch": "001",
+  "status": "SUBMITTED_IMAGES_PENDING_APPROVAL_NOT_LIVE",
+  "productionRule": "Each species needs unique 1:1 clean RGBA PNG, verified biologic silhouette, comparison with 304 existing images and codex synchronization before any new live game ID.",
+  "species": [
+    {
+      "scientificName": "Abalistes stellaris",
+      "primaryMorphology": "마름모꼴 몸과 단단한 독립 등가시, 별무늬",
+      "runwayTaskId": "e9aa5ad3-4a56-4f32-b0ed-a3f102cd9467",
+      "generationStatus": "SUBMITTED",
+      "artReviewed": false,
+      "rgbaPngPath": null,
+      "approvedForGame": false
+    },
+    {
+      "scientificName": "Ablennes hians",
+      "primaryMorphology": "바늘처럼 길게 뻗은 양턱, 몸 뒤쪽 작은 지느러미",
+      "runwayTaskId": "2897982b-c26b-40f9-ac41-c1fb996504b3",
+      "generationStatus": "SUBMITTED",
+      "artReviewed": false,
+      "rgbaPngPath": null,
+      "approvedForGame": false
+    },
+    {
+      "scientificName": "Acanthodoras spinosissimus",
+      "primaryMorphology": "갑옷형 골판·가슴 가시·긴 메기 수염",
+      "runwayTaskId": "429a5700-f935-406c-8bb5-592568948a1b",
+      "generationStatus": "SUBMITTED",
+      "artReviewed": false,
+      "rgbaPngPath": null,
+      "approvedForGame": false
+    },
+    {
+      "scientificName": "Alectis ciliaris",
+      "primaryMorphology": "깊고 측면 압축된 은색 몸과 길게 늘어지는 지느러미",
+      "runwayTaskId": null,
+      "generationStatus": "NOT_SUBMITTED",
+      "artReviewed": false,
+      "rgbaPngPath": null,
+      "approvedForGame": false
+    },
+    {
+      "scientificName": "Alopias pelagicus",
+      "primaryMorphology": "몸통 길이에 육박하는 상부 꼬리지느러미",
+      "runwayTaskId": "6fadd203-bfbb-4558-84df-a5b6dcbd2e32",
+      "generationStatus": "SUBMITTED",
+      "artReviewed": false,
+      "rgbaPngPath": null,
+      "approvedForGame": false
+    },
+    {
+      "scientificName": "Uranoscopus scaber",
+      "primaryMorphology": "모래잠복형 넓적한 머리, 위쪽으로 향한 눈",
+      "runwayTaskId": null,
+      "generationStatus": "NOT_SUBMITTED",
+      "artReviewed": false,
+      "rgbaPngPath": null,
+      "approvedForGame": false
+    },
+    {
+      "scientificName": "Zeus faber",
+      "primaryMorphology": "매우 높은 납작 타원형 체고와 길게 솟은 등가시",
+      "runwayTaskId": null,
+      "generationStatus": "NOT_SUBMITTED",
+      "artReviewed": false,
+      "rgbaPngPath": null,
+      "approvedForGame": false
+    },
+    {
+      "scientificName": "Batrachoides surinamensis",
+      "primaryMorphology": "크고 넓적한 두개골, 두꺼운 가슴지느러미",
+      "runwayTaskId": null,
+      "generationStatus": "NOT_SUBMITTED",
+      "artReviewed": false,
+      "rgbaPngPath": null,
+      "approvedForGame": false
+    },
+    {
+      "scientificName": "Rhina ancylostoma",
+      "primaryMorphology": "넓은 앞쪽 가슴 원반과 상어처럼 뻗은 꼬리",
+      "runwayTaskId": null,
+      "generationStatus": "NOT_SUBMITTED",
+      "artReviewed": false,
+      "rgbaPngPath": null,
+      "approvedForGame": false
+    },
+    {
+      "scientificName": "Dactylopterus volitans",
+      "primaryMorphology": "날개처럼 펼쳐진 부채꼴 가슴지느러미",
+      "runwayTaskId": null,
+      "generationStatus": "NOT_SUBMITTED",
+      "artReviewed": false,
+      "rgbaPngPath": null,
+      "approvedForGame": false
+    },
+    {
+      "scientificName": "Pristis zijsron",
+      "primaryMorphology": "아주 길고 곧은 톱 모양 돌출 주둥이",
+      "runwayTaskId": null,
+      "generationStatus": "NOT_SUBMITTED",
+      "artReviewed": false,
+      "rgbaPngPath": null,
+      "approvedForGame": false
+    },
+    {
+      "scientificName": "Mastacembelus erythrotaenia",
+      "primaryMorphology": "유선형 긴 가시뱀장어 몸과 이어진 등가시",
+      "runwayTaskId": null,
+      "generationStatus": "NOT_SUBMITTED",
+      "artReviewed": false,
+      "rgbaPngPath": null,
+      "approvedForGame": false
+    }
+  ]
+}

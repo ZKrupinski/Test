@@ -38,3 +38,8 @@
 
 ## 출처와 사용 조건
 신규 학명 후보의 기반은 [WorldFishCenter/asfis-species-list](https://github.com/WorldFishCenter/asfis-species-list) 데이터이다. 라이선스: MIT, Copyright (c) 2020 Fernando Cagua. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 사용시 원저작권·라이선스 고지를 유지한다.
+
+## 지역·원화 배치 보강 (2026-11-08)
+- 신규 후보 최소 80개를 12개 지역별로 확보하는 보강 목표를 둔다. 기존 소스가 과소표집한 심해·한대·담수는 `fish-habitat-sourcing-gaps.json`에 수량을 기록한다.
+- 분포를 억지로 맞추기 위해 온대/연안 종을 극지·심해로 임의 이동하지 않는다. 실제 서식 근거 있는 신규 후보를 별도 수집한다.
+- 첫 독립 PNG 제작 대상 12종과 실제 원화 생성 요청 4건은 `fish-art-batch-001.json`에 보존하며, 생성 요청을 검수·도감 반영 완료로 표현하지 않는다.

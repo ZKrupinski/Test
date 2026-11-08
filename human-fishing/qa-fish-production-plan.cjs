@@ -24,4 +24,12 @@ assert.equal(data.firstVisualArtBatch.length,12);
 assert.ok(data.firstVisualArtBatch.every(x=>data.candidates.some(y=>y.candidateId===x.candidateId)));
 assert.equal(known.liveAddedSpecies,0);
 assert.ok(fs.existsSync(base+'FISH_PRODUCTION_RULEBOOK.md'));
+const gaps=JSON.parse(fs.readFileSync(base+'fish-habitat-sourcing-gaps.json','utf8'));
+const batch=JSON.parse(fs.readFileSync(base+'fish-art-batch-001.json','utf8'));
+assert.equal(gaps.regionsWithSourcingGaps.reduce((n,x)=>n+x.missingToMinimum,0),gaps.totalAdditionalGenuineNamesNeeded);
+assert.equal(batch.species.length,12);
+assert.equal(new Set(batch.species.map(x=>x.scientificName)).size,12);
+assert.ok(batch.species.every(x=>data.candidates.some(y=>y.scientificName===x.scientificName)));
+assert.ok(batch.species.every(x=>x.rgbaPngPath===null&&x.approvedForGame===false));
+
 console.log('PASS: 1,600+ fish expansion candidate pool, exact scientific uniqueness, 12 provisional habitats, tier/size/AI plans, no fake LIVE art or broken original saves.');

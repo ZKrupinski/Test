@@ -1,0 +1,55 @@
+{
+  "version": "2026-11-08",
+  "minimumNewCandidatesPerStage": 80,
+  "regionsWithSourcingGaps": [
+    {
+      "stage": 0,
+      "name": "열대 수초 수조",
+      "totalCandidates": 16,
+      "missingToMinimum": 64
+    },
+    {
+      "stage": 1,
+      "name": "아마존 유역",
+      "totalCandidates": 38,
+      "missingToMinimum": 42
+    },
+    {
+      "stage": 2,
+      "name": "아프리카 호수·강",
+      "totalCandidates": 68,
+      "missingToMinimum": 12
+    },
+    {
+      "stage": 4,
+      "name": "냉수 강·호수",
+      "totalCandidates": 36,
+      "missingToMinimum": 44
+    },
+    {
+      "stage": 5,
+      "name": "동아시아 담수",
+      "totalCandidates": 51,
+      "missingToMinimum": 29
+    },
+    {
+      "stage": 10,
+      "name": "심해·발광",
+      "totalCandidates": 14,
+      "missingToMinimum": 66
+    },
+    {
+      "stage": 11,
+      "name": "한대·냉해",
+      "totalCandidates": 4,
+      "missingToMinimum": 76
+    }
+  ],
+  "totalAdditionalGenuineNamesNeeded": 333,
+  "sourceFidelity": "All 12 stage labels are provisional. Fill missing biomes using bona fide source taxa with locality evidence, never arbitrarily reassign coastal/tropical species to polar or deep sea.",
+  "suggestedNextSources": [
+    "Cold/deep ichthyology catalogues for stage 10/11",
+    "Freshwater biodiversity and aquarium catalogues for stages 0,1,4,5",
+    "Review the earlier 52 not-yet-integrated separate silhouette art candidates against all incoming species"
+  ]
+}
