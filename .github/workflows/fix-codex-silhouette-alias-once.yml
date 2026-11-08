@@ -195,8 +195,8 @@ jobs:
            "assert.equal(art.counts.activeCollectionEntries,282);",
            'Production target live codex count')
           smoke=originals['smoke']
-          smoke=one(smoke,r"filter:brightness\\(0\\);opacity:1",
-           r"filter:brightness\\(0\\) drop-shadow",
+          smoke=one(smoke,r"filter:brightness\(0\);opacity:1",
+           r"filter:brightness\(0\) drop-shadow",
            'Smoke QA expects readable black silhouette rim')
           smoke=one(smoke,'20261106-fish304"[^>]+>','20261109-codexfix"[^>]+>',
            'Smoke QA codex uses new cache key')
