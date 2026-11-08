@@ -49,7 +49,8 @@ assert.deepEqual(list.slice(0,304).map(s=>({id:s.id,name:s.name,habitat:s.habita
  'Existing fish names/IDs and user saves must remain untouched');
 for(let h=0;h<12;h++){
  const zone=list.filter(s=>s.habitat===h);
- assert.equal(zone.length,70,'Each habitat must have 20 base+50 additional types and existing cross-zone morphs counted separately');
+ assert.equal(zone.length,old.filter(sp=>sp.habitat===h).length+50,
+  'Each habitat must keep ALL its original base and preexisting morphs, plus 50 new types');
  const extra=zone.filter(s=>s.artExpansion);
  assert.equal(extra.length,50,'12 areas x 50 new types');
  assert.equal(extra.filter(s=>s.colorMorph).length,25,'25 new named + 25 color variants per area');
