@@ -1,0 +1,38 @@
+name: Finalize codex CSS line break
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/fix-codex-css-newline-once.yml']
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Restore actual CSS newline and test game
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('human-fishing/index.html')
+          s=p.read_text()
+          old='#panelBody .book-fish-thumb.image-error{color:#c5dae0;font:800 10px system-ui;text-align:center}'+chr(92)+'n'+'#panelBody .book-fish-caption{'
+          new=old.replace(chr(92)+'n',chr(10))
+          assert s.count(old)==1, 'Invalid escaped CSS newline no longer present'
+          p.write_text(s.replace(old,new))
+          assert '#panelBody .book-fish-thumb.image-error{' in new
+          print('PASS: actual newline restored between independent CSS selectors')
+          PY
+          node human-fishing/qa-codex-visibility.cjs
+          node human-fishing/qa-smoke.cjs
+          git diff --check
+      - name: Commit correction and remove one-time workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add human-fishing/index.html
+          git rm -- .github/workflows/fix-codex-css-newline-once.yml
+          git diff --cached --quiet || git commit -m 'Fix codex error caption CSS newline without affecting fish art'
+          git push origin HEAD:main
