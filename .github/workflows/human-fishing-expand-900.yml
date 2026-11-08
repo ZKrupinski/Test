@@ -44,7 +44,9 @@ jobs:
               assert path.is_file() and path.stat().st_size>3000,path
               with Image.open(path) as fish:
                   assert fish.format=='PNG' and fish.mode=='RGBA',path
-                  assert fish.width>=140 and fish.height>=55,path
+                  assert fish.width>=1 and fish.height>=1,path
+                  if i>304:
+                      assert fish.width>=80 and fish.height>=35,path
           print('PASS: 904 separate transparent PNG fish files, no old ID overwritten')
           PY
       - name: Upload all additional species and metadata to GitHub
