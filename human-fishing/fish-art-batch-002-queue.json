@@ -3,7 +3,7 @@
   "batch": "002",
   "total": 12,
   "goal": "anatomically distinct fish originals only, isolated transparent RGBA, never posters/infographics",
-  "status": "10 DISTINCT GPT PNGs EXPORTED, 2 STILL NOT_GENERATED, 0 NEW LIVE",
+  "status": "10 DISTINCT GPT PNGs EXPORTED; 2 GENERATED ART_REVIEW WITH ALPHA HOLDS; 0 NEW LIVE",
   "stageAssignmentsVerified": false,
   "source": {
     "name": "ASFiS (FAO division fish taxon list)",
@@ -198,10 +198,18 @@
       "sourceTaxonMatched": true,
       "existingArtDuplicateCheck": "PENDING",
       "lifeRegionVerified": false,
-      "artStatus": "NOT_GENERATED",
+      "artStatus": "ART_REVIEW",
       "gameId": null,
       "imageFile": null,
-      "countsAsGameFish": false
+      "countsAsGameFish": false,
+      "reviewImageFile": "art-review/batch-005/raja-clavata-review.png",
+      "reviewManifest": "art-review/batch-005/review-manifest.json",
+      "reviewHolds": [
+        "Visible red/yellow edge contamination remains after imagegen revision; not approved for game use",
+        "Safety margin must meet installation rules",
+        "Full comparison against original 304 and all staged artwork pending",
+        "Species metadata and final gameplay angle approval pending"
+      ]
     },
     {
       "scientificName": "Argyrosomus regius",
@@ -214,10 +222,18 @@
       "sourceTaxonMatched": true,
       "existingArtDuplicateCheck": "PENDING",
       "lifeRegionVerified": false,
-      "artStatus": "NOT_GENERATED",
+      "artStatus": "ART_REVIEW",
       "gameId": null,
       "imageFile": null,
-      "countsAsGameFish": false
+      "countsAsGameFish": false,
+      "reviewImageFile": "art-review/batch-005/argyrosomus-regius-review.png",
+      "reviewManifest": "art-review/batch-005/review-manifest.json",
+      "reviewHolds": [
+        "Visible red/yellow edge contamination remains after imagegen revision; not approved for game use",
+        "Safety margin must meet installation rules",
+        "Full comparison against original 304 and all staged artwork pending",
+        "Species metadata and final gameplay angle approval pending"
+      ]
     },
     {
       "scientificName": "Polydactylus sexfilis",

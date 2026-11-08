@@ -1,0 +1,70 @@
+{
+  "batch": "005-review",
+  "created": "2026-11-08",
+  "generationMethod": "built-in image_gen",
+  "status": "ART_REVIEW_NOT_LIVE",
+  "species": [
+    {
+      "scientificName": "Raja clavata",
+      "nameKo": "가시가오리",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "countsAsGameFish": false,
+      "imageFile": "raja-clavata-review.png",
+      "sha256": "5b103543364033d3633846fb20c6528f334c6a938d0698cbea34ceda1e8d1830",
+      "gitBlobSha": "856690c3523bb457d8f0fadc2d0035643cfcc543",
+      "bytes": 1062703,
+      "width": 2172,
+      "height": 724,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBoundingBox": [
+        0,
+        2,
+        2158,
+        724
+      ],
+      "minTransparentMargin": 0,
+      "reviewHolds": [
+        "Visible red/yellow edge contamination remains after imagegen revision; not approved for game use",
+        "Safety margin must meet installation rules",
+        "Full comparison against original 304 and all staged artwork pending",
+        "Species metadata and final gameplay angle approval pending"
+      ]
+    },
+    {
+      "scientificName": "Argyrosomus regius",
+      "nameKo": "미거",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "countsAsGameFish": false,
+      "imageFile": "argyrosomus-regius-review.png",
+      "sha256": "6361f8493fe9a4abbe15375035fdb67618cde5154f640b6a231b1e5e6f49cade",
+      "gitBlobSha": "fa85db51048ec7b175eaa385c8dea6c694683b61",
+      "bytes": 1076494,
+      "width": 1671,
+      "height": 941,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBoundingBox": [
+        0,
+        129,
+        1607,
+        805
+      ],
+      "minTransparentMargin": 0,
+      "reviewHolds": [
+        "Visible red/yellow edge contamination remains after imagegen revision; not approved for game use",
+        "Safety margin must meet installation rules",
+        "Full comparison against original 304 and all staged artwork pending",
+        "Species metadata and final gameplay angle approval pending"
+      ]
+    }
+  ]
+}

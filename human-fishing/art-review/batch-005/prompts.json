@@ -1,0 +1,15 @@
+{
+  "mode": "built-in image_gen",
+  "status": "ART_REVIEW_NOT_LIVE",
+  "prompts": [
+    {
+      "scientificName": "Raja clavata",
+      "prompt": "Use case: stylized-concept. Asset: single isolated bitmap fish sprite for a polished semi-realistic casual fishing game. Produce ONE adult thornback ray Raja clavata, full body oriented head RIGHT tail LEFT, near lateral swimming view with a slightly elevated camera only enough to see its flattened rhombic pectoral disc, no extreme foreshortening. Distinctive bluntly pointed snout, raised eyes, realistic large thorn-like dermal denticles on dorsal midline, long clearly articulated banded tail with two small dorsal fins near tip. Olive sand brown muted mottling, pale underside edge; anatomical skate not a manta, no cephalic horns, no stingray barb. Organic lifelike volume, beautifully clean dimensional painted shading, crisp readable silhouette, fine surface texture with controlled detail. Fin edges smoothly curved, all fins and entire tail intact. True transparent RGBA background, no painted checkerboard, no water, no floor, no cast shadow outside body, no glow, no labels/text/frame/UI. Landscape high-resolution canvas about 2048x1152 with generous transparent margins on all sides at least 10%; animal entirely within inner 80% of canvas. One animal only, no duplicate or variants."
+    },
+    {
+      "scientificName": "Argyrosomus regius",
+      "prompt": "Use case: stylized-concept. Asset: single isolated bitmap fish sprite for polished semi-realistic casual fishing game. ONE adult meagre Argyrosomus regius, head RIGHT tail LEFT, exact full-body lateral side view, straight natural swimming posture. Long thick elongated slightly compressed silver body, large robust head and terminal oblique mouth, modest eye, slightly projecting lower jaw, no chin barbel. First short spiny dorsal section and long low soft-rayed dorsal section with deep notch between them; short anal fin, small pectoral fin, broad slightly convex/truncate caudal fin, NOT deeply forked tuna tail. Dark grey bronze upper back grading through pearl silver flanks into pale underside, subtle bronze sheen along lateral line, muted fin membranes. Species-specific heavy jaw and long low dorsal profile, do not draw a generic sea bass or recolor a tuna. Clean dimensional painted shading, crisp readable edges, fine natural scales, believable anatomy with casual game polish. True transparent RGBA background. High-resolution landscape canvas about 2048x1152; entire fish and every fin and tail inside central 80% with 10% empty transparent padding. No shadow outside fish, no water, no background scene, no checkerboard, no text/labels/UI/frame, no additional fish, no outline."
+    }
+  ],
+  "note": "Generated previews require final alpha, side-view, duplicate and metadata review before game registration."
+}

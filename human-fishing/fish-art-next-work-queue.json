@@ -1,0 +1,486 @@
+{
+  "version": "2026-11-08",
+  "role": "Production review order, NOT a list of approved or live fish",
+  "sourceCandidateCount": 1539,
+  "knownArtOrCurrentBatchMatched": 31,
+  "remainingCandidateCount": 1508,
+  "remainingCountMeaning": "Candidates without matched production records; not proof every candidate is unique or has no Library art",
+  "currentBatch": [
+    "Raja clavata",
+    "Argyrosomus regius"
+  ],
+  "generationBatchSize": 6,
+  "regionAssignmentsAreProvisional": true,
+  "remainingByProposedStage": {
+    "아시아 강·습지": 91,
+    "열대 산호초": 353,
+    "온대 연안": 339,
+    "동아시아 담수": 50,
+    "외양·대형 어종": 320,
+    "열대 수초 수조": 16,
+    "해초·모래 바다": 183,
+    "아프리카 호수·강": 68,
+    "냉수 강·호수": 35,
+    "한대·냉해": 4,
+    "아마존 유역": 37,
+    "심해·발광": 12
+  },
+  "nextReviewCandidates": [
+    {
+      "candidateId": "P0056",
+      "scientificName": "Anabas testudineus",
+      "proposedStage": 0,
+      "proposedStageName": "열대 수초 수조",
+      "proposedSizeClass": "MEDIUM",
+      "family": "Anabantidae",
+      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 1,
+      "batch": "REVIEW-01"
+    },
+    {
+      "candidateId": "P0591",
+      "scientificName": "Gymnarchus niloticus",
+      "proposedStage": 0,
+      "proposedStageName": "열대 수초 수조",
+      "proposedSizeClass": "SMALL",
+      "family": "Gymnarchidae",
+      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 2,
+      "batch": "REVIEW-01"
+    },
+    {
+      "candidateId": "P0160",
+      "scientificName": "Bostrychus africanus",
+      "proposedStage": 1,
+      "proposedStageName": "아마존 유역",
+      "proposedSizeClass": "SMALL",
+      "family": "Eleotridae",
+      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 3,
+      "batch": "REVIEW-01"
+    },
+    {
+      "candidateId": "P0793",
+      "scientificName": "Luciopimelodus pati",
+      "proposedStage": 1,
+      "proposedStageName": "아마존 유역",
+      "proposedSizeClass": "LARGE",
+      "family": "Pimelodidae",
+      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 4,
+      "batch": "REVIEW-01"
+    },
+    {
+      "candidateId": "P0141",
+      "scientificName": "Basilichthys australis",
+      "proposedStage": 2,
+      "proposedStageName": "아프리카 호수·강",
+      "proposedSizeClass": "MEDIUM",
+      "family": "Atherinopsidae",
+      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 5,
+      "batch": "REVIEW-01"
+    },
+    {
+      "candidateId": "P0162",
+      "scientificName": "Boulengerochromis microlepis",
+      "proposedStage": 2,
+      "proposedStageName": "아프리카 호수·강",
+      "proposedSizeClass": "LARGE",
+      "family": "Cichlidae",
+      "morphologyGuide": "측면 압축형 타원체와 큰 등지느러미",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 6,
+      "batch": "REVIEW-01"
+    },
+    {
+      "candidateId": "P0003",
+      "scientificName": "Abramis brama",
+      "proposedStage": 3,
+      "proposedStageName": "아시아 강·습지",
+      "proposedSizeClass": "MEDIUM",
+      "family": "Cyprinidae",
+      "morphologyGuide": "턱 구조/꼬리자루가 강조된 담수 유선형",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 7,
+      "batch": "REVIEW-02"
+    },
+    {
+      "candidateId": "P0453",
+      "scientificName": "Dormitator maculatus",
+      "proposedStage": 3,
+      "proposedStageName": "아시아 강·습지",
+      "proposedSizeClass": "LARGE",
+      "family": "Eleotridae",
+      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 8,
+      "batch": "REVIEW-02"
+    },
+    {
+      "candidateId": "P0070",
+      "scientificName": "Anodontostoma chacunda",
+      "proposedStage": 4,
+      "proposedStageName": "냉수 강·호수",
+      "proposedSizeClass": "SMALL",
+      "family": "Clupeidae",
+      "morphologyGuide": "가늘고 반짝이는 작은 군영 어류",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 9,
+      "batch": "REVIEW-02"
+    },
+    {
+      "candidateId": "P0645",
+      "scientificName": "Heterobranchus longifilis",
+      "proposedStage": 4,
+      "proposedStageName": "냉수 강·호수",
+      "proposedSizeClass": "MEDIUM",
+      "family": "Clariidae",
+      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 10,
+      "batch": "REVIEW-02"
+    },
+    {
+      "candidateId": "P0015",
+      "scientificName": "Acipenser sturio",
+      "proposedStage": 5,
+      "proposedStageName": "동아시아 담수",
+      "proposedSizeClass": "LARGE",
+      "family": "Acipenseridae",
+      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 11,
+      "batch": "REVIEW-02"
+    },
+    {
+      "candidateId": "P0343",
+      "scientificName": "Clariallabes attemsi",
+      "proposedStage": 5,
+      "proposedStageName": "동아시아 담수",
+      "proposedSizeClass": "MEDIUM",
+      "family": "Clariidae",
+      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 12,
+      "batch": "REVIEW-02"
+    },
+    {
+      "candidateId": "P0005",
+      "scientificName": "Acanthistius brasilianus",
+      "proposedStage": 6,
+      "proposedStageName": "열대 산호초",
+      "proposedSizeClass": "MEDIUM",
+      "family": "Serranidae",
+      "morphologyGuide": "큰 입을 가진 두꺼운 체고 포식자",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 13,
+      "batch": "REVIEW-03"
+    },
+    {
+      "candidateId": "P0007",
+      "scientificName": "Acantholabrus palloni",
+      "proposedStage": 6,
+      "proposedStageName": "열대 산호초",
+      "proposedSizeClass": "SMALL",
+      "family": "Labridae",
+      "morphologyGuide": "길쭉한 산호초 돌진형 지느러미",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 14,
+      "batch": "REVIEW-03"
+    },
+    {
+      "candidateId": "P0055",
+      "scientificName": "Amphiarius rugispinis",
+      "proposedStage": 7,
+      "proposedStageName": "해초·모래 바다",
+      "proposedSizeClass": "MEDIUM",
+      "family": "Ariidae",
+      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 15,
+      "batch": "REVIEW-03"
+    },
+    {
+      "candidateId": "P0076",
+      "scientificName": "Aphanopus carbo",
+      "proposedStage": 7,
+      "proposedStageName": "해초·모래 바다",
+      "proposedSizeClass": "SMALL",
+      "family": "Trichiuridae",
+      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 16,
+      "batch": "REVIEW-03"
+    },
+    {
+      "candidateId": "P0060",
+      "scientificName": "Anchovia clupeoides",
+      "proposedStage": 8,
+      "proposedStageName": "온대 연안",
+      "proposedSizeClass": "SMALL",
+      "family": "Engraulidae",
+      "morphologyGuide": "입이 크게 벌어지는 작은 군영 어류",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 17,
+      "batch": "REVIEW-03"
+    },
+    {
+      "candidateId": "P0082",
+      "scientificName": "Apristurus nasutus",
+      "proposedStage": 8,
+      "proposedStageName": "온대 연안",
+      "proposedSizeClass": "MEDIUM",
+      "family": "Scyliorhinidae",
+      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 18,
+      "batch": "REVIEW-03"
+    },
+    {
+      "candidateId": "P0106",
+      "scientificName": "Atelomycterus marmoratus",
+      "proposedStage": 9,
+      "proposedStageName": "외양·대형 어종",
+      "proposedSizeClass": "MEDIUM",
+      "family": "Scyliorhinidae",
+      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 19,
+      "batch": "REVIEW-04"
+    },
+    {
+      "candidateId": "P0114",
+      "scientificName": "Atropus atropos",
+      "proposedStage": 9,
+      "proposedStageName": "외양·대형 어종",
+      "proposedSizeClass": "LARGE",
+      "family": "Carangidae",
+      "morphologyGuide": "빠른 유선형 체형과 길게 내려오는 지느러미",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 20,
+      "batch": "REVIEW-04"
+    },
+    {
+      "candidateId": "P0353",
+      "scientificName": "Coelorinchus chilensis",
+      "proposedStage": 10,
+      "proposedStageName": "심해·발광",
+      "proposedSizeClass": "MEDIUM",
+      "family": "Macrouridae",
+      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 21,
+      "batch": "REVIEW-04"
+    },
+    {
+      "candidateId": "P1406",
+      "scientificName": "Stenobrachius leucopsarus",
+      "proposedStage": 10,
+      "proposedStageName": "심해·발광",
+      "proposedSizeClass": "SMALL",
+      "family": "Myctophidae",
+      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 22,
+      "batch": "REVIEW-04"
+    },
+    {
+      "candidateId": "P0057",
+      "scientificName": "Anarhichas minor",
+      "proposedStage": 11,
+      "proposedStageName": "한대·냉해",
+      "proposedSizeClass": "MEDIUM",
+      "family": "Anarhichadidae",
+      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 23,
+      "batch": "REVIEW-04"
+    },
+    {
+      "candidateId": "P0292",
+      "scientificName": "Champsocephalus gunnari",
+      "proposedStage": 11,
+      "proposedStageName": "한대·냉해",
+      "proposedSizeClass": "LARGE",
+      "family": "Channichthyidae",
+      "morphologyGuide": "학명에 대응하는 실제 해부학적 레퍼런스에서 체형·지느러미·꼬리·입 구조 확인 필수",
+      "status": "PREFLIGHT_REQUIRED",
+      "gameId": null,
+      "requiredBeforeGeneration": [
+        "accepted_taxon_and_synonym_check",
+        "existing_304_and_staged_art_visual_comparison",
+        "habitat_and_adult_size_sources",
+        "two_non_color_shape_differences"
+      ],
+      "reviewOrder": 24,
+      "batch": "REVIEW-04"
+    }
+  ]
+}

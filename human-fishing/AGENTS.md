@@ -9,3 +9,6 @@
 - 이미지·등록 데이터·ready 상태를 함께 반영하고 expected_sha로 최신 변경을 보호한다.
 - 게임 QA, Pages 배포, 서비스 PNG의 원본 SHA-256 일치까지 확인한 뒤 완료를 보고한다.
 - 실제 권한이나 기능이 없으면 그 한계를 명확히 설명하고 문서의 기존 ZIP 업로더 경로를 사용한다. 채팅에 토큰을 요구하지 않는다.
+
+## 미제작 어종 원화
+추가 어종 제작은 [FISH_ART_PRODUCTION_PLAN.md](FISH_ART_PRODUCTION_PLAN.md)와 [fish-art-next-work-queue.json](fish-art-next-work-queue.json)을 확인한다. 기존 제작/설치 기록과 학명으로 대조하고, 미검증 지역·크기를 확정값으로 사용하지 않는다. art-review의 원화는 검토용이며 LIVE 이미지로 취급하지 않는다.
