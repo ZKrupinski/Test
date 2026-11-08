@@ -1,0 +1,252 @@
+{
+  "batch": "008",
+  "version": "2026-11-08",
+  "status": "LIVE_USER_APPROVED_WITH_VISUAL_REVIEW_FLAGS",
+  "originalCountBefore": 326,
+  "originalCountAfter": 333,
+  "specialCount": 1,
+  "totalCatchableAfter": 334,
+  "count": 7,
+  "excludedCount": 3,
+  "excluded": [
+    {
+      "id": "F032",
+      "name": "아라파이마",
+      "scientificName": "Arapaima gigas",
+      "artwork": "실감_나는_아라파이마_측면_일러스트.png",
+      "action": "EXCLUDED_EXISTING_SPECIES_NO_OVERWRITE"
+    },
+    {
+      "id": "F055",
+      "name": "엘리펀트노즈",
+      "scientificName": "Gnathonemus petersii",
+      "artwork": "별무늬_코끼리코_물고기.png",
+      "action": "EXCLUDED_EXISTING_SPECIES_NO_OVERWRITE"
+    },
+    {
+      "id": "F150",
+      "name": "가시복",
+      "scientificName": "Diodon holocanthus",
+      "artwork": "점박이_긴가시_복어_일러스트.png",
+      "action": "EXCLUDED_EXISTING_SPECIES_NO_OVERWRITE"
+    }
+  ],
+  "originalPixelsPreserved": true,
+  "activation": "window.HumanFishingFishExpansion008Ready=true",
+  "sourceDescription": "seven unchanged, transparent original PNGs selected from user's approved 10-asset artwork",
+  "qualityNote": "User approved artwork; isolated red/yellow fringe around some opaque fish remains flagged for future clean-up",
+  "species": [
+    {
+      "gameId": "F348",
+      "nameKo": "밴디드아처피시",
+      "scientificName": "Toxotes jaculatrix",
+      "habitat": 3,
+      "nativeRegion": "남아시아~동남아시아 맹그로브 하구·기수·하천",
+      "regionProvisional": true,
+      "habitatProxyReason": "아시아 맹그로브 기수 전용 지역이 없어 아시아 강·습지 임시 배치",
+      "rarity": "RARE",
+      "level": 42,
+      "size": "MEDIUM",
+      "family": "Toxotidae",
+      "filename": "F348.png",
+      "installedPath": "assets/fish/individual/F348.png",
+      "sha256": "285bcbfa15206db0c58fdf451353763db0977bc1dc60dd273360493e94c5bd54",
+      "gitBlobSha": "7b75e2043369af314c76bdce5bef0e478118841b",
+      "width": 1448,
+      "height": 1086,
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Red/yellow source contour fringe and final silhouette QA still outstanding; approved source kept unchanged"
+      ],
+      "behavior": {
+        "archetype": "banded_archerfish_surface_hunter",
+        "mode": "dart",
+        "speedMultiplier": 1.18,
+        "swimAmpMultiplier": 0.66,
+        "agilityMultiplier": 1.67,
+        "turnSeconds": 6
+      }
+    },
+    {
+      "gameId": "F349",
+      "nameKo": "지그재그가시뱀장어",
+      "scientificName": "Mastacembelus armatus",
+      "habitat": 3,
+      "nativeRegion": "남아시아·동남아시아 하천·호소",
+      "regionProvisional": false,
+      "rarity": "RARE",
+      "level": 48,
+      "size": "LARGE",
+      "family": "Mastacembelidae",
+      "filename": "F349.png",
+      "installedPath": "assets/fish/individual/F349.png",
+      "sha256": "ab31671545d6c9a12bb8a5cbafa19c4122a6749f07bfa59662f3b94dc744336f",
+      "gitBlobSha": "e595a1b40316b2973a93191287db4be99223c52f",
+      "width": 1536,
+      "height": 1024,
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Red/yellow source contour fringe and final silhouette QA still outstanding; approved source kept unchanged"
+      ],
+      "behavior": {
+        "archetype": "zigzag_spiny_eel_bottom_slither",
+        "mode": "wander",
+        "speedMultiplier": 0.85,
+        "swimAmpMultiplier": 1.46,
+        "agilityMultiplier": 0.98,
+        "turnSeconds": 12
+      }
+    },
+    {
+      "gameId": "F350",
+      "nameKo": "유럽화이트피시",
+      "scientificName": "Coregonus lavaretus",
+      "habitat": 4,
+      "nativeRegion": "프랑스 부르제호·프랑스-스위스 제네바호 민물",
+      "regionProvisional": false,
+      "rarity": "UNCOMMON",
+      "level": 36,
+      "size": "MEDIUM",
+      "family": "Salmonidae",
+      "filename": "F350.png",
+      "installedPath": "assets/fish/individual/F350.png",
+      "sha256": "ff2733831d2d04d882fd61b65a84f135e94634ae4add8236125ca24558cfef44",
+      "gitBlobSha": "0e3bdab77a065e98bc73929211a7f6aa2aeb8719",
+      "width": 1448,
+      "height": 1086,
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Red/yellow source contour fringe and final silhouette QA still outstanding; approved source kept unchanged"
+      ],
+      "behavior": {
+        "archetype": "whitefish_lake_shoal_cruise",
+        "mode": "cruise",
+        "speedMultiplier": 1.04,
+        "swimAmpMultiplier": 0.64,
+        "agilityMultiplier": 1.03,
+        "turnSeconds": 9
+      }
+    },
+    {
+      "gameId": "F351",
+      "nameKo": "레드라이언피시",
+      "scientificName": "Pterois volitans",
+      "habitat": 6,
+      "nativeRegion": "인도태평양 열대 산호초·암초",
+      "regionProvisional": false,
+      "rarity": "RARE",
+      "level": 53,
+      "size": "MEDIUM",
+      "family": "Scorpaenidae",
+      "filename": "F351.png",
+      "installedPath": "assets/fish/individual/F351.png",
+      "sha256": "8107669e5a996f7c894c19cc3dbd9e978c971bf22d005cf09fe10d9bd88a7b28",
+      "gitBlobSha": "b176ec69e8e6fb451b4a1f97833a93e1d300581a",
+      "width": 1254,
+      "height": 1254,
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Red/yellow source contour fringe and final silhouette QA still outstanding; approved source kept unchanged"
+      ],
+      "behavior": {
+        "archetype": "red_lionfish_fin_fan_hover",
+        "mode": "hover",
+        "speedMultiplier": 0.54,
+        "swimAmpMultiplier": 1.1,
+        "agilityMultiplier": 0.65,
+        "turnSeconds": 14
+      }
+    },
+    {
+      "gameId": "F352",
+      "nameKo": "노랑해마",
+      "scientificName": "Hippocampus kuda",
+      "habitat": 7,
+      "nativeRegion": "인도태평양 해초밭·만·하구 주변",
+      "regionProvisional": false,
+      "rarity": "RARE",
+      "level": 48,
+      "size": "SMALL",
+      "family": "Syngnathidae",
+      "filename": "F352.png",
+      "installedPath": "assets/fish/individual/F352.png",
+      "sha256": "01bb20118d4ec7a366979ee7cddfc7c5724c5b334ed92525fd3efcd7f2ad6ff1",
+      "gitBlobSha": "8ec7961dfd67a41497b92551e1a19aefb6e5771f",
+      "width": 1086,
+      "height": 1448,
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Red/yellow source contour fringe and final silhouette QA still outstanding; approved source kept unchanged"
+      ],
+      "behavior": {
+        "archetype": "yellow_seahorse_vertical_grasp_hover",
+        "mode": "hover",
+        "speedMultiplier": 0.32,
+        "swimAmpMultiplier": 1.34,
+        "agilityMultiplier": 0.52,
+        "turnSeconds": 16
+      }
+    },
+    {
+      "gameId": "F353",
+      "nameKo": "자이언트스네이크헤드",
+      "scientificName": "Channa micropeltes",
+      "habitat": 3,
+      "nativeRegion": "동남아시아 강·호수·습지",
+      "regionProvisional": false,
+      "rarity": "EPIC",
+      "level": 60,
+      "size": "LARGE",
+      "family": "Channidae",
+      "filename": "F353.png",
+      "installedPath": "assets/fish/individual/F353.png",
+      "sha256": "89db0d11b90ce4b78bba38ee1b2a0d40be4e85018f8d6cecb802ffa1fc12a287",
+      "gitBlobSha": "a6f9aa3fc72a33f324fc6a5fc06c695981dcafc1",
+      "width": 1448,
+      "height": 1086,
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Red/yellow source contour fringe and final silhouette QA still outstanding; approved source kept unchanged"
+      ],
+      "behavior": {
+        "archetype": "giant_snakehead_ambush_burst",
+        "mode": "dart",
+        "speedMultiplier": 1.3,
+        "swimAmpMultiplier": 0.76,
+        "agilityMultiplier": 1.49,
+        "turnSeconds": 7
+      }
+    },
+    {
+      "gameId": "F354",
+      "nameKo": "점박이가아",
+      "scientificName": "Lepisosteus oculatus",
+      "habitat": 4,
+      "nativeRegion": "북아메리카 미시시피강 등 온대 담수",
+      "regionProvisional": true,
+      "habitatProxyReason": "북미 온대 담수 전용 지역이 없어 냉수 강·호수 임시 배치",
+      "rarity": "RARE",
+      "level": 51,
+      "size": "LARGE",
+      "family": "Lepisosteidae",
+      "filename": "F354.png",
+      "installedPath": "assets/fish/individual/F354.png",
+      "sha256": "6e762d39d92656d34f3ee83aea73fc20a2837b35a6d950d90e9c4c3eb9143a55",
+      "gitBlobSha": "d5f1cf9cfcc989abac8e68d8ddfd520af7999058",
+      "width": 1448,
+      "height": 1086,
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Red/yellow source contour fringe and final silhouette QA still outstanding; approved source kept unchanged"
+      ],
+      "behavior": {
+        "archetype": "spotted_gar_still_patrol_sudden_lunge",
+        "mode": "wander",
+        "speedMultiplier": 0.83,
+        "swimAmpMultiplier": 0.57,
+        "agilityMultiplier": 1.13,
+        "turnSeconds": 11
+      }
+    }
+  ]
+}

@@ -32,6 +32,7 @@ for manifest_name in [
     'assets/fish-expansion-004/installed-manifest.json',
     'assets/fish-expansion-006/installed-manifest.json',
     'assets/fish-expansion-007/installed-manifest.json',
+    'assets/fish-expansion-008/installed-manifest.json',
 ]:
     path = ROOT / manifest_name
     if not path.is_file():

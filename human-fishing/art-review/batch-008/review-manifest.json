@@ -1,0 +1,116 @@
+{
+  "batch": "008",
+  "version": "2026-11-08",
+  "sourceType": "Original 10 freshly illustrated PNG assets. Existing species removed entirely.",
+  "excluded": [
+    {
+      "id": "F032",
+      "name": "아라파이마",
+      "scientificName": "Arapaima gigas",
+      "artwork": "실감_나는_아라파이마_측면_일러스트.png",
+      "action": "EXCLUDED_EXISTING_SPECIES_NO_OVERWRITE"
+    },
+    {
+      "id": "F055",
+      "name": "엘리펀트노즈",
+      "scientificName": "Gnathonemus petersii",
+      "artwork": "별무늬_코끼리코_물고기.png",
+      "action": "EXCLUDED_EXISTING_SPECIES_NO_OVERWRITE"
+    },
+    {
+      "id": "F150",
+      "name": "가시복",
+      "scientificName": "Diodon holocanthus",
+      "artwork": "점박이_긴가시_복어_일러스트.png",
+      "action": "EXCLUDED_EXISTING_SPECIES_NO_OVERWRITE"
+    }
+  ],
+  "overwrittenOriginalIds": [],
+  "originalPixelsPreserved": true,
+  "species": [
+    {
+      "scientificName": "Toxotes jaculatrix",
+      "gameId": "F348",
+      "nameKo": "밴디드아처피시",
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "originalSha256": "285bcbfa15206db0c58fdf451353763db0977bc1dc60dd273360493e94c5bd54",
+      "originalGitBlobSha": "7b75e2043369af314c76bdce5bef0e478118841b",
+      "width": 1448,
+      "height": 1086,
+      "sourcePath": "assets/fish/individual/F348.png",
+      "region": 3
+    },
+    {
+      "scientificName": "Mastacembelus armatus",
+      "gameId": "F349",
+      "nameKo": "지그재그가시뱀장어",
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "originalSha256": "ab31671545d6c9a12bb8a5cbafa19c4122a6749f07bfa59662f3b94dc744336f",
+      "originalGitBlobSha": "e595a1b40316b2973a93191287db4be99223c52f",
+      "width": 1536,
+      "height": 1024,
+      "sourcePath": "assets/fish/individual/F349.png",
+      "region": 3
+    },
+    {
+      "scientificName": "Coregonus lavaretus",
+      "gameId": "F350",
+      "nameKo": "유럽화이트피시",
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "originalSha256": "ff2733831d2d04d882fd61b65a84f135e94634ae4add8236125ca24558cfef44",
+      "originalGitBlobSha": "0e3bdab77a065e98bc73929211a7f6aa2aeb8719",
+      "width": 1448,
+      "height": 1086,
+      "sourcePath": "assets/fish/individual/F350.png",
+      "region": 4
+    },
+    {
+      "scientificName": "Pterois volitans",
+      "gameId": "F351",
+      "nameKo": "레드라이언피시",
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "originalSha256": "8107669e5a996f7c894c19cc3dbd9e978c971bf22d005cf09fe10d9bd88a7b28",
+      "originalGitBlobSha": "b176ec69e8e6fb451b4a1f97833a93e1d300581a",
+      "width": 1254,
+      "height": 1254,
+      "sourcePath": "assets/fish/individual/F351.png",
+      "region": 6
+    },
+    {
+      "scientificName": "Hippocampus kuda",
+      "gameId": "F352",
+      "nameKo": "노랑해마",
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "originalSha256": "01bb20118d4ec7a366979ee7cddfc7c5724c5b334ed92525fd3efcd7f2ad6ff1",
+      "originalGitBlobSha": "8ec7961dfd67a41497b92551e1a19aefb6e5771f",
+      "width": 1086,
+      "height": 1448,
+      "sourcePath": "assets/fish/individual/F352.png",
+      "region": 7
+    },
+    {
+      "scientificName": "Channa micropeltes",
+      "gameId": "F353",
+      "nameKo": "자이언트스네이크헤드",
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "originalSha256": "89db0d11b90ce4b78bba38ee1b2a0d40be4e85018f8d6cecb802ffa1fc12a287",
+      "originalGitBlobSha": "a6f9aa3fc72a33f324fc6a5fc06c695981dcafc1",
+      "width": 1448,
+      "height": 1086,
+      "sourcePath": "assets/fish/individual/F353.png",
+      "region": 3
+    },
+    {
+      "scientificName": "Lepisosteus oculatus",
+      "gameId": "F354",
+      "nameKo": "점박이가아",
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "originalSha256": "6e762d39d92656d34f3ee83aea73fc20a2837b35a6d950d90e9c4c3eb9143a55",
+      "originalGitBlobSha": "d5f1cf9cfcc989abac8e68d8ddfd520af7999058",
+      "width": 1448,
+      "height": 1086,
+      "sourcePath": "assets/fish/individual/F354.png",
+      "region": 4
+    }
+  ]
+}

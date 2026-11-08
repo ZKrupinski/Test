@@ -1,0 +1,1 @@
+window.HumanFishingFishExpansion008Ready=true;

@@ -1,3 +1,13 @@
+## 2026-11-08 — 신규 원화 008 (기존 종 완전 제외)
+
+- 이전 활성 물고기 326종에 **신규 7종만** 추가하여 물고기 **333종**, 특수 생물 S001 포함 **전체 334종**으로 확장했다.
+- 추가: 밴디드아처피시 (*Toxotes jaculatrix*), 지그재그가시뱀장어 (*Mastacembelus armatus*), 유럽화이트피시 (*Coregonus lavaretus*), 레드라이언피시 (*Pterois volitans*), 노랑해마 (*Hippocampus kuda*), 자이언트스네이크헤드 (*Channa micropeltes*), 점박이가아 (*Lepisosteus oculatus*).
+- **완전 제외 — 원본 덮어쓰기 금지:** 아라파이마 F032, 엘리펀트노즈 F055, 가시복 F150. 이번 생산 이미지 10종 중 이 3종의 원화는 새 도감 번호를 만들거나 기존 그림을 교체하는 데 사용하지 않는다.
+- 기존 쏠배감펭은 *Pterois lunulata*이고 레드라이언피시는 *P. volitans*로 **서로 다른 실제 종**이다. 기존 가시해마는 *Hippocampus histrix*, 이번 노랑해마는 *H. kuda*이다. 기존 롱노즈가아는 *Lepisosteus osseus*, 이번 점박이가아는 *L. oculatus*이다.
+- 이미지 원본은 리샘플링·변형 없이 별도 F348–F354 PNG로 등록했고, 지역별 도감 정렬, 낚시, 아쿠아리움과 전용 행동 데이터를 연결한다.
+- 빨강/노랑 광택 잔색의 최종 시각 검수는 후속 작업으로 명시한다. [설치 manifest](assets/fish-expansion-008/installed-manifest.json) · [검증 스크립트](qa-fish-art-batch-008.cjs).
+
+
 **2026-11-08 추가 설치:** F342–F347 신규 원본 6종을 더하여 물고기 **326종**, S001 포함 전체 포획 **327종**입니다. 종전 320/321, 304종 표기는 당시 이력입니다. [007 설치 기록](assets/fish-expansion-007/installed-manifest.json).
 
 **2026-11-08 실제 설치 갱신:** ChatGPT GitHub 직접 blob 전송으로 원본 물고기 16종과 S001 특수생물 1종을 설치했습니다. 원본 17장 SHA-256은 [원화 인벤토리](fish-art-fast-inventory.json)에 기록. 기존 아래 ZIP 수동 업로드 안내는 설치 전 이력이며 재업로드하면 안 됩니다.
