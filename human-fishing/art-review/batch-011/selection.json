@@ -16,13 +16,13 @@
   ],
   "liveFishAdded": 0,
   "preflightSpecies": 6,
-  "completedIndividualOriginalPngCount": 1,
-  "notGeneratedCount": 5,
+  "completedIndividualOriginalPngCount": 5,
+  "notGeneratedCount": 1,
   "approvedForGame": false,
   "gameIdsAssigned": false,
-  "localReviewPackage": "fish-art-batch-011-review-partial.zip (ChatGPT conversation attachment, not committed to repository)",
+  "localReviewPackage": "fish-art-batch-011-5-individual-drafts.zip (ChatGPT attachment; five standalone PNGs F373-F377)",
   "imagePolicy": "Only standalone transparent RGBA PNG with fully visible body and >=100px alpha border; no promotional sheets",
-  "warning": "Original F373.png bytes are NOT in GitHub yet. Do not set ready.js or register species. Other 5 sprites do not exist.",
+  "warning": "5 separate PNG drafts in chat attachment, NONE installed on GitHub. F378 Dissostichus eleginoides is not generated correctly; composite images rejected.",
   "species": [
     {
       "scientificName": "Chitala lopis",
@@ -47,10 +47,16 @@
       "habitat": null,
       "size": "SMALL",
       "rarity": "RARE",
-      "status": "PREFLIGHT_COMPLETE_ART_MISSING",
-      "artFile": null,
+      "status": "ART_REVIEW",
+      "artFile": "F374.png",
       "difference": "편평한 머리 · 길고 가는 메기형 몸과 깊게 갈라진 꼬리",
-      "sourceUrl": "https://fishbase.se/FieldGuide/FieldGuideSummary.php?GenusName=Ageneiosus&SpeciesName=militaris&print=&sps="
+      "sourceUrl": "https://fishbase.se/FieldGuide/FieldGuideSummary.php?GenusName=Ageneiosus&SpeciesName=militaris&print=&sps=",
+      "sha256": "0dc0fe4fa44da521607d601dbe89c9c2029e78f26a4e8d0819f9fce660f86abd",
+      "artImageSize": [
+        2452,
+        1004
+      ],
+      "imageInstalledInGitHub": false
     },
     {
       "scientificName": "Aphia minuta",
@@ -60,10 +66,16 @@
       "habitat": 8,
       "size": "SMALL",
       "rarity": "UNCOMMON",
-      "status": "PREFLIGHT_COMPLETE_ART_MISSING",
-      "artFile": null,
+      "status": "ART_REVIEW",
+      "artFile": "F375.png",
       "difference": "투명하고 가는 체형 · 서로 분리된 두 등지느러미와 큰 눈",
-      "sourceUrl": "https://www.fishbase.se/Fieldguide/FieldGuideSummary.php?c_code=191&genusname=Aphia&speciesname=minuta"
+      "sourceUrl": "https://www.fishbase.se/Fieldguide/FieldGuideSummary.php?c_code=191&genusname=Aphia&speciesname=minuta",
+      "sha256": "7af3423f2b3dedb2a9626dab3cfb6915d5f19a5ebee7104f8678224805b0ab99",
+      "artImageSize": [
+        2452,
+        1004
+      ],
+      "imageInstalledInGitHub": false
     },
     {
       "scientificName": "Pristolepis fasciata",
@@ -73,10 +85,16 @@
       "habitat": 3,
       "size": "MEDIUM",
       "rarity": "RARE",
-      "status": "PREFLIGHT_COMPLETE_ART_MISSING",
-      "artFile": null,
+      "status": "ART_REVIEW",
+      "artFile": "F376.png",
       "difference": "높고 압축된 잎 모양 몸체 · 높은 연속 가시 등지느러미",
-      "sourceUrl": "https://www.fishbase.se/Fieldguide/FieldGuideSummary.php?c_code=360&genusname=Pristolepis&speciesname=fasciata"
+      "sourceUrl": "https://www.fishbase.se/Fieldguide/FieldGuideSummary.php?c_code=360&genusname=Pristolepis&speciesname=fasciata",
+      "sha256": "5a21cbd2606dfa90d807f6927eb422b7faa9b8482660270564af6cc87be5b17b",
+      "artImageSize": [
+        2054,
+        1167
+      ],
+      "imageInstalledInGitHub": false
     },
     {
       "scientificName": "Dormitator maculatus",
@@ -86,10 +104,16 @@
       "habitat": 7,
       "size": "MEDIUM",
       "rarity": "UNCOMMON",
-      "status": "PREFLIGHT_COMPLETE_ART_MISSING",
-      "artFile": null,
+      "status": "ART_REVIEW",
+      "artFile": "F377.png",
       "difference": "납작한 둔중 머리 · 두 등지느러미 및 둥근 꼬리",
-      "sourceUrl": "https://www.fishbase.se/Fieldguide/FieldGuideSummary.php?c_code=630&genusname=Dormitator&speciesname=maculatus"
+      "sourceUrl": "https://www.fishbase.se/Fieldguide/FieldGuideSummary.php?c_code=630&genusname=Dormitator&speciesname=maculatus",
+      "sha256": "17b4f0e67a638aa144c2248080ebef37c9e0aafbfddcce9ead69f82d0904fc26",
+      "artImageSize": [
+        2452,
+        1004
+      ],
+      "imageInstalledInGitHub": false
     },
     {
       "scientificName": "Dissostichus eleginoides",
