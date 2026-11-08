@@ -23,6 +23,14 @@ raw=re.findall(r"^\s*'([^']+)'[,\s]*$",content,flags=re.M)
 GROUPS=[line.split(',') for line in raw]
 assert len(GROUPS)==12,(len(GROUPS),'expected 12 habitat groups')
 assert all(len(group)==25 for group in GROUPS),[(i,len(g)) for i,g in enumerate(GROUPS)]
+map_body=DATA.split('// SOURCE_MAP_BEGIN',1)[1].split('// SOURCE_MAP_END',1)[0]
+SOURCE_MAPS=[
+ [int(n) for n in row.split(',')]
+ for row in re.findall(r'^\s*\[([0-9,]+)\],?\s*$',map_body,re.M)
+]
+assert len(SOURCE_MAPS)==12 and all(len(row)==25 for row in SOURCE_MAPS), \
+       'Each habitat must specify 25 anatomically related original parents'
+
 STYLES=['루비','사파이어','에메랄드','호박','오팔','자수정','백금','금빛',
  '밤안개','구름빛','코발트','석양','달빛','오로라','화염','설화','터키석',
  '진홍','바이올렛','진주','청록','흑요석','노을','유리빛','남보라']
@@ -115,7 +123,9 @@ def main():
     files=0
     for habitat,group in enumerate(GROUPS):
         for i,name in enumerate(group):
-            source_id='F'+str(1+habitat*20+i%20).zfill(3)
+            source_index=SOURCE_MAPS[habitat][i]
+            source_number=source_index-1000 if source_index>=1000 else 1+habitat*20+source_index
+            source_id='F'+str(source_number).zfill(3)
             base=by_id[source_id]
             parent=OUT/(source_id+'.png')
             assert parent.exists(),parent
@@ -129,12 +139,9 @@ def main():
                     unique_names.add(label)
                     target=OUT/(id+'.png')
                     painted=make_raster(baseImg,habitat,i,morph)
-                    if not target.exists():
-                        painted.save(target,format='PNG',optimize=True,compress_level=8)
-                    else:
-                        with Image.open(target) as prior:
-                            if prior.size!=painted.size:
-                                painted.save(target,format='PNG',optimize=True,compress_level=8)
+                    # Parent source may change without changing dimensions:
+                    # repaint pixels so all curated family swaps take effect.
+                    painted.save(target,format='PNG',optimize=True,compress_level=8)
                     rgba=np.asarray(painted,dtype=np.uint8)
                     assert rgba[:,:,3].max()==255 or rgba[:,:,3].max()>200
                     assert (rgba[:,:,3]==0).sum()>0 or \
