@@ -1,0 +1,180 @@
+name: Install Human Fishing verified Work batch010 originals
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'human-fishing/fish-art-import-batch-010.zip'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: human-fishing-fish-art-batch010
+  cancel-in-progress: false
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify eight original Work fish images, prevent duplicates and install
+        run: |
+          python3 -m pip install -q Pillow
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import json, io, hashlib, zipfile, re
+          root=Path('human-fishing')
+          archive=root/'fish-art-import-batch-010.zip'
+          assert archive.is_file(), 'Upload the exact fish-art-import-batch-010.zip'
+          expected={
+           'F365':'88a57adf2488212936a603c49710bc6f61417956ce45bfaa261568a9990e5152',
+           'F366':'27e7bec7f91951566d41ef8ffdf738a92e17805aa1781bcdae04a9680e5084d8',
+           'F367':'7e0bc8c5665fe75b352ad719e218f3115324fece76b1f9d12ebea93e91350342',
+           'F368':'91a97e557be7e0f11bfd8d7070728334ea1a88b557d9dd4bdf448cd72f0bbb10',
+           'F369':'fad38e2981713b8be10a54954759a453741eec1439c7d633acfd8d6170618eb6',
+           'F370':'88e953b98f3eed5e12453add9da27858a78deb326849828fc3b5cbddf7be4feb',
+           'F371':'9e7548018c5cde1a96d7a727fb0cb71ad289963aba56886e7b58730c27a74e6d',
+           'F372':'7c30e22e5e2d81b766b8190613abd3e6f04d2899e7ee68ff449a9f601253a3ca'}
+          expected_names=set(id+'.png' for id in expected)|{'fish-manifest.json'}
+          prior=json.loads((root/'assets/fish-expansion-009/installed-manifest.json').read_text())
+          assert prior['count']==10 and [x['gameId'] for x in prior['species']]==['F'+str(n) for n in range(355,365)]
+          review=json.loads((root/'art-review/batch-009/review-manifest.json').read_text())
+          assert len(review['species'])==18
+          oldnames={x['scientificName'].lower() for x in prior['species']}
+          forbidden=['fish-expansion-catalog.js','fish-expansion-catalog-023.js','fish-expansion-catalog-004.js','fish-expansion-catalog-006.js','fish-expansion-catalog-007.js','fish-expansion-catalog-008.js','fish-expansion-catalog-009.js']
+          older='\n'.join((root/p).read_text() for p in forbidden)
+          imageDir=root/'assets/fish/individual'
+          with zipfile.ZipFile(archive) as z:
+           assert len(z.namelist())==len(expected_names) and set(z.namelist())==expected_names,'Unexpected ZIP contents'
+           assert z.testzip() is None,'Corrupt ZIP entry'
+           meta=json.loads(z.read('fish-manifest.json'))
+           assert meta['batch']=='010' and meta['originalPixelsPreserved'] is True
+           rows=meta['species']
+           assert [x['gameId'] for x in rows]==list(expected)
+           assert len({x['scientificName'].lower() for x in rows})==8
+           assert len({x['nameKo'] for x in rows})==8
+           for sp in rows:
+            id=sp['gameId']
+            assert sp['sha256']==expected[id],'Unexpected original SHA: '+id
+            assert not (imageDir/(id+'.png')).exists(),'Existing sprite cannot be overwritten: '+id
+            assert sp['scientificName'].lower() not in oldnames,'Already registered species: '+id
+            assert sp['scientificName'] not in older,'Duplicate scientific name: '+id
+            reviewrow=next(x for x in review['species'] if x['scientificName']==sp['scientificName'])
+            assert reviewrow['sha256']==expected[id] and reviewrow['nameKo']==sp['nameKo'],'Work review mismatch '+id
+            blob=z.read(id+'.png')
+            assert len(blob)==sp['bytes'],'Original byte size mismatch: '+id
+            assert hashlib.sha256(blob).hexdigest()==expected[id],'Original SHA mismatch: '+id
+            img=Image.open(io.BytesIO(blob));img.load()
+            assert img.format=='PNG' and img.mode=='RGBA','Nontransparent original: '+id
+            assert (img.width,img.height)==(sp['width'],sp['height'])
+            assert img.width>=1200 and img.height>=700
+            alpha=img.getchannel('A');rect=alpha.getbbox()
+            assert rect and alpha.getextrema()==(0,255),'Empty or opaque image: '+id
+            margin=[rect[0],rect[1],img.width-rect[2],img.height-rect[3]]
+            assert margin==sp['alphaEdgeMargin'],'Cutout metadata mismatch: '+id
+            assert sp['artSizeClass'] in ('SMALL','MEDIUM','LARGE')
+            assert sp['rarity'] in ('COMMON','UNCOMMON','RARE','EPIC','LEGEND','MYTHIC')
+            assert 0<=sp['habitat']<12
+            assert sp['behaviorProfile']['archetype'] and sp['behaviorProfile']['speedMultiplier']>0
+           # Validate every original before touching any game's path.
+           for sp in rows:
+            (imageDir/sp['filename']).write_bytes(z.read(sp['filename']))
+          catalog=root/'fish-expansion-catalog-010.js'
+          assert not catalog.exists()
+          records=[]
+          for sp in rows:
+           records.append({
+            'id':sp['gameId'],'name':sp['nameKo'],'scientificName':sp['scientificName'],
+            'habitat':sp['habitat'],'artSizeClass':sp['artSizeClass'],
+            'rarity':sp['rarity'],'level':sp['level'],'nativeRegion':sp['nativeRegion'],
+            'regionProvisional':sp['regionProvisional'],'family':sp['family'],
+            'behaviorProfile':sp['behaviorProfile'],'index':18,
+            'expansionSpecies':True,'artBatch':'010'})
+          recordJson=json.dumps(records,ensure_ascii=False,separators=(',',':'))
+          catalog.write_text("""/* Eight SHA-256 verified Work batch009 originals, now live as batch010. */
+          (function(){'use strict';
+          var enabled=!!window.HumanFishingFishExpansion010Ready,done=false;
+          var records="""+recordJson+""";
+          function extend(list){if(!enabled||done)return list;records.forEach(function(x){
+           if(list.some(function(y){return y.id===x.id||
+            (y.scientificName&&y.scientificName.toLowerCase()===x.scientificName.toLowerCase())}))
+            return;
+           list.push(Object.assign({},x));
+          });done=true;return list;}
+          window.HumanFishingFishExpansion010={enabled:enabled,count:enabled?records.length:0,extend:extend,records:records};
+          })();
+          """)
+          htmlpath=root/'index.html'
+          html=htmlpath.read_text()
+          anchor='<script src="./fish-expansion-catalog-009.js?v=20261108-batch009-ten"></script>'
+          assert html.count(anchor)==1,'Catalog load order changed'
+          html=html.replace(anchor,anchor+'\n<script src="./assets/fish-expansion-010/ready.js?v=20261109-batch010-eight"></script>\n<script src="./fish-expansion-catalog-010.js?v=20261109-batch010-eight"></script>')
+          anchor='if(window.HumanFishingFishExpansion009&&window.HumanFishingFishExpansion009.extend)window.HumanFishingFishExpansion009.extend(species);'
+          assert html.count(anchor)==1,'Species extension position changed'
+          html=html.replace(anchor,anchor+'\nif(window.HumanFishingFishExpansion010&&window.HumanFishingFishExpansion010.extend)window.HumanFishingFishExpansion010.extend(species);')
+          htmlpath.write_text(html)
+          bitmap=root/'fish-bitmap-catalog.js'
+          script=bitmap.read_text()
+          v="Number(id.slice(1))>=355?'20261108-batch009-ten'"
+          assert script.count(v)==1,'Bitmap cache version gate changed'
+          script=script.replace(v,"Number(id.slice(1))>=365?'20261109-batch010-eight':("+v+")")
+          bitmap.write_text(script)
+          install=root/'assets/fish-expansion-010'
+          install.mkdir(parents=True,exist_ok=False)
+          (install/'ready.js').write_text('window.HumanFishingFishExpansion010Ready=true;\n')
+          meta['status']='LIVE_INSTALLED_ORIGINALS_PENDING_PAGES_QA'
+          meta['originalPixelsPreserved']=True
+          meta['newFishCount']=8
+          meta['recordsAfter']=351
+          meta['basePriorFishRecords']=343
+          for sp in rows:
+           sp['installedPath']='assets/fish/individual/'+sp['filename']
+           sp['gameStatus']='LIVE'
+          (install/'installed-manifest.json').write_text(json.dumps(meta,ensure_ascii=False,indent=2)+'\n')
+          (root/'FISH_ART_BATCH_010.md').write_text(
+           '# 10차 원본 설치: Work 9차 미설치 8종\n\n'
+           'F365–F372는 사용자가 채팅에 첨부한 8종의 원본 PNG를 SHA-256으로 확인한 뒤 설치했다. '
+           '기존 9차 F355–F364 10종을 재업로드하거나 덮어쓰지 않았다. '
+           '원본 픽셀 수정 없이 등록했으며, 가장자리 투명 여백과 색상 잔상은 추후 시각 QA 항목이다. '
+           '도감·지역·희귀도·행동·아쿠아리움은 batch010 등록 데이터를 사용한다.\n\n'
+           '실제 설치 상태: assets/fish-expansion-010/installed-manifest.json\n')
+          archive.unlink()
+          print('PASS: eight source SHA256 verified, original pixels preserved, F365-F372 installed with correct habitats, no duplicates.')
+          PY
+      - name: Verify registry, save compatibility and all existing test suites
+        run: |
+          node human-fishing/qa-fish-art-batch-009.cjs
+          node human-fishing/qa-special-creatures.cjs
+          node human-fishing/qa-fish-visual-catalog.cjs
+          node human-fishing/qa-codex-visibility.cjs
+          node human-fishing/qa-smoke.cjs
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict'),vm=require('node:vm'),crypto=require('node:crypto');
+          const root='human-fishing/',m=JSON.parse(fs.readFileSync(root+'assets/fish-expansion-010/installed-manifest.json'));
+          assert.equal(m.species.length,8);
+          assert.deepEqual(m.species.map(x=>x.gameId),Array.from({length:8},(_,i)=>'F'+(i+365)));
+          const ctx={window:{HumanFishingFishExpansion010Ready:true}};
+          vm.runInNewContext(fs.readFileSync(root+'fish-expansion-catalog-010.js','utf8'),ctx);
+          const list=[];
+          ctx.window.HumanFishingFishExpansion010.extend(list);
+          ctx.window.HumanFishingFishExpansion010.extend(list);
+          assert.equal(list.length,8,'Exactly eight unique live additions');
+          for(const item of m.species){
+           const blob=fs.readFileSync(root+item.installedPath);
+           assert.equal(crypto.createHash('sha256').update(blob).digest('hex'),item.sha256);
+           assert.equal(list.find(x=>x.id===item.gameId).scientificName,item.scientificName);
+          }
+          const html=fs.readFileSync(root+'index.html','utf8');
+          assert.ok(html.includes('HumanFishingFishExpansion010.extend(species)'));
+          assert.ok(html.includes('assets/fish-expansion-010/ready.js'));
+          console.log('PASS: 8 original RGBA fish F365-F372, new live catalog, bitmap paths, old 9th batch unchanged');
+          JS
+          git diff --check
+      - name: Commit verified images and remove import archive
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A human-fishing/index.html human-fishing/fish-bitmap-catalog.js human-fishing/fish-expansion-catalog-010.js human-fishing/assets/fish/individual/ human-fishing/assets/fish-expansion-010/ human-fishing/FISH_ART_BATCH_010.md human-fishing/fish-art-import-batch-010.zip
+          git diff --cached --quiet || git commit -m 'Install eight verified Work original fish F365-F372 without duplicate art'
+          git push origin HEAD:main
