@@ -47,6 +47,8 @@ jobs:
         run: node human-fishing/qa-fish-art-batch-007.cjs
       - name: Verify batch008 skips all existing species and preserves seven unique PNG artworks
         run: node human-fishing/qa-fish-art-batch-008.cjs
+      - name: Verify batch009 30 review artworks remain distinct and uninstalled pending source PNGs
+        run: node human-fishing/qa-fish-art-batch-009.cjs
       - name: Verify batch upload web UI paths, token handling and workflow references
         run: node human-fishing/qa-fish-uploader.cjs
       - name: Verify five newly prepared original fish sprite registrations and source PNG gate
