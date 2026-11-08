@@ -1,0 +1,86 @@
+name: Install Human Fishing special-creature sprites S006-S017
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'human-fishing/special-creature-import-batch-002.zip'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: special-creature-art-002
+  cancel-in-progress: false
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Validate and install unchanged approved PNG originals
+        run: |
+          python -m pip install -q Pillow
+          python <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          from PIL import Image
+          import hashlib, io, json
+
+          base = Path('human-fishing')
+          pack = base / 'special-creature-import-batch-002.zip'
+          assert pack.is_file(), 'Special-creature import ZIP is missing'
+          existing = json.loads((base / 'special-creature-candidates.json').read_text())
+          candidates = {item['id']: item for item in existing['candidates']}
+          expected = {'S'+str(n).zfill(3) for n in range(6, 18)}
+
+          with ZipFile(pack) as archive:
+              names = set(archive.namelist())
+              assert names == {i + '.png' for i in expected} | {'special-manifest.json'}, 'Unexpected ZIP files'
+              manifest = json.loads(archive.read('special-manifest.json'))
+              assert manifest['batch'] == 'special-creatures-S006-S017'
+              entries = manifest['creatures']
+              assert len(entries) == len(expected)
+              assert {entry['id'] for entry in entries} == expected, 'Unrecognized special-creature IDs'
+              destination = base / 'assets' / 'special-creatures'
+              destination.mkdir(parents=True, exist_ok=True)
+              for entry in entries:
+                  game_id = entry['id']
+                  assert game_id in candidates
+                  assert entry['nameKo'] == candidates[game_id]['name']
+                  assert entry['filename'] == game_id + '.png'
+                  raw = archive.read(entry['filename'])
+                  assert hashlib.sha256(raw).hexdigest() == entry['sha256']
+                  assert len(raw) == entry['bytes']
+                  art = Image.open(io.BytesIO(raw))
+                  art.load()
+                  assert art.format == 'PNG' and art.mode == 'RGBA'
+                  assert [art.width, art.height] == [entry['width'], entry['height']]
+                  assert art.width >= 1024 and art.height >= 768
+                  alpha = art.getchannel('A')
+                  assert alpha.getextrema()[0] == 0 and alpha.getbbox()
+                  bounds = alpha.getbbox()
+                  if bounds[0] == 0 or bounds[1] == 0 or bounds[2] == art.width or bounds[3] == art.height:
+                      print('Edge-touch warning (original retained):', game_id)
+                  (destination / entry['filename']).write_bytes(raw)
+                  print('Installed original', game_id, entry['nameKo'], entry['sha256'])
+
+              manifest['installStatus'] = 'SPRITES_INSTALLED_ONLY'
+              manifest['gameCatalogChanged'] = False
+              (destination / 'batch-002-installed-manifest.json').write_text(
+                  json.dumps(manifest, ensure_ascii=False, indent=2) + '\n'
+              )
+
+          pack.unlink()
+          print('12 original sprites installed. Existing catalog and ready flags unchanged.')
+          PY
+      - name: Check existing game QA
+        run: node human-fishing/qa-special-creatures.cjs
+      - name: Commit only verified sprite assets and install record
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add human-fishing/assets/special-creatures/S0*.png \
+            human-fishing/assets/special-creatures/batch-002-installed-manifest.json \
+            human-fishing/special-creature-import-batch-002.zip
+          git diff --cached --quiet || git commit -m 'Install approved S006-S017 original special-creature sprites'
+          git push origin HEAD:main
