@@ -73,25 +73,19 @@ jobs:
              return s.mode;
             }""",
             'moving/idle hysteresis')
-          html=replace_once(html,
-            """ }else if((typeof drag!=='undefined'&&drag)||
-              (typeof rodMotion!=='undefined'&&rodMotion&&
-              (Math.abs(rodMotion.vx||0)>42||Math.abs(rodMotion.vy||0)>60))){
-              mode=polishedLureSwimMode(
-               typeof rodMotion!=='undefined'&&rodMotion?(rodMotion.vx||0):0,
-               typeof rodMotion!=='undefined'&&rodMotion?(rodMotion.vy||0):0);
-              frame=Math.floor(now*10)%8;
-             }else if(pose.action==='fail'){
-              frame=Math.floor(now*11)%8;
-             }else frame=Math.floor(now*6)%8;""",
-            """ }else if(pose.action==='fail'){
-              frame=Math.floor(now*11)%8;
-             }else if(typeof rodMotion!=='undefined'&&rodMotion){
-              mode=stablePolishedLureMode(now,rodMotion.vx||0,rodMotion.vy||0,
-               typeof drag!=='undefined'&&!!drag);
-              frame=Math.floor(now*(mode==='idle'?6:10))%8;
-             }else frame=Math.floor(now*6)%8;""",
-            'draw moving stabilized bitmap mode')
+          moving_start=html.find(" }else if((typeof drag!=='undefined'&&drag)||")
+          moving_terminator=" }else frame=Math.floor(now*6)%8;"
+          assert moving_start>=0 and html.count(" }else if((typeof drag!=='undefined'&&drag)||")==1, 'motion condition changed'
+          moving_end=html.find(moving_terminator,moving_start)
+          assert moving_end>moving_start, 'motion condition terminator changed'
+          moving_end+=len(moving_terminator)
+          html=html[:moving_start]+""" }else if(pose.action==='fail'){
+             frame=Math.floor(now*11)%8;
+            }else if(typeof rodMotion!=='undefined'&&rodMotion){
+             mode=stablePolishedLureMode(now,rodMotion.vx||0,rodMotion.vy||0,
+              typeof drag!=='undefined'&&!!drag);
+             frame=Math.floor(now*(mode==='idle'?6:10))%8;
+            }else frame=Math.floor(now*6)%8;"""+html[moving_end:]
           # No extra hand-drawn vector octopuses: remove BOTH historical and
           # current drawHelpers definitions, then remove their three call sites.
           pattern_legacy=r"function drawHelpers\(now\)\{\n var lv=save\.shop\.helper;[\s\S]*?\n\}\nvar helperIncomeTimer=0;"
