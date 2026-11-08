@@ -11,3 +11,7 @@
 다음 작업은 남은 5종의 개별 비트맵 이미지 제작·QA, 6개 PNG 모두 설치, 도감/서식지/희귀도/행동 연결, GitHub QA/Pages 및 서비스 파일 해시 확인이다.
 
 자세한 후보 지역·크기·출처·상태는 [selection.json](selection.json), 실제 제작된 원화 기록은 [review-manifest.json](review-manifest.json)에 있다.
+
+## 현재 제작 상태 갱신 (2026-11-09)
+
+개별 원화 PNG는 **F373–F377 총 5종** 확보됨. F374 라플라타부유메기, F375 투명고비, F376 말레이잎고기, F377 점박이잠꾸러기를 추가 제작했다. 5종 모두 ChatGPT 대화의 `fish-art-batch-011-5-individual-drafts.zip`에 있으며 PNG 실제 바이트는 GitHub에 **없다**. 해시와 크기는 [review-manifest.json](review-manifest.json)을 기준으로 한다. F378 파타고니아이빨고기 (*Dissostichus eleginoides*)는 올바른 개별 원화가 생성되지 않아 여전히 미완성이다. 홍보 시트와 생물학적으로 틀린 이미지는 배포에 사용하지 않는다. **11차 LIVE 등록 0종**, 기존 게임 변경 없음.
