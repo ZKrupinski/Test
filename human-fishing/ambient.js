@@ -60,15 +60,26 @@ function makeTrack(name,kind){
  source.buffer=buffer;source.loop=true;
  var filter=ac.createBiquadFilter();
  filter.type='lowpass';
- filter.frequency.value=kind==='underwater'?580:10500;
+ // The diver's ambient mix is deliberately dark: remove sharp underwater
+ // hiss and bubble highs, and lower the whole recording's pitch slightly.
+ filter.frequency.value=kind==='underwater'?255:10500;
  if(filter.Q)filter.Q.value=.55;
  var gain=ac.createGain();
  gain.gain.value=0;
  source.connect(filter);
- filter.connect(gain);
+ var bass=null;
+ if(kind==='underwater'){
+  source.playbackRate.value=.86;
+  bass=ac.createBiquadFilter();
+  bass.type='lowshelf';
+  bass.frequency.value=165;
+  bass.gain.value=4.5;
+  filter.connect(bass);
+  bass.connect(gain);
+ }else filter.connect(gain);
  gain.connect(output);
  source.start(0);
- return {name:name,kind:kind,source:source,filter:filter,gain:gain,level:0};
+ return {name:name,kind:kind,source:source,filter:filter,bass:bass,gain:gain,level:0};
 }
 function ramp(track,target,seconds){
  if(!track||track.level===target)return;
@@ -97,7 +108,9 @@ function sync(){
  // Keep both buses active with quiet loops; only their volume and filters
  // change. The water crossing never stops/restarts the ambience abruptly.
  if(active.surface){
-  var cutoff=sub?380:10500;
+  // Region sounds still play at depth: low-passed, behind the diver bed.
+  // Never mute the surface entirely while submerged.
+  var cutoff=sub?820:10500;
   // Do NOT reschedule a filter envelope every rendered frame:
   // update the diving low-pass only when its target actually changes.
   if(active.surface.cutoffTarget!==cutoff){
@@ -107,10 +120,10 @@ function sync(){
    hz.linearRampToValueAtTime(cutoff,now+(sub?.75:1.05));
    active.surface.cutoffTarget=cutoff;
   }
-  ramp(active.surface,enabled&&!sub?.62:0,sub?.83:1.12);
+  ramp(active.surface,enabled?(sub?.22:.62):0,sub?.83:1.12);
  }
  if(active.underwater)
-  ramp(active.underwater,enabled&&sub?.73:0,sub?.95:1.15);
+  ramp(active.underwater,enabled&&sub?.79:0,sub?.95:1.15);
 }
 function update(zone,submerged,enabled){
  var z=zoneNumber(zone),changed=z!==requested.zone||
@@ -143,6 +156,10 @@ function getState(){
   underwaterPlaying:!!active.underwater,
   surfaceGain:active.surface&&active.surface.level,
   waterGain:active.underwater&&active.underwater.level,
+  underwaterPitch:active.underwater&&active.underwater.source.playbackRate.value,
+  underwaterLowpass:active.underwater&&active.underwater.filter.frequency.value,
+  underwaterBassDb:active.underwater&&active.underwater.bass&&active.underwater.bass.gain.value,
+  surfaceCutoff:active.surface&&active.surface.filter.frequency.value,
   volume:mainGain};
 }
 document.addEventListener('pointerdown',unlock,{passive:true,capture:true});
