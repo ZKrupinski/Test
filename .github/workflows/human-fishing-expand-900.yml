@@ -1,0 +1,65 @@
+name: Generate Human Fishing 900 Fish Collection
+on:
+  push:
+    branches: [main]
+    paths:
+      - "human-fishing/fish-expansion.js"
+      - "human-fishing/scripts/build_fish_expansion.py"
+      - ".github/workflows/human-fishing-expand-900.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: human-fishing-expand-900
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - name: Prepare deterministic high-resolution alpha raster renderer
+        run: |
+          python3 -m venv /tmp/hf-fish-render
+          /tmp/hf-fish-render/bin/pip install -q numpy Pillow
+      - name: Render 600 fish PNGs and update manifest
+        run: /tmp/hf-fish-render/bin/python human-fishing/scripts/build_fish_expansion.py
+      - name: Verify 904 images and original 304 remain intact
+        run: |
+          /tmp/hf-fish-render/bin/python - <<'PY'
+          import json, pathlib
+          from PIL import Image
+          base=pathlib.Path('human-fishing/assets/fish')
+          data=json.loads((base/'manifest.json').read_text(encoding='utf-8'))
+          assert data['counts']['total']==904
+          assert len(data['fish'])==904
+          assert len({x['id'] for x in data['fish']})==904
+          assert len({x['name'] for x in data['fish'] if int(x['id'][1:])>304})==600
+          assert {x['habitat'] for x in data['fish']}==set(range(12))
+          for i in range(1,905):
+              path=base/'individual'/('F'+str(i).zfill(3)+'.png')
+              assert path.is_file() and path.stat().st_size>3000,path
+              with Image.open(path) as fish:
+                  assert fish.format=='PNG' and fish.mode=='RGBA',path
+                  assert fish.width>=140 and fish.height>=55,path
+          print('PASS: 904 separate transparent PNG fish files, no old ID overwritten')
+          PY
+      - name: Upload all additional species and metadata to GitHub
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add human-fishing/assets/fish/individual/F3*.png human-fishing/assets/fish/individual/F4*.png human-fishing/assets/fish/individual/F5*.png human-fishing/assets/fish/individual/F6*.png human-fishing/assets/fish/individual/F7*.png human-fishing/assets/fish/individual/F8*.png human-fishing/assets/fish/individual/F9*.png human-fishing/assets/fish/manifest.json
+          if git diff --cached --quiet; then
+            echo "The 904 fish asset collection is already bundled."
+            exit 0
+          fi
+          git commit -m "Bundle 600 expanded alpha-clean fish PNGs and 904-entry manifest"
+          for attempt in 1 2 3 4; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 4
+          done
+          exit 1
