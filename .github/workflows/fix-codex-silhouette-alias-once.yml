@@ -89,7 +89,7 @@ jobs:
            'Codex thumbnail loading index')
           part=one(part,
            'loading="lazy" decoding="async"',
-           'loading="'+(photoIndex<48?'eager':'lazy')+'" decoding="async"',
+           "loading=\"'+(photoIndex<48?'eager':'lazy')+'\" decoding=\"async\"",
            'Prioritize first 48 codex images')
           part=one(part,
            "'./assets/special-creatures/'+sp.id+'.png?v=20261108-s001':'./assets/fish/individual/'+sp.id+'.png?v=20261106-fish304'",
