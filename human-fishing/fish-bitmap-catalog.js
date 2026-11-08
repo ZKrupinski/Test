@@ -75,7 +75,7 @@
     loaded[id]=img;
    };
    img.onerror=function(){loaded[id]=false;};
-   img.src=id==='S001'?'./assets/special-creatures/S001.png?v=20261108-s001':'./assets/fish/individual/'+id+'.png?v=20261106-fish304';
+   img.src=id==='S001'?'./assets/special-creatures/S001.png?v=20261108-s001':'./assets/fish/individual/'+id+'.png?v='+(Number(id.slice(1))>304?'20261108-original-expansion':'20261106-fish304');
   }
   return loaded[id]||null;
  }
