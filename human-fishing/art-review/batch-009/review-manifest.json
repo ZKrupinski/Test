@@ -1,19 +1,24 @@
 {
   "batch": "009",
   "date": "2026-11-08",
-  "status": "ART_REVIEW_NOT_INSTALLED",
+  "status": "PARTIAL_10_REAL_FISH_LIVE_20_REVIEW_PENDING",
   "generator": "built-in imagegen",
-  "sourceLocation": "Generated images in the originating ChatGPT conversation; PNGs are not uploaded to this repository.",
+  "sourceLocation": "Ten matching full-resolution RGBA PNG files are now uploaded to GitHub game assets; eight real fish and twelve specials remain in the originating Work session / unavailable to importer.",
   "counts": {
     "realFishArt": 18,
     "fictionalSpecialArt": 12,
-    "liveAdded": 0
+    "liveAdded": 10,
+    "pendingRealFishArt": 8,
+    "pendingFictionalSpecialArt": 12
   },
   "notes": [
     "Individual full resolution RGBA files, no sheets or recolor variants.",
     "Names and habitatSizeDraft are working design labels; final species taxonomy, habitat mapping, silhouette comparison and gameplay review remain required.",
     "Five broad-halo assets had one cleanup attempt and remain held.",
-    "Existing F001-F354 assets unchanged."
+    "Ten original PNGs installed as F355-F364 without changing any original F001-F354 assets.",
+    "Eight real fish and twelve fictional special-creature images remain review-only; five special sprites still have halo holds.",
+    "Installed originals are byte-identical; red/yellow/blue fringe remains pending aesthetic correction.",
+    "All 10 new live fish have independently chosen habitat, size, rarity, and swim behavior; regional proxies remain explicit."
   ],
   "species": [
     {
@@ -23,8 +28,8 @@
       "habitatSizeDraft": "Amazon river, medium",
       "morphologyBrief": "A long streamlined silver spindle, small blunt mouth, low body depth, distinctly forked tail, small triangular dorsal fin and tiny separate adipose fin. No catfish barbels.",
       "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Create exactly ONE Anodus elongatus (아노두스). A long streamlined silver spindle, small blunt mouth, low body depth, distinctly forked tail, small triangular dorsal fin and tiny separate adipose fin. No catfish barbels. Premium polished casual 3D-painted bitmap illustration, dimensional soft shading, crisp clean silhouette, charming restrained readable eye, anatomically grounded species features. Full body horizontal swimming, HEAD POINTS RIGHT, near-perfect side view, neutral swimming pose. Centered with generous transparent safety margin on EVERY side including all fins barbels tail. Landscape high resolution, entire animal occupies about 78 percent canvas width. TRUE transparent alpha background, no backdrop, no water, no cast shadow, no text, no labels, no border, no glow halo, no duplicate animal, no sprite sheet. Do not recolor a generic fish; emphasize this species' unique body structure.",
-      "status": "ART_REVIEW",
-      "gameId": null,
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "gameId": "F355",
       "sourceFile": "exec-85edcbad-1520-4899-ac53-4fa7e33057d1.png",
       "cleanupAttempt": false,
       "sha256": "92a56d7647ff53412139cb9792beeee3aaa71936235967b3b3bacc1f7795d8c0",
@@ -35,7 +40,20 @@
       "mode": "RGBA",
       "qaFlags": [
         "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
-      ]
+      ],
+      "installedPath": "assets/fish/individual/F355.png",
+      "gitBlobSha": "0b0ab208b7673a2377536708d1afb9f668cb35ab",
+      "behaviorProfile": {
+        "archetype": "amazonian_anodus_shoal_sprint",
+        "mode": "cruise",
+        "speedMultiplier": 1.19,
+        "swimAmpMultiplier": 0.55,
+        "agilityMultiplier": 1.35,
+        "turnSeconds": 7
+      },
+      "habitat": 1,
+      "artSizeClass": "MEDIUM",
+      "rarity": "UNCOMMON"
     },
     {
       "scientificName": "Labiobarbus leptocheilus",
@@ -44,8 +62,8 @@
       "habitatSizeDraft": "Asian river, small",
       "morphologyBrief": "Slender silver carp with unusually long low dorsal fin with many rays, small downward feeding mouth and delicate tiny barbels, deeply forked dark grey tail, subtle longitudinal scale lines.",
       "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Create exactly ONE Labiobarbus leptocheilus (라비오바르부스). Slender silver carp with unusually long low dorsal fin with many rays, small downward feeding mouth and delicate tiny barbels, deeply forked dark grey tail, subtle longitudinal scale lines. Premium polished casual 3D-painted bitmap illustration, dimensional soft shading, crisp clean silhouette, charming restrained readable eye, anatomically grounded species features. Full body horizontal swimming, HEAD POINTS RIGHT, near-perfect side view, neutral swimming pose. Centered with generous transparent safety margin on EVERY side including all fins barbels tail. Landscape high resolution, entire animal occupies about 78 percent canvas width. TRUE transparent alpha background, no backdrop, no water, no cast shadow, no text, no labels, no border, no glow halo, no duplicate animal, no sprite sheet. Do not recolor a generic fish; emphasize this species' unique body structure.",
-      "status": "ART_REVIEW",
-      "gameId": null,
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "gameId": "F356",
       "sourceFile": "exec-42201fd9-b5e8-4795-84f9-973f13c3c6be.png",
       "cleanupAttempt": false,
       "sha256": "cf4f0ea2662321693f12df5604439774cbcbfe51afba503eed6b1d3113650adf",
@@ -56,7 +74,20 @@
       "mode": "RGBA",
       "qaFlags": [
         "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
-      ]
+      ],
+      "installedPath": "assets/fish/individual/F356.png",
+      "gitBlobSha": "478b5b236c1cfa7d5716c46cda0986d9bdf892a3",
+      "behaviorProfile": {
+        "archetype": "asian_labiobarbus_bottom_graze_run",
+        "mode": "wander",
+        "speedMultiplier": 0.93,
+        "swimAmpMultiplier": 0.76,
+        "agilityMultiplier": 1.07,
+        "turnSeconds": 10
+      },
+      "habitat": 3,
+      "artSizeClass": "SMALL",
+      "rarity": "UNCOMMON"
     },
     {
       "scientificName": "Anodontostoma chacunda",
@@ -65,8 +96,8 @@
       "habitatSizeDraft": "Tropical estuary, small",
       "morphologyBrief": "Very deep compact laterally compressed silver shad, rounded high back, distinctly serrated belly keel, small mouth, single short dorsal fin, strongly forked tail; one dark shoulder spot behind gill.",
       "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Create exactly ONE Anodontostoma chacunda (차쿤다전어). Very deep compact laterally compressed silver shad, rounded high back, distinctly serrated belly keel, small mouth, single short dorsal fin, strongly forked tail; one dark shoulder spot behind gill. Premium polished casual 3D-painted bitmap illustration, dimensional soft shading, crisp clean silhouette, charming restrained readable eye, anatomically grounded species features. Full body horizontal swimming, HEAD POINTS RIGHT, near-perfect side view, neutral swimming pose. Centered with generous transparent safety margin on EVERY side including all fins barbels tail. Landscape high resolution, entire animal occupies about 78 percent canvas width. TRUE transparent alpha background, no backdrop, no water, no cast shadow, no text, no labels, no border, no glow halo, no duplicate animal, no sprite sheet. Do not recolor a generic fish; emphasize this species' unique body structure.",
-      "status": "ART_REVIEW",
-      "gameId": null,
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "gameId": "F357",
       "sourceFile": "exec-bc4977b3-b5cd-4c48-a1bd-7fc04dbc20a7.png",
       "cleanupAttempt": false,
       "sha256": "149280870e47ca9c9c7c8eb075ea97de8fe2865f3f1ed1769704f6ebe72be524",
@@ -77,7 +108,20 @@
       "mode": "RGBA",
       "qaFlags": [
         "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
-      ]
+      ],
+      "installedPath": "assets/fish/individual/F357.png",
+      "gitBlobSha": "f9a8fd8a9ab10f85ff1bc501a17b5dc963263e09",
+      "behaviorProfile": {
+        "archetype": "chacunda_shad_coastal_compact_school",
+        "mode": "dart",
+        "speedMultiplier": 1.22,
+        "swimAmpMultiplier": 0.53,
+        "agilityMultiplier": 1.5,
+        "turnSeconds": 6
+      },
+      "habitat": 7,
+      "artSizeClass": "SMALL",
+      "rarity": "UNCOMMON"
     },
     {
       "scientificName": "Heterobranchus longifilis",
@@ -86,8 +130,8 @@
       "habitatSizeDraft": "African river, large",
       "morphologyBrief": "Broad long rectangular flattened catfish head, four pairs of barbels, heavy cylindrical torso, separate long rayed dorsal and large long fleshy adipose fin behind it, rounded caudal fin. Olive brown, cream belly. Do not turn it into a generic fork-tailed catfish.",
       "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Create exactly ONE Heterobranchus longifilis (분두메기). Broad long rectangular flattened catfish head, four pairs of barbels, heavy cylindrical torso, separate long rayed dorsal and large long fleshy adipose fin behind it, rounded caudal fin. Olive brown, cream belly. Do not turn it into a generic fork-tailed catfish. Premium polished casual 3D-painted bitmap illustration, dimensional soft shading, crisp clean silhouette, charming restrained readable eye, anatomically grounded species features. Full body horizontal swimming, HEAD POINTS RIGHT, near-perfect side view, neutral swimming pose. Centered with generous transparent safety margin on EVERY side including all fins barbels tail. Landscape high resolution, entire animal occupies about 78 percent canvas width. TRUE transparent alpha background, no backdrop, no water, no cast shadow, no text, no labels, no border, no glow halo, no duplicate animal, no sprite sheet. Do not recolor a generic fish; emphasize this species' unique body structure.",
-      "status": "ART_REVIEW",
-      "gameId": null,
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "gameId": "F358",
       "sourceFile": "exec-534cd8c8-898a-4b5d-b1e6-f53aed8f3628.png",
       "cleanupAttempt": false,
       "sha256": "cf910aa4aa3412d281dba78e411a528c9ae220a2b802021c73dbdbe00cf67d59",
@@ -98,7 +142,20 @@
       "mode": "RGBA",
       "qaFlags": [
         "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
-      ]
+      ],
+      "installedPath": "assets/fish/individual/F358.png",
+      "gitBlobSha": "600a3bfe438e5dc8dbf7d453d47049f59aa72aea",
+      "behaviorProfile": {
+        "archetype": "vundu_heavy_riverbed_prowl",
+        "mode": "wander",
+        "speedMultiplier": 0.64,
+        "swimAmpMultiplier": 0.65,
+        "agilityMultiplier": 0.68,
+        "turnSeconds": 15
+      },
+      "habitat": 2,
+      "artSizeClass": "LARGE",
+      "rarity": "RARE"
     },
     {
       "scientificName": "Acipenser sturio",
@@ -107,8 +164,8 @@
       "habitatSizeDraft": "Temperate estuary, large",
       "morphologyBrief": "Long flattened moderately pointed snout, four short underside barbels, ventral mouth, five rows of sharply readable bony scutes, dorsal fin set very far back, asymmetrical tail with elongated upper lobe. Slate grey bronze natural tones. No shark teeth.",
       "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Create exactly ONE Acipenser sturio (유럽철갑상어). Long flattened moderately pointed snout, four short underside barbels, ventral mouth, five rows of sharply readable bony scutes, dorsal fin set very far back, asymmetrical tail with elongated upper lobe. Slate grey bronze natural tones. No shark teeth. Premium polished casual 3D-painted bitmap illustration, dimensional soft shading, crisp clean silhouette, charming restrained readable eye, anatomically grounded species features. Full body horizontal swimming, HEAD POINTS RIGHT, near-perfect side view, neutral swimming pose. Centered with generous transparent safety margin on EVERY side including all fins barbels tail. Landscape high resolution, entire animal occupies about 78 percent canvas width. TRUE transparent alpha background, no backdrop, no water, no cast shadow, no text, no labels, no border, no glow halo, no duplicate animal, no sprite sheet. Do not recolor a generic fish; emphasize this species' unique body structure.",
-      "status": "ART_REVIEW",
-      "gameId": null,
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "gameId": "F359",
       "sourceFile": "exec-efb42af3-4a5d-4115-b411-41ced4f73d49.png",
       "cleanupAttempt": false,
       "sha256": "36dd7bc34582b4c4c4ff14b1ed704c3bceaf28724fe35a67fed749eb4147ab19",
@@ -119,7 +176,20 @@
       "mode": "RGBA",
       "qaFlags": [
         "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
-      ]
+      ],
+      "installedPath": "assets/fish/individual/F359.png",
+      "gitBlobSha": "612a75a86f1e7962b16006e50e0e9920e5175805",
+      "behaviorProfile": {
+        "archetype": "european_sturgeon_long_slow_bottom_migration",
+        "mode": "cruise",
+        "speedMultiplier": 0.72,
+        "swimAmpMultiplier": 0.44,
+        "agilityMultiplier": 0.79,
+        "turnSeconds": 14
+      },
+      "habitat": 8,
+      "artSizeClass": "LARGE",
+      "rarity": "EPIC"
     },
     {
       "scientificName": "Clariallabes attemsi",
@@ -128,8 +198,8 @@
       "habitatSizeDraft": "African river, small",
       "morphologyBrief": "Small extremely elongated slender eel-catfish, short broad skull almost as broad as long, very small eyes, modest short mandibular whiskers; very long low dorsal and anal fins partially confluent with rounded tail. Tiny pectoral fins, smooth dark brown skin. Not a giant broad-headed vundu.",
       "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Create exactly ONE Clariallabes attemsi (아템스작은메기). Small extremely elongated slender eel-catfish, short broad skull almost as broad as long, very small eyes, modest short mandibular whiskers; very long low dorsal and anal fins partially confluent with rounded tail. Tiny pectoral fins, smooth dark brown skin. Not a giant broad-headed vundu. Premium polished casual 3D-painted bitmap illustration, dimensional soft shading, crisp clean silhouette, charming restrained readable eye, anatomically grounded species features. Full body horizontal swimming, HEAD POINTS RIGHT, near-perfect side view, neutral swimming pose. Centered with generous transparent safety margin on EVERY side including all fins barbels tail. Landscape high resolution, entire animal occupies about 78 percent canvas width. TRUE transparent alpha background, no backdrop, no water, no cast shadow, no text, no labels, no border, no glow halo, no duplicate animal, no sprite sheet. Do not recolor a generic fish; emphasize this species' unique body structure.",
-      "status": "ART_REVIEW",
-      "gameId": null,
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "gameId": "F360",
       "sourceFile": "exec-a01b0b9a-4837-4fbf-9cb5-94520f0f7b0b.png",
       "cleanupAttempt": false,
       "sha256": "e2b4e29084e1616802dc6faa3a248bed348f7b2781e05c27fa0d833f0e3f811a",
@@ -140,7 +210,20 @@
       "mode": "RGBA",
       "qaFlags": [
         "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
-      ]
+      ],
+      "installedPath": "assets/fish/individual/F360.png",
+      "gitBlobSha": "0c38dbe70b575e27c40aff2252a0662ceb6b203b",
+      "behaviorProfile": {
+        "archetype": "attemsi_eelcatfish_sinuous_bottom_pause",
+        "mode": "hover",
+        "speedMultiplier": 0.56,
+        "swimAmpMultiplier": 1.45,
+        "agilityMultiplier": 1.18,
+        "turnSeconds": 12
+      },
+      "habitat": 2,
+      "artSizeClass": "SMALL",
+      "rarity": "RARE"
     },
     {
       "scientificName": "Acanthistius brasilianus",
@@ -149,8 +232,8 @@
       "habitatSizeDraft": "temperate coast, medium",
       "morphologyBrief": "Stocky deep-bodied seabass, massive blunt head and wide low mouth, strongly serrated high spiny front dorsal joined to rounded soft dorsal, broad rounded tail; olive bronze mottling.",
       "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Exactly ONE Acanthistius brasilianus (아르헨티나농어). Species design: Stocky deep-bodied seabass, massive blunt head and wide low mouth, strongly serrated high spiny front dorsal joined to rounded soft dorsal, broad rounded tail; olive bronze mottling. Polished casual game hand-painted 3D bitmap, dimensional soft shading, readable natural anatomy and restrained charming eye. Horizontal swimming HEAD RIGHT in true side view. Whole animal, centered. Fit within central 75 percent of canvas width with substantial empty transparent padding; all fins, whiskers, snout and tail fully inside. High resolution. TRUE transparent alpha. Clean natural antialiased edge with NO red yellow blue or white fringing. No surrounding glow, no text, no water or scenery, no floor or cast shadow, no sheet, no other fish. Unique species shape, not generic recolor.",
-      "status": "ART_REVIEW",
-      "gameId": null,
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "gameId": "F361",
       "sourceFile": "exec-ba1d5af6-4d52-4f40-8059-b4c4a89627ac.png",
       "cleanupAttempt": false,
       "sha256": "d44e3a23e9efd942766ecd67ea8b9ec98c167a8f6da341e3fc85c2f1808fe8df",
@@ -161,7 +244,20 @@
       "mode": "RGBA",
       "qaFlags": [
         "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
-      ]
+      ],
+      "installedPath": "assets/fish/individual/F361.png",
+      "gitBlobSha": "22902b52aa727d050c4b6c6a059d56f21092edbd",
+      "behaviorProfile": {
+        "archetype": "argentine_reef_bass_ambush_lunge",
+        "mode": "dart",
+        "speedMultiplier": 1.02,
+        "swimAmpMultiplier": 0.75,
+        "agilityMultiplier": 1.28,
+        "turnSeconds": 8
+      },
+      "habitat": 8,
+      "artSizeClass": "MEDIUM",
+      "rarity": "RARE"
     },
     {
       "scientificName": "Acantholabrus palloni",
@@ -170,8 +266,8 @@
       "habitatSizeDraft": "temperate rocky coast, small",
       "morphologyBrief": "Compact elongated wrasse, thick fleshy lips, small pointed snout, continuous low spiny dorsal with taller rounded rear, rounded tail; warm rosy tan with a dark blotch high on caudal peduncle.",
       "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Exactly ONE Acantholabrus palloni (비늘지느러미놀래기). Species design: Compact elongated wrasse, thick fleshy lips, small pointed snout, continuous low spiny dorsal with taller rounded rear, rounded tail; warm rosy tan with a dark blotch high on caudal peduncle. Polished casual game hand-painted 3D bitmap, dimensional soft shading, readable natural anatomy and restrained charming eye. Horizontal swimming HEAD RIGHT in true side view. Whole animal, centered. Fit within central 75 percent of canvas width with substantial empty transparent padding; all fins, whiskers, snout and tail fully inside. High resolution. TRUE transparent alpha. Clean natural antialiased edge with NO red yellow blue or white fringing. No surrounding glow, no text, no water or scenery, no floor or cast shadow, no sheet, no other fish. Unique species shape, not generic recolor.",
-      "status": "ART_REVIEW",
-      "gameId": null,
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "gameId": "F362",
       "sourceFile": "exec-c41611aa-2332-4662-af60-2a60f58168cf.png",
       "cleanupAttempt": false,
       "sha256": "e07f01f947e53688d0be751f3ef660431f5d1370724c6063fa8c383048bb676f",
@@ -182,7 +278,20 @@
       "mode": "RGBA",
       "qaFlags": [
         "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
-      ]
+      ],
+      "installedPath": "assets/fish/individual/F362.png",
+      "gitBlobSha": "1f6b2c8677e0aa7218ba049162aa81d2d35552e2",
+      "behaviorProfile": {
+        "archetype": "scaled_fin_wrasse_reef_nimble_browse",
+        "mode": "wander",
+        "speedMultiplier": 1.04,
+        "swimAmpMultiplier": 1.13,
+        "agilityMultiplier": 1.62,
+        "turnSeconds": 5
+      },
+      "habitat": 8,
+      "artSizeClass": "SMALL",
+      "rarity": "UNCOMMON"
     },
     {
       "scientificName": "Amphiarius rugispinis",
@@ -191,8 +300,8 @@
       "habitatSizeDraft": "South American estuary, medium",
       "morphologyBrief": "Silvery sea catfish, depressed broad head, three pairs slender barbels, very tall stiff triangular dorsal spine, separate small adipose fin, deeply forked tail. Steel grey back cream underside.",
       "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Exactly ONE Amphiarius rugispinis (소프트헤드바다메기). Species design: Silvery sea catfish, depressed broad head, three pairs slender barbels, very tall stiff triangular dorsal spine, separate small adipose fin, deeply forked tail. Steel grey back cream underside. Polished casual game hand-painted 3D bitmap, dimensional soft shading, readable natural anatomy and restrained charming eye. Horizontal swimming HEAD RIGHT in true side view. Whole animal, centered. Fit within central 75 percent of canvas width with substantial empty transparent padding; all fins, whiskers, snout and tail fully inside. High resolution. TRUE transparent alpha. Clean natural antialiased edge with NO red yellow blue or white fringing. No surrounding glow, no text, no water or scenery, no floor or cast shadow, no sheet, no other fish. Unique species shape, not generic recolor.",
-      "status": "ART_REVIEW",
-      "gameId": null,
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "gameId": "F363",
       "sourceFile": "exec-be402ca4-1f1f-4e99-b41e-e27ad5b94b53.png",
       "cleanupAttempt": false,
       "sha256": "0078fd89d7cc7d788c02a370915e1b5f120a1c9acd43f04b9c0183e197795c09",
@@ -203,7 +312,20 @@
       "mode": "RGBA",
       "qaFlags": [
         "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
-      ]
+      ],
+      "installedPath": "assets/fish/individual/F363.png",
+      "gitBlobSha": "3a435d7b5ba5240cefe8a1e767270e41c32683ae",
+      "behaviorProfile": {
+        "archetype": "rugispinis_estuary_catfish_bottom_patrol",
+        "mode": "wander",
+        "speedMultiplier": 0.75,
+        "swimAmpMultiplier": 0.71,
+        "agilityMultiplier": 0.92,
+        "turnSeconds": 11
+      },
+      "habitat": 7,
+      "artSizeClass": "MEDIUM",
+      "rarity": "RARE"
     },
     {
       "scientificName": "Aphanopus carbo",
@@ -212,8 +334,8 @@
       "habitatSizeDraft": "deep sea, large",
       "morphologyBrief": "Exceptionally long thin black scabbardfish, ribbonlike compressed body, immense eye, pointed jaws with visible slender fangs, very long low dorsal, narrow tail with small forked caudal fin. Entire long animal fits, slight curve only.",
       "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Exactly ONE Aphanopus carbo (검은갈치). Species design: Exceptionally long thin black scabbardfish, ribbonlike compressed body, immense eye, pointed jaws with visible slender fangs, very long low dorsal, narrow tail with small forked caudal fin. Entire long animal fits, slight curve only. Polished casual game hand-painted 3D bitmap, dimensional soft shading, readable natural anatomy and restrained charming eye. Horizontal swimming HEAD RIGHT in true side view. Whole animal, centered. Fit within central 75 percent of canvas width with substantial empty transparent padding; all fins, whiskers, snout and tail fully inside. High resolution. TRUE transparent alpha. Clean natural antialiased edge with NO red yellow blue or white fringing. No surrounding glow, no text, no water or scenery, no floor or cast shadow, no sheet, no other fish. Unique species shape, not generic recolor.",
-      "status": "ART_REVIEW",
-      "gameId": null,
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "gameId": "F364",
       "sourceFile": "exec-06e3ee70-3543-405d-ae82-839c41543e40.png",
       "cleanupAttempt": false,
       "sha256": "35bb02a36a6b21fb9fe1fd9031dc75dc3b6b5df52db57b67f2d61e8c40a7e36e",
@@ -224,7 +346,20 @@
       "mode": "RGBA",
       "qaFlags": [
         "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
-      ]
+      ],
+      "installedPath": "assets/fish/individual/F364.png",
+      "gitBlobSha": "a6ef0487211bcf4f8f5039f1f9fd741676bbab1b",
+      "behaviorProfile": {
+        "archetype": "black_scabbardfish_abyss_ribbon_glide",
+        "mode": "cruise",
+        "speedMultiplier": 1.21,
+        "swimAmpMultiplier": 1.32,
+        "agilityMultiplier": 1.22,
+        "turnSeconds": 9
+      },
+      "habitat": 10,
+      "artSizeClass": "LARGE",
+      "rarity": "EPIC"
     },
     {
       "scientificName": "Anchovia clupeoides",

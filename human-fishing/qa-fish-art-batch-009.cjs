@@ -1,67 +1,78 @@
 'use strict';
-// Batch 009 is a production review, not a live installation.
-// Keep source references intact until every original PNG can be fetched and hash-verified.
-const fs=require('node:fs');
-const assert=require('node:assert/strict');
+// Batch009 partial: exactly ten verified source PNGs are LIVE, remaining twenty images never activated.
+const fs=require('node:fs'),assert=require('node:assert/strict'),crypto=require('node:crypto'),vm=require('node:vm');
 const root='human-fishing/';
-const manifest=JSON.parse(fs.readFileSync(root+'art-review/batch-009/review-manifest.json','utf8'));
-const fish=manifest.species||[];
-const special=manifest.specialCreatures||[];
-const rows=[...fish,...special];
-assert.equal(manifest.batch,'009');
-assert.equal(manifest.status,'ART_REVIEW_NOT_INSTALLED');
-assert.equal(manifest.counts.realFishArt,18);
-assert.equal(manifest.counts.fictionalSpecialArt,12);
-assert.equal(manifest.counts.liveAdded,0);
-assert.equal(fish.length,18);
-assert.equal(special.length,12);
+const review=JSON.parse(fs.readFileSync(root+'art-review/batch-009/review-manifest.json','utf8'));
+const manifest=JSON.parse(fs.readFileSync(root+'assets/fish-expansion-009/installed-manifest.json','utf8'));
+const html=fs.readFileSync(root+'index.html','utf8');
+const bitmap=fs.readFileSync(root+'fish-bitmap-catalog.js','utf8');
+const js=fs.readFileSync(root+'fish-expansion-catalog-009.js','utf8');
+const rows=[...review.species,...review.specialCreatures];
+assert.equal(review.species.length,18);
+assert.equal(review.specialCreatures.length,12);
 assert.equal(rows.length,30);
-assert.equal(new Set(fish.map(x=>x.scientificName.toLowerCase())).size,18);
-assert.equal(new Set(rows.map(x=>x.nameKo)).size,30);
 assert.equal(new Set(rows.map(x=>x.sourceFile)).size,30);
 assert.equal(new Set(rows.map(x=>x.sha256)).size,30);
-assert.equal(new Set(special.map(x=>x.specialId)).size,12);
-for(const x of rows){
- assert.equal(x.status,'ART_REVIEW',x.nameKo+' must remain review-only');
- assert.equal(x.gameId,null,x.nameKo+' must not receive an unverified live ID');
- assert.match(x.sourceFile,/^exec-[a-f0-9-]+\.png$/,x.nameKo+' source reference');
- assert.match(x.sha256,/^[0-9a-f]{64}$/,x.nameKo+' recorded SHA256');
- assert.ok(Array.isArray(x.dimensions)&&x.dimensions.length===2,x.nameKo+' recorded dimensions');
- assert.ok(x.dimensions.every(n=>Number.isSafeInteger(n)&&n>0),x.nameKo+' valid dimensions');
- assert.equal(x.mode,'RGBA',x.nameKo+' mode');
- assert.ok(x.qaFlags.includes('ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED'),x.nameKo+' pending visual QA');
+assert.equal(new Set(rows.map(x=>x.nameKo)).size,30);
+assert.equal(review.counts.liveAdded,10);
+assert.equal(manifest.count,10);
+assert.equal(manifest.baseFishCount,333);
+assert.equal(manifest.fishCountAfter,343);
+assert.equal(manifest.totalCatchableAfter,344);
+assert.equal(manifest.originalPixelsPreserved,true);
+assert.equal(manifest.pendingRealFish,8);
+assert.equal(manifest.pendingFictionalSpecial,12);
+assert.deepEqual(manifest.species.map(x=>x.gameId),Array.from({length:10},(_,i)=>'F'+(355+i)));
+assert.equal(new Set(manifest.species.map(x=>x.scientificName.toLowerCase())).size,10);
+assert.equal(new Set(manifest.species.map(x=>x.behavior.archetype)).size,10);
+assert.ok(html.includes('fish-expansion-catalog-009.js?v=20261108-batch009-ten'));
+assert.ok(html.includes('HumanFishingFishExpansion009.extend(species)'));
+assert.ok(html.includes('sortFishForCodexByRegion'));
+assert.ok(html.includes('humanFishingAlpha01'));
+assert.match(fs.readFileSync(root+'assets/fish-expansion-009/ready.js','utf8'),/HumanFishingFishExpansion009Ready=true/);
+assert.match(bitmap,/20261108-batch009-ten/);
+const prev=['fish-expansion-catalog.js','fish-expansion-catalog-023.js','fish-expansion-catalog-004.js','fish-expansion-catalog-006.js','fish-expansion-catalog-007.js','fish-expansion-catalog-008.js'].map(x=>fs.readFileSync(root+x,'utf8'));
+const pngsig=Buffer.from([137,80,78,71,13,10,26,10]);
+for(const row of manifest.species){
+ const reviewRow=review.species.find(x=>x.scientificName===row.scientificName);
+ assert.ok(reviewRow,'Missing review record');
+ assert.equal(reviewRow.gameId,row.gameId);
+ assert.equal(reviewRow.status,'LIVE_WITH_VISUAL_REVIEW_FLAGS');
+ assert.equal(reviewRow.sha256,row.sha256);
+ assert.equal(reviewRow.sourceFile.startsWith('exec-'),true);
+ assert.ok(!prev.some(x=>x.includes(row.scientificName)),'Existing taxonomy duplicate: '+row.scientificName);
+ assert.ok(row.behavior&&row.behavior.archetype&&row.behavior.speedMultiplier>0);
+ assert.ok(row.habitat>=0&&row.habitat<12);
+ assert.ok(['SMALL','MEDIUM','LARGE'].includes(row.size));
+ const png=fs.readFileSync(root+row.installedPath);
+ assert.equal(png.subarray(0,8).compare(pngsig),0);
+ assert.equal(png.readUInt32BE(16),row.width);
+ assert.equal(png.readUInt32BE(20),row.height);
+ assert.equal(png[25],6,'RGBA required');
+ assert.equal(crypto.createHash('sha256').update(png).digest('hex'),row.sha256,'Original source bytes changed '+row.gameId);
+ assert.equal(row.originalPixelsPreserved,true);
+ assert.equal(row.artStatus,'LIVE_WITH_VISUAL_REVIEW_FLAGS');
 }
-const halos=special.filter(x=>x.qaFlags.includes('BROAD_HALO_REMAINS'));
-assert.equal(halos.length,5,'Five unresolved halo source files must remain on hold');
-assert.ok(halos.every(x=>x.cleanupAttempt===true),'Halo cleanup attempt must be recorded');
-// Cross-check existing installed metadata, not proposed future taxa.
-const installed=[
- 'assets/fish-expansion/installed-manifest.json',
- 'assets/fish-expansion-023/installed-manifest.json',
- 'assets/fish-expansion-004/installed-manifest.json',
- 'assets/fish-expansion-006/installed-manifest.json',
- 'assets/fish-expansion-007/installed-manifest.json',
- 'assets/fish-expansion-008/installed-manifest.json'
-];
-const already=new Set();
-for(const path of installed){
- if(!fs.existsSync(root+path))continue;
- const data=JSON.parse(fs.readFileSync(root+path,'utf8'));
- for(const x of data.species||[])if(x.scientificName)already.add(x.scientificName.toLowerCase());
+for(const row of review.species.slice(10)){
+ assert.equal(row.status,'ART_REVIEW','Missing original may not be installed');
+ assert.equal(row.gameId,null);
 }
-for(const x of fish)assert.ok(!already.has(x.scientificName.toLowerCase()),'Duplicate live scientific name: '+x.scientificName);
-const html=fs.readFileSync(root+'index.html','utf8');
-const base=fs.readFileSync(root+'fish-bitmap-catalog.js','utf8');
-for(const x of fish){
- assert.ok(!html.includes(x.scientificName),'Taxon already in main game: '+x.scientificName);
- assert.ok(!base.includes(x.nameKo),'Name already in base bitmap catalog: '+x.nameKo);
+for(const row of review.specialCreatures){
+ assert.equal(row.status,'ART_REVIEW');
+ assert.equal(row.gameId,null);
 }
-const specialPlan=JSON.parse(fs.readFileSync(root+'special-creature-candidates.json','utf8'));
-const liveSpecial=new Set((specialPlan.candidates||[]).filter(x=>x.gameStatus==='LIVE').map(x=>x.name));
-for(const x of special)assert.ok(!liveSpecial.has(x.nameKo),'Duplicate LIVE special: '+x.nameKo);
-// Never report the 30 review-only images as installed or increase the codex count.
-assert.ok(!html.includes('fish-expansion-catalog-009.js'));
-assert.ok(!html.includes('fish-expansion-009/ready.js'));
-assert.match(html,/humanFishingAlpha01/);
-console.log('PASS: batch009 review manifest tracks 18 fish + 12 specials, 30 distinct source hashes, five unresolved halos; no duplicate live taxa, no IDs, no unauthorized game activation.');
-console.log('PENDING: original PNG bytes not in repository. Source hash, alpha and silhouette verification, habitat/rarity/AI mapping, installation and deploy remain blocked until originals are available.');
+assert.equal(review.specialCreatures.filter(x=>x.qaFlags.includes('BROAD_HALO_REMAINS')).length,5);
+const current={HumanFishingFishExpansion009Ready:true};vm.runInNewContext(js,{window:current});
+const list=Array.from({length:334},(_,i)=>({id:'PREEXISTING_'+i}));
+const baseline=JSON.stringify(list);
+current.HumanFishingFishExpansion009.extend(list);
+current.HumanFishingFishExpansion009.extend(list);
+assert.equal(list.length,344);
+assert.equal(JSON.stringify(list.slice(0,334)),baseline);
+assert.ok(list.slice(334).every(x=>x.artBatch==='009'));
+const disabled={HumanFishingFishExpansion009Ready:false};vm.runInNewContext(js,{window:disabled});
+const empty=[];disabled.HumanFishingFishExpansion009.extend(empty);assert.equal(empty.length,0);
+for(const id of ['F032','F055','F150']){
+ assert.equal(fs.readFileSync(root+'assets/fish/individual/'+id+'.png').subarray(0,8).compare(pngsig),0,'Existing art lost '+id);
+}
+console.log('PASS: ten original batch009 fish F355-F364, original SHA256, regional codex, behavior, save continuity, existing originals and 20 pending holds.');

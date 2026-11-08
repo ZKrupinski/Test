@@ -1,0 +1,331 @@
+{
+  "batch": "009-partial",
+  "version": "2026-11-08",
+  "status": "LIVE_USER_APPROVED_WITH_VISUAL_REVIEW_FLAGS",
+  "baseFishCount": 333,
+  "fishCountAfter": 343,
+  "baseSpecialCount": 1,
+  "totalCatchableAfter": 344,
+  "count": 10,
+  "pendingRealFish": 8,
+  "pendingFictionalSpecial": 12,
+  "source": "Original unmodified user-uploaded PNG bytes matched Work batch009 original SHA256 and verified Git blob sha",
+  "originalPixelsPreserved": true,
+  "activation": "window.HumanFishingFishExpansion009Ready=true",
+  "visualQualityNote": "Intentionally preserved source PNGs byte-identical; red/yellow/blue cutout fringe and habitat proxy QA remain flagged.",
+  "species": [
+    {
+      "gameId": "F355",
+      "nameKo": "아노두스",
+      "scientificName": "Anodus elongatus",
+      "size": "MEDIUM",
+      "habitat": 1,
+      "nativeRegion": "아마존 유역 담수",
+      "regionProvisional": false,
+      "rarity": "UNCOMMON",
+      "level": 34,
+      "family": "Hemiodontidae",
+      "filename": "F355.png",
+      "installedPath": "assets/fish/individual/F355.png",
+      "sha256": "92a56d7647ff53412139cb9792beeee3aaa71936235967b3b3bacc1f7795d8c0",
+      "gitBlobSha": "0b0ab208b7673a2377536708d1afb9f668cb35ab",
+      "width": 1983,
+      "height": 793,
+      "originalPixelsPreserved": true,
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Source-edge red/yellow/blue halos remain unretouched; visual cleanup required"
+      ],
+      "behavior": {
+        "archetype": "amazonian_anodus_shoal_sprint",
+        "mode": "cruise",
+        "speedMultiplier": 1.19,
+        "swimAmpMultiplier": 0.55,
+        "agilityMultiplier": 1.35,
+        "turnSeconds": 7
+      }
+    },
+    {
+      "gameId": "F356",
+      "nameKo": "라비오바르부스",
+      "scientificName": "Labiobarbus leptocheilus",
+      "size": "SMALL",
+      "habitat": 3,
+      "nativeRegion": "동남아시아 하천·유속 있는 담수",
+      "regionProvisional": false,
+      "rarity": "UNCOMMON",
+      "level": 29,
+      "family": "Cyprinidae",
+      "filename": "F356.png",
+      "installedPath": "assets/fish/individual/F356.png",
+      "sha256": "cf4f0ea2662321693f12df5604439774cbcbfe51afba503eed6b1d3113650adf",
+      "gitBlobSha": "478b5b236c1cfa7d5716c46cda0986d9bdf892a3",
+      "width": 1933,
+      "height": 814,
+      "originalPixelsPreserved": true,
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Source-edge red/yellow/blue halos remain unretouched; visual cleanup required"
+      ],
+      "behavior": {
+        "archetype": "asian_labiobarbus_bottom_graze_run",
+        "mode": "wander",
+        "speedMultiplier": 0.93,
+        "swimAmpMultiplier": 0.76,
+        "agilityMultiplier": 1.07,
+        "turnSeconds": 10
+      }
+    },
+    {
+      "gameId": "F357",
+      "nameKo": "차쿤다전어",
+      "scientificName": "Anodontostoma chacunda",
+      "size": "SMALL",
+      "habitat": 7,
+      "nativeRegion": "인도태평양 연안·하구·기수역",
+      "regionProvisional": true,
+      "rarity": "UNCOMMON",
+      "level": 30,
+      "family": "Clupeidae",
+      "filename": "F357.png",
+      "installedPath": "assets/fish/individual/F357.png",
+      "sha256": "149280870e47ca9c9c7c8eb075ea97de8fe2865f3f1ed1769704f6ebe72be524",
+      "gitBlobSha": "f9a8fd8a9ab10f85ff1bc501a17b5dc963263e09",
+      "width": 1774,
+      "height": 887,
+      "originalPixelsPreserved": true,
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Source-edge red/yellow/blue halos remain unretouched; visual cleanup required"
+      ],
+      "habitatProxyReason": "하구·기수 전용 스테이지가 없어 해초·모래 바다에 임시 배치",
+      "behavior": {
+        "archetype": "chacunda_shad_coastal_compact_school",
+        "mode": "dart",
+        "speedMultiplier": 1.22,
+        "swimAmpMultiplier": 0.53,
+        "agilityMultiplier": 1.5,
+        "turnSeconds": 6
+      }
+    },
+    {
+      "gameId": "F358",
+      "nameKo": "분두메기",
+      "scientificName": "Heterobranchus longifilis",
+      "size": "LARGE",
+      "habitat": 2,
+      "nativeRegion": "아프리카 강·호수 담수",
+      "regionProvisional": false,
+      "rarity": "RARE",
+      "level": 50,
+      "family": "Clariidae",
+      "filename": "F358.png",
+      "installedPath": "assets/fish/individual/F358.png",
+      "sha256": "cf910aa4aa3412d281dba78e411a528c9ae220a2b802021c73dbdbe00cf67d59",
+      "gitBlobSha": "600a3bfe438e5dc8dbf7d453d47049f59aa72aea",
+      "width": 1774,
+      "height": 887,
+      "originalPixelsPreserved": true,
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Source-edge red/yellow/blue halos remain unretouched; visual cleanup required"
+      ],
+      "behavior": {
+        "archetype": "vundu_heavy_riverbed_prowl",
+        "mode": "wander",
+        "speedMultiplier": 0.64,
+        "swimAmpMultiplier": 0.65,
+        "agilityMultiplier": 0.68,
+        "turnSeconds": 15
+      }
+    },
+    {
+      "gameId": "F359",
+      "nameKo": "유럽철갑상어",
+      "scientificName": "Acipenser sturio",
+      "size": "LARGE",
+      "habitat": 8,
+      "nativeRegion": "유럽 연안·하구·강을 오가는 회유성 어종",
+      "regionProvisional": true,
+      "rarity": "EPIC",
+      "level": 70,
+      "family": "Acipenseridae",
+      "filename": "F359.png",
+      "installedPath": "assets/fish/individual/F359.png",
+      "sha256": "36dd7bc34582b4c4c4ff14b1ed704c3bceaf28724fe35a67fed749eb4147ab19",
+      "gitBlobSha": "612a75a86f1e7962b16006e50e0e9920e5175805",
+      "width": 1983,
+      "height": 793,
+      "originalPixelsPreserved": true,
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Source-edge red/yellow/blue halos remain unretouched; visual cleanup required"
+      ],
+      "habitatProxyReason": "회유성 철갑상어를 위한 전용 하구 스테이지가 없어 온대 연안에 임시 배치",
+      "behavior": {
+        "archetype": "european_sturgeon_long_slow_bottom_migration",
+        "mode": "cruise",
+        "speedMultiplier": 0.72,
+        "swimAmpMultiplier": 0.44,
+        "agilityMultiplier": 0.79,
+        "turnSeconds": 14
+      }
+    },
+    {
+      "gameId": "F360",
+      "nameKo": "아템스작은메기",
+      "scientificName": "Clariallabes attemsi",
+      "size": "SMALL",
+      "habitat": 2,
+      "nativeRegion": "중부아프리카 담수 하천",
+      "regionProvisional": false,
+      "rarity": "RARE",
+      "level": 42,
+      "family": "Clariidae",
+      "filename": "F360.png",
+      "installedPath": "assets/fish/individual/F360.png",
+      "sha256": "e2b4e29084e1616802dc6faa3a248bed348f7b2781e05c27fa0d833f0e3f811a",
+      "gitBlobSha": "0c38dbe70b575e27c40aff2252a0662ceb6b203b",
+      "width": 2172,
+      "height": 724,
+      "originalPixelsPreserved": true,
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Source-edge red/yellow/blue halos remain unretouched; visual cleanup required"
+      ],
+      "behavior": {
+        "archetype": "attemsi_eelcatfish_sinuous_bottom_pause",
+        "mode": "hover",
+        "speedMultiplier": 0.56,
+        "swimAmpMultiplier": 1.45,
+        "agilityMultiplier": 1.18,
+        "turnSeconds": 12
+      }
+    },
+    {
+      "gameId": "F361",
+      "nameKo": "아르헨티나농어",
+      "scientificName": "Acanthistius brasilianus",
+      "size": "MEDIUM",
+      "habitat": 8,
+      "nativeRegion": "남서대서양 온대 연안·암초",
+      "regionProvisional": false,
+      "rarity": "RARE",
+      "level": 46,
+      "family": "Serranidae",
+      "filename": "F361.png",
+      "installedPath": "assets/fish/individual/F361.png",
+      "sha256": "d44e3a23e9efd942766ecd67ea8b9ec98c167a8f6da341e3fc85c2f1808fe8df",
+      "gitBlobSha": "22902b52aa727d050c4b6c6a059d56f21092edbd",
+      "width": 1774,
+      "height": 887,
+      "originalPixelsPreserved": true,
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Source-edge red/yellow/blue halos remain unretouched; visual cleanup required"
+      ],
+      "behavior": {
+        "archetype": "argentine_reef_bass_ambush_lunge",
+        "mode": "dart",
+        "speedMultiplier": 1.02,
+        "swimAmpMultiplier": 0.75,
+        "agilityMultiplier": 1.28,
+        "turnSeconds": 8
+      }
+    },
+    {
+      "gameId": "F362",
+      "nameKo": "비늘지느러미놀래기",
+      "scientificName": "Acantholabrus palloni",
+      "size": "SMALL",
+      "habitat": 8,
+      "nativeRegion": "북동대서양·지중해 암초 연안",
+      "regionProvisional": false,
+      "rarity": "UNCOMMON",
+      "level": 33,
+      "family": "Labridae",
+      "filename": "F362.png",
+      "installedPath": "assets/fish/individual/F362.png",
+      "sha256": "e07f01f947e53688d0be751f3ef660431f5d1370724c6063fa8c383048bb676f",
+      "gitBlobSha": "1f6b2c8677e0aa7218ba049162aa81d2d35552e2",
+      "width": 1774,
+      "height": 887,
+      "originalPixelsPreserved": true,
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Source-edge red/yellow/blue halos remain unretouched; visual cleanup required"
+      ],
+      "behavior": {
+        "archetype": "scaled_fin_wrasse_reef_nimble_browse",
+        "mode": "wander",
+        "speedMultiplier": 1.04,
+        "swimAmpMultiplier": 1.13,
+        "agilityMultiplier": 1.62,
+        "turnSeconds": 5
+      }
+    },
+    {
+      "gameId": "F363",
+      "nameKo": "소프트헤드바다메기",
+      "scientificName": "Amphiarius rugispinis",
+      "size": "MEDIUM",
+      "habitat": 7,
+      "nativeRegion": "남아메리카 열대 연안 하구·기수",
+      "regionProvisional": true,
+      "rarity": "RARE",
+      "level": 47,
+      "family": "Ariidae",
+      "filename": "F363.png",
+      "installedPath": "assets/fish/individual/F363.png",
+      "sha256": "0078fd89d7cc7d788c02a370915e1b5f120a1c9acd43f04b9c0183e197795c09",
+      "gitBlobSha": "3a435d7b5ba5240cefe8a1e767270e41c32683ae",
+      "width": 1774,
+      "height": 887,
+      "originalPixelsPreserved": true,
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Source-edge red/yellow/blue halos remain unretouched; visual cleanup required"
+      ],
+      "habitatProxyReason": "열대 하구 전용 지역이 없어 해초·모래 바다에 임시 배치",
+      "behavior": {
+        "archetype": "rugispinis_estuary_catfish_bottom_patrol",
+        "mode": "wander",
+        "speedMultiplier": 0.75,
+        "swimAmpMultiplier": 0.71,
+        "agilityMultiplier": 0.92,
+        "turnSeconds": 11
+      }
+    },
+    {
+      "gameId": "F364",
+      "nameKo": "검은갈치",
+      "scientificName": "Aphanopus carbo",
+      "size": "LARGE",
+      "habitat": 10,
+      "nativeRegion": "북동대서양 심해",
+      "regionProvisional": false,
+      "rarity": "EPIC",
+      "level": 65,
+      "family": "Trichiuridae",
+      "filename": "F364.png",
+      "installedPath": "assets/fish/individual/F364.png",
+      "sha256": "35bb02a36a6b21fb9fe1fd9031dc75dc3b6b5df52db57b67f2d61e8c40a7e36e",
+      "gitBlobSha": "a6ef0487211bcf4f8f5039f1f9fd741676bbab1b",
+      "width": 2172,
+      "height": 724,
+      "originalPixelsPreserved": true,
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Source-edge red/yellow/blue halos remain unretouched; visual cleanup required"
+      ],
+      "behavior": {
+        "archetype": "black_scabbardfish_abyss_ribbon_glide",
+        "mode": "cruise",
+        "speedMultiplier": 1.21,
+        "swimAmpMultiplier": 1.32,
+        "agilityMultiplier": 1.22,
+        "turnSeconds": 9
+      }
+    }
+  ]
+}
