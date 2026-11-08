@@ -1,0 +1,478 @@
+{
+  "version": "2026-11-08",
+  "originalCataloguePreserved": 304,
+  "rejectedFromNewSheets": 92,
+  "artCandidates": 52,
+  "liveAddedSpecies": 0,
+  "policy": "Never count a palette/pattern change, a juvenile of an existing species or a synonym as an additional fish. Only register a candidate after unique silhouette and clean alpha PNG are reviewed.",
+  "candidates": [
+    {
+      "candidateId": "N001",
+      "name": "화이트클라우드마운틴미노우",
+      "sourceGroup": "민물 소형",
+      "sizeClass": "SMALL",
+      "suggestedHabitat": 3,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N002",
+      "name": "펜슬피시",
+      "sourceGroup": "민물 소형",
+      "sizeClass": "SMALL",
+      "suggestedHabitat": 3,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N003",
+      "name": "피그미코리도라스",
+      "sourceGroup": "민물 소형",
+      "sizeClass": "SMALL",
+      "suggestedHabitat": 3,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N004",
+      "name": "스파클링구라미",
+      "sourceGroup": "민물 소형",
+      "sizeClass": "SMALL",
+      "suggestedHabitat": 3,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N005",
+      "name": "난쟁이복어",
+      "sourceGroup": "민물 소형",
+      "sizeClass": "SMALL",
+      "suggestedHabitat": 3,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N006",
+      "name": "블랙크래피",
+      "sourceGroup": "민물 중형",
+      "sizeClass": "MEDIUM",
+      "suggestedHabitat": 4,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N007",
+      "name": "스터바이코리도라스",
+      "sourceGroup": "민물 중형",
+      "sizeClass": "MEDIUM",
+      "suggestedHabitat": 4,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N008",
+      "name": "유럽브림",
+      "sourceGroup": "민물 중형",
+      "sizeClass": "MEDIUM",
+      "suggestedHabitat": 4,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N009",
+      "name": "머스켈런지",
+      "sourceGroup": "민물 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 4,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N010",
+      "name": "앨리게이터가아",
+      "sourceGroup": "민물 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 4,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N011",
+      "name": "롱노즈가아",
+      "sourceGroup": "민물 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 4,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N012",
+      "name": "호수철갑상어",
+      "sourceGroup": "민물 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 4,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N013",
+      "name": "패들피시",
+      "sourceGroup": "민물 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 4,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N014",
+      "name": "자이언트스네이크헤드",
+      "sourceGroup": "민물 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 4,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N015",
+      "name": "레드벨리파쿠",
+      "sourceGroup": "민물 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 4,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N016",
+      "name": "타이멘",
+      "sourceGroup": "민물 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 4,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N017",
+      "name": "황금마시르",
+      "sourceGroup": "민물 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 4,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N018",
+      "name": "네온고비",
+      "sourceGroup": "산호초 소형",
+      "sizeClass": "SMALL",
+      "suggestedHabitat": 6,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N019",
+      "name": "안티아스",
+      "sourceGroup": "산호초 소형",
+      "sizeClass": "SMALL",
+      "suggestedHabitat": 6,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N020",
+      "name": "바이컬러블레니",
+      "sourceGroup": "산호초 소형",
+      "sizeClass": "SMALL",
+      "suggestedHabitat": 6,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N021",
+      "name": "롱노즈호크피시",
+      "sourceGroup": "산호초 소형",
+      "sizeClass": "SMALL",
+      "suggestedHabitat": 6,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N022",
+      "name": "클라운트리거피시",
+      "sourceGroup": "산호초 중형",
+      "sizeClass": "MEDIUM",
+      "suggestedHabitat": 6,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N023",
+      "name": "앵무고기",
+      "sourceGroup": "산호초 중형",
+      "sizeClass": "MEDIUM",
+      "suggestedHabitat": 6,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N024",
+      "name": "무어리시아이돌",
+      "sourceGroup": "산호초 중형",
+      "sizeClass": "MEDIUM",
+      "suggestedHabitat": 6,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N025",
+      "name": "배트피시",
+      "sourceGroup": "산호초 중형",
+      "sizeClass": "MEDIUM",
+      "suggestedHabitat": 6,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N026",
+      "name": "뿔쥐치",
+      "sourceGroup": "산호초 중형",
+      "sizeClass": "MEDIUM",
+      "suggestedHabitat": 6,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N027",
+      "name": "자이언트그루퍼",
+      "sourceGroup": "연안 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 9,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N028",
+      "name": "바라쿠다",
+      "sourceGroup": "연안 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 9,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N029",
+      "name": "자이언트트레발리",
+      "sourceGroup": "연안 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 9,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N030",
+      "name": "코비아",
+      "sourceGroup": "연안 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 9,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N031",
+      "name": "루스터피시",
+      "sourceGroup": "연안 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 9,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N032",
+      "name": "레드스내퍼",
+      "sourceGroup": "연안 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 9,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N033",
+      "name": "엠퍼러피시",
+      "sourceGroup": "연안 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 9,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N034",
+      "name": "퍼밋",
+      "sourceGroup": "연안 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 9,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N035",
+      "name": "폼파노",
+      "sourceGroup": "연안 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 9,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N036",
+      "name": "타폰",
+      "sourceGroup": "연안 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 9,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N037",
+      "name": "스누크",
+      "sourceGroup": "연안 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 9,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N038",
+      "name": "자이언트모레이",
+      "sourceGroup": "연안 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 9,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N039",
+      "name": "나폴레옹래스",
+      "sourceGroup": "연안 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 9,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N040",
+      "name": "범프헤드패럿피시",
+      "sourceGroup": "연안 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 9,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N041",
+      "name": "바다빙어",
+      "sourceGroup": "외양·심해 소형",
+      "sizeClass": "SMALL",
+      "suggestedHabitat": 11,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N042",
+      "name": "하프비크",
+      "sourceGroup": "외양·심해 소형",
+      "sizeClass": "SMALL",
+      "suggestedHabitat": 11,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N043",
+      "name": "심해드래고넷",
+      "sourceGroup": "외양·심해 소형",
+      "sizeClass": "SMALL",
+      "suggestedHabitat": 11,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N044",
+      "name": "스컬핀",
+      "sourceGroup": "외양·심해 소형",
+      "sizeClass": "SMALL",
+      "suggestedHabitat": 11,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N045",
+      "name": "헤이크",
+      "sourceGroup": "외양·심해 중형",
+      "sizeClass": "MEDIUM",
+      "suggestedHabitat": 8,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N046",
+      "name": "쏨뱅이",
+      "sourceGroup": "외양·심해 중형",
+      "sizeClass": "MEDIUM",
+      "suggestedHabitat": 8,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N047",
+      "name": "바다로빈",
+      "sourceGroup": "외양·심해 중형",
+      "sizeClass": "MEDIUM",
+      "suggestedHabitat": 8,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N048",
+      "name": "존도리",
+      "sourceGroup": "외양·심해 중형",
+      "sizeClass": "MEDIUM",
+      "suggestedHabitat": 8,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N049",
+      "name": "갈치",
+      "sourceGroup": "외양·심해 중형",
+      "sizeClass": "MEDIUM",
+      "suggestedHabitat": 8,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N050",
+      "name": "태평양넙치",
+      "sourceGroup": "외양·심해 중형",
+      "sizeClass": "MEDIUM",
+      "suggestedHabitat": 8,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N051",
+      "name": "환도상어",
+      "sourceGroup": "외양 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 9,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    },
+    {
+      "candidateId": "N052",
+      "name": "돌묵상어",
+      "sourceGroup": "외양 대형",
+      "sizeClass": "LARGE",
+      "suggestedHabitat": 9,
+      "review": "distinct-species-candidate",
+      "status": "source-art-in-review-not-registered"
+    }
+  ]
+}
