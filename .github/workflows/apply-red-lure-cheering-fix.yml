@@ -26,11 +26,13 @@ jobs:
           depth_path=Path('human-fishing/qa-lure-depth-order.cjs')
           sprite_qa_path=Path('human-fishing/qa-polished-lure-assets.cjs')
           companion_qa_path=Path('human-fishing/qa-octo-sidekicks.cjs')
+          smoke_qa_path=Path('human-fishing/qa-smoke.cjs')
           html=html_path.read_text()
           side=side_path.read_text()
           depth=depth_path.read_text()
           sprite_qa=sprite_qa_path.read_text()
           companion_qa=companion_qa_path.read_text()
+          smoke_qa=smoke_qa_path.read_text()
           def replace_once(source, before, after, label):
               assert source.count(before)==1, f'{label}: expected one occurrence, found {source.count(before)}'
               return source.replace(before,after)
@@ -184,12 +186,17 @@ jobs:
              'Upgraded support must play on the ORIGINAL red cheering sprite');
             root.octoSidekicksSignal('entrance',120);""",
             'companion functional upgrade tests')
+          smoke_qa=replace_once(smoke_qa,
+            "runtimeTick.indexOf('drawOcto(time);drawRod(time);drawHelpers(time)',sidekicks)",
+            "runtimeTick.indexOf('drawOcto(time);drawRod(time);',sidekicks)",
+            'smoke test visual stage without obsolete vector helpers')
           assert '조력자' not in html
           assert "helper:'응원단'" in html
           assert "window.drawOctopusSidekicks(ctx,time,octo)" in html
           assert side.count("{name:'빨간 문어'")==1
           for p,s in [(html_path,html),(side_path,side),(depth_path,depth),
-                      (sprite_qa_path,sprite_qa),(companion_qa_path,companion_qa)]:
+                      (sprite_qa_path,sprite_qa),(companion_qa_path,companion_qa),
+            (smoke_qa_path,smoke_qa)]:
               p.write_text(s)
           print('PASS: sprite anchors and hold-state fixed; vector helpers removed; existing red companion owns cheering benefits.')
           PY
@@ -208,7 +215,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add human-fishing/index.html human-fishing/assets/octopus/octopus-sidekicks.js
-          git add human-fishing/qa-lure-depth-order.cjs human-fishing/qa-polished-lure-assets.cjs human-fishing/qa-octo-sidekicks.cjs
+          git add human-fishing/qa-lure-depth-order.cjs human-fishing/qa-polished-lure-assets.cjs human-fishing/qa-octo-sidekicks.cjs human-fishing/qa-smoke.cjs
           git rm -- .github/workflows/apply-red-lure-cheering-fix.yml
           git diff --cached --quiet || git commit -m 'Smooth red lure bitmap motion and connect helper upgrades to original cheering octopus'
           git push origin HEAD:main
