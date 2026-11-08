@@ -38,4 +38,26 @@ assert.ok(list.slice(-6).every(x=>x.expansionSpecies&&x.artBatch==='007'));
 const disabled={HumanFishingFishExpansion007Ready:false};vm.runInNewContext(src,{window:disabled});
 const none=[];disabled.HumanFishingFishExpansion007.extend(none);assert.equal(none.length,0);
 assert.ok(html.includes('humanFishingAlpha01'),'Existing save key must not change');
+// Codex display order must group every historical and newly installed fish by its
+// registered habitat, then by stable ID. Do not reorder gameplay species or save keys.
+assert.match(html,/var visibleFish=sortFishForCodexByRegion\\(/);
+const sorterSource=html.match(/function sortFishForCodexByRegion\\(list\\)\\{[\\s\\S]*?\\n\\}/);
+assert.ok(sorterSource,'Codex sorting helper must be present');
+const sortCtx={};vm.runInNewContext(sorterSource[0]+';this.sortCodex=sortFishForCodexByRegion;',sortCtx);
+const unsorted=[
+ {id:'F346',habitat:4},{id:'F342',habitat:3},{id:'F007',habitat:0},
+ {id:'F347',habitat:2},{id:'F341',habitat:7},{id:'F343',habitat:2},
+ {id:'F339',habitat:4},{id:'F344',habitat:2},{id:'F345',habitat:1},
+ {id:'F328',habitat:10},{id:'S001',habitat:10,specialCreature:true}
+];
+const before=JSON.stringify(unsorted);
+const ordered=sortCtx.sortCodex(unsorted);
+assert.deepEqual(Array.from(ordered,x=>x.id),
+ ['F007','F345','F343','F344','F347','F342','F339','F346','F341','F328','S001']);
+assert.equal(JSON.stringify(unsorted),before,'Codex sorting must not mutate authoritative species');
+const fishOnly=sortCtx.sortCodex(unsorted.filter(x=>!x.specialCreature));
+assert.equal(fishOnly.length,10,'Fish-only filter should retain ten example fish');
+const regionTwo=sortCtx.sortCodex(unsorted.filter(x=>x.habitat===2));
+assert.deepEqual(Array.from(regionTwo,x=>x.id),['F343','F344','F347']);
+console.log('PASS: codex grouped by region with newly added species in regional ID order; gameplay order untouched.');
 console.log('PASS: six byte-identical RGBA sprites, 320->326 fish + S001, codex/AI/habitat registration and save continuity.');
