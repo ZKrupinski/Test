@@ -400,7 +400,8 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 </div>
 <script src="./boot.js?v=20261106-fullscreen1"></script>
 <script src="./assets/fish/ready.js?v=20261106-fish304"></script>
-<script src="./fish-bitmap-catalog.js?v=20261108-codex-dedup1"></script>
+<script src="./assets/special-creatures/ready.js?v=20261108-s001"></script>
+<script src="./fish-bitmap-catalog.js?v=20261108-vampire-s001"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
 <script src="./foley.js?v=20261108-chest-prize-bells-v1"></script>
 <script src="./ambient.js?v=20261108-deep-dual-ambience-v2"></script>
@@ -1182,10 +1183,11 @@ function renderBook(filter,query){
  var tool='<div class="toolbar"><input id="search" placeholder="인간·물고기 이름 검색" value="'+escapeHtml(query)+'"><select id="filter">'+
  '<option value="-3" '+(filter===-3?'selected':'')+'>전체 생물 · '+(species.length+humans.length)+'종</option>'+
  '<option value="-2" '+(filter===-2?'selected':'')+'>🧑 인간 도감 · 24종</option>'+
- '<option value="-1" '+(filter===-1?'selected':'')+'>🐟 물고기 도감 · '+species.length+'종</option>'+
-  '<option value="-4" '+(filter===-4?'selected':'')+'>🆕 추가 일러스트 · '+species.filter(function(sp){return sp.artVariant}).length+'종</option>'+
+ '<option value="-1" '+(filter===-1?'selected':'')+'>🐟 물고기 도감 · '+species.filter(function(s){return !s.specialCreature}).length+'종</option>'+
+  '<option value="-4" '+(filter===-4?'selected':'')+'>🆕 추가 일러스트 · '+species.filter(function(sp){return sp.artVariant}).length+'종</option>'+ 
+ '<option value="-5" '+(filter===-5?'selected':'')+'>✨ 특수 생물 · '+species.filter(function(sp){return sp.specialCreature}).length+'종</option>'+
  habitats.map(function(n,i){return '<option value="'+i+'" '+(filter===i?'selected':'')+'>'+escapeHtml(n)+'</option>'}).join('')+'</select></div>';
- var visibleFish=filter===-3||filter===-1||filter===-4||filter>=0?species.filter(function(x){return filter===-4?!!x.artVariant:filter<0||x.habitat===filter}):[];
+ var visibleFish=filter===-3||filter===-1||filter===-4||filter===-5||filter>=0?species.filter(function(x){return filter===-5?!!x.specialCreature:filter===-4?!!x.artVariant:filter===-1?!x.specialCreature:filter<0||x.habitat===filter}):[];
  var visibleHuman=filter===-3||filter===-2?humans.map(function(n,id){return{id:id,name:n}}):[];
  var cards='<div class="cards book-cards">'+visibleHuman.map(function(a){
   var id=String(a.id),n=save.human[id]||0,tier=humanTier(a.id);
@@ -1195,11 +1197,11 @@ function renderBook(filter,query){
    '<div class="book-fish-caption"><span class="name">'+name+'</span><span class="book-detail">'+detail+'</span></div></div>';
  }).join('')+visibleFish.map(function(sp){
   var n=save.owned[sp.id]||0,visual=fishVisualProfile(sp);
-  var className={SMALL:'소형',MEDIUM:'중형',LARGE:'대형',SPECIAL:'특수형'}[visual.category]||'어종';
+  var className=sp.specialCreature?'특수 생물':({SMALL:'소형',MEDIUM:'중형',LARGE:'대형',SPECIAL:'특수형'}[visual.category]||'어종');
   // All 304 names have a dedicated original RGBA PNG in this folder.
   // The browser only loads visible cards; no canvas cutting, scaling the
   // atlas, proxy artwork or downloaded picture substitutes.
-  var source='./assets/fish/individual/'+sp.id+'.png?v=20261106-fish304';
+  var source=sp.specialCreature?'./assets/special-creatures/'+sp.id+'.png?v=20261108-s001':'./assets/fish/individual/'+sp.id+'.png?v=20261106-fish304';
   var name=n?escapeHtml(sp.name):'???';
   var detail=n?className+' · '+sp.rarity+' · ×'+n:sp.id+' · 미발견';
   var info=sp.name+' · '+habitats[sp.habitat]+' · '+className+' · '+sp.rarity+
@@ -1212,7 +1214,11 @@ function renderBook(filter,query){
    '<div class="book-fish-caption"><span class="name">'+name+
    '</span><span class="book-detail">'+escapeHtml(detail)+'</span></div></div>';
  }).join('')+'</div>';
- openPanel('통합 생물 도감','물고기 '+count+'/'+species.length+' · 인간 '+hCount+'/24 · '+(species.length+humans.length)+'종 컬렉션',tool+cards);
+ var normalTotal=species.filter(function(sp){return !sp.specialCreature}).length;
+ var normalCount=species.filter(function(sp){return !sp.specialCreature&&(save.owned[sp.id]||0)>0}).length;
+ var specialTotal=species.length-normalTotal;
+ var specialCount=species.filter(function(sp){return sp.specialCreature&&(save.owned[sp.id]||0)>0}).length;
+ openPanel('통합 생물 도감','물고기 '+normalCount+'/'+normalTotal+' · 특수 생물 '+specialCount+'/'+specialTotal+' · 인간 '+hCount+'/24 · '+(species.length+humans.length)+'종 컬렉션',tool+cards);
  $('search').oninput=function(){
   var q=this.value.toLowerCase();
   document.querySelectorAll('#panelBody .cards .card').forEach(function(card){card.style.display=card.dataset.name.toLowerCase().includes(q)?'':'none'});
@@ -3701,8 +3707,7 @@ function catchShowcaseHuman(id,quantity,fresh){
 }
 function catchShowcaseCard(item,fever,index){
  var name=escapeHtml(item.name),size=escapeHtml(item.size||'중형');
- var source=item.sp?'./assets/fish/individual/'+encodeURIComponent(item.sp.id)+
-  '.png?v=20261106-fish304':'';
+ var source=item.sp?(item.sp.specialCreature?'./assets/special-creatures/'+encodeURIComponent(item.sp.id)+'.png?v=20261108-s001':'./assets/fish/individual/'+encodeURIComponent(item.sp.id)+'.png?v=20261106-fish304'):'';
  var thumb=source?'<img src="'+source+'" decoding="async" alt="'+name+'">':
   '<span style="font-size:38px">🧑</span>';
  var tag=item.fresh?'<span class="catch-card-new">NEW</span>':'';

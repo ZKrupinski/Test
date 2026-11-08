@@ -41,6 +41,8 @@ jobs:
         run: node human-fishing/qa-smoke.cjs
       - name: Verify 304 approved originals retained and overlapping recolor filler removed
         run: node human-fishing/qa-fish-curation.cjs
+      - name: Verify real and fictional special creature roster and S001 install gate
+        run: node human-fishing/qa-special-creatures.cjs
       - name: Verify 1,600-fish expansion taxonomy queue and image QA gates
         run: node human-fishing/qa-fish-production-plan.cjs
       - name: Verify 291 active codex entries, artwork aliases, saved catches and rarity consistency

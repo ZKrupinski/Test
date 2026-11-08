@@ -1,0 +1,61 @@
+name: Install Human Fishing special creature
+on:
+  push:
+    branches: [main]
+    paths:
+      - "human-fishing/special-creature-import.zip"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: special-art-import
+  cancel-in-progress: false
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate and install original RGBA vampire squid
+        run: |
+          python -m pip install -q Pillow
+          python <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import hashlib, io, json, zipfile
+          base=Path('human-fishing')
+          archive=base/'special-creature-import.zip'
+          assert archive.is_file(), 'Upload special-creature-import.zip into human-fishing first'
+          with zipfile.ZipFile(archive) as z:
+              names=set(z.namelist())
+              assert {'S001.png','special-manifest.json'}<=names and len(names)<=3
+              assert all('/' not in n and '\\' not in n for n in names)
+              manifest=json.loads(z.read('special-manifest.json'))
+              creature=manifest['creatures'][0]
+              assert len(manifest['creatures'])==1 and creature['id']=='S001'
+              assert creature['scientificName']=='Vampyroteuthis infernalis'
+              png=z.read('S001.png')
+              assert hashlib.sha256(png).hexdigest()==creature['sha256']
+              im=Image.open(io.BytesIO(png))
+              assert im.format=='PNG' and im.mode=='RGBA'
+              assert im.width>=1024 and im.height>=512
+              a=im.getchannel('A')
+              bounds=a.getbbox()
+              assert bounds and bounds[0]>=8 and bounds[1]>=8
+              assert bounds[2]<=im.width-8 and bounds[3]<=im.height-8
+              assert a.getextrema()==(0,255)
+          dst=base/'assets/special-creatures'
+          dst.mkdir(parents=True,exist_ok=True)
+          (dst/'S001.png').write_bytes(png)
+          creature['status']='INSTALLED'
+          (dst/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
+          (dst/'ready.js').write_text('window.HumanFishingSpecialAssetsReady=true;\n')
+          archive.unlink()
+          print('S001 asset installed. Existing 291 fish are unchanged.')
+          PY
+      - name: Commit verified original asset
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add human-fishing/assets/special-creatures/S001.png human-fishing/assets/special-creatures/manifest.json human-fishing/assets/special-creatures/ready.js human-fishing/special-creature-import.zip
+          git diff --cached --quiet || git commit -m "Install original S001 vampire squid sprite and activate codex"
+          git push origin HEAD:main

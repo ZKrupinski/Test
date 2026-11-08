@@ -62,8 +62,9 @@
  }
  var installed=false,loaded=Object.create(null),preload=Object.create(null),created={};
  var enabled=!!window.HumanFishingFishAssetsReady;
+ var specialEnabled=!!window.HumanFishingSpecialAssetsReady;
  function imageFor(id){
-  if(!enabled||!/^F\d{3}$/.test(id))return null;
+  if(!enabled||(!/^F\d{3}$/.test(id)&&!(specialEnabled&&id==='S001')))return null;
   if(!Object.prototype.hasOwnProperty.call(loaded,id)){
    var img=new Image();img.decoding='async';loaded[id]=null;created[id]=img;
    img.onload=function(){
@@ -74,7 +75,7 @@
     loaded[id]=img;
    };
    img.onerror=function(){loaded[id]=false;};
-   img.src='./assets/fish/individual/'+id+'.png?v=20261106-fish304';
+   img.src=id==='S001'?'./assets/special-creatures/S001.png?v=20261108-s001':'./assets/fish/individual/'+id+'.png?v=20261106-fish304';
   }
   return loaded[id]||null;
  }
@@ -107,12 +108,18 @@
       artSizeClass:group.sizes[j],artVariant:true});
    });
   });
+  if(specialEnabled&&!list.some(function(x){return x.id==='S001'}))
+   list.push({id:'S001',name:'뱀파이어오징어',scientificName:'Vampyroteuthis infernalis',
+    creatureType:'CEPHALOPOD',specialCreature:true,realSpecies:true,
+    habitat:10,index:17,rarity:'EPIC',level:65,artSizeClass:'SPECIAL',
+    behaviorArchetype:'low-oxygen-hover-webbed-cloak-flash-escape'});
   installed=true;
   return list;
  }
  function variantsFor(list,z,rarity){return list.filter(function(s){return s.artVariant&&s.habitat===z&&s.rarity===rarity});}
  window.HumanFishingArt={
-  enabled:enabled,extend:extend,bitmap:imageFor,primeHabitat:primeHabitat,
+  enabled:enabled,specialEnabled:specialEnabled,specialCount:specialEnabled?1:0,
+  extend:extend,bitmap:imageFor,primeHabitat:primeHabitat,
   visualAliases:visualAliases,migrateSave:migrateSave,
   variantsFor:variantsFor,originalCount:240,variantCount:64-Object.keys(visualAliases).length,archivedVariantCount:64,
   assetPath:'./assets/fish/individual/'
