@@ -1,0 +1,52 @@
+name: One-time fix for full caught-fish sprite visibility
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/catch-showcase-unclip-once.yml'
+permissions:
+  contents: write
+concurrency:
+  group: human-fishing-catch-sprite-unclip
+  cancel-in-progress: false
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Preserve prize layout and allow complete sprite drawing
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          html = Path('human-fishing/index.html')
+          qa = Path('human-fishing/qa-catch-showcase.cjs')
+          source = html.read_text()
+          tests = qa.read_text()
+          old_css = 'z-index:5;pointer-events:none;overflow:hidden;container-type:inline-size}'
+          new_css = 'z-index:5;pointer-events:none;overflow:visible;container-type:inline-size}'
+          old_test = """assert.match(html,/z-index:5;pointer-events:none;overflow:hidden/,
+           'Cards must be clipped to their own safe background pocket, below menus');"""
+          new_test = """assert.match(html,/z-index:5;pointer-events:none;overflow:visible;container-type:inline-size/,
+           'Full original fish and shadow must remain visible beyond the showcase boundary');"""
+          assert source.count(old_css) == 1, 'Catch showcase selector changed'
+          assert tests.count(old_test) == 1, 'Catch-showcase QA assertion changed'
+          assert '#catchShowcase{position:absolute;right:16px;top:16.4%;width:33.4%;height:18.4%;' in source
+          assert '.catch-card-thumb img{display:block;width:111%;height:105%;max-width:none;max-height:none;' in source
+          assert 'object-fit:contain;object-position:center;' in source
+          html.write_text(source.replace(old_css, new_css))
+          qa.write_text(tests.replace(old_test, new_test))
+          print('Changed only the showcase overflow rule. Position and image size preserved.')
+          PY
+          node human-fishing/qa-catch-showcase.cjs
+          node human-fishing/qa-smoke.cjs
+          git diff --check
+      - name: Commit tested change and remove one-time workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add human-fishing/index.html human-fishing/qa-catch-showcase.cjs
+          git rm -- .github/workflows/catch-showcase-unclip-once.yml
+          git diff --cached --quiet || git commit -m 'Prevent clipped catch showcase fish while preserving art dimensions and placement'
+          git push origin HEAD:main
