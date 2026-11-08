@@ -2,93 +2,88 @@
   "batch": "011",
   "status": "ART_REVIEW",
   "liveAdded": 0,
-  "reviewAssetCount": 5,
+  "reviewAssetCount": 6,
   "species": [
     {
       "scientificName": "Chitala lopis",
       "nameKo": "자이언트페더백",
-      "status": "ART_REVIEW",
       "gameId": null,
       "proposedId": "F373",
+      "status": "ART_REVIEW",
       "imageFile": "F373.png",
-      "imageInstalledInGitHub": false,
-      "unmodifiedSourcePixels": true,
-      "transparentBorderPaddingPx": 120,
-      "artImageSize": [
-        2412,
-        964
-      ],
-      "paddedAssetSha256": "0e79cd8ab031b8e9c0aa2772adaeed7404e0b3b8e6bf4ff1b139424ae75a7082",
-      "sourceSha256": "f305b86732b2a8d7f9ccab32963c4a42d85e8a3d859912baf10076aef155c490",
-      "notes": "Single original fish PNG generated; black and light preview checked; alpha padding QA passes; needs user visual approval and actual GitHub binary installation before LIVE."
+      "sha256": "0e79cd8ab031b8e9c0aa2772adaeed7404e0b3b8e6bf4ff1b139424ae75a7082",
+      "width": 2412,
+      "height": 964,
+      "imageSourceType": "independent",
+      "imageInstalledInGitHub": false
     },
     {
       "scientificName": "Ageneiosus militaris",
       "nameKo": "라플라타부유메기",
-      "status": "ART_REVIEW",
       "gameId": null,
       "proposedId": "F374",
+      "status": "ART_REVIEW",
       "imageFile": "F374.png",
-      "imageInstalledInGitHub": false,
-      "transparentBorderPaddingPx": 140,
-      "artImageSize": [
-        2452,
-        1004
-      ],
-      "paddedAssetSha256": "0dc0fe4fa44da521607d601dbe89c9c2029e78f26a4e8d0819f9fce660f86abd",
-      "notes": "Individual draft generated in ChatGPT; source PNG is in ZIP attachment, NOT installed to repository. Anatomical/edge review pending."
+      "sha256": "0dc0fe4fa44da521607d601dbe89c9c2029e78f26a4e8d0819f9fce660f86abd",
+      "width": 2452,
+      "height": 1004,
+      "imageSourceType": "independent",
+      "imageInstalledInGitHub": false
     },
     {
       "scientificName": "Aphia minuta",
       "nameKo": "투명고비",
-      "status": "ART_REVIEW",
       "gameId": null,
       "proposedId": "F375",
+      "status": "ART_REVIEW",
       "imageFile": "F375.png",
-      "imageInstalledInGitHub": false,
-      "transparentBorderPaddingPx": 140,
-      "artImageSize": [
-        2452,
-        1004
-      ],
-      "paddedAssetSha256": "7af3423f2b3dedb2a9626dab3cfb6915d5f19a5ebee7104f8678224805b0ab99",
-      "notes": "Individual draft generated in ChatGPT; source PNG is in ZIP attachment, NOT installed to repository. Anatomical/edge review pending."
+      "sha256": "7af3423f2b3dedb2a9626dab3cfb6915d5f19a5ebee7104f8678224805b0ab99",
+      "width": 2452,
+      "height": 1004,
+      "imageSourceType": "independent",
+      "imageInstalledInGitHub": false
     },
     {
       "scientificName": "Pristolepis fasciata",
       "nameKo": "말레이잎고기",
-      "status": "ART_REVIEW",
       "gameId": null,
       "proposedId": "F376",
+      "status": "ART_REVIEW_ANATOMY_CORRECTION_REQUIRED",
       "imageFile": "F376.png",
-      "imageInstalledInGitHub": false,
-      "transparentBorderPaddingPx": 140,
-      "artImageSize": [
-        2054,
-        1167
-      ],
-      "paddedAssetSha256": "5a21cbd2606dfa90d807f6927eb422b7faa9b8482660270564af6cc87be5b17b",
-      "notes": "Individual draft generated in ChatGPT; source PNG is in ZIP attachment, NOT installed to repository. Anatomical/edge review pending."
+      "sha256": "5a21cbd2606dfa90d807f6927eb422b7faa9b8482660270564af6cc87be5b17b",
+      "width": 2054,
+      "height": 1167,
+      "imageSourceType": "independent",
+      "imageInstalledInGitHub": false
     },
     {
       "scientificName": "Dormitator maculatus",
       "nameKo": "점박이잠꾸러기",
-      "status": "ART_REVIEW",
       "gameId": null,
       "proposedId": "F377",
+      "status": "ART_REVIEW_ANATOMY_CORRECTION_REQUIRED",
       "imageFile": "F377.png",
-      "imageInstalledInGitHub": false,
-      "transparentBorderPaddingPx": 140,
-      "artImageSize": [
-        2452,
-        1004
-      ],
-      "paddedAssetSha256": "17b4f0e67a638aa144c2248080ebef37c9e0aafbfddcce9ead69f82d0904fc26",
-      "notes": "Individual draft generated in ChatGPT; source PNG is in ZIP attachment, NOT installed to repository. Anatomical/edge review pending."
+      "sha256": "17b4f0e67a638aa144c2248080ebef37c9e0aafbfddcce9ead69f82d0904fc26",
+      "width": 2452,
+      "height": 1004,
+      "imageSourceType": "independent",
+      "imageInstalledInGitHub": false
+    },
+    {
+      "scientificName": "Dissostichus eleginoides",
+      "nameKo": "파타고니아이빨고기",
+      "gameId": null,
+      "proposedId": "F378",
+      "status": "ART_REVIEW_REPLACEMENT_REQUIRED",
+      "imageFile": "F378.png",
+      "sha256": "254d841cd70548f7ecb27385f5f7dcb6de1700e94e46cf187e0012e48059aec3",
+      "width": 1109,
+      "height": 535,
+      "imageSourceType": "composite_cutout",
+      "imageInstalledInGitHub": false
     }
   ],
-  "pendingNames": [
-    "Dissostichus eleginoides"
-  ],
-  "notGeneratedCount": 1
+  "pendingNames": [],
+  "notGeneratedCount": 0,
+  "approvedAssetCount": 0
 }

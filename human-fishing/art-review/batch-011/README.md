@@ -1,17 +1,14 @@
-# 인간낚시 11차 원화 제작 기록
-최신 배치 010 (F365–F372) 실제 설치 후 신규 6종을 선별했다. **6종 등록 완료가 아니다.** 이 배치는 서식/형태 사전 점검 및 원화 1종만 만든 부분 진척이다.
+# 11차 어종 원화 파일 현황 (F373–F378)
 
-- 제작된 그림: 자이언트페더백 (*Chitala lopis*) 독립 RGBA 2412×964, 기존 생성 2172×724 원본 픽셀을 유지한 채 투명 여백 120px 추가. SHA-256: `0e79cd8ab031b8e9c0aa2772adaeed7404e0b3b8e6bf4ff1b139424ae75a7082`. 원본 이미지는 아직 GitHub에 없다. 도감/낚시/아쿠아리움 LIVE 등록 금지.
-- 아직 원화가 없는 5종: *Ageneiosus militaris*, *Aphia minuta*, *Pristolepis fasciata*, *Dormitator maculatus*, *Dissostichus eleginoides*. 별도 1종 1 PNG 제작, 실루엣 및 알파 QA를 거치기 전 게임 ID를 할당하지 않는다.
-- 아트 생성 중 만들어진 2장의 HUD/홍보 포스터는 사용자 요구와 달라 **폐기**. 도감에 사용하지 않는다.
-- *Ageneiosus militaris*의 라플라타 분포와 *Dormitator maculatus*의 하구·기수 분포는 기존 12개 낚시터에 정확한 대응이 없는 상태로, 지역 매핑 검토가 남았다.
-- 유사한 과거 제작 PNG/실제 9차·10차 설치 목록, 기존 F001–F364 등과 학명 중복 여부를 먼저 대조한다. 본 6종은 과거 배치 009/010 18종과 학명이 겹치지 않는다.
-- 이미지 파일은 현재 ChatGPT 대화 첨부 `fish-art-batch-011-review-partial.zip`에 있다. 파일이 GitHub repo에 자동으로 설치됐다고 해석하지 않는다.
+**6종 개별 PNG 확보, 승인 원화 0종, 게임 LIVE 0종.** 사용자 대화 첨부 `fish-art-batch-011-six-png.zip`에 각 어종 PNG 및 전체 SHA-256이 기록된 `manifest.json`이 있다. 파일 바이트는 GitHub 저장소에 아직 없다.
 
-다음 작업은 남은 5종의 개별 비트맵 이미지 제작·QA, 6개 PNG 모두 설치, 도감/서식지/희귀도/행동 연결, GitHub QA/Pages 및 서비스 파일 해시 확인이다.
+- F373 자이언트페더백 — 2412×964 독립 RGBA
+- F374 라플라타부유메기 — 2452×1004 독립 RGBA
+- F375 투명고비 — 2452×1004 독립 RGBA
+- F376 말레이잎고기 — 2054×1167 독립 RGBA. 잎 형태가 실제 *Pristolepis fasciata*와 맞지 않아 교정 필요
+- F377 점박이잠꾸러기 — 2452×1004 독립 RGBA. *Dormitator maculatus*의 수염/지느러미 구조 재검토 필요
+- F378 파타고니아이빨고기 — 1109×535 합성 이미지에서 개체 분리. 크게 벌어진 송곳니는 실제 *Dissostichus eleginoides*와 달라 재제작 필요
 
-자세한 후보 지역·크기·출처·상태는 [selection.json](selection.json), 실제 제작된 원화 기록은 [review-manifest.json](review-manifest.json)에 있다.
+F373–F377는 각각 별도 고해상도 생성 파일이며 F378은 생성 시트에서 추출된 임시 이미지다. 생성 파일이 존재한다는 사실과 게임에 반영할 정확한 생물학적 원화로 승인됐다는 사실을 구분한다. 원본 이미지의 픽셀을 강제 업스케일하지 않았고 100px 이상 투명 여백을 둔다.
 
-## 현재 제작 상태 갱신 (2026-11-09)
-
-개별 원화 PNG는 **F373–F377 총 5종** 확보됨. F374 라플라타부유메기, F375 투명고비, F376 말레이잎고기, F377 점박이잠꾸러기를 추가 제작했다. 5종 모두 ChatGPT 대화의 `fish-art-batch-011-5-individual-drafts.zip`에 있으며 PNG 실제 바이트는 GitHub에 **없다**. 해시와 크기는 [review-manifest.json](review-manifest.json)을 기준으로 한다. F378 파타고니아이빨고기 (*Dissostichus eleginoides*)는 올바른 개별 원화가 생성되지 않아 여전히 미완성이다. 홍보 시트와 생물학적으로 틀린 이미지는 배포에 사용하지 않는다. **11차 LIVE 등록 0종**, 기존 게임 변경 없음.
+최신 학명·지역·크기·서식 점검은 [selection.json](selection.json), 검수 목록은 [review-manifest.json](review-manifest.json)에 기록했다.

@@ -13,4 +13,4 @@
 ## 미제작 어종 원화
 추가 어종 제작은 [FISH_ART_PRODUCTION_PLAN.md](FISH_ART_PRODUCTION_PLAN.md)와 [fish-art-next-work-queue.json](fish-art-next-work-queue.json)을 확인한다. 기존 제작/설치 기록과 학명으로 대조하고, 미검증 지역·크기를 확정값으로 사용하지 않는다. art-review의 원화는 검토용이며 LIVE 이미지로 취급하지 않는다.
 
-진행 중인 **11차 신규 어종**은 [art-review/batch-011/selection.json](art-review/batch-011/selection.json)을 먼저 본다. 6종 후보 중 원화 5종(F373–F377)은 ChatGPT ZIP에 있는 ART_REVIEW이며 F378 파타고니아이빨고기 1종만 미제작, 11차 LIVE 등록 0종이다. 실제 PNG는 아직 GitHub 저장소에 없다. 이전 9/10차 실물 이미지를 또 만들지 않는다.
+진행 중인 **11차 신규 어종**은 [art-review/batch-011/selection.json](art-review/batch-011/selection.json)을 먼저 본다. 6종 모두 대화 ZIP에 개별 RGBA가 있지만 F376·F377은 형태 보완, F378은 합성 이미지 분리본이라 재제작 필요. 11차 GitHub 원화 설치 및 LIVE 등록 0종이다. 실제 PNG는 아직 GitHub 저장소에 없다. 이전 9/10차 실물 이미지를 또 만들지 않는다.

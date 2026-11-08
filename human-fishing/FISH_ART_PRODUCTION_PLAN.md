@@ -105,4 +105,4 @@ Work 이미지 30종 가운데 이 대화에 원본 RGBA 파일로 접근 가능
 
 ### 11차 원화 제작 추가 진행
 
-기존 1종에 4종을 추가하여 **F373–F377 개별 PNG 5종 ART_REVIEW**, **F378 1종 미완성**. 게임 등록 0종. PNG는 ChatGPT 대화 ZIP에 있고 저장소에는 검수 메타만 있다. 최신 상태: [11차 검수 명단](art-review/batch-011/review-manifest.json).
+기존 5종과 새로 분리한 F378까지 **F373–F378 개별 PNG 6종 ART_REVIEW**. F376·F377의 실제 어종 해부학과 F378 합성분리본은 재제작/수정이 필요하다. 게임 등록 0종. PNG는 ChatGPT 대화 ZIP에 있고 저장소에는 검수 메타만 있다. 최신 상태: [11차 검수 명단](art-review/batch-011/review-manifest.json).

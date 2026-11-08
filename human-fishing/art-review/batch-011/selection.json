@@ -17,12 +17,12 @@
   "liveFishAdded": 0,
   "preflightSpecies": 6,
   "completedIndividualOriginalPngCount": 5,
-  "notGeneratedCount": 1,
+  "notGeneratedCount": 0,
   "approvedForGame": false,
   "gameIdsAssigned": false,
   "localReviewPackage": "fish-art-batch-011-5-individual-drafts.zip (ChatGPT attachment; five standalone PNGs F373-F377)",
   "imagePolicy": "Only standalone transparent RGBA PNG with fully visible body and >=100px alpha border; no promotional sheets",
-  "warning": "5 separate PNG drafts in chat attachment, NONE installed on GitHub. F378 Dissostichus eleginoides is not generated correctly; composite images rejected.",
+  "warning": "F373-F378 six independent PNG files exist in conversation ZIP. F376, F377 have incorrect anatomy for exact scientific names; F378 is extracted from composite and must be redrawn. None in GitHub; all ART_REVIEW, 0 LIVE.",
   "species": [
     {
       "scientificName": "Chitala lopis",
@@ -37,7 +37,12 @@
       "sourceSha256": "f305b86732b2a8d7f9ccab32963c4a42d85e8a3d859912baf10076aef155c490",
       "paddedSha256": "0e79cd8ab031b8e9c0aa2772adaeed7404e0b3b8e6bf4ff1b139424ae75a7082",
       "difference": "높은 칼날형 측면 체형 · 몸 아랫면에 길게 연속되는 뒷지느러미",
-      "sourceUrl": "https://www.fishbase.se/Fieldguide/FieldGuideSummary.php?c_code=764&genusname=Chitala&speciesname=lopis"
+      "sourceUrl": "https://www.fishbase.se/Fieldguide/FieldGuideSummary.php?c_code=764&genusname=Chitala&speciesname=lopis",
+      "reviewWidth": 2412,
+      "reviewHeight": 964,
+      "reviewSha256": "0e79cd8ab031b8e9c0aa2772adaeed7404e0b3b8e6bf4ff1b139424ae75a7082",
+      "reviewMethod": "independent",
+      "imageInstalledInGitHub": false
     },
     {
       "scientificName": "Ageneiosus militaris",
@@ -56,7 +61,11 @@
         2452,
         1004
       ],
-      "imageInstalledInGitHub": false
+      "imageInstalledInGitHub": false,
+      "reviewWidth": 2452,
+      "reviewHeight": 1004,
+      "reviewSha256": "0dc0fe4fa44da521607d601dbe89c9c2029e78f26a4e8d0819f9fce660f86abd",
+      "reviewMethod": "independent"
     },
     {
       "scientificName": "Aphia minuta",
@@ -75,7 +84,11 @@
         2452,
         1004
       ],
-      "imageInstalledInGitHub": false
+      "imageInstalledInGitHub": false,
+      "reviewWidth": 2452,
+      "reviewHeight": 1004,
+      "reviewSha256": "7af3423f2b3dedb2a9626dab3cfb6915d5f19a5ebee7104f8678224805b0ab99",
+      "reviewMethod": "independent"
     },
     {
       "scientificName": "Pristolepis fasciata",
@@ -85,7 +98,7 @@
       "habitat": 3,
       "size": "MEDIUM",
       "rarity": "RARE",
-      "status": "ART_REVIEW",
+      "status": "ART_REVIEW_ANATOMY_CORRECTION_REQUIRED",
       "artFile": "F376.png",
       "difference": "높고 압축된 잎 모양 몸체 · 높은 연속 가시 등지느러미",
       "sourceUrl": "https://www.fishbase.se/Fieldguide/FieldGuideSummary.php?c_code=360&genusname=Pristolepis&speciesname=fasciata",
@@ -94,7 +107,11 @@
         2054,
         1167
       ],
-      "imageInstalledInGitHub": false
+      "imageInstalledInGitHub": false,
+      "reviewWidth": 2054,
+      "reviewHeight": 1167,
+      "reviewSha256": "5a21cbd2606dfa90d807f6927eb422b7faa9b8482660270564af6cc87be5b17b",
+      "reviewMethod": "independent"
     },
     {
       "scientificName": "Dormitator maculatus",
@@ -104,7 +121,7 @@
       "habitat": 7,
       "size": "MEDIUM",
       "rarity": "UNCOMMON",
-      "status": "ART_REVIEW",
+      "status": "ART_REVIEW_ANATOMY_CORRECTION_REQUIRED",
       "artFile": "F377.png",
       "difference": "납작한 둔중 머리 · 두 등지느러미 및 둥근 꼬리",
       "sourceUrl": "https://www.fishbase.se/Fieldguide/FieldGuideSummary.php?c_code=630&genusname=Dormitator&speciesname=maculatus",
@@ -113,7 +130,11 @@
         2452,
         1004
       ],
-      "imageInstalledInGitHub": false
+      "imageInstalledInGitHub": false,
+      "reviewWidth": 2452,
+      "reviewHeight": 1004,
+      "reviewSha256": "17b4f0e67a638aa144c2248080ebef37c9e0aafbfddcce9ead69f82d0904fc26",
+      "reviewMethod": "independent"
     },
     {
       "scientificName": "Dissostichus eleginoides",
@@ -123,10 +144,17 @@
       "habitat": 11,
       "size": "LARGE",
       "rarity": "EPIC",
-      "status": "PREFLIGHT_COMPLETE_ART_MISSING",
-      "artFile": null,
+      "status": "ART_REVIEW_REPLACEMENT_REQUIRED",
+      "artFile": "F378.png",
       "difference": "아래턱이 돌출된 큰 입과 송곳니 · 짧은 앞등지느러미와 긴 뒷등지느러미",
-      "sourceUrl": "https://falklands.gov.fk/fisheries/overview/commercial-species/toothfish"
+      "sourceUrl": "https://falklands.gov.fk/fisheries/overview/commercial-species/toothfish",
+      "reviewWidth": 1109,
+      "reviewHeight": 535,
+      "reviewSha256": "254d841cd70548f7ecb27385f5f7dcb6de1700e94e46cf187e0012e48059aec3",
+      "reviewMethod": "composite_cutout",
+      "imageInstalledInGitHub": false
     }
-  ]
+  ],
+  "completedIndividualPngFiles": 6,
+  "reviewPackage": "fish-art-batch-011-six-png.zip (conversation artifact, not present in GitHub repository)"
 }
