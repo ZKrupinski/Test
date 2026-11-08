@@ -39,6 +39,8 @@ jobs:
         run: node human-fishing/qa-boot.cjs
       - name: Run game startup, input and shop smoke test
         run: node human-fishing/qa-smoke.cjs
+      - name: Verify 904 fish catalogue entries and 600 unique transparent PNG expansion sprites
+        run: node human-fishing/qa-fish-expansion.cjs
       - name: Verify ten-second idle auto-fishing, natural movement and manual takeover
         run: node human-fishing/qa-auto-fishing.cjs
       - name: Verify instant underwater control, random cast depth and directional currents
