@@ -162,6 +162,10 @@ jobs:
           vis=one(vis,"assert.equal(Object.keys(alias).length,13);","assert.equal(Object.keys(alias).length,22);",'QA alias count')
           vis=one(vis,"assert.equal(list.length,291);","assert.equal(list.length,283);",'QA base runtime length')
           vis=one(vis,
+           "assert.ok(!list.some(x=>x.id===id),'visual duplicate still in catalogue: '+id);",
+           "assert.ok(!list.some(x=>x.id===id&&!x.archivedVisualDuplicate),'visual duplicate still in visible catalogue: '+id);",
+           'Original 240 base order retained while F122 is archived')
+          vis=one(vis,
            "assert.equal(registry.counts.activeCollectionEntries,list.length);",
            "assert.equal(registry.counts.activeCollectionEntries,list.filter(x=>!x.archivedVisualDuplicate).length);",
            'QA visible count')
