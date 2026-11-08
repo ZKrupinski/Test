@@ -19,8 +19,8 @@ assert.ok(stageWidth-box.right-box.width>950,
  'Catch window must occupy the empty far-right area');
 assert.match(html,/#stage:has\(\.panel\.open\) #catchShowcase/,
  'All full-screen menus must hide the catch cards');
-assert.match(html,/z-index:5;pointer-events:none;overflow:hidden/,
- 'Cards must be clipped to their own safe background pocket, below menus');
+assert.match(html,/z-index:5;pointer-events:none;overflow:visible;container-type:inline-size/,
+ 'Full original fish and shadow must remain visible beyond the showcase boundary');
 assert.match(html,/\.catch-card-thumb img\{display:block;width:111%;height:105%;max-width:none;max-height:none;/,
  'Original PNG must be presented as large as possible without image cropping');
 assert.match(html,/object-fit:contain;object-position:center/,
