@@ -1187,6 +1187,15 @@ function success(){
  $('hintTitle').textContent='다음 물고기나 엘리트 인간을 노려보세요!';
  $('hint').textContent='모든 생물이 하나의 낚시터에서 함께 등장합니다.';
 }
+// Visual codex order only: keep the authoritative species array, IDs and saved catches unchanged.
+function sortFishForCodexByRegion(list){
+ return list.slice().sort(function(a,b){
+  var region=(Number(a.habitat)||0)-(Number(b.habitat)||0);
+  if(region)return region;
+  if(!!a.specialCreature!==!!b.specialCreature)return a.specialCreature?1:-1;
+  return (parseInt(String(a.id).slice(1),10)||0)-(parseInt(String(b.id).slice(1),10)||0);
+ });
+}
 function renderBook(filter,query){
  filter=filter===undefined?-3:Number(filter);query=query||'';
  var count=Object.keys(save.owned).length,hCount=Object.keys(save.human).filter(function(k){return save.human[k]>0}).length;
@@ -1197,7 +1206,7 @@ function renderBook(filter,query){
   '<option value="-4" '+(filter===-4?'selected':'')+'>🆕 추가 일러스트 · '+species.filter(function(sp){return sp.artVariant||sp.expansionSpecies}).length+'종</option>'+ 
  '<option value="-5" '+(filter===-5?'selected':'')+'>✨ 특수 생물 · '+species.filter(function(sp){return sp.specialCreature}).length+'종</option>'+
  habitats.map(function(n,i){return '<option value="'+i+'" '+(filter===i?'selected':'')+'>'+escapeHtml(n)+'</option>'}).join('')+'</select></div>';
- var visibleFish=filter===-3||filter===-1||filter===-4||filter===-5||filter>=0?species.filter(function(x){return filter===-5?!!x.specialCreature:filter===-4?!!(x.artVariant||x.expansionSpecies):filter===-1?!x.specialCreature:filter<0||x.habitat===filter}):[];
+ var visibleFish=sortFishForCodexByRegion(filter===-3||filter===-1||filter===-4||filter===-5||filter>=0?species.filter(function(x){return filter===-5?!!x.specialCreature:filter===-4?!!(x.artVariant||x.expansionSpecies):filter===-1?!x.specialCreature:filter<0||x.habitat===filter}):[]);
  var visibleHuman=filter===-3||filter===-2?humans.map(function(n,id){return{id:id,name:n}}):[];
  var cards='<div class="cards book-cards">'+visibleHuman.map(function(a){
   var id=String(a.id),n=save.human[id]||0,tier=humanTier(a.id);
