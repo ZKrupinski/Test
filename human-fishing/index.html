@@ -401,6 +401,7 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 <script src="./boot.js?v=20261106-fullscreen1"></script>
 <script src="./assets/fish/ready.js?v=20261106-fish304"></script>
 <script src="./fish-bitmap-catalog.js?v=20261106-fish304"></script>
+<script src="./fish-expansion.js?v=20261108-fish904-v1"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
 <script src="./foley.js?v=20261108-chest-prize-bells-v1"></script>
 <script src="./ambient.js?v=20261108-deep-dual-ambience-v2"></script>
@@ -2000,7 +2001,10 @@ function success(){
  var aquariumSale=aquariumFishingActive&&!human;
  // Aquarium catches pay only shop currency, without acquiring or using owned fish.
  if(!aquariumSale)owned[id]=(owned[id]||0)+qty;
- var base=(human?70:15)+(human?(o.id>=20?180:o.id*5):o.sp.index>=18?85:o.sp.index>=14?35:0)+save.up[2]*4;
+ var expandedPrize=!human&&o.sp.artExpansion?
+  ({COMMON:0,UNCOMMON:8,RARE:35,EPIC:65,LEGEND:100,MYTHIC:145}[o.sp.rarity]||0):
+  !human?(o.sp.index>=18?85:o.sp.index>=14?35:0):0;
+ var base=(human?70:15)+(human?(o.id>=20?180:o.id*5):expandedPrize)+save.up[2]*4;
  var reward=aquariumSale?aquariumUnitSalePrice(o.sp)*qty:Math.floor(base*(1+power*.025));
  var baitSpecial=baitTrait();
  if(baitSpecial.type==='pearlBonus')reward=Math.round(reward*(1+baitSpecial.power));
@@ -3809,6 +3813,8 @@ species.forEach(function(sp){
  sp.level=Math.min(75,1+sp.habitat*3+Math.floor(k/3)*3+(k>=15?(k-13)*2:0));
 });
 if(window.HumanFishingArt)window.HumanFishingArt.extend(species);
+if(window.HumanFishingSpeciesExpansion)
+ window.HumanFishingSpeciesExpansion.extend(species,fishVisualProfile);
 if(!save.fever||typeof save.fever!=='object')save.fever={count:0,ready:false,total:0,activations:0};
 // Legacy saves could have 6/6 visually full while never becoming READY.
 // Restore readiness rather than leave the player stranded at full gauge.
