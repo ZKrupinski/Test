@@ -1,0 +1,657 @@
+{
+  "batch": "009",
+  "date": "2026-11-08",
+  "status": "ART_REVIEW_NOT_INSTALLED",
+  "generator": "built-in imagegen",
+  "sourceLocation": "Generated images in the originating ChatGPT conversation; PNGs are not uploaded to this repository.",
+  "counts": {
+    "realFishArt": 18,
+    "fictionalSpecialArt": 12,
+    "liveAdded": 0
+  },
+  "notes": [
+    "Individual full resolution RGBA files, no sheets or recolor variants.",
+    "Names and habitatSizeDraft are working design labels; final species taxonomy, habitat mapping, silhouette comparison and gameplay review remain required.",
+    "Five broad-halo assets had one cleanup attempt and remain held.",
+    "Existing F001-F354 assets unchanged."
+  ],
+  "species": [
+    {
+      "scientificName": "Anodus elongatus",
+      "nameKo": "아노두스",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "Amazon river, medium",
+      "morphologyBrief": "A long streamlined silver spindle, small blunt mouth, low body depth, distinctly forked tail, small triangular dorsal fin and tiny separate adipose fin. No catfish barbels.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Create exactly ONE Anodus elongatus (아노두스). A long streamlined silver spindle, small blunt mouth, low body depth, distinctly forked tail, small triangular dorsal fin and tiny separate adipose fin. No catfish barbels. Premium polished casual 3D-painted bitmap illustration, dimensional soft shading, crisp clean silhouette, charming restrained readable eye, anatomically grounded species features. Full body horizontal swimming, HEAD POINTS RIGHT, near-perfect side view, neutral swimming pose. Centered with generous transparent safety margin on EVERY side including all fins barbels tail. Landscape high resolution, entire animal occupies about 78 percent canvas width. TRUE transparent alpha background, no backdrop, no water, no cast shadow, no text, no labels, no border, no glow halo, no duplicate animal, no sprite sheet. Do not recolor a generic fish; emphasize this species' unique body structure.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-85edcbad-1520-4899-ac53-4fa7e33057d1.png",
+      "cleanupAttempt": false,
+      "sha256": "92a56d7647ff53412139cb9792beeee3aaa71936235967b3b3bacc1f7795d8c0",
+      "dimensions": [
+        1983,
+        793
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "scientificName": "Labiobarbus leptocheilus",
+      "nameKo": "라비오바르부스",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "Asian river, small",
+      "morphologyBrief": "Slender silver carp with unusually long low dorsal fin with many rays, small downward feeding mouth and delicate tiny barbels, deeply forked dark grey tail, subtle longitudinal scale lines.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Create exactly ONE Labiobarbus leptocheilus (라비오바르부스). Slender silver carp with unusually long low dorsal fin with many rays, small downward feeding mouth and delicate tiny barbels, deeply forked dark grey tail, subtle longitudinal scale lines. Premium polished casual 3D-painted bitmap illustration, dimensional soft shading, crisp clean silhouette, charming restrained readable eye, anatomically grounded species features. Full body horizontal swimming, HEAD POINTS RIGHT, near-perfect side view, neutral swimming pose. Centered with generous transparent safety margin on EVERY side including all fins barbels tail. Landscape high resolution, entire animal occupies about 78 percent canvas width. TRUE transparent alpha background, no backdrop, no water, no cast shadow, no text, no labels, no border, no glow halo, no duplicate animal, no sprite sheet. Do not recolor a generic fish; emphasize this species' unique body structure.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-42201fd9-b5e8-4795-84f9-973f13c3c6be.png",
+      "cleanupAttempt": false,
+      "sha256": "cf4f0ea2662321693f12df5604439774cbcbfe51afba503eed6b1d3113650adf",
+      "dimensions": [
+        1933,
+        814
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "scientificName": "Anodontostoma chacunda",
+      "nameKo": "차쿤다전어",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "Tropical estuary, small",
+      "morphologyBrief": "Very deep compact laterally compressed silver shad, rounded high back, distinctly serrated belly keel, small mouth, single short dorsal fin, strongly forked tail; one dark shoulder spot behind gill.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Create exactly ONE Anodontostoma chacunda (차쿤다전어). Very deep compact laterally compressed silver shad, rounded high back, distinctly serrated belly keel, small mouth, single short dorsal fin, strongly forked tail; one dark shoulder spot behind gill. Premium polished casual 3D-painted bitmap illustration, dimensional soft shading, crisp clean silhouette, charming restrained readable eye, anatomically grounded species features. Full body horizontal swimming, HEAD POINTS RIGHT, near-perfect side view, neutral swimming pose. Centered with generous transparent safety margin on EVERY side including all fins barbels tail. Landscape high resolution, entire animal occupies about 78 percent canvas width. TRUE transparent alpha background, no backdrop, no water, no cast shadow, no text, no labels, no border, no glow halo, no duplicate animal, no sprite sheet. Do not recolor a generic fish; emphasize this species' unique body structure.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-bc4977b3-b5cd-4c48-a1bd-7fc04dbc20a7.png",
+      "cleanupAttempt": false,
+      "sha256": "149280870e47ca9c9c7c8eb075ea97de8fe2865f3f1ed1769704f6ebe72be524",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "scientificName": "Heterobranchus longifilis",
+      "nameKo": "분두메기",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "African river, large",
+      "morphologyBrief": "Broad long rectangular flattened catfish head, four pairs of barbels, heavy cylindrical torso, separate long rayed dorsal and large long fleshy adipose fin behind it, rounded caudal fin. Olive brown, cream belly. Do not turn it into a generic fork-tailed catfish.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Create exactly ONE Heterobranchus longifilis (분두메기). Broad long rectangular flattened catfish head, four pairs of barbels, heavy cylindrical torso, separate long rayed dorsal and large long fleshy adipose fin behind it, rounded caudal fin. Olive brown, cream belly. Do not turn it into a generic fork-tailed catfish. Premium polished casual 3D-painted bitmap illustration, dimensional soft shading, crisp clean silhouette, charming restrained readable eye, anatomically grounded species features. Full body horizontal swimming, HEAD POINTS RIGHT, near-perfect side view, neutral swimming pose. Centered with generous transparent safety margin on EVERY side including all fins barbels tail. Landscape high resolution, entire animal occupies about 78 percent canvas width. TRUE transparent alpha background, no backdrop, no water, no cast shadow, no text, no labels, no border, no glow halo, no duplicate animal, no sprite sheet. Do not recolor a generic fish; emphasize this species' unique body structure.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-534cd8c8-898a-4b5d-b1e6-f53aed8f3628.png",
+      "cleanupAttempt": false,
+      "sha256": "cf910aa4aa3412d281dba78e411a528c9ae220a2b802021c73dbdbe00cf67d59",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "scientificName": "Acipenser sturio",
+      "nameKo": "유럽철갑상어",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "Temperate estuary, large",
+      "morphologyBrief": "Long flattened moderately pointed snout, four short underside barbels, ventral mouth, five rows of sharply readable bony scutes, dorsal fin set very far back, asymmetrical tail with elongated upper lobe. Slate grey bronze natural tones. No shark teeth.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Create exactly ONE Acipenser sturio (유럽철갑상어). Long flattened moderately pointed snout, four short underside barbels, ventral mouth, five rows of sharply readable bony scutes, dorsal fin set very far back, asymmetrical tail with elongated upper lobe. Slate grey bronze natural tones. No shark teeth. Premium polished casual 3D-painted bitmap illustration, dimensional soft shading, crisp clean silhouette, charming restrained readable eye, anatomically grounded species features. Full body horizontal swimming, HEAD POINTS RIGHT, near-perfect side view, neutral swimming pose. Centered with generous transparent safety margin on EVERY side including all fins barbels tail. Landscape high resolution, entire animal occupies about 78 percent canvas width. TRUE transparent alpha background, no backdrop, no water, no cast shadow, no text, no labels, no border, no glow halo, no duplicate animal, no sprite sheet. Do not recolor a generic fish; emphasize this species' unique body structure.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-efb42af3-4a5d-4115-b411-41ced4f73d49.png",
+      "cleanupAttempt": false,
+      "sha256": "36dd7bc34582b4c4c4ff14b1ed704c3bceaf28724fe35a67fed749eb4147ab19",
+      "dimensions": [
+        1983,
+        793
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "scientificName": "Clariallabes attemsi",
+      "nameKo": "아템스작은메기",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "African river, small",
+      "morphologyBrief": "Small extremely elongated slender eel-catfish, short broad skull almost as broad as long, very small eyes, modest short mandibular whiskers; very long low dorsal and anal fins partially confluent with rounded tail. Tiny pectoral fins, smooth dark brown skin. Not a giant broad-headed vundu.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Create exactly ONE Clariallabes attemsi (아템스작은메기). Small extremely elongated slender eel-catfish, short broad skull almost as broad as long, very small eyes, modest short mandibular whiskers; very long low dorsal and anal fins partially confluent with rounded tail. Tiny pectoral fins, smooth dark brown skin. Not a giant broad-headed vundu. Premium polished casual 3D-painted bitmap illustration, dimensional soft shading, crisp clean silhouette, charming restrained readable eye, anatomically grounded species features. Full body horizontal swimming, HEAD POINTS RIGHT, near-perfect side view, neutral swimming pose. Centered with generous transparent safety margin on EVERY side including all fins barbels tail. Landscape high resolution, entire animal occupies about 78 percent canvas width. TRUE transparent alpha background, no backdrop, no water, no cast shadow, no text, no labels, no border, no glow halo, no duplicate animal, no sprite sheet. Do not recolor a generic fish; emphasize this species' unique body structure.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-a01b0b9a-4837-4fbf-9cb5-94520f0f7b0b.png",
+      "cleanupAttempt": false,
+      "sha256": "e2b4e29084e1616802dc6faa3a248bed348f7b2781e05c27fa0d833f0e3f811a",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "scientificName": "Acanthistius brasilianus",
+      "nameKo": "아르헨티나농어",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "temperate coast, medium",
+      "morphologyBrief": "Stocky deep-bodied seabass, massive blunt head and wide low mouth, strongly serrated high spiny front dorsal joined to rounded soft dorsal, broad rounded tail; olive bronze mottling.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Exactly ONE Acanthistius brasilianus (아르헨티나농어). Species design: Stocky deep-bodied seabass, massive blunt head and wide low mouth, strongly serrated high spiny front dorsal joined to rounded soft dorsal, broad rounded tail; olive bronze mottling. Polished casual game hand-painted 3D bitmap, dimensional soft shading, readable natural anatomy and restrained charming eye. Horizontal swimming HEAD RIGHT in true side view. Whole animal, centered. Fit within central 75 percent of canvas width with substantial empty transparent padding; all fins, whiskers, snout and tail fully inside. High resolution. TRUE transparent alpha. Clean natural antialiased edge with NO red yellow blue or white fringing. No surrounding glow, no text, no water or scenery, no floor or cast shadow, no sheet, no other fish. Unique species shape, not generic recolor.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-ba1d5af6-4d52-4f40-8059-b4c4a89627ac.png",
+      "cleanupAttempt": false,
+      "sha256": "d44e3a23e9efd942766ecd67ea8b9ec98c167a8f6da341e3fc85c2f1808fe8df",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "scientificName": "Acantholabrus palloni",
+      "nameKo": "비늘지느러미놀래기",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "temperate rocky coast, small",
+      "morphologyBrief": "Compact elongated wrasse, thick fleshy lips, small pointed snout, continuous low spiny dorsal with taller rounded rear, rounded tail; warm rosy tan with a dark blotch high on caudal peduncle.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Exactly ONE Acantholabrus palloni (비늘지느러미놀래기). Species design: Compact elongated wrasse, thick fleshy lips, small pointed snout, continuous low spiny dorsal with taller rounded rear, rounded tail; warm rosy tan with a dark blotch high on caudal peduncle. Polished casual game hand-painted 3D bitmap, dimensional soft shading, readable natural anatomy and restrained charming eye. Horizontal swimming HEAD RIGHT in true side view. Whole animal, centered. Fit within central 75 percent of canvas width with substantial empty transparent padding; all fins, whiskers, snout and tail fully inside. High resolution. TRUE transparent alpha. Clean natural antialiased edge with NO red yellow blue or white fringing. No surrounding glow, no text, no water or scenery, no floor or cast shadow, no sheet, no other fish. Unique species shape, not generic recolor.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-c41611aa-2332-4662-af60-2a60f58168cf.png",
+      "cleanupAttempt": false,
+      "sha256": "e07f01f947e53688d0be751f3ef660431f5d1370724c6063fa8c383048bb676f",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "scientificName": "Amphiarius rugispinis",
+      "nameKo": "소프트헤드바다메기",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "South American estuary, medium",
+      "morphologyBrief": "Silvery sea catfish, depressed broad head, three pairs slender barbels, very tall stiff triangular dorsal spine, separate small adipose fin, deeply forked tail. Steel grey back cream underside.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Exactly ONE Amphiarius rugispinis (소프트헤드바다메기). Species design: Silvery sea catfish, depressed broad head, three pairs slender barbels, very tall stiff triangular dorsal spine, separate small adipose fin, deeply forked tail. Steel grey back cream underside. Polished casual game hand-painted 3D bitmap, dimensional soft shading, readable natural anatomy and restrained charming eye. Horizontal swimming HEAD RIGHT in true side view. Whole animal, centered. Fit within central 75 percent of canvas width with substantial empty transparent padding; all fins, whiskers, snout and tail fully inside. High resolution. TRUE transparent alpha. Clean natural antialiased edge with NO red yellow blue or white fringing. No surrounding glow, no text, no water or scenery, no floor or cast shadow, no sheet, no other fish. Unique species shape, not generic recolor.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-be402ca4-1f1f-4e99-b41e-e27ad5b94b53.png",
+      "cleanupAttempt": false,
+      "sha256": "0078fd89d7cc7d788c02a370915e1b5f120a1c9acd43f04b9c0183e197795c09",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "scientificName": "Aphanopus carbo",
+      "nameKo": "검은갈치",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "deep sea, large",
+      "morphologyBrief": "Exceptionally long thin black scabbardfish, ribbonlike compressed body, immense eye, pointed jaws with visible slender fangs, very long low dorsal, narrow tail with small forked caudal fin. Entire long animal fits, slight curve only.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Exactly ONE Aphanopus carbo (검은갈치). Species design: Exceptionally long thin black scabbardfish, ribbonlike compressed body, immense eye, pointed jaws with visible slender fangs, very long low dorsal, narrow tail with small forked caudal fin. Entire long animal fits, slight curve only. Polished casual game hand-painted 3D bitmap, dimensional soft shading, readable natural anatomy and restrained charming eye. Horizontal swimming HEAD RIGHT in true side view. Whole animal, centered. Fit within central 75 percent of canvas width with substantial empty transparent padding; all fins, whiskers, snout and tail fully inside. High resolution. TRUE transparent alpha. Clean natural antialiased edge with NO red yellow blue or white fringing. No surrounding glow, no text, no water or scenery, no floor or cast shadow, no sheet, no other fish. Unique species shape, not generic recolor.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-06e3ee70-3543-405d-ae82-839c41543e40.png",
+      "cleanupAttempt": false,
+      "sha256": "35bb02a36a6b21fb9fe1fd9031dc75dc3b6b5df52db57b67f2d61e8c40a7e36e",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "scientificName": "Anchovia clupeoides",
+      "nameKo": "자발레타멸치",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "tropical estuary, small",
+      "morphologyBrief": "Deep-bodied anchovy, pronounced protruding snout above enormous low underslung mouth with jaw extending behind eye, silvery compressed body, one small dorsal, deeply forked tail; blue olive back.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Exactly ONE Anchovia clupeoides (자발레타멸치). Species design: Deep-bodied anchovy, pronounced protruding snout above enormous low underslung mouth with jaw extending behind eye, silvery compressed body, one small dorsal, deeply forked tail; blue olive back. Polished casual game hand-painted 3D bitmap, dimensional soft shading, readable natural anatomy and restrained charming eye. Horizontal swimming HEAD RIGHT in true side view. Whole animal, centered. Fit within central 75 percent of canvas width with substantial empty transparent padding; all fins, whiskers, snout and tail fully inside. High resolution. TRUE transparent alpha. Clean natural antialiased edge with NO red yellow blue or white fringing. No surrounding glow, no text, no water or scenery, no floor or cast shadow, no sheet, no other fish. Unique species shape, not generic recolor.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-e5699e52-e1c0-425a-80e3-3885711572dd.png",
+      "cleanupAttempt": false,
+      "sha256": "88a57adf2488212936a603c49710bc6f61417956ce45bfaa261568a9990e5152",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "scientificName": "Apristurus nasutus",
+      "nameKo": "큰코고양이상어",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "deep sea, medium",
+      "morphologyBrief": "Slender soft-bodied small deepsea catshark with conspicuously broad flattened bell-shaped long nose, very small eyes, two small dorsal fins set far rearward, long low caudal fin; plain warm dark brown skin.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Exactly ONE Apristurus nasutus (큰코고양이상어). Species design: Slender soft-bodied small deepsea catshark with conspicuously broad flattened bell-shaped long nose, very small eyes, two small dorsal fins set far rearward, long low caudal fin; plain warm dark brown skin. Polished casual game hand-painted 3D bitmap, dimensional soft shading, readable natural anatomy and restrained charming eye. Horizontal swimming HEAD RIGHT in true side view. Whole animal, centered. Fit within central 75 percent of canvas width with substantial empty transparent padding; all fins, whiskers, snout and tail fully inside. High resolution. TRUE transparent alpha. Clean natural antialiased edge with NO red yellow blue or white fringing. No surrounding glow, no text, no water or scenery, no floor or cast shadow, no sheet, no other fish. Unique species shape, not generic recolor.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-ce3283e0-f6b5-4858-a3c9-962c0f9317ed.png",
+      "cleanupAttempt": false,
+      "sha256": "27e7bec7f91951566d41ef8ffdf738a92e17805aa1781bcdae04a9680e5084d8",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "scientificName": "Atule mate",
+      "nameKo": "노랑꼬리전갱이",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "tropical coast, medium",
+      "morphologyBrief": "Streamlined scad, large eye, arched lateral line and visible scutes on slender tail peduncle, two distinct dorsals, narrow deeply forked yellow tail, final dorsal/anal rays slightly separated and elongated; silver blue body.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Exactly ONE Atule mate (노랑꼬리전갱이). Species design: Streamlined scad, large eye, arched lateral line and visible scutes on slender tail peduncle, two distinct dorsals, narrow deeply forked yellow tail, final dorsal/anal rays slightly separated and elongated; silver blue body. Polished casual game hand-painted 3D bitmap, dimensional soft shading, readable natural anatomy and restrained charming eye. Horizontal swimming HEAD RIGHT in true side view. Whole animal, centered. Fit within central 75 percent of canvas width with substantial empty transparent padding; all fins, whiskers, snout and tail fully inside. High resolution. TRUE transparent alpha. Clean natural antialiased edge with NO red yellow blue or white fringing. No surrounding glow, no text, no water or scenery, no floor or cast shadow, no sheet, no other fish. Unique species shape, not generic recolor.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-9ff693de-d0df-4dc0-952c-fdfed892c378.png",
+      "cleanupAttempt": false,
+      "sha256": "7e0bc8c5665fe75b352ad719e218f3115324fece76b1f9d12ebea93e91350342",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "scientificName": "Brosme brosme",
+      "nameKo": "커스크",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "cold northern sea, large",
+      "morphologyBrief": "Heavy long cylindrical cod relative with only ONE uninterrupted long dorsal fin, ONE long anal fin, broad rounded caudal, single stout chin barbel, thick lips and broad head. Tawny grey body dark fin edges.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Exactly ONE Brosme brosme (커스크). Species design: Heavy long cylindrical cod relative with only ONE uninterrupted long dorsal fin, ONE long anal fin, broad rounded caudal, single stout chin barbel, thick lips and broad head. Tawny grey body dark fin edges. Polished casual game hand-painted 3D bitmap, dimensional soft shading, readable natural anatomy and restrained charming eye. Horizontal swimming HEAD RIGHT in true side view. Whole animal, centered. Fit within central 75 percent of canvas width with substantial empty transparent padding; all fins, whiskers, snout and tail fully inside. High resolution. TRUE transparent alpha. Clean natural antialiased edge with NO red yellow blue or white fringing. No surrounding glow, no text, no water or scenery, no floor or cast shadow, no sheet, no other fish. Unique species shape, not generic recolor.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-59b1f598-6a68-45cf-8c5f-86c20614c38f.png",
+      "cleanupAttempt": false,
+      "sha256": "91a97e557be7e0f11bfd8d7070728334ea1a88b557d9dd4bdf448cd72f0bbb10",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "scientificName": "Coelorinchus chilensis",
+      "nameKo": "칠레쥐꼬리고기",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "deep sea, medium",
+      "morphologyBrief": "Deepsea grenadier with armored angular pointed snout, huge eye, short chin barbel, tall triangular first dorsal and very long low second dorsal, torso tapering to extremely thin rat-tail WITHOUT a separate caudal fan; cool brown silver.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Exactly ONE Coelorinchus chilensis (칠레쥐꼬리고기). Species design: Deepsea grenadier with armored angular pointed snout, huge eye, short chin barbel, tall triangular first dorsal and very long low second dorsal, torso tapering to extremely thin rat-tail WITHOUT a separate caudal fan; cool brown silver. Polished casual game hand-painted 3D bitmap, dimensional soft shading, readable natural anatomy and restrained charming eye. Horizontal swimming HEAD RIGHT in true side view. Whole animal, centered. Fit within central 75 percent of canvas width with substantial empty transparent padding; all fins, whiskers, snout and tail fully inside. High resolution. TRUE transparent alpha. Clean natural antialiased edge with NO red yellow blue or white fringing. No surrounding glow, no text, no water or scenery, no floor or cast shadow, no sheet, no other fish. Unique species shape, not generic recolor.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-cf56508b-08f9-468e-93d1-95c42f46aaec.png",
+      "cleanupAttempt": false,
+      "sha256": "fad38e2981713b8be10a54954759a453741eec1439c7d633acfd8d6170618eb6",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "scientificName": "Stenobrachius leucopsarus",
+      "nameKo": "북방샛비늘치",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "deep sea, small",
+      "morphologyBrief": "Tiny compact lanternfish, enormous round eye, blunt head and wide oblique mouth, short dorsal plus tiny adipose, forked tail, restrained separate pinprick photophores in precise ventral rows; charcoal silver skin, no external glow cloud.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Exactly ONE Stenobrachius leucopsarus (북방샛비늘치). Species design: Tiny compact lanternfish, enormous round eye, blunt head and wide oblique mouth, short dorsal plus tiny adipose, forked tail, restrained separate pinprick photophores in precise ventral rows; charcoal silver skin, no external glow cloud. Polished casual game hand-painted 3D bitmap, dimensional soft shading, readable natural anatomy and restrained charming eye. Horizontal swimming HEAD RIGHT in true side view. Whole animal, centered. Fit within central 75 percent of canvas width with substantial empty transparent padding; all fins, whiskers, snout and tail fully inside. High resolution. TRUE transparent alpha. Clean natural antialiased edge with NO red yellow blue or white fringing. No surrounding glow, no text, no water or scenery, no floor or cast shadow, no sheet, no other fish. Unique species shape, not generic recolor.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-ab4e1516-17b0-4561-b4a2-b1a6f7cb76b7.png",
+      "cleanupAttempt": false,
+      "sha256": "88e953b98f3eed5e12453add9da27858a78deb326849828fc3b5cbddf7be4feb",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "scientificName": "Anarhichas minor",
+      "nameKo": "점박이늑대고기",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "cold northern sea, large",
+      "morphologyBrief": "Robust long wolffish, huge bulbous blunt head, powerful jaws with several visible blunt canine teeth, long continuous dorsal, large rounded pectorals, small rounded caudal, no pelvic fins; tan body dark irregular spots.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Exactly ONE Anarhichas minor (점박이늑대고기). Species design: Robust long wolffish, huge bulbous blunt head, powerful jaws with several visible blunt canine teeth, long continuous dorsal, large rounded pectorals, small rounded caudal, no pelvic fins; tan body dark irregular spots. Polished casual game hand-painted 3D bitmap, dimensional soft shading, readable natural anatomy and restrained charming eye. Horizontal swimming HEAD RIGHT in true side view. Whole animal, centered. Fit within central 75 percent of canvas width with substantial empty transparent padding; all fins, whiskers, snout and tail fully inside. High resolution. TRUE transparent alpha. Clean natural antialiased edge with NO red yellow blue or white fringing. No surrounding glow, no text, no water or scenery, no floor or cast shadow, no sheet, no other fish. Unique species shape, not generic recolor.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-9847b0d5-09b1-42b5-afa0-c6605c7c8d55.png",
+      "cleanupAttempt": false,
+      "sha256": "9e7548018c5cde1a96d7a727fb0cb71ad289963aba56886e7b58730c27a74e6d",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "scientificName": "Champsocephalus gunnari",
+      "nameKo": "빙어고등어",
+      "nameStatus": "working_display_name",
+      "habitatSizeDraft": "Antarctic sea, medium",
+      "morphologyBrief": "Antarctic icefish with elongated crocodile-like flattened snout, wide mouth, large eyes, two distinctly separated dorsal fins with high first dorsal, fan-shaped pectorals and forked caudal, pale silvery body with dusky vertical bars.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING individual collectible fish game sprite. Exactly ONE Champsocephalus gunnari (빙어고등어). Species design: Antarctic icefish with elongated crocodile-like flattened snout, wide mouth, large eyes, two distinctly separated dorsal fins with high first dorsal, fan-shaped pectorals and forked caudal, pale silvery body with dusky vertical bars. Polished casual game hand-painted 3D bitmap, dimensional soft shading, readable natural anatomy and restrained charming eye. Horizontal swimming HEAD RIGHT in true side view. Whole animal, centered. Fit within central 75 percent of canvas width with substantial empty transparent padding; all fins, whiskers, snout and tail fully inside. High resolution. TRUE transparent alpha. Clean natural antialiased edge with NO red yellow blue or white fringing. No surrounding glow, no text, no water or scenery, no floor or cast shadow, no sheet, no other fish. Unique species shape, not generic recolor.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-0d11aa56-0158-4627-9403-25fd3d9ab787.png",
+      "cleanupAttempt": false,
+      "sha256": "7c30e22e5e2d81b766b8190613abd3e6f04d2899e7ee68ff449a9f601253a3ca",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    }
+  ],
+  "specialCreatures": [
+    {
+      "specialId": "S006",
+      "nameKo": "유리심장 해파리",
+      "nameStatus": "planned_name",
+      "habitatSizeDraft": "deep sea, medium",
+      "morphologyBrief": "Transparent six-sided bell, clearly visible single softly glowing heart core, six chainlike segmented tendrils. Elegant compact crystal jellyfish, no surrounding particles.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING original fantasy aquatic collectible sprite. Exactly ONE creature called 유리심장 해파리, design ID S006 (do not print any text). Design: Transparent six-sided bell, clearly visible single softly glowing heart core, six chainlike segmented tendrils. Elegant compact crystal jellyfish, no surrounding particles. Premium casual game dimensional hand-painted 3D bitmap style, rich clean colors, appealing stylish creature design, crisp readable structural silhouette. Whole creature in natural floating/swimming pose; side or slight three-quarter view optimized for a side-scrolling game, head facing RIGHT if it has a head. Jellyfish naturally upright. Not a humanoid. Centered occupying only central 75 percent of canvas, wide transparent margin around all fins tendrils horns and tail. True transparent alpha background. No background scene, no water, no cast shadow, no particles, no detached lights, no text, no labels, no border, no white/red/yellow fringe, no external glow halo. This is an original imaginary species and must have its own body structure, not a recolored ordinary fish. High resolution one creature one image.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-a3aea1ba-538f-45a1-a42d-950942524a2c.png",
+      "cleanupAttempt": true,
+      "sha256": "39e0a66260eba251635b861bd905d28b637a2af9ba5306fbce38a37491993841",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED",
+        "BROAD_HALO_REMAINS"
+      ]
+    },
+    {
+      "specialId": "S007",
+      "nameKo": "심연의 종탑 생물",
+      "nameStatus": "planned_name",
+      "habitatSizeDraft": "deep sea, large",
+      "morphologyBrief": "Inverted tall bell-shaped mantle like an ancient organic bell tower, exactly three long ribbon organs trailing left, dark indigo mineral shell with turquoise inner tissue.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING original fantasy aquatic collectible sprite. Exactly ONE creature called 심연의 종탑 생물, design ID S007 (do not print any text). Design: Inverted tall bell-shaped mantle like an ancient organic bell tower, exactly three long ribbon organs trailing left, dark indigo mineral shell with turquoise inner tissue. Premium casual game dimensional hand-painted 3D bitmap style, rich clean colors, appealing stylish creature design, crisp readable structural silhouette. Whole creature in natural floating/swimming pose; side or slight three-quarter view optimized for a side-scrolling game, head facing RIGHT if it has a head. Jellyfish naturally upright. Not a humanoid. Centered occupying only central 75 percent of canvas, wide transparent margin around all fins tendrils horns and tail. True transparent alpha background. No background scene, no water, no cast shadow, no particles, no detached lights, no text, no labels, no border, no white/red/yellow fringe, no external glow halo. This is an original imaginary species and must have its own body structure, not a recolored ordinary fish. High resolution one creature one image.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-9d2d1088-e519-40bb-988a-1cac23d8c394.png",
+      "cleanupAttempt": true,
+      "sha256": "98fd8b51841bbc6605193545c9b090460bed74af3ca9fdaebd4550bfd8dc72f9",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED",
+        "BROAD_HALO_REMAINS"
+      ]
+    },
+    {
+      "specialId": "S008",
+      "nameKo": "해류 가면귀",
+      "nameStatus": "planned_name",
+      "habitatSizeDraft": "seagrass sea, medium",
+      "morphologyBrief": "Asymmetric organic mask-shaped face looking right, two broad fan-hand fins trailing behind, flattened ivory shell face and rich teal fleshy body, strange but charming aquatic creature.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING original fantasy aquatic collectible sprite. Exactly ONE creature called 해류 가면귀, design ID S008 (do not print any text). Design: Asymmetric organic mask-shaped face looking right, two broad fan-hand fins trailing behind, flattened ivory shell face and rich teal fleshy body, strange but charming aquatic creature. Premium casual game dimensional hand-painted 3D bitmap style, rich clean colors, appealing stylish creature design, crisp readable structural silhouette. Whole creature in natural floating/swimming pose; side or slight three-quarter view optimized for a side-scrolling game, head facing RIGHT if it has a head. Jellyfish naturally upright. Not a humanoid. Centered occupying only central 75 percent of canvas, wide transparent margin around all fins tendrils horns and tail. True transparent alpha background. No background scene, no water, no cast shadow, no particles, no detached lights, no text, no labels, no border, no white/red/yellow fringe, no external glow halo. This is an original imaginary species and must have its own body structure, not a recolored ordinary fish. High resolution one creature one image.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-7db041af-91a2-4f6a-b91b-00f479b42efd.png",
+      "cleanupAttempt": false,
+      "sha256": "d82f8e69efda2fc942ccceb1b81d7f337a48b96384febcff979694bd644a26ab",
+      "dimensions": [
+        1717,
+        916
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "specialId": "S009",
+      "nameKo": "거울면가오리",
+      "nameStatus": "planned_name",
+      "habitatSizeDraft": "temperate coast, large",
+      "morphologyBrief": "Low diamond-shaped ray viewed slightly above, head right, three integrated mirror plates along middle of back, clear broad swept fins and thin tail. Mirrors reflect only blue waterlike gradients; no environment.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING original fantasy aquatic collectible sprite. Exactly ONE creature called 거울면가오리, design ID S009 (do not print any text). Design: Low diamond-shaped ray viewed slightly above, head right, three integrated mirror plates along middle of back, clear broad swept fins and thin tail. Mirrors reflect only blue waterlike gradients; no environment. Premium casual game dimensional hand-painted 3D bitmap style, rich clean colors, appealing stylish creature design, crisp readable structural silhouette. Whole creature in natural floating/swimming pose; side or slight three-quarter view optimized for a side-scrolling game, head facing RIGHT if it has a head. Jellyfish naturally upright. Not a humanoid. Centered occupying only central 75 percent of canvas, wide transparent margin around all fins tendrils horns and tail. True transparent alpha background. No background scene, no water, no cast shadow, no particles, no detached lights, no text, no labels, no border, no white/red/yellow fringe, no external glow halo. This is an original imaginary species and must have its own body structure, not a recolored ordinary fish. High resolution one creature one image.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-3fd03ab7-4ba4-4581-82b8-4e73f3d818bf.png",
+      "cleanupAttempt": false,
+      "sha256": "721c7082e8ae73d74ab195f12c56864a5a8ffa34f6c7a399426f1f9b2ac073d2",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "specialId": "S010",
+      "nameKo": "심연 촛불장어",
+      "nameStatus": "planned_name",
+      "habitatSizeDraft": "deep sea, large",
+      "morphologyBrief": "Long ink-black ribbon eel with fleshy wax-drip shaped dorsal filaments ending in small amber bioluminescent nodes, no actual fire, sharp narrow head facing right, elegant S curve.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING original fantasy aquatic collectible sprite. Exactly ONE creature called 심연 촛불장어, design ID S010 (do not print any text). Design: Long ink-black ribbon eel with fleshy wax-drip shaped dorsal filaments ending in small amber bioluminescent nodes, no actual fire, sharp narrow head facing right, elegant S curve. Premium casual game dimensional hand-painted 3D bitmap style, rich clean colors, appealing stylish creature design, crisp readable structural silhouette. Whole creature in natural floating/swimming pose; side or slight three-quarter view optimized for a side-scrolling game, head facing RIGHT if it has a head. Jellyfish naturally upright. Not a humanoid. Centered occupying only central 75 percent of canvas, wide transparent margin around all fins tendrils horns and tail. True transparent alpha background. No background scene, no water, no cast shadow, no particles, no detached lights, no text, no labels, no border, no white/red/yellow fringe, no external glow halo. This is an original imaginary species and must have its own body structure, not a recolored ordinary fish. High resolution one creature one image.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-9744103e-010b-4230-866e-f2bf043e6422.png",
+      "cleanupAttempt": false,
+      "sha256": "292103a82e4998015ac0eb420105160880c39becae1b3db7886cad23f86926aa",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "specialId": "S011",
+      "nameKo": "삼중입 나팔아귀",
+      "nameStatus": "planned_name",
+      "habitatSizeDraft": "deep sea, medium",
+      "morphologyBrief": "Round compact angler-like fish with three nested concentric muscular circular jaw rims forming a trumpet facing right, not three heads. Broad short paddle fins, tiny tapering tail, plum red skin.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING original fantasy aquatic collectible sprite. Exactly ONE creature called 삼중입 나팔아귀, design ID S011 (do not print any text). Design: Round compact angler-like fish with three nested concentric muscular circular jaw rims forming a trumpet facing right, not three heads. Broad short paddle fins, tiny tapering tail, plum red skin. Premium casual game dimensional hand-painted 3D bitmap style, rich clean colors, appealing stylish creature design, crisp readable structural silhouette. Whole creature in natural floating/swimming pose; side or slight three-quarter view optimized for a side-scrolling game, head facing RIGHT if it has a head. Jellyfish naturally upright. Not a humanoid. Centered occupying only central 75 percent of canvas, wide transparent margin around all fins tendrils horns and tail. True transparent alpha background. No background scene, no water, no cast shadow, no particles, no detached lights, no text, no labels, no border, no white/red/yellow fringe, no external glow halo. This is an original imaginary species and must have its own body structure, not a recolored ordinary fish. High resolution one creature one image.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-53b74a5a-7c1c-4ce7-a1eb-554e1e52d5bd.png",
+      "cleanupAttempt": true,
+      "sha256": "b2179b0f963a295fee65d51eafc61ba5e3b55e63b3509c8ef1c5b4819ef580e4",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED",
+        "BROAD_HALO_REMAINS"
+      ]
+    },
+    {
+      "specialId": "S012",
+      "nameKo": "가시왕관 먹장어",
+      "nameStatus": "planned_name",
+      "habitatSizeDraft": "deep sea, medium",
+      "morphologyBrief": "Smooth long hagfish body, single circular crown-shaped bony collar encircling head, split soft mucus-like fin ribbons attached to tail, muted violet flesh with ivory crown; no detached effects.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING original fantasy aquatic collectible sprite. Exactly ONE creature called 가시왕관 먹장어, design ID S012 (do not print any text). Design: Smooth long hagfish body, single circular crown-shaped bony collar encircling head, split soft mucus-like fin ribbons attached to tail, muted violet flesh with ivory crown; no detached effects. Premium casual game dimensional hand-painted 3D bitmap style, rich clean colors, appealing stylish creature design, crisp readable structural silhouette. Whole creature in natural floating/swimming pose; side or slight three-quarter view optimized for a side-scrolling game, head facing RIGHT if it has a head. Jellyfish naturally upright. Not a humanoid. Centered occupying only central 75 percent of canvas, wide transparent margin around all fins tendrils horns and tail. True transparent alpha background. No background scene, no water, no cast shadow, no particles, no detached lights, no text, no labels, no border, no white/red/yellow fringe, no external glow halo. This is an original imaginary species and must have its own body structure, not a recolored ordinary fish. High resolution one creature one image.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-9fdb68ae-2edf-4189-9f97-eba4d7ce6bda.png",
+      "cleanupAttempt": false,
+      "sha256": "8edea5d6793aa2b6113b0a7e1b8853d9cf5df3bd50a3680419f9ec2748664a07",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "specialId": "S013",
+      "nameKo": "얼음유리 해마",
+      "nameStatus": "planned_name",
+      "habitatSizeDraft": "cold northern sea, small",
+      "morphologyBrief": "Upright seahorse looking right, long backward sweeping crystal horn, translucent icy layered armor plates, single tightly coiled tail, tiny clear dorsal fin; restrained cyan and blue.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING original fantasy aquatic collectible sprite. Exactly ONE creature called 얼음유리 해마, design ID S013 (do not print any text). Design: Upright seahorse looking right, long backward sweeping crystal horn, translucent icy layered armor plates, single tightly coiled tail, tiny clear dorsal fin; restrained cyan and blue. Premium casual game dimensional hand-painted 3D bitmap style, rich clean colors, appealing stylish creature design, crisp readable structural silhouette. Whole creature in natural floating/swimming pose; side or slight three-quarter view optimized for a side-scrolling game, head facing RIGHT if it has a head. Jellyfish naturally upright. Not a humanoid. Centered occupying only central 75 percent of canvas, wide transparent margin around all fins tendrils horns and tail. True transparent alpha background. No background scene, no water, no cast shadow, no particles, no detached lights, no text, no labels, no border, no white/red/yellow fringe, no external glow halo. This is an original imaginary species and must have its own body structure, not a recolored ordinary fish. High resolution one creature one image.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-0b6fe7d4-840c-49da-957d-cd8cee0439e6.png",
+      "cleanupAttempt": false,
+      "sha256": "25e8feb1f3d50cfc32530f277c5c4806b4a38e9cae6a72dcf24a68b36911fd03",
+      "dimensions": [
+        1199,
+        1312
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "specialId": "S014",
+      "nameKo": "거울등 유령상어",
+      "nameStatus": "planned_name",
+      "habitatSizeDraft": "open ocean, large",
+      "morphologyBrief": "Graceful shark with tall thin reflective dorsal sail, unusual stepped two-tier tail while retaining clear shark anatomy, dark cobalt translucent edges, silver organic mirror sail.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING original fantasy aquatic collectible sprite. Exactly ONE creature called 거울등 유령상어, design ID S014 (do not print any text). Design: Graceful shark with tall thin reflective dorsal sail, unusual stepped two-tier tail while retaining clear shark anatomy, dark cobalt translucent edges, silver organic mirror sail. Premium casual game dimensional hand-painted 3D bitmap style, rich clean colors, appealing stylish creature design, crisp readable structural silhouette. Whole creature in natural floating/swimming pose; side or slight three-quarter view optimized for a side-scrolling game, head facing RIGHT if it has a head. Jellyfish naturally upright. Not a humanoid. Centered occupying only central 75 percent of canvas, wide transparent margin around all fins tendrils horns and tail. True transparent alpha background. No background scene, no water, no cast shadow, no particles, no detached lights, no text, no labels, no border, no white/red/yellow fringe, no external glow halo. This is an original imaginary species and must have its own body structure, not a recolored ordinary fish. High resolution one creature one image.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-e9cf19b6-0510-4cf4-bdc6-b8cdca1aebc1.png",
+      "cleanupAttempt": false,
+      "sha256": "d56f77ce70ab6feb9485065932755472c9366b23f256680a53ceecf62fb95ea8",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "specialId": "S015",
+      "nameKo": "뇌전톱니어",
+      "nameStatus": "planned_name",
+      "habitatSizeDraft": "open ocean, medium",
+      "morphologyBrief": "Compact muscular predatory fish with eleven distinct sawtooth dorsal bony projections and an asymmetrical angular lightning-shaped tail; charcoal body and golden internal seams, no external electric bolts.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING original fantasy aquatic collectible sprite. Exactly ONE creature called 뇌전톱니어, design ID S015 (do not print any text). Design: Compact muscular predatory fish with eleven distinct sawtooth dorsal bony projections and an asymmetrical angular lightning-shaped tail; charcoal body and golden internal seams, no external electric bolts. Premium casual game dimensional hand-painted 3D bitmap style, rich clean colors, appealing stylish creature design, crisp readable structural silhouette. Whole creature in natural floating/swimming pose; side or slight three-quarter view optimized for a side-scrolling game, head facing RIGHT if it has a head. Jellyfish naturally upright. Not a humanoid. Centered occupying only central 75 percent of canvas, wide transparent margin around all fins tendrils horns and tail. True transparent alpha background. No background scene, no water, no cast shadow, no particles, no detached lights, no text, no labels, no border, no white/red/yellow fringe, no external glow halo. This is an original imaginary species and must have its own body structure, not a recolored ordinary fish. High resolution one creature one image.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-1a536c27-e8e4-4f8c-bfe4-083cd9601b2e.png",
+      "cleanupAttempt": false,
+      "sha256": "cdd94e66e301c350ee46fe8ee2862b3408eb1e9def29523e452a85b967bbaa5c",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "specialId": "S016",
+      "nameKo": "은하우산 해파리",
+      "nameStatus": "planned_name",
+      "habitatSizeDraft": "deep sea, medium",
+      "morphologyBrief": "Broad flat umbrella disc jellyfish with constellation-like luminous organs inside bell, many fine short curtains of tentacles, violet midnight blue; structured silhouette, no surrounding stars or background.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING original fantasy aquatic collectible sprite. Exactly ONE creature called 은하우산 해파리, design ID S016 (do not print any text). Design: Broad flat umbrella disc jellyfish with constellation-like luminous organs inside bell, many fine short curtains of tentacles, violet midnight blue; structured silhouette, no surrounding stars or background. Premium casual game dimensional hand-painted 3D bitmap style, rich clean colors, appealing stylish creature design, crisp readable structural silhouette. Whole creature in natural floating/swimming pose; side or slight three-quarter view optimized for a side-scrolling game, head facing RIGHT if it has a head. Jellyfish naturally upright. Not a humanoid. Centered occupying only central 75 percent of canvas, wide transparent margin around all fins tendrils horns and tail. True transparent alpha background. No background scene, no water, no cast shadow, no particles, no detached lights, no text, no labels, no border, no white/red/yellow fringe, no external glow halo. This is an original imaginary species and must have its own body structure, not a recolored ordinary fish. High resolution one creature one image.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-befd0c95-7566-40b2-a583-7f5bab36eee7.png",
+      "cleanupAttempt": true,
+      "sha256": "9d47c033cacf9a5b8ca03d094c2f5c9348a2927623bbbf7abe94500673730099",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED",
+        "BROAD_HALO_REMAINS"
+      ]
+    },
+    {
+      "specialId": "S017",
+      "nameKo": "산호갑옷 거북",
+      "nameStatus": "planned_name",
+      "habitatSizeDraft": "tropical reef, large",
+      "morphologyBrief": "Sea turtle with four overlapping layers of sculptural coral armor plates, very large oval front flippers, smaller rear flippers, gentle powerful head right. Shell coral cream orange and teal, no rocks/background.",
+      "prompt": "Use case: stylized-concept. Asset type: HUMAN FISHING original fantasy aquatic collectible sprite. Exactly ONE creature called 산호갑옷 거북, design ID S017 (do not print any text). Design: Sea turtle with four overlapping layers of sculptural coral armor plates, very large oval front flippers, smaller rear flippers, gentle powerful head right. Shell coral cream orange and teal, no rocks/background. Premium casual game dimensional hand-painted 3D bitmap style, rich clean colors, appealing stylish creature design, crisp readable structural silhouette. Whole creature in natural floating/swimming pose; side or slight three-quarter view optimized for a side-scrolling game, head facing RIGHT if it has a head. Jellyfish naturally upright. Not a humanoid. Centered occupying only central 75 percent of canvas, wide transparent margin around all fins tendrils horns and tail. True transparent alpha background. No background scene, no water, no cast shadow, no particles, no detached lights, no text, no labels, no border, no white/red/yellow fringe, no external glow halo. This is an original imaginary species and must have its own body structure, not a recolored ordinary fish. High resolution one creature one image.",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "sourceFile": "exec-9570488b-5de8-4199-8b98-f1db6048a442.png",
+      "cleanupAttempt": true,
+      "sha256": "2876b611aebd3eb54ba170708f83767aa1b6425ae2fdf54e4ff8b4cfb2b3622c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "qaFlags": [
+        "ALPHA_EDGE_AND_ANATOMY_REVIEW_REQUIRED",
+        "BROAD_HALO_REMAINS"
+      ]
+    }
+  ]
+}
