@@ -99,7 +99,30 @@ for(const sp of newFish){
 assert.equal(imageHash.size,600,'600 individual fish files must not be byte-identical');
 assert.ok(sourceFolders.size>=130,'New fish should preserve many distinct approved body silhouettes');
 assert.ok(bytes<100*1024*1024,'Additional 600 PNGs must remain a downloadable game asset set');
+// The actual live spawn-picker must choose the newly installed PNG fish,
+ // not just list them in the codex.
+const ecoCode=source.slice(source.indexOf('function ecoPickSpeciesIndex('),
+ source.indexOf('function ecoCanSchool(',source.indexOf('function ecoPickSpeciesIndex(')));
+assert.match(ecoCode,/function chooseWildSpecies\(\)/);
+const spawnCtx={
+ species:list,zone:0,fish:[],Math,
+ gearPower:()=>2,baitTrait:()=>({type:'none',power:0}),
+ window:{HumanFishingArt:{enabled:true}}
+};
+vm.createContext(spawnCtx);
+vm.runInContext(ecoCode,spawnCtx,{filename:'live-species-encounters.js'});
+for(let h=0;h<12;h++){
+ spawnCtx.zone=h;
+ let newFinds=0,morphs=0;
+ for(let attempt=0;attempt<120;attempt++){
+  const sp=spawnCtx.chooseWildSpecies();
+  assert.equal(sp.habitat,h,'Wild fish must spawn in the current area');
+  if(sp.artExpansion){newFinds++;if(sp.colorMorph)morphs++;}
+ }
+ assert.ok(newFinds>=22,'New art must appear regularly in region '+h);
+ assert.ok(morphs>=6,'Color morphs should actually appear in region '+h);
+}
 const variantCap=/(variants\.length&&natural\.length\?\(Math\.random\(\)<\.32\?variants:natural\))/;
 assert.match(source,variantCap,
  'Fish spawning must preserve rarity and distinguish base names from color morphs');
-console.log('PASS: 904 stable unique catalog IDs, 12 expanded habitats, 600 original-derived RGBA PNGs (different colors/patterns), 300 names + 300 explicitly marked morphs, existing saves unchanged.');
+console.log('PASS: 904 stable catalog entries, 600 unique RGBA PNGs, 300 names + 300 color morphs, all 12 habitats spawn the new fish in live rarity-picker, old saves unchanged.');
