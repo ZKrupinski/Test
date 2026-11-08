@@ -1,0 +1,211 @@
+{
+  "batch": "007",
+  "version": "2026-11-08",
+  "status": "LIVE_AS_ORIGINAL_WITH_VISUAL_REVIEW_FLAGS",
+  "count": 6,
+  "baseFishCount": 320,
+  "baseSpecialCount": 1,
+  "fishCountAfterInstall": 326,
+  "specialCountAfterInstall": 1,
+  "totalCatchableSpeciesAfterInstall": 327,
+  "source": "GPT-generated 3x2 sheet, original pixel crops without resizing",
+  "alphaSafety": "Original six RGBA PNG edges have max alpha 0 in cropped files; local PNG decode passed",
+  "originalPixelsPreserved": true,
+  "activation": "window.HumanFishingFishExpansion007Ready=true",
+  "species": [
+    {
+      "gameId": "F342",
+      "nameKo": "마블슬리퍼고비",
+      "scientificName": "Oxyeleotris marmorata",
+      "habitat": 3,
+      "nativeRegion": "동남아시아 하천·늪지·저수지",
+      "regionProvisional": false,
+      "rarity": "RARE",
+      "level": 41,
+      "size": "LARGE",
+      "family": "Butidae",
+      "originalFilename": "F342.png",
+      "installedPath": "assets/fish/individual/F342.png",
+      "sha256": "b88030a30ef0c931055ad2aed53013cb08714ecf497f3e5275b0025cbdce6711",
+      "gitBlobSha": "8a915b7e9eec7ea7ed4d71e51d700992150c4e3b",
+      "width": 518,
+      "height": 222,
+      "candidateId": "P1016",
+      "biologySource": "https://www.fishbase.se/Fieldguide/FieldGuideSummary.php?c_code=702&genusname=Oxyeleotris&speciesname=marmorata",
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Full previous-art visual comparison and final anatomy review remain pending"
+      ],
+      "behavior": {
+        "archetype": "marbled_sleeper_bottom_ambush",
+        "mode": "hover",
+        "speedMultiplier": 0.56,
+        "swimAmpMultiplier": 0.58,
+        "agilityMultiplier": 0.72,
+        "turnSeconds": 13
+      }
+    },
+    {
+      "gameId": "F343",
+      "nameKo": "킹슬리크테노포마",
+      "scientificName": "Ctenopoma kingsleyae",
+      "habitat": 2,
+      "nativeRegion": "서·중부아프리카 담수 하천",
+      "regionProvisional": false,
+      "rarity": "UNCOMMON",
+      "level": 32,
+      "size": "MEDIUM",
+      "family": "Anabantidae",
+      "originalFilename": "F343.png",
+      "installedPath": "assets/fish/individual/F343.png",
+      "sha256": "63960f92edd3f4152b14350bddfbf1055148f37eea1b61089524a45efacf88c0",
+      "gitBlobSha": "0577dcfc339a088878b49856cc59a513b93b4244",
+      "width": 484,
+      "height": 285,
+      "candidateId": "P0378",
+      "biologySource": "https://researcharchive.calacademy.org/research/ichthyology/catalog/fishcatget.asp?spid=19440",
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Full previous-art visual comparison and final anatomy review remain pending"
+      ],
+      "behavior": {
+        "archetype": "tailspot_ctenopoma_paused_hunting",
+        "mode": "wander",
+        "speedMultiplier": 0.76,
+        "swimAmpMultiplier": 0.86,
+        "agilityMultiplier": 1.08,
+        "turnSeconds": 10
+      }
+    },
+    {
+      "gameId": "F344",
+      "nameKo": "아프리카슬리퍼고비",
+      "scientificName": "Bostrychus africanus",
+      "habitat": 2,
+      "nativeRegion": "서아프리카 강 하구·기수역(세네갈~앙골라)",
+      "regionProvisional": true,
+      "habitatProxyReason": "West-African estuary has no exact stage; temporary African freshwater screen",
+      "rarity": "UNCOMMON",
+      "level": 29,
+      "size": "SMALL",
+      "family": "Butidae",
+      "originalFilename": "F344.png",
+      "installedPath": "assets/fish/individual/F344.png",
+      "sha256": "86dbf0971cd26e5ed995b6725e5e25b55deeed2409355a795b30a6b04cc0f4a1",
+      "gitBlobSha": "60f6cfc7b19ebd827defe57755f7e1b4fe8350f1",
+      "width": 522,
+      "height": 177,
+      "candidateId": "P0160",
+      "biologySource": "https://zenodo.org/records/12712458",
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Full previous-art visual comparison and final anatomy review remain pending"
+      ],
+      "behavior": {
+        "archetype": "west_african_estuary_edge_dart",
+        "mode": "dart",
+        "speedMultiplier": 1.12,
+        "swimAmpMultiplier": 0.74,
+        "agilityMultiplier": 1.44,
+        "turnSeconds": 7
+      }
+    },
+    {
+      "gameId": "F345",
+      "nameKo": "실버미로소마",
+      "scientificName": "Mylossoma duriventre",
+      "habitat": 1,
+      "nativeRegion": "파라과이·파라나·우루과이강 유역(아마존 아님)",
+      "regionProvisional": true,
+      "habitatProxyReason": "La Plata drainage has no exact stage; temporary South American Amazon screen, NOT an Amazon taxon",
+      "rarity": "RARE",
+      "level": 39,
+      "size": "MEDIUM",
+      "family": "Serrasalmidae",
+      "originalFilename": "F345.png",
+      "installedPath": "assets/fish/individual/F345.png",
+      "sha256": "1545b48ed1b3af08bffd73a39f840cbaa2db407d893bcb58f6b410699bbcc857",
+      "gitBlobSha": "403d8ffea3fafa9a53d3354791671b8b77cd6bbc",
+      "width": 480,
+      "height": 391,
+      "candidateId": "P0934",
+      "biologySource": "https://www.fishbase.se/Fieldguide/FieldGuideSummary.php?c_code=032&genusname=Mylossoma&speciesname=duriventre",
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Full previous-art visual comparison and final anatomy review remain pending"
+      ],
+      "behavior": {
+        "archetype": "silver_mylossoma_rapid_school_turn",
+        "mode": "cruise",
+        "speedMultiplier": 1.04,
+        "swimAmpMultiplier": 0.8,
+        "agilityMultiplier": 1.25,
+        "turnSeconds": 8
+      }
+    },
+    {
+      "gameId": "F346",
+      "nameKo": "칠레실버사이드",
+      "scientificName": "Basilichthys australis",
+      "habitat": 4,
+      "nativeRegion": "칠레 중남부 하천·호수",
+      "regionProvisional": false,
+      "rarity": "UNCOMMON",
+      "level": 36,
+      "size": "MEDIUM",
+      "family": "Atherinopsidae",
+      "originalFilename": "F346.png",
+      "installedPath": "assets/fish/individual/F346.png",
+      "sha256": "d60c124ae5ab445516ac265ed6ad58f780c29652989b083b3b1e677ef85a0220",
+      "gitBlobSha": "68c4ef3a86b5161d1af706b07d88c94c1943e8f0",
+      "width": 508,
+      "height": 151,
+      "candidateId": "P0141",
+      "biologySource": "https://simbio.mma.gob.cl/Especies/Details/4355",
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Full previous-art visual comparison and final anatomy review remain pending"
+      ],
+      "behavior": {
+        "archetype": "chilean_silverside_silver_shoal_sprint",
+        "mode": "dart",
+        "speedMultiplier": 1.32,
+        "swimAmpMultiplier": 0.56,
+        "agilityMultiplier": 1.58,
+        "turnSeconds": 6
+      }
+    },
+    {
+      "gameId": "F347",
+      "nameKo": "탕가니카자이언트시클리드",
+      "scientificName": "Boulengerochromis microlepis",
+      "habitat": 2,
+      "nativeRegion": "아프리카 탕가니카호 고유종",
+      "regionProvisional": false,
+      "rarity": "EPIC",
+      "level": 64,
+      "size": "LARGE",
+      "family": "Cichlidae",
+      "originalFilename": "F347.png",
+      "installedPath": "assets/fish/individual/F347.png",
+      "sha256": "f4ab6a6b5906d2874648372028c9d4ace4a85872a95b89c5d092693b20873086",
+      "gitBlobSha": "254e7d0ec15af5957c198db03bb1719fbe9104ad",
+      "width": 533,
+      "height": 256,
+      "candidateId": "P0162",
+      "biologySource": "https://www.fishbase.se/Fieldguide/FieldGuideSummary.php?c_code=180&genusname=Boulengerochromis&speciesname=microlepis",
+      "artStatus": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "reviewHolds": [
+        "Full previous-art visual comparison and final anatomy review remain pending"
+      ],
+      "behavior": {
+        "archetype": "tanganyika_giant_cichlid_patrol_lunge",
+        "mode": "wander",
+        "speedMultiplier": 0.91,
+        "swimAmpMultiplier": 0.73,
+        "agilityMultiplier": 1.2,
+        "turnSeconds": 11
+      }
+    }
+  ]
+}

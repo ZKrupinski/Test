@@ -1,0 +1,110 @@
+{
+  "batch": "007",
+  "version": "2026-11-08",
+  "sourceType": "GPT-generated six-fish sheet cropped into individual transparent PNGs",
+  "imagePreservation": "No resampling; original separated crop pixels preserved",
+  "species": [
+    {
+      "scientificName": "Oxyeleotris marmorata",
+      "nameKo": "마블슬리퍼고비",
+      "gameId": "F342",
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "imagePath": "assets/fish/individual/F342.png",
+      "originalSha256": "b88030a30ef0c931055ad2aed53013cb08714ecf497f3e5275b0025cbdce6711",
+      "originalGitBlobSha": "8a915b7e9eec7ea7ed4d71e51d700992150c4e3b",
+      "width": 518,
+      "height": 222,
+      "source": "https://www.fishbase.se/Fieldguide/FieldGuideSummary.php?c_code=702&genusname=Oxyeleotris&speciesname=marmorata",
+      "nativeRegion": "동남아시아 하천·늪지·저수지",
+      "regionProvisional": false,
+      "reviewFlags": [
+        "Final silhouette and anatomy comparison pending; PNG alpha edge validated"
+      ]
+    },
+    {
+      "scientificName": "Ctenopoma kingsleyae",
+      "nameKo": "킹슬리크테노포마",
+      "gameId": "F343",
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "imagePath": "assets/fish/individual/F343.png",
+      "originalSha256": "63960f92edd3f4152b14350bddfbf1055148f37eea1b61089524a45efacf88c0",
+      "originalGitBlobSha": "0577dcfc339a088878b49856cc59a513b93b4244",
+      "width": 484,
+      "height": 285,
+      "source": "https://researcharchive.calacademy.org/research/ichthyology/catalog/fishcatget.asp?spid=19440",
+      "nativeRegion": "서·중부아프리카 담수 하천",
+      "regionProvisional": false,
+      "reviewFlags": [
+        "Final silhouette and anatomy comparison pending; PNG alpha edge validated"
+      ]
+    },
+    {
+      "scientificName": "Bostrychus africanus",
+      "nameKo": "아프리카슬리퍼고비",
+      "gameId": "F344",
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "imagePath": "assets/fish/individual/F344.png",
+      "originalSha256": "86dbf0971cd26e5ed995b6725e5e25b55deeed2409355a795b30a6b04cc0f4a1",
+      "originalGitBlobSha": "60f6cfc7b19ebd827defe57755f7e1b4fe8350f1",
+      "width": 522,
+      "height": 177,
+      "source": "https://zenodo.org/records/12712458",
+      "nativeRegion": "서아프리카 강 하구·기수역(세네갈~앙골라)",
+      "regionProvisional": true,
+      "reviewFlags": [
+        "Final silhouette and anatomy comparison pending; PNG alpha edge validated"
+      ]
+    },
+    {
+      "scientificName": "Mylossoma duriventre",
+      "nameKo": "실버미로소마",
+      "gameId": "F345",
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "imagePath": "assets/fish/individual/F345.png",
+      "originalSha256": "1545b48ed1b3af08bffd73a39f840cbaa2db407d893bcb58f6b410699bbcc857",
+      "originalGitBlobSha": "403d8ffea3fafa9a53d3354791671b8b77cd6bbc",
+      "width": 480,
+      "height": 391,
+      "source": "https://www.fishbase.se/Fieldguide/FieldGuideSummary.php?c_code=032&genusname=Mylossoma&speciesname=duriventre",
+      "nativeRegion": "파라과이·파라나·우루과이강 유역(아마존 아님)",
+      "regionProvisional": true,
+      "reviewFlags": [
+        "Final silhouette and anatomy comparison pending; PNG alpha edge validated"
+      ]
+    },
+    {
+      "scientificName": "Basilichthys australis",
+      "nameKo": "칠레실버사이드",
+      "gameId": "F346",
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "imagePath": "assets/fish/individual/F346.png",
+      "originalSha256": "d60c124ae5ab445516ac265ed6ad58f780c29652989b083b3b1e677ef85a0220",
+      "originalGitBlobSha": "68c4ef3a86b5161d1af706b07d88c94c1943e8f0",
+      "width": 508,
+      "height": 151,
+      "source": "https://simbio.mma.gob.cl/Especies/Details/4355",
+      "nativeRegion": "칠레 중남부 하천·호수",
+      "regionProvisional": false,
+      "reviewFlags": [
+        "Final silhouette and anatomy comparison pending; PNG alpha edge validated"
+      ]
+    },
+    {
+      "scientificName": "Boulengerochromis microlepis",
+      "nameKo": "탕가니카자이언트시클리드",
+      "gameId": "F347",
+      "status": "LIVE_WITH_VISUAL_REVIEW_FLAGS",
+      "imagePath": "assets/fish/individual/F347.png",
+      "originalSha256": "f4ab6a6b5906d2874648372028c9d4ace4a85872a95b89c5d092693b20873086",
+      "originalGitBlobSha": "254e7d0ec15af5957c198db03bb1719fbe9104ad",
+      "width": 533,
+      "height": 256,
+      "source": "https://www.fishbase.se/Fieldguide/FieldGuideSummary.php?c_code=180&genusname=Boulengerochromis&speciesname=microlepis",
+      "nativeRegion": "아프리카 탕가니카호 고유종",
+      "regionProvisional": false,
+      "reviewFlags": [
+        "Final silhouette and anatomy comparison pending; PNG alpha edge validated"
+      ]
+    }
+  ]
+}
