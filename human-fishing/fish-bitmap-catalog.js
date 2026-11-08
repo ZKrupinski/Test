@@ -27,6 +27,39 @@
   ['RARE','RARE','EPIC','RARE','EPIC','LEGEND','EPIC','RARE']
  ];
  var baseTierFix={"제브라다니오":"COMMON","드워프구라미":"COMMON","허니구라미":"UNCOMMON","오토싱클루스":"UNCOMMON","파이어피시":"UNCOMMON","블루그린크로미스":"COMMON","만다린피시":"RARE","식스라인래스":"UNCOMMON","클리너래스":"UNCOMMON","뱅가이카디널피시":"UNCOMMON","파자마카디널피시":"UNCOMMON","코넷피시":"UNCOMMON","트럼펫피시":"UNCOMMON","만타가오리":"LEGEND","푸른점가오리":"UNCOMMON","점박이매가오리":"RARE","참가자미":"COMMON","쥐치":"COMMON","볼락":"COMMON","조피볼락":"COMMON","양태":"COMMON","고래상어":"MYTHIC","귀상어":"EPIC","백철갑상어":"LEGEND","나일퍼치":"EPIC","모토로민물가오리":"EPIC","아시안아로와나":"MYTHIC","쿠키커터상어":"RARE","주름상어":"MYTHIC","고블린상어":"LEGEND","은상어":"EPIC","식스길상어":"EPIC","연어상어":"RARE","그린란드상어":"MYTHIC","늑대장어":"UNCOMMON","샌드랜스":"COMMON","카펠린":"COMMON","럼프피시":"UNCOMMON","대서양늑대고기":"RARE","그린란드넙치":"COMMON","북대서양홍어":"UNCOMMON"};
+
+ // Curated near-identical/recolored images: preserve all original PNGs and IDs for saves,
+ // but never count these as separate visible collectible species.
+ var visualAliases={"F241":"F061","F242":"F061","F243":"F061","F244":"F061","F246":"F001","F247":"F001","F248":"F001","F251":"F249","F253":"F252","F262":"F261","F284":"F282","F298":"F297","F299":"F297"};
+ function migrateSave(save){
+  if(!save||typeof save!=='object')return false;
+  var changed=false,owned=save.owned;
+  if(owned&&typeof owned==='object'){
+   Object.keys(visualAliases).forEach(function(id){
+    if(!Object.prototype.hasOwnProperty.call(owned,id))return;
+    var canonical=visualAliases[id],quantity=Math.max(0,Number(owned[id])||0);
+    if(quantity)owned[canonical]=(Math.max(0,Number(owned[canonical])||0)+quantity);
+    delete owned[id];changed=true;
+   });
+  }
+  if(Array.isArray(save.placed)){
+   save.placed=save.placed.map(function(id){
+    var canonical=visualAliases[id];
+    if(canonical){changed=true;return canonical}
+    return id;
+   });
+  }
+  if(save.fishMotionOverrides&&typeof save.fishMotionOverrides==='object'){
+   Object.keys(visualAliases).forEach(function(id){
+    if(!Object.prototype.hasOwnProperty.call(save.fishMotionOverrides,id))return;
+    var canonical=visualAliases[id];
+    if(!Object.prototype.hasOwnProperty.call(save.fishMotionOverrides,canonical))
+     save.fishMotionOverrides[canonical]=save.fishMotionOverrides[id];
+    delete save.fishMotionOverrides[id];changed=true;
+   });
+  }
+  return changed;
+ }
  var installed=false,loaded=Object.create(null),preload=Object.create(null),created={};
  var enabled=!!window.HumanFishingFishAssetsReady;
  function imageFor(id){
@@ -68,7 +101,7 @@
   groups.forEach(function(group,g){
    group.names.forEach(function(name,j){
     var id='F'+String(241+g*8+j).padStart(3,'0');
-    if(list.some(function(x){return x.id===id}))return;
+    if(visualAliases[id]||list.some(function(x){return x.id===id}))return;
     list.push({id:id,name:name,habitat:group.habitat,index:11+j,
       rarity:groupTiers[g][j],level:Math.min(75,12+group.habitat*3+j*3),
       artSizeClass:group.sizes[j],artVariant:true});
@@ -80,7 +113,8 @@
  function variantsFor(list,z,rarity){return list.filter(function(s){return s.artVariant&&s.habitat===z&&s.rarity===rarity});}
  window.HumanFishingArt={
   enabled:enabled,extend:extend,bitmap:imageFor,primeHabitat:primeHabitat,
-  variantsFor:variantsFor,originalCount:240,variantCount:64,
+  visualAliases:visualAliases,migrateSave:migrateSave,
+  variantsFor:variantsFor,originalCount:240,variantCount:64-Object.keys(visualAliases).length,archivedVariantCount:64,
   assetPath:'./assets/fish/individual/'
  };
 })();

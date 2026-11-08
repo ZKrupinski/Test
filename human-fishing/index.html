@@ -400,7 +400,7 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 </div>
 <script src="./boot.js?v=20261106-fullscreen1"></script>
 <script src="./assets/fish/ready.js?v=20261106-fish304"></script>
-<script src="./fish-bitmap-catalog.js?v=20261106-fish304"></script>
+<script src="./fish-bitmap-catalog.js?v=20261108-codex-dedup1"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
 <script src="./foley.js?v=20261108-chest-prize-bells-v1"></script>
 <script src="./ambient.js?v=20261108-deep-dual-ambience-v2"></script>
@@ -1183,8 +1183,9 @@ function renderBook(filter,query){
  '<option value="-3" '+(filter===-3?'selected':'')+'>전체 생물 · '+(species.length+humans.length)+'종</option>'+
  '<option value="-2" '+(filter===-2?'selected':'')+'>🧑 인간 도감 · 24종</option>'+
  '<option value="-1" '+(filter===-1?'selected':'')+'>🐟 물고기 도감 · '+species.length+'종</option>'+
+  '<option value="-4" '+(filter===-4?'selected':'')+'>🆕 추가 일러스트 · '+species.filter(function(sp){return sp.artVariant}).length+'종</option>'+
  habitats.map(function(n,i){return '<option value="'+i+'" '+(filter===i?'selected':'')+'>'+escapeHtml(n)+'</option>'}).join('')+'</select></div>';
- var visibleFish=filter===-3||filter===-1||filter>=0?species.filter(function(x){return filter<0||x.habitat===filter}):[];
+ var visibleFish=filter===-3||filter===-1||filter===-4||filter>=0?species.filter(function(x){return filter===-4?!!x.artVariant:filter<0||x.habitat===filter}):[];
  var visibleHuman=filter===-3||filter===-2?humans.map(function(n,id){return{id:id,name:n}}):[];
  var cards='<div class="cards book-cards">'+visibleHuman.map(function(a){
   var id=String(a.id),n=save.human[id]||0,tier=humanTier(a.id);
@@ -3808,7 +3809,7 @@ species.forEach(function(sp){
  sp.rarity=k===19?'MYTHIC':k===18?'LEGEND':k===17?'EPIC':k>=15?'RARE':k>=11?'UNCOMMON':'COMMON';
  sp.level=Math.min(75,1+sp.habitat*3+Math.floor(k/3)*3+(k>=15?(k-13)*2:0));
 });
-if(window.HumanFishingArt)window.HumanFishingArt.extend(species);
+if(window.HumanFishingArt){window.HumanFishingArt.extend(species);if(window.HumanFishingArt.migrateSave&&window.HumanFishingArt.migrateSave(save))persist();}
 if(!save.fever||typeof save.fever!=='object')save.fever={count:0,ready:false,total:0,activations:0};
 // Legacy saves could have 6/6 visually full while never becoming READY.
 // Restore readiness rather than leave the player stranded at full gauge.
