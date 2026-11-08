@@ -1,0 +1,34 @@
+{
+  "batch": "011",
+  "status": "ART_REVIEW",
+  "liveAdded": 0,
+  "reviewAssetCount": 1,
+  "species": [
+    {
+      "scientificName": "Chitala lopis",
+      "nameKo": "자이언트페더백",
+      "status": "ART_REVIEW",
+      "gameId": null,
+      "proposedId": "F373",
+      "imageFile": "F373.png",
+      "imageInstalledInGitHub": false,
+      "unmodifiedSourcePixels": true,
+      "transparentBorderPaddingPx": 120,
+      "artImageSize": [
+        2412,
+        964
+      ],
+      "paddedAssetSha256": "0e79cd8ab031b8e9c0aa2772adaeed7404e0b3b8e6bf4ff1b139424ae75a7082",
+      "sourceSha256": "f305b86732b2a8d7f9ccab32963c4a42d85e8a3d859912baf10076aef155c490",
+      "notes": "Single original fish PNG generated; black and light preview checked; alpha padding QA passes; needs user visual approval and actual GitHub binary installation before LIVE."
+    }
+  ],
+  "pendingNames": [
+    "Ageneiosus militaris",
+    "Aphia minuta",
+    "Pristolepis fasciata",
+    "Dormitator maculatus",
+    "Dissostichus eleginoides"
+  ],
+  "notGeneratedCount": 5
+}
