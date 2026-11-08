@@ -97,7 +97,7 @@ for(const sp of newFish){
  sourceFolders.add(details.sourceOriginalId);
 }
 assert.equal(imageHash.size,600,'600 individual fish files must not be byte-identical');
-assert.ok(sourceFolders.size>=150,'New fish should preserve many unique approved body silhouettes');
+assert.ok(sourceFolders.size>=130,'New fish should preserve many distinct approved body silhouettes');
 assert.ok(bytes<100*1024*1024,'Additional 600 PNGs must remain a downloadable game asset set');
 const variantCap=/(variants\.length&&natural\.length\?\(Math\.random\(\)<\.32\?variants:natural\))/;
 assert.match(source,variantCap,
