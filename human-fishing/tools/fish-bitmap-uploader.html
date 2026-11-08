@@ -1,66 +1,142 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>인간낚시 · 물고기 리소스 업로더</title>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>REBELTREE · 인간낚시 리소스 업로더</title>
 <style>
-*{box-sizing:border-box}html{background:#081821;color:#e6faf7;font:16px/1.6 system-ui,'Malgun Gothic',sans-serif}
-body{margin:0;min-height:100vh;padding:24px;background:radial-gradient(ellipse at top,#234e5a,#081821 65%)}
-main{max-width:710px;margin:18px auto;padding:clamp(20px,5vw,38px);border:1px solid #4d7881;border-radius:22px;background:#102d39;box-shadow:0 15px 55px #0006}
-h1{font-size:clamp(24px,4vw,34px);line-height:1.3;margin:0 0 12px}p{color:#b1cfce}
-label{display:block;margin:18px 0 5px;color:#e9e2cd;font-weight:700}
-input{width:100%;min-height:52px;background:#061d28;border:1px solid #628892;color:#fff;border-radius:10px;padding:12px;font:inherit}
-button{margin-top:20px;width:100%;min-height:58px;border:0;border-radius:11px;background:linear-gradient(135deg,#f0dbac,#c9a26d);color:#173541;font:900 17px system-ui;cursor:pointer}
-button:disabled{opacity:.5;cursor:wait}
-progress{width:100%;height:18px;accent-color:#5be7d1}
-a{color:#8ce6dc}.small{font-size:13px;color:#9ec3c3}
-code{color:#b2e9cf;word-break:break-all}#status{white-space:pre-wrap;color:#e8efdb;min-height:55px}
-</style></head>
-<body><main><h1>🐙 인간낚시 · 물고기 304종 업로더</h1>
-<p>정밀 알파 커팅된 개별 PNG 304개를 게임에 일괄 설치합니다. ZIP 한 파일을 GitHub에 올리면 검증 작업이 실행되고, 검증이 끝난 뒤에만 물고기 이미지가 활성화됩니다.</p>
-<label for="bundle">이미지 리소스 ZIP (fish-art-import.zip)</label><input type="file" id="bundle" accept=".zip,application/zip">
-<label for="token">GitHub Fine-grained Personal Access Token</label>
-<input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Contents: Read and write · ZKrupinski/Test">
-<p class="small">토큰은 이 브라우저에서 GitHub API로 직접 전달하며 저장하지 않습니다. 토큰은 채팅창에 붙여넣지 마세요.</p>
-<button id="send" type="button">304종 리소스 설치 시작</button>
-<p id="status" role="status" aria-live="polite"></p><progress id="bar" max="100" value="0"></progress>
-<p class="small">토큰 없이 업로드하려면 <a href="https://github.com/ZKrupinski/Test/upload/main/human-fishing" target="_blank" rel="noopener">GitHub 파일 업로드 페이지</a>에서 같은 ZIP을 <code>human-fishing/fish-art-import.zip</code>으로 올려도 됩니다. 자동 설치 결과는 <a href="https://github.com/ZKrupinski/Test/actions/workflows/install-human-fish-art.yml" target="_blank" rel="noopener">설치 작업</a>에서 확인할 수 있습니다.</p>
-</main><script>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+html{background:#081821;color:#e8f7f4;font:16px/1.55 system-ui,"Malgun Gothic",sans-serif}
+body{margin:0;min-height:100vh;padding:22px;background:radial-gradient(ellipse at top,#24485a,#081821 72%)}
+main{max-width:790px;margin:20px auto;padding:clamp(20px,4vw,40px);border:1px solid #547781;border-radius:20px;background:#102b39;box-shadow:0 14px 48px #0006}
+.eyebrow{font-size:12px;letter-spacing:.14em;color:#a7d8d5;font-weight:800}
+h1{font-size:clamp(24px,4.3vw,35px);line-height:1.2;margin:8px 0 12px}
+p{color:#b7d1d1}strong{color:#fff}code{font-size:13px;color:#a5e3d8;overflow-wrap:anywhere}
+a{color:#93e4d6}
+label{display:block;font-size:14px;font-weight:800;margin:20px 0 8px}
+input{width:100%;min-height:56px;background:#061e2a;border:1px solid #749098;border-radius:10px;color:#fff;padding:12px;font:inherit}
+input:focus-visible,button:focus-visible{outline:3px solid #75dfcf;outline-offset:3px}
+input[type=file]::file-selector-button{border:0;border-radius:6px;background:#c7ac86;color:#07222f;padding:8px;margin-right:12px;font-weight:800}
+button{margin-top:20px;min-height:58px;width:100%;border:0;border-radius:10px;background:linear-gradient(135deg,#eed6a3,#c69c63);font:900 17px system-ui;color:#133342;cursor:pointer}
+button:disabled{opacity:.48;cursor:wait}
+progress{width:100%;height:16px;accent-color:#6fddc4;margin:12px 0 0}
+.panel{margin:16px 0;padding:14px 16px;background:#0a222d;border:1px solid #355963;border-radius:12px}
+.panel p{margin:5px 0;font-size:14px}
+.small{font-size:13px;color:#a3c0c0}
+#status{white-space:pre-wrap;min-height:55px;color:#ecede2}
+.success{color:#80eac3} .warn{color:#ffd0a0}
+.links{display:flex;gap:10px 20px;flex-wrap:wrap;margin-top:12px}
+.links a{font-size:14px}
+</style>
+</head>
+<body><main>
+<div class="eyebrow">REBELTREE · HUMAN FISHING</div>
+<h1>물고기·특수 생물 리소스 업로더</h1>
+<p>기존 304종과 이후 추가한 1차, 2·3차, 4차 물고기, 뱀파이어오징어를 <strong>한 화면에서</strong> 설치합니다. ZIP 이름을 판별해 GitHub의 해당 설치 작업을 자동 실행합니다.</p>
+<label for="bundle">1. 설치 ZIP 파일 선택</label>
+<input type="file" id="bundle" accept=".zip,application/zip" aria-describedby="supported">
+<p id="supported" class="small">지원 파일: <code>fish-art-import.zip</code> · <code>fish-art-import-batch-001.zip</code> · <code>fish-art-import-batch-023.zip</code> · <code>fish-art-import-batch-004.zip</code> · <code>special-creature-import.zip</code></p>
+<div id="preview" class="panel" role="status" aria-live="polite"><p>ZIP을 선택하면 대상 어종 수와 설치 경로를 보여줍니다.</p></div>
+<label for="token">2. GitHub Fine-grained Personal Access Token</label>
+<input type="password" id="token" autocomplete="off" spellcheck="false" placeholder="ZKrupinski/Test · Contents: Read and write">
+<p class="small">토큰은 브라우저에서 <code>api.github.com</code>으로만 직접 보냅니다. 저장하거나 채팅에 전송하지 않습니다. 이 저장소에 대한 Contents 읽기·쓰기 권한이 필요합니다.</p>
+<button id="send" type="button">GitHub에 ZIP 올리고 자동 설치 시작</button>
+<p id="status" role="status" aria-live="polite"></p>
+<progress id="bar" max="100" value="0"></progress>
+<div class="links">
+<a id="fallback" href="https://github.com/ZKrupinski/Test/upload/main/human-fishing" target="_blank" rel="noopener noreferrer">GitHub에서 직접 ZIP 올리기</a>
+<a id="workflow" href="https://github.com/ZKrupinski/Test/actions" target="_blank" rel="noopener noreferrer">설치 진행 상황 확인</a>
+<a href="../index.html">게임으로 돌아가기</a>
+</div>
+<p class="small">이미 설치한 어종과 기존 세이브는 변경하지 않습니다. 이미지 개수·학명·투명 PNG 검증에 실패하면 설치 작업이 중단되며 결과는 GitHub Actions에 남습니다.</p>
+</main>
+<script>
 (function(){
 'use strict';
-var input=document.getElementById('bundle'),auth=document.getElementById('token');
-var go=document.getElementById('send'),status=document.getElementById('status'),bar=document.getElementById('bar');
-var api='https://api.github.com/repos/ZKrupinski/Test/contents/human-fishing/fish-art-import.zip';
-function say(s){status.textContent=s}
-function xhr(method,url,token,body,upload){
+var types={
+ 'fish-art-import.zip':{label:'기본 물고기 304개 원본',number:304,workflow:'install-human-fish-art.yml',min:1e6,max:95e6},
+ 'fish-art-import-batch-001.zip':{label:'1차 추가 물고기 11종',number:11,workflow:'install-fish-art-batch001.yml',min:100000,max:95e6},
+ 'fish-art-import-batch-023.zip':{label:'2·3차 추가 물고기 10종',number:10,workflow:'install-fish-art-batch023.yml',min:100000,max:95e6},
+ 'fish-art-import-batch-004.zip':{label:'4차 추가 물고기 5종',number:5,workflow:'install-fish-art-batch004.yml',min:100000,max:95e6},
+ 'special-creature-import.zip':{label:'뱀파이어오징어 S001',number:1,workflow:'install-special-creature-art.yml',min:20000,max:95e6}
+};
+var target='https://api.github.com/repos/ZKrupinski/Test/contents/human-fishing/';
+var bundle=document.getElementById('bundle'),tokenInput=document.getElementById('token');
+var preview=document.getElementById('preview'),status=document.getElementById('status');
+var send=document.getElementById('send'),bar=document.getElementById('bar'),workflow=document.getElementById('workflow');
+function say(message){status.textContent=message}
+function detail(message){preview.textContent=message}
+function current(){var f=bundle.files&&bundle.files[0];return f?{file:f,config:types[f.name]}:null}
+function workflowLink(cfg){return 'https://github.com/ZKrupinski/Test/actions/workflows/'+cfg.workflow}
+function progress(p,message){bar.value=p;if(message)say(message)}
+bundle.addEventListener('change',function(){
+ var item=current();
+ if(!item){detail('ZIP을 선택하세요.');return}
+ if(!item.config){detail('지원하지 않는 ZIP 이름입니다. 위에 안내된 정확한 파일명만 사용할 수 있습니다.');return}
+ var cfg=item.config;
+ detail(cfg.label+' · '+cfg.number+'개 리소스 · '+(item.file.size/1048576).toFixed(1)+' MiB\nGitHub 저장 경로: human-fishing/'+item.file.name);
+ workflow.href=workflowLink(cfg);
+});
+function xhr(method,url,auth,body,upload){
  return new Promise(function(ok,bad){
-  var x=new XMLHttpRequest();x.open(method,url,true);x.setRequestHeader('Accept','application/vnd.github+json');
-  x.setRequestHeader('Authorization','Bearer '+token);x.setRequestHeader('X-GitHub-Api-Version','2022-11-28');
+  var x=new XMLHttpRequest();x.open(method,url,true);
+  x.setRequestHeader('Accept','application/vnd.github+json');
+  x.setRequestHeader('Authorization','Bearer '+auth);
+  x.setRequestHeader('X-GitHub-Api-Version','2022-11-28');
   if(body)x.setRequestHeader('Content-Type','application/json');
-  x.upload.onprogress=function(e){if(upload&&e.lengthComputable){bar.value=Math.round(10+e.loaded/e.total*88);say('GitHub 업로드 중 '+bar.value+'%')}};
-  x.onload=function(){var value;try{value=JSON.parse(x.responseText)}catch(e){value={message:x.responseText}};
-   if(x.status>=200&&x.status<300)ok(value);else bad(new Error((value.message||'요청 실패')+' (HTTP '+x.status+')'))};
-  x.onerror=function(){bad(new Error('GitHub 연결 실패'))};x.send(body||null);
+  if(upload)x.upload.onprogress=function(e){
+   if(e.lengthComputable)progress(Math.floor(12+e.loaded/e.total*85),'GitHub 업로드 중 · '+Math.floor(e.loaded/e.total*100)+'%');
+  };
+  x.onload=function(){
+   var result={};try{result=JSON.parse(x.responseText)}catch(e){result={message:x.responseText}}
+   if(x.status>=200&&x.status<300)ok(result);
+   else bad(new Error((result.message||'GitHub API 요청 실패')+' (HTTP '+x.status+')'));
+  };
+  x.onerror=function(){bad(new Error('GitHub API 연결 실패. 토큰·네트워크·브라우저 확장기능을 확인하세요.'))};
+  x.ontimeout=function(){bad(new Error('GitHub API 응답 시간 초과'))};
+  x.timeout=120000;
+  x.send(body||null);
  });
 }
-function readBase64(file){return new Promise(function(resolve,reject){
- var r=new FileReader();r.onerror=reject;r.onload=function(){resolve(String(r.result).split(',')[1])};r.readAsDataURL(file);
-});}
-go.onclick=async function(){
- var file=input.files&&input.files[0],token=auth.value.trim();
- if(!file||file.name!=='fish-art-import.zip'){say('파일 이름이 fish-art-import.zip인 ZIP을 선택하세요.');return}
- if(!token){say('토큰을 입력하거나 아래 GitHub 직접 업로드 링크를 이용하세요.');return}
- if(file.size<1000000||file.size>25000000){say('ZIP 크기가 예상 범위가 아닙니다. 올바른 패키지를 확인하세요.');return}
- go.disabled=true;bar.value=2;
+function toBase64(file){return new Promise(function(ok,bad){
+ var reader=new FileReader();reader.onerror=function(){bad(new Error('ZIP 파일 읽기 실패'))};
+ reader.onload=function(){ok(String(reader.result).split(',')[1])};
+ reader.readAsDataURL(file);
+})}
+async function verifyZip(file){
+ var bytes=new Uint8Array(await file.slice(0,4).arrayBuffer());
+ if(bytes.length!==4||bytes[0]!==0x50||bytes[1]!==0x4b||![3,5,7].includes(bytes[2]))throw new Error('유효한 ZIP 형식이 아닙니다.');
+}
+send.addEventListener('click',async function(){
+ var item=current(),auth=tokenInput.value.trim();
+ if(!item||!item.config){say('지원되는 ZIP을 먼저 선택하세요.');return}
+ var f=item.file,cfg=item.config;
+ if(f.size<cfg.min||f.size>cfg.max){say('ZIP 용량이 예상 범위를 벗어났습니다. 올바른 제작 패키지인지 확인하세요.');return}
+ if(!auth){say('GitHub 토큰을 입력하세요. 토큰이 없다면 아래 GitHub 직접 업로드 링크를 이용하세요.');return}
+ send.disabled=true;
  try{
-  say('기존 업로드 확인 중…');
-  var sha;
-  try{var existing=await xhr('GET',api,token);sha=existing.sha;}catch(e){if(!/HTTP 404/.test(e.message))throw e;}
-  bar.value=6;say('ZIP 데이터 읽는 중…');
-  var data=await readBase64(file),body={message:'Import 304 fish PNG assets for Human Fishing',content:data,branch:'main'};
-  if(sha)body.sha=sha;
-  bar.value=10;say('GitHub 업로드 준비 완료');
-  var result=await xhr('PUT',api,token,JSON.stringify(body),true);
-  bar.value=100;say('ZIP 업로드 완료. GitHub Actions에서 304개 PNG의 투명도와 파일 구성을 검증하여 게임에 자동 설치합니다.\n설치 작업: https://github.com/ZKrupinski/Test/actions/workflows/install-human-fish-art.yml');
- }catch(e){say('업로드 오류: '+(e&&e.message||e))}finally{go.disabled=false}
-};
+  progress(2,'ZIP 형식 확인 중…');await verifyZip(f);
+  progress(5,'기존 업로드 상태 확인 중…');
+  var url=target+encodeURIComponent(f.name),oldSha;
+  try{
+   var old=await xhr('GET',url+'?ref=main',auth);
+   oldSha=old.sha;
+  }catch(e){if(!/HTTP 404/.test(e.message))throw e}
+  progress(9,'이미지 ZIP 인코딩 중…');
+  var content=await toBase64(f);
+  var body={message:'Import Human Fishing '+cfg.label+' original sprites',content:content,branch:'main'};
+  if(oldSha)body.sha=oldSha;
+  progress(12,'GitHub에 '+f.name+' 업로드 중…');
+  var result=await xhr('PUT',url,auth,JSON.stringify(body),true);
+  progress(100,'ZIP 전송 완료: '+cfg.label+'\nGitHub Actions가 PNG를 검증한 후 게임에 자동 설치합니다.\n작업 보기: '+workflowLink(cfg));
+  workflow.href=workflowLink(cfg);
+  tokenInput.value='';
+ }catch(e){
+  bar.value=0;
+  say('업로드 실패: '+String(e&&e.message||e)+'\nHTTP 401: 토큰 오류 · 403: 권한/속도 제한 · 409: 충돌 · 422: 잘못된 요청 · 413: 용량 초과');
+ }finally{send.disabled=false}
+});
 })();
-</script></body></html>
+</script></body>
+</html>
