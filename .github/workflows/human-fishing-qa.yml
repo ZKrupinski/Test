@@ -53,6 +53,8 @@ jobs:
         run: node human-fishing/qa-fish-art-batch-002.cjs
       - name: Verify curated GPT fish batch 001 assignments, activation and unique movement
         run: node human-fishing/qa-fish-art-batch-001.cjs
+      - name: Verify original art backlog, fast pack gates and 24 unique special plans
+        run: node human-fishing/qa-fish-fast-inventory.cjs
       - name: Verify real and fictional special creature roster and S001 install gate
         run: node human-fishing/qa-special-creatures.cjs
       - name: Verify 1,600-fish expansion taxonomy queue and image QA gates
