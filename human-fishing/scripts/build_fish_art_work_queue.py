@@ -25,9 +25,18 @@ for manifest_path in sorted((ROOT / 'art-review').glob('*/review-manifest.json')
     manifest = json.loads(manifest_path.read_text())
     for row in manifest.get('species', []):
         known[key(row['scientificName'])] = row.get('status', 'ART_REVIEW')
-current = ['Raja clavata', 'Argyrosomus regius']
-for name in current:
-    known[key(name)] = 'CURRENT_ART_REVIEW_BATCH'
+# Resolve completed installations as LIVE even when the older art-review record says ART_REVIEW.
+for manifest_name in [
+    'assets/fish-expansion/installed-manifest.json',
+    'assets/fish-expansion-023/installed-manifest.json',
+    'assets/fish-expansion-004/installed-manifest.json',
+    'assets/fish-expansion-006/installed-manifest.json',
+]:
+    path = ROOT / manifest_name
+    if not path.is_file():
+        continue
+    for row in json.loads(path.read_text()).get('species', []):
+        known[key(row['scientificName'])] = 'LIVE'
 
 backlog = [r for r in source['candidates'] if key(r['scientificName']) not in known]
 selected, used = [], set()
@@ -56,6 +65,9 @@ for stage, stage_name in enumerate(source['stageNames']):
                 'existing_304_and_staged_art_visual_comparison',
                 'habitat_and_adult_size_sources', 'two_non_color_shape_differences'],
         })
+# The current focus is the first six genuinely unproduced candidates, never old LIVE art.
+current = [row['scientificName'] for row in selected[:6]]
+
 # Six assets per production batch, four batches; sequential, not background jobs.
 for i, row in enumerate(selected):
     row['reviewOrder'] = i + 1

@@ -32,4 +32,8 @@ assert.equal(new Set(batch.species.map(x=>x.scientificName)).size,12);
 assert.ok(batch.species.every(x=>data.candidates.some(y=>y.scientificName===x.scientificName)));
 assert.ok(batch.species.every(x=>x.rgbaPngPath===null&&x.approvedForGame===false));
 
+const next=JSON.parse(fs.readFileSync(base+'fish-art-next-work-queue.json','utf8'));
+assert.deepEqual(next.currentBatch,next.nextReviewCandidates.slice(0,6).map(x=>x.scientificName));
+assert.ok(!next.currentBatch.includes('Raja clavata'));
+assert.ok(!next.currentBatch.includes('Argyrosomus regius'));
 console.log('PASS: 1,600+ fish expansion candidate pool, exact scientific uniqueness, 12 provisional habitats, tier/size/AI plans, no fake LIVE art or broken original saves.');
