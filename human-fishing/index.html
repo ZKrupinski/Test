@@ -1462,7 +1462,7 @@ function drawAquariumKeeper(now){
  ctx.save();ctx.translate(0,PLAYER_STAGE_DROP);
  if(window.octoSidekicksObserve)window.octoSidekicksObserve({view:'fish',casting:false,lure:false,hook:false,near:false,fever:false},now);
  if(window.drawOctopusSidekicks)window.drawOctopusSidekicks(ctx,now,octo);
- drawOcto(now,aquariumKeeperPose(now));drawRod(now);drawHelpers(now);
+ drawOcto(now,aquariumKeeperPose(now));drawRod(now);
  ctx.restore();
 }
 function drawingTank(now){
@@ -1572,7 +1572,7 @@ var shopItems=[
  {id:'rod',name:'낚싯대',icon:'🎣',base:80,desc:'더 먼 생물도 포획하고, 릴을 더 빠르게 감습니다.',benefit:function(l){return '포획 반경 +'+(l*16)+'px · 릴 속도 +'+(l*5)+'%'}},
  {id:'bait',name:'미끼',icon:'🪱',base:120,desc:'엘리트·보스 인간과 희귀 어종의 출현 및 입질 가능성을 높입니다.',benefit:function(l){return '희귀 출현 보정 +'+(l*3)+'%p · 입질 거리 +'+(l*9)+'px'}},
  {id:'net',name:'어망',icon:'🕸️',base:150,desc:'포획 시 일정 확률로 추가 개체를 확보하고, 진주 보상이 늘어납니다.',benefit:function(l){return '추가 수집 확률 '+(l*8)+'% · 보상 +'+(l*4)+'%'}},
- {id:'helper',name:'조력자',icon:'🦑',base:190,desc:'꼬마 심해 생물이 릴을 돕고, 낚시 중 주기적으로 진주를 가져옵니다.',benefit:function(l){return '릴 속도 +'+(l*2)+'% · 35초마다 진주 +'+(l*5)}}
+ {id:'helper',name:'응원단',icon:'🦑',base:190,desc:'꼬마 심해 생물이 릴을 돕고, 낚시 중 주기적으로 진주를 가져옵니다.',benefit:function(l){return '릴 속도 +'+(l*2)+'% · 35초마다 진주 +'+(l*5)}}
 ];
 function shopPrice(item,lv){return Math.round(item.base*(lv+1)*(1+lv*.28)/5)*5}
 // Legacy save.shop bonuses are preserved for returning players.
@@ -1690,20 +1690,6 @@ function drawLine(){
  ctx.strokeStyle='#e8f7f4';ctx.lineWidth=1.1;ctx.stroke();
  ctx.restore();
 }
-function drawHelpers(now){
- var lv=save.shop.helper;if(!lv)return;
- var n=Math.min(3,Math.ceil(lv/3));
- for(var i=0;i<n;i++){
-  var x=380+i*64+Math.sin(now*1.3+i*2)*12,y=235+i%2*23+Math.sin(now*2+i)*7;
-  ctx.fillStyle='#071f2c77';ctx.beginPath();ctx.ellipse(x,y+17,26,9,0,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle='#507d9e';ctx.lineWidth=5;ctx.lineCap='round';
-  for(var k=-1;k<=1;k++){ctx.beginPath();ctx.moveTo(x+k*6,y+12);ctx.lineTo(x+k*12,y+25);ctx.stroke();}
-  ctx.fillStyle=ctx.createRadialGradient(x-7,y-9,3,x,y,25);ctx.fillStyle='#85e2d2';
-  ctx.beginPath();ctx.ellipse(x,y,21,19,0,0,Math.PI*2);ctx.fill();
-  circle(x-7,y-3,4,'#f5fff2');circle(x+8,y-3,4,'#f5fff2');
-  circle(x-6,y-3,2,'#1b4658');circle(x+8,y-3,2,'#1b4658');
- }
-}
 var helperIncomeTimer=0;
 function tick(stamp){
  var dt=Math.min((stamp-last)/1000,.045);last=stamp;time+=dt;
@@ -1723,7 +1709,7 @@ function tick(stamp){
   }
   // Historical tick definition. The final renderer below owns the entrance.
   if(window.drawOctopusSidekicks)window.drawOctopusSidekicks(ctx,time,octo);
-  drawOcto(time);drawRod(time);drawHelpers(time);
+  drawOcto(time);drawRod(time);
   if(view==='fish'){
    if(hook){
     hook.elapsed+=dt;
@@ -1742,7 +1728,7 @@ function tick(stamp){
   helperIncomeTimer+=dt;
   if(helperIncomeTimer>=35){
    helperIncomeTimer-=35;var pay=save.shop.helper*5;
-   save.coins+=pay;persist();updateStats();announce('🦑','조력자 보너스','진주 +'+pay);
+   save.coins+=pay;persist();updateStats();announce('🦑','응원단 보너스','진주 +'+pay);
   }
  }
  bubbles.forEach(function(b){
@@ -1795,12 +1781,12 @@ var gearCatalog={
  ['gold','황금 수집망','진주 보정',1520,'#ffd17e'],
  ['quantum','위상 어망','특수 추가 포획',2950,'#cd99ef']],
  helper:[
- ['crab','조개집게 게','초보 조력자',0,'#ffb98d'],
- ['shrimp','분홍 새우 친구','먹이 감지',120,'#ff9db3'],
- ['jelly','발광 해파리','빛 보조',300,'#a6eaff'],
- ['ray','꼬마 가오리','유영 탐지',700,'#7fc9dc'],
- ['octo','꼬마 문어 친구','릴 조작 보조',1350,'#e2a3f5'],
- ['drone','심해 탐사 드론','자동 지원',2700,'#ffe2a1']],
+ ['crab','새싹 응원단','기존 빨간 문어 · 기본 응원',0,'#ffb98d'],
+ ['shrimp','리듬 응원단','빨간 문어의 릴 보조 강화',120,'#ff9db3'],
+ ['jelly','반짝 응원단','빨간 문어의 진주 지원 강화',300,'#a6eaff'],
+ ['ray','열혈 응원단','릴 조작 및 진주 지원 강화',700,'#7fc9dc'],
+ ['octo','베테랑 응원단','릴 보조와 진주 지원 고급화',1350,'#e2a3f5'],
+ ['drone','전설 응원단','빨간 문어의 최상위 응원',2700,'#ffe2a1']],
  octopus:[
  ['baby','아기 산호문어','작지만 빠른 기본 촉수',0,'#f4a39e'],
  ['lagoon','청록 바다문어','더 커진 촉수 반경',230,'#63d2d2'],
@@ -1844,7 +1830,7 @@ function baitSpritePosition(tier){
  return (clamp(tier,0,9)*100/9).toFixed(4)+'% 50%';
 }
 var gearIcons={rod:'🎣',bait:'🪱',net:'🕸️',helper:'🦑',octopus:'🐙'};
-var gearCategoryNames={rod:'낚싯대',bait:'미끼',net:'어망',helper:'조력자',octopus:'피버 문어'};
+var gearCategoryNames={rod:'낚싯대',bait:'미끼',net:'어망',helper:'응원단',octopus:'피버 문어'};
 Object.keys(gearCatalog).forEach(function(cat){
  save.gearOwned[cat]=Array.isArray(save.gearOwned[cat])?save.gearOwned[cat]:[gearCatalog[cat][0][0]];
  save.gearLevels[cat]=save.gearLevels[cat]&&typeof save.gearLevels[cat]==='object'?save.gearLevels[cat]:{};
@@ -1961,6 +1947,8 @@ function renderEquipment(){
   persist();updateStats();playFoley(action==='equip'?'equip':'upgrade');
   if(cat==='bait'){buildFish();buildHum()}
   if(cat==='octopus')updateFeverHud();
+    if(cat==='helper'&&window.octoSidekicksSupport)
+     window.octoSidekicksSupport(time,gearPower('helper'));
   renderEquipment();
  }});
  $('gearToShop').onclick=function(){shopCategory=equipmentCategory;setMode('shop')};
@@ -1986,7 +1974,7 @@ function renderShop(){
    equipmentMetricsHtml(cat,item,lv,owned?null:current)+
    '<div class="shop-buttons"><button type="button" data-shop-buy="'+item.id+'" '+(owned||save.coins<item.price?'disabled':'')+'>'+(owned?'보유 중 ✓':'◈ '+item.price.toLocaleString()+' 구매')+'</button></div></div></article>';
  }).join('');
- openPanel('장비 상점 · '+Object.keys(gearCatalog).reduce(function(n,key){return n+gearCatalog[key].length},0)+'가지 장비','낚싯대 · 미끼 · 어망 · 조력자 · 피버 문어 / 구매 전용',
+ openPanel('장비 상점 · '+Object.keys(gearCatalog).reduce(function(n,key){return n+gearCatalog[key].length},0)+'가지 장비','낚싯대 · 미끼 · 어망 · 응원단 · 피버 문어 / 구매 전용',
   '<div class="shop-hint">보유 진주 <b style="color:#ffe0aa">◈ '+save.coins.toLocaleString()+
   '</b> · 상점에서는 <b>구매만</b> 가능합니다. 장착과 강화는 <button type="button" class="smallbtn" id="shopToGear">🎒 장비 메뉴</button>에서 진행하세요.</div>'+
   tabs+'<div class="shop-grid">'+cards+'</div>');
@@ -3032,21 +3020,6 @@ function drawBob(){
  ctx.fillStyle='#ffffffbd';ctx.beginPath();ctx.ellipse(-4,-8,2.8,5,.3,0,Math.PI*2);ctx.fill();
  ctx.restore();
 }
-function drawHelpers(now){
- var gear=selectedGear('helper'),power=gearPower('helper');
- if(power===0)return;
- var n=Math.min(3,1+Math.floor(power/8));
- for(var i=0;i<n;i++){
-  var x=515+i*68+Math.sin(now*1.35+i*2)*15,y=226+(i%2)*22+Math.sin(now*2+i)*7;
-  ctx.strokeStyle=gear.color;ctx.lineWidth=6;ctx.lineCap='round';
-  for(var k=-1;k<=1;k++){ctx.beginPath();ctx.moveTo(x+k*6,y+12);ctx.lineTo(x+k*10,y+24);ctx.stroke()}
-  ctx.beginPath();ctx.ellipse(x,y,20+gear.tier*1.1,18+gear.tier*.5,0,0,Math.PI*2);
-  ctx.fillStyle=gear.color;ctx.fill();
-  circle(x-7,y-4,4,'#fbffed');circle(x+7,y-4,4,'#fbffed');
-  circle(x-6,y-4,2,'#214459');circle(x+7,y-4,2,'#214459');
-  if(gear.tier>=2){circle(x,y-23,3,'#e5fdff')}
- }
-}
 // Alpha 2.2 — separately decaying camera, octopus and lure vibration layers.
 // The web Vibration API has no amplitude control: longer or shorter pulses
 // express strong impacts, gentle confirmations and fading resistance.
@@ -3451,7 +3424,7 @@ function tick(stamp){
    if(view==='fish'&&introEntrance.active)ctx.translate(introEntrance.offset,0);
    ctx.translate(0,PLAYER_STAGE_DROP);
    if(window.drawOctopusSidekicks)window.drawOctopusSidekicks(ctx,time,octo);
-   drawOcto(time);drawRod(time);drawHelpers(time);
+   drawOcto(time);drawRod(time);
    ctx.restore();
   }
   if(view==='fish'&&!introEntrance.active)drawLine();
@@ -3498,7 +3471,10 @@ function tick(stamp){
   helperIncomeTimer+=dt;
   if(helperIncomeTimer>=35){
    helperIncomeTimer-=35;var coins=Math.max(1,Math.floor(gearPower('helper')*3.5));
-   save.coins+=coins;persist();updateStats();announce('🦑','조력자 지원','진주 +'+coins);playFoley('helperIncome',.72);
+   save.coins+=coins;persist();updateStats();
+     // The existing, behind-player sprite celebrates the real support payout.
+     if(window.octoSidekicksSupport)window.octoSidekicksSupport(time,gearPower('helper'));
+     announce('🐙','응원단 지원','진주 +'+coins);playFoley('helperIncome',.72);
   }
  }
  bubbles.forEach(function(b){
@@ -5158,7 +5134,14 @@ function polishedLureEyelet(mode,frame){
   swim:[[127.62,33.32],[128.39,33.29],[135.6,32.81],[149.58,33.25],[128.3,33.27],[127.82,33.21],[128.32,32.75],[127.87,33.36]],
   suction:[[129,31],[129,31],[129,28],[128,25],[129,24],[129,28],[129,29],[129,33]]
  };
- return (points[mode]||points.idle)[Math.max(0,Math.min(7,frame))];
+ var point=(points[mode]||points.idle)[Math.max(0,Math.min(7,frame))];
+   // A few swim/back-swim frames have 20px outlying eyelet readings.
+   // Use a consistent head pivot so their bodies no longer jump.
+   // Keep the minuscule legitimate motion, never edit PNG pixels.
+   if(mode==='swim'||mode==='back_swim'||mode==='up_swim'||mode==='down_swim')
+    return [clamp(point[0],127,129),clamp(point[1],32,34)];
+   if(mode==='idle')return [129,36];
+   return point;
 }
 function drawFeverMouthSprite(fx,reel){
  var polished=polishedRedLureArt.suction;
@@ -5557,6 +5540,28 @@ function redLurePose(now){
 }
 var polishedLureSwimDirection=1;
 var polishedLureSwimAxis='horizontal',polishedLureVerticalDirection=-1;
+  // Frame-stable travel state. Prevent quick idle/swim and diagonal flips
+  // near velocity thresholds, without changing the pendulum physics.
+  var polishedLureStable={moving:false,mode:'idle',candidate:'idle',
+   candidateAt:0,stopAt:null};
+  function stablePolishedLureMode(now,vx,vy,dragging){
+   var s=polishedLureStable,speed=Math.hypot(vx,vy);
+   var enter=dragging?22:50,leave=dragging?13:16;
+   if(speed>=enter){
+    s.moving=true;s.stopAt=null;
+   }else if(speed<leave){
+    if(s.stopAt===null)s.stopAt=now;
+    if(now-s.stopAt>=.16){s.moving=false;s.mode='idle'}
+   }else s.stopAt=null;
+   if(!s.moving)return 'idle';
+   var candidate=polishedLureSwimMode(vx,vy);
+   if(s.mode==='idle'){s.mode=candidate;s.candidate=candidate;s.candidateAt=now}
+   else if(candidate!==s.mode){
+    if(s.candidate!==candidate){s.candidate=candidate;s.candidateAt=now}
+    else if(now-s.candidateAt>=.14){s.mode=candidate}
+   }else{s.candidate=candidate;s.candidateAt=now}
+   return s.mode;
+  }
 function polishedLureSwimMode(vx,vy){
  vy=vy||0;
  var ax=Math.abs(vx),ay=Math.abs(vy);
@@ -5576,16 +5581,13 @@ function drawRedLure(now,x,y,diameter){
  if(pose.action==='gulp'||hook||
   (typeof redLureReleasePulseAt!=='undefined'&&now-redLureReleasePulseAt<.28)){
   mode='suction';frame=Math.min(7,Math.floor(pose.frame/2));
- }else if((typeof drag!=='undefined'&&drag)||
-  (typeof rodMotion!=='undefined'&&rodMotion&&
-  (Math.abs(rodMotion.vx||0)>42||Math.abs(rodMotion.vy||0)>60))){
-  mode=polishedLureSwimMode(
-   typeof rodMotion!=='undefined'&&rodMotion?(rodMotion.vx||0):0,
-   typeof rodMotion!=='undefined'&&rodMotion?(rodMotion.vy||0):0);
-  frame=Math.floor(now*10)%8;
  }else if(pose.action==='fail'){
-  frame=Math.floor(now*11)%8;
- }else frame=Math.floor(now*6)%8;
+   frame=Math.floor(now*11)%8;
+  }else if(typeof rodMotion!=='undefined'&&rodMotion){
+   mode=stablePolishedLureMode(now,rodMotion.vx||0,rodMotion.vy||0,
+    typeof drag!=='undefined'&&!!drag);
+   frame=Math.floor(now*(mode==='idle'?6:10))%8;
+  }else frame=Math.floor(now*6)%8;
  var painted=typeof polishedRedLureArt==='undefined'?null:polishedRedLureArt[mode],
   d=Math.max(48,diameter||76);
  if(painted&&painted.ready){

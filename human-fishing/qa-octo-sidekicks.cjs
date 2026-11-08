@@ -12,6 +12,7 @@ vm.runInNewContext(source,{window:root,Image:FakeImage,console,Math,Number},{fil
 assert.equal(typeof root.drawOctopusSidekicks,'function');
 assert.equal(typeof root.octoSidekicksObserve,'function');
 assert.equal(typeof root.octoSidekicksSignal,'function');
+  assert.equal(typeof root.octoSidekicksSupport,'function');
 const ctx={drawImage(){},save(){},restore(){},translate(){},rotate(){},scale(){}};
 function step(t,state){if(state)root.octoSidekicksObserve(state,t);root.drawOctopusSidekicks(ctx,t);return root.octoSidekicksInfo()}
 const states={view:'fish',lure:false,near:false,hook:false,fever:false,casting:false};
@@ -40,7 +41,10 @@ assert.ok(passiveActions.has('idle'));
 assert.ok(passiveActions.has('bait'));
 assert.ok(passiveActions.has('idle_alt'));
 assert.equal(passiveActions.has('swim'),false);
-root.octoSidekicksSignal('entrance',120);
+root.octoSidekicksSupport(115,4);
+  assert.equal(step(115.2,states)[0].state,'support',
+   'Upgraded support must play on the ORIGINAL red cheering sprite');
+  root.octoSidekicksSignal('entrance',120);
 const introFriends=step(120.2,states);
 assert.equal(introFriends.length,1,'Only one red companion can join the intro');
 assert.equal(introFriends[0].state,'entrance','Red companion must travel with the hero');

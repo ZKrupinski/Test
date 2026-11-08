@@ -32,3 +32,13 @@ assert.equal(state.polishedLureSwimMode(-60,-150),'up_swim');
 assert.equal(state.polishedLureSwimMode(1,0),'up_swim');
 assert.equal(state.polishedLureSwimMode(150,-40),'swim');
 console.log('PASS vertical swimming, diagonals, reversal and axis hysteresis');
+  // Short frame-to-frame velocity changes must not make the sprite flicker.
+  assert.equal(state.stablePolishedLureMode(0,100,0,false),'swim');
+  assert.equal(state.stablePolishedLureMode(.03,-100,0,false),'swim');
+  assert.equal(state.stablePolishedLureMode(.21,-100,0,false),'back_swim');
+  assert.equal(state.stablePolishedLureMode(.22,0,0,false),'back_swim');
+  assert.equal(state.stablePolishedLureMode(.40,0,0,false),'idle');
+  assert.equal(state.stablePolishedLureMode(.41,100,0,false),'swim');
+  assert.match(html,/clamp\(point\[0\],127,129\)/);
+  assert.match(html,/clamp\(point\[1\],32,34\)/);
+  console.log('PASS 8-frame eyelet stabilization and 140-160ms motion hysteresis');

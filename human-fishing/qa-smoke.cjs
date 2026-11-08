@@ -235,7 +235,7 @@ assert.ok(game.getCast().active,'First bait throw begins only after arrival');
 const runtimeTick=script.slice(script.lastIndexOf('function tick(stamp){'));
 const translate=runtimeTick.indexOf('ctx.translate(introEntrance.offset,0)');
 const sidekicks=runtimeTick.indexOf('window.drawOctopusSidekicks(ctx,time,octo)',translate);
-const hero=runtimeTick.indexOf('drawOcto(time);drawRod(time);drawHelpers(time)',sidekicks);
+const hero=runtimeTick.indexOf('drawOcto(time);drawRod(time);',sidekicks);
 const restore=runtimeTick.indexOf('ctx.restore()',hero);
 assert.ok(translate>=0&&sidekicks>translate&&hero>sidekicks&&restore>hero,
  'The FINAL active renderer must translate the hero, both friends and fishing rod together');
@@ -585,7 +585,7 @@ assert.equal(typeof frame,'function');
 // Shop catalog must render all 4 tabs and allow changing the sort field.
 element('navShop').onclick();
 const catalog=element('panelBody').innerHTML;
-for(const name of ['낚싯대','미끼','어망','조력자','피버 문어'])assert.ok(catalog.includes(name),name+' missing');
+for(const name of ['낚싯대','미끼','어망','응원단','피버 문어'])assert.ok(catalog.includes(name),name+' missing');
 assert.ok(catalog.includes('data-shop-tab="rod"'),'Rod tab missing');
 assert.ok(catalog.includes('data-shop-tab="bait"'),'Bait tab missing');
 assert.ok(catalog.includes('data-shop-tab="net"'),'Net tab missing');

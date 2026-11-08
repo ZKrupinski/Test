@@ -186,7 +186,9 @@
   if(type==='miss')return [{name:'fail',seconds:.85}];
   if(type==='fail')return [{name:'excited',seconds:.35},
     {name:take(f,'fail',['fail_alt','fail']),seconds:1.4}];
-  if(type==='fever')return [{name:'swim',seconds:.78},
+  if(type==='support')return [{name:'excited',seconds:.40},
+     {name:'celebrate',seconds:.76}];
+    if(type==='fever')return [{name:'swim',seconds:.78},
     {name:'excited',seconds:.65},{name:chooseEnding(f),seconds:.88}];
   if(type==='catch')return [
    {name:'open',seconds:.50},
@@ -198,7 +200,7 @@
  }
  function signal(type,now,detail){
   if(!Number.isFinite(now))return;
-  var priority={entrance:9,cast:2,near:1,bite:4,miss:4,fever:6,catch:7,fail:8}[type]||1;
+  var priority={entrance:9,cast:2,near:1,bite:4,miss:4,fever:6,catch:7,fail:8,support:3}[type]||1;
   friends.forEach(function(f,i){
    // The two companions are offset by a few frames instead of being clones.
    if(f.seq&&now<f.seqEnd&&priority<f.priority)return;
@@ -313,6 +315,9 @@
  window.octoSidekicksIntroReady=function(){return !!(redIntro&&redIntro.ready)};
  window.octoSidekicksStartFullLoad=startRedFullLoad;
  window.octoSidekicksSignal=signal;
+   window.octoSidekicksSupport=function(now,power){
+    if(power>0)signal('support',now,{power:power});
+   };
  window.octoSidekicksObserve=observe;
  // Backwards compatibility with older released HTML.
  window.octoSidekicksEat=function(now){signal('catch',now)};
