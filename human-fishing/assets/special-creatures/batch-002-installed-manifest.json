@@ -124,6 +124,7 @@
       "sourceFilename": "29640.png"
     }
   ],
-  "installStatus": "SPRITES_INSTALLED_ONLY",
-  "gameCatalogChanged": false
+  "installStatus": "SPRITES_INSTALLED_AND_CATALOG_LIVE",
+  "gameCatalogChanged": true,
+  "catalogActivation": "MYTHIC_SPECIAL_S001_AND_S006_S017"
 }

@@ -63,8 +63,13 @@
  var installed=false,loaded=Object.create(null),preload=Object.create(null),created={};
  var enabled=!!window.HumanFishingFishAssetsReady;
  var specialEnabled=!!window.HumanFishingSpecialAssetsReady;
+ // Only verified installed S001 + S006-S017 images can be live.
+ // The ordinary fish catalog and 1,600-species target remain independent.
+ var approvedSpecialRoster=[{"id":"S001","name":"뱀파이어오징어","scientificName":"Vampyroteuthis infernalis","creatureType":"CEPHALOPODA","specialCreature":true,"realSpecies":true,"fictional":false,"habitat":10,"index":19,"rarity":"MYTHIC","level":65,"artSizeClass":"SPECIAL","behaviorArchetype":"slow_hover_webbed_cloak_eversion_blue_bioluminescent_escape"},{"id":"S006","name":"유리심장 해파리","scientificName":null,"creatureType":"FANTASY","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":10,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"MEDIUM","behaviorArchetype":"individual_design_required"},{"id":"S007","name":"심연의 종탑 생물","scientificName":null,"creatureType":"FANTASY","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":10,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"LARGE","behaviorArchetype":"individual_design_required"},{"id":"S008","name":"해류 가면귀","scientificName":null,"creatureType":"FANTASY","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":7,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"MEDIUM","behaviorArchetype":"individual_design_required"},{"id":"S009","name":"거울면가오리","scientificName":null,"creatureType":"FANTASY_FISH","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":8,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"LARGE","behaviorArchetype":"reflective_turn_reverse_escape"},{"id":"S010","name":"심연 촛불장어","scientificName":null,"creatureType":"FANTASY_FISH","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":10,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"LARGE","behaviorArchetype":"flickering_lure_false_depth"},{"id":"S011","name":"삼중입 나팔아귀","scientificName":null,"creatureType":"FANTASY_FISH","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":10,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"MEDIUM","behaviorArchetype":"triple_jaw_snap_combo"},{"id":"S012","name":"가시왕관 먹장어","scientificName":null,"creatureType":"FANTASY_FISH","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":10,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"MEDIUM","behaviorArchetype":"slime_trail_twist_escape"},{"id":"S013","name":"얼음유리 해마","scientificName":null,"creatureType":"FANTASY_FISH","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":11,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"SMALL","behaviorArchetype":"freeze_fake_statue"},{"id":"S014","name":"거울등 유령상어","scientificName":null,"creatureType":"FANTASY_FISH","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":9,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"LARGE","behaviorArchetype":"invisible_profile_flash_dodge"},{"id":"S015","name":"뇌전톱니어","scientificName":null,"creatureType":"FANTASY_FISH","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":9,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"MEDIUM","behaviorArchetype":"electric_chain_reversal"},{"id":"S016","name":"은하우산 해파리","scientificName":null,"creatureType":"FANTASY","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":10,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"MEDIUM","behaviorArchetype":"slow_orbit_many_circles"},{"id":"S017","name":"산호갑옷 거북","scientificName":null,"creatureType":"FANTASY","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":6,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"LARGE","behaviorArchetype":"armor_fold_charge"}];
+ var approvedSpecial=Object.create(null);
+ approvedSpecialRoster.forEach(function(sp){approvedSpecial[sp.id]=sp;});
  function imageFor(id){
-  if(!enabled||(!/^F\d{3}$/.test(id)&&!(specialEnabled&&id==='S001')))return null;
+  if(!enabled||(!/^F\d{3}$/.test(id)&&!(specialEnabled&&approvedSpecial[id])))return null;
   if(!Object.prototype.hasOwnProperty.call(loaded,id)){
    var img=new Image();img.decoding='async';loaded[id]=null;created[id]=img;
    img.onload=function(){
@@ -75,7 +80,7 @@
     loaded[id]=img;
    };
    img.onerror=function(){loaded[id]=false;};
-   img.src=id==='S001'?'./assets/special-creatures/S001.png?v=20261108-s001':'./assets/fish/individual/'+id+'.png?v='+(Number(id.slice(1))>=355?'20261108-batch009-ten':(Number(id.slice(1))>=348?'20261108-batch008':(Number(id.slice(1))>=342?'20261108-batch007':(Number(id.slice(1))>304?(Number(id.slice(1))<=328?'20261108-direct17':'20261108-original-expansion'):'20261106-fish304'))));
+   img.src=approvedSpecial[id]?'./assets/special-creatures/'+id+'.png?v=20261109-special-live13':'./assets/fish/individual/'+id+'.png?v='+(Number(id.slice(1))>=355?'20261108-batch009-ten':(Number(id.slice(1))>=348?'20261108-batch008':(Number(id.slice(1))>=342?'20261108-batch007':(Number(id.slice(1))>304?(Number(id.slice(1))<=328?'20261108-direct17':'20261108-original-expansion'):'20261106-fish304'))));
   }
   return loaded[id]||null;
  }
@@ -108,17 +113,18 @@
       artSizeClass:group.sizes[j],artVariant:true});
    });
   });
-  if(specialEnabled&&!list.some(function(x){return x.id==='S001'}))
-   list.push({id:'S001',name:'뱀파이어오징어',scientificName:'Vampyroteuthis infernalis',
-    creatureType:'CEPHALOPOD',specialCreature:true,realSpecies:true,
-    habitat:10,index:17,rarity:'EPIC',level:65,artSizeClass:'SPECIAL',
-    behaviorArchetype:'low-oxygen-hover-webbed-cloak-flash-escape'});
+  if(specialEnabled){
+   approvedSpecialRoster.forEach(function(sp){
+    if(!list.some(function(x){return x.id===sp.id}))
+     list.push(Object.assign({},sp));
+   });
+  }
   installed=true;
   return list;
  }
  function variantsFor(list,z,rarity){return list.filter(function(s){return s.artVariant&&s.habitat===z&&s.rarity===rarity});}
  window.HumanFishingArt={
-  enabled:enabled,specialEnabled:specialEnabled,specialCount:specialEnabled?1:0,
+  enabled:enabled,specialEnabled:specialEnabled,specialCount:specialEnabled?approvedSpecialRoster.length:0,
   extend:extend,bitmap:imageFor,primeHabitat:primeHabitat,
   visualAliases:visualAliases,migrateSave:migrateSave,
   variantsFor:variantsFor,originalCount:240,variantCount:64-Object.keys(visualAliases).length,archivedVariantCount:64,

@@ -11,7 +11,7 @@
       "origin": "REAL_NON_FISH",
       "clade": "CEPHALOPODA",
       "habitat": 10,
-      "rarity": "EPIC",
+      "rarity": "MYTHIC",
       "size": "SPECIAL",
       "silhouette": "막으로 연결된 8팔·두 지느러미·발광·외투 뒤집기",
       "gameStatus": "LIVE",
@@ -19,7 +19,8 @@
       "imagePath": "assets/special-creatures/S001.png",
       "artSourceArchive": "special-creature-import.zip",
       "fastPack": "fish-art-fast-pack-17.zip",
-      "assetSha256": "fcc2b657fe592a2f8e0e7e844871b4d50d6b48880d9b81c7099bf1f7f02c68a2"
+      "assetSha256": "fcc2b657fe592a2f8e0e7e844871b4d50d6b48880d9b81c7099bf1f7f02c68a2",
+      "countsToward1600FishGoal": false
     },
     {
       "id": "S002",
@@ -84,12 +85,15 @@
       "origin": "ORIGINAL_FICTIONAL",
       "clade": "FANTASY",
       "habitat": 10,
-      "rarity": "LEGEND",
+      "rarity": "MYTHIC",
       "size": "MEDIUM",
       "silhouette": "투명 육각종·내부 박동핵·사슬 촉수",
-      "gameStatus": "ART_NOT_GENERATED",
+      "gameStatus": "LIVE",
       "behavior": "individual_design_required",
-      "imagePath": null
+      "imagePath": "assets/special-creatures/S006.png",
+      "countsToward1600FishGoal": false,
+      "artSourceArchive": "special-creature-import-batch-002.zip",
+      "assetSha256": "39e0a66260eba251635b861bd905d28b637a2af9ba5306fbce38a37491993841"
     },
     {
       "id": "S007",
@@ -101,9 +105,12 @@
       "rarity": "MYTHIC",
       "size": "LARGE",
       "silhouette": "거꾸로 종 형태·세 개 긴 리본 기관",
-      "gameStatus": "ART_NOT_GENERATED",
+      "gameStatus": "LIVE",
       "behavior": "individual_design_required",
-      "imagePath": null
+      "imagePath": "assets/special-creatures/S007.png",
+      "countsToward1600FishGoal": false,
+      "artSourceArchive": "special-creature-import-batch-002.zip",
+      "assetSha256": "98fd8b51841bbc6605193545c9b090460bed74af3ca9fdaebd4550bfd8dc72f9"
     },
     {
       "id": "S008",
@@ -112,12 +119,15 @@
       "origin": "ORIGINAL_FICTIONAL",
       "clade": "FANTASY",
       "habitat": 7,
-      "rarity": "LEGEND",
+      "rarity": "MYTHIC",
       "size": "MEDIUM",
       "silhouette": "비대칭 가면형 얼굴·후방의 부채손 지느러미",
-      "gameStatus": "ART_NOT_GENERATED",
+      "gameStatus": "LIVE",
       "behavior": "individual_design_required",
-      "imagePath": null
+      "imagePath": "assets/special-creatures/S008.png",
+      "countsToward1600FishGoal": false,
+      "artSourceArchive": "special-creature-import-batch-002.zip",
+      "assetSha256": "d82f8e69efda2fc942ccceb1b81d7f337a48b96384febcff979694bd644a26ab"
     },
     {
       "id": "S009",
@@ -126,14 +136,16 @@
       "origin": "ORIGINAL_FICTIONAL",
       "clade": "FANTASY_FISH",
       "habitat": 8,
-      "rarity": "LEGEND",
+      "rarity": "MYTHIC",
       "size": "LARGE",
       "silhouette": "몸 중앙에 거울판 3개·낮은 마름모 날개",
-      "gameStatus": "CONCEPT_NO_ART",
+      "gameStatus": "LIVE",
       "behavior": "reflective_turn_reverse_escape",
       "captureMechanic": "눈이 아닌 거울판이 먼저 빛나며 반전 회피",
-      "imagePath": null,
-      "countsToward1600FishGoal": false
+      "imagePath": "assets/special-creatures/S009.png",
+      "countsToward1600FishGoal": false,
+      "artSourceArchive": "special-creature-import-batch-002.zip",
+      "assetSha256": "721c7082e8ae73d74ab195f12c56864a5a8ffa34f6c7a399426f1f9b2ac073d2"
     },
     {
       "id": "S010",
@@ -142,14 +154,16 @@
       "origin": "ORIGINAL_FICTIONAL",
       "clade": "FANTASY_FISH",
       "habitat": 10,
-      "rarity": "EPIC",
+      "rarity": "MYTHIC",
       "size": "LARGE",
       "silhouette": "긴 검정 리본몸·등 위 촛농형 발광 촉수",
-      "gameStatus": "CONCEPT_NO_ART",
+      "gameStatus": "LIVE",
       "behavior": "flickering_lure_false_depth",
       "captureMechanic": "촛불이 꺼지는 순간 급심도 변경",
-      "imagePath": null,
-      "countsToward1600FishGoal": false
+      "imagePath": "assets/special-creatures/S010.png",
+      "countsToward1600FishGoal": false,
+      "artSourceArchive": "special-creature-import-batch-002.zip",
+      "assetSha256": "292103a82e4998015ac0eb420105160880c39becae1b3db7886cad23f86926aa"
     },
     {
       "id": "S011",
@@ -158,14 +172,16 @@
       "origin": "ORIGINAL_FICTIONAL",
       "clade": "FANTASY_FISH",
       "habitat": 10,
-      "rarity": "LEGEND",
+      "rarity": "MYTHIC",
       "size": "MEDIUM",
       "silhouette": "포개진 3개 원형 턱·나팔형 입",
-      "gameStatus": "CONCEPT_NO_ART",
+      "gameStatus": "LIVE",
       "behavior": "triple_jaw_snap_combo",
       "captureMechanic": "3회 연속 입질 후 마지막 순간 도주",
-      "imagePath": null,
-      "countsToward1600FishGoal": false
+      "imagePath": "assets/special-creatures/S011.png",
+      "countsToward1600FishGoal": false,
+      "artSourceArchive": "special-creature-import-batch-002.zip",
+      "assetSha256": "b2179b0f963a295fee65d51eafc61ba5e3b55e63b3509c8ef1c5b4819ef580e4"
     },
     {
       "id": "S012",
@@ -174,14 +190,16 @@
       "origin": "ORIGINAL_FICTIONAL",
       "clade": "FANTASY_FISH",
       "habitat": 10,
-      "rarity": "RARE",
+      "rarity": "MYTHIC",
       "size": "MEDIUM",
       "silhouette": "동그란 왕관형 뼈고리·갈라진 점액지느러미",
-      "gameStatus": "CONCEPT_NO_ART",
+      "gameStatus": "LIVE",
       "behavior": "slime_trail_twist_escape",
       "captureMechanic": "점액 흔적으로 미끼 조종 방해",
-      "imagePath": null,
-      "countsToward1600FishGoal": false
+      "imagePath": "assets/special-creatures/S012.png",
+      "countsToward1600FishGoal": false,
+      "artSourceArchive": "special-creature-import-batch-002.zip",
+      "assetSha256": "8edea5d6793aa2b6113b0a7e1b8853d9cf5df3bd50a3680419f9ec2748664a07"
     },
     {
       "id": "S013",
@@ -190,14 +208,16 @@
       "origin": "ORIGINAL_FICTIONAL",
       "clade": "FANTASY_FISH",
       "habitat": 11,
-      "rarity": "EPIC",
+      "rarity": "MYTHIC",
       "size": "SMALL",
       "silhouette": "긴 거꾸로 뿔·수정 갑옷·고리 말린 꼬리",
-      "gameStatus": "CONCEPT_NO_ART",
+      "gameStatus": "LIVE",
       "behavior": "freeze_fake_statue",
       "captureMechanic": "정지 위장 후 순간 회전",
-      "imagePath": null,
-      "countsToward1600FishGoal": false
+      "imagePath": "assets/special-creatures/S013.png",
+      "countsToward1600FishGoal": false,
+      "artSourceArchive": "special-creature-import-batch-002.zip",
+      "assetSha256": "25e8feb1f3d50cfc32530f277c5c4806b4a38e9cae6a72dcf24a68b36911fd03"
     },
     {
       "id": "S014",
@@ -209,11 +229,13 @@
       "rarity": "MYTHIC",
       "size": "LARGE",
       "silhouette": "몸 위 반사 돛·갈라진 두단 꼬리",
-      "gameStatus": "CONCEPT_NO_ART",
+      "gameStatus": "LIVE",
       "behavior": "invisible_profile_flash_dodge",
       "captureMechanic": "측면에서 빛날 때만 약점 노출",
-      "imagePath": null,
-      "countsToward1600FishGoal": false
+      "imagePath": "assets/special-creatures/S014.png",
+      "countsToward1600FishGoal": false,
+      "artSourceArchive": "special-creature-import-batch-002.zip",
+      "assetSha256": "d56f77ce70ab6feb9485065932755472c9366b23f256680a53ceecf62fb95ea8"
     },
     {
       "id": "S015",
@@ -222,14 +244,16 @@
       "origin": "ORIGINAL_FICTIONAL",
       "clade": "FANTASY_FISH",
       "habitat": 9,
-      "rarity": "LEGEND",
+      "rarity": "MYTHIC",
       "size": "MEDIUM",
       "silhouette": "등뼈 톱니 11개·비대칭 번개꼬리",
-      "gameStatus": "CONCEPT_NO_ART",
+      "gameStatus": "LIVE",
       "behavior": "electric_chain_reversal",
       "captureMechanic": "감전 후 연속 역방향 대시",
-      "imagePath": null,
-      "countsToward1600FishGoal": false
+      "imagePath": "assets/special-creatures/S015.png",
+      "countsToward1600FishGoal": false,
+      "artSourceArchive": "special-creature-import-batch-002.zip",
+      "assetSha256": "cdd94e66e301c350ee46fe8ee2862b3408eb1e9def29523e452a85b967bbaa5c"
     },
     {
       "id": "S016",
@@ -241,11 +265,13 @@
       "rarity": "MYTHIC",
       "size": "MEDIUM",
       "silhouette": "넓은 원반 우산·별자리 같은 점상 기관",
-      "gameStatus": "CONCEPT_NO_ART",
+      "gameStatus": "LIVE",
       "behavior": "slow_orbit_many_circles",
       "captureMechanic": "중심을 공전하며 반경 밖으로 탈출",
-      "imagePath": null,
-      "countsToward1600FishGoal": false
+      "imagePath": "assets/special-creatures/S016.png",
+      "countsToward1600FishGoal": false,
+      "artSourceArchive": "special-creature-import-batch-002.zip",
+      "assetSha256": "9d47c033cacf9a5b8ca03d094c2f5c9348a2927623bbbf7abe94500673730099"
     },
     {
       "id": "S017",
@@ -254,14 +280,16 @@
       "origin": "ORIGINAL_FICTIONAL",
       "clade": "FANTASY",
       "habitat": 6,
-      "rarity": "EPIC",
+      "rarity": "MYTHIC",
       "size": "LARGE",
       "silhouette": "4겹 산호갑각·큰 타원 앞지느러미",
-      "gameStatus": "CONCEPT_NO_ART",
+      "gameStatus": "LIVE",
       "behavior": "armor_fold_charge",
       "captureMechanic": "평상시 방어, 갑각 열릴 때 포획",
-      "imagePath": null,
-      "countsToward1600FishGoal": false
+      "imagePath": "assets/special-creatures/S017.png",
+      "countsToward1600FishGoal": false,
+      "artSourceArchive": "special-creature-import-batch-002.zip",
+      "assetSha256": "2876b611aebd3eb54ba170708f83767aa1b6425ae2fdf54e4ff8b4cfb2b3622c"
     },
     {
       "id": "S018",
@@ -377,7 +405,7 @@
     }
   ],
   "artReadyButNotLive": 0,
-  "plannedWithoutArt": 23,
+  "plannedWithoutArt": 11,
   "contentGoal": 24,
-  "liveCount": 1
+  "liveCount": 13
 }
