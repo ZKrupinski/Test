@@ -18,7 +18,7 @@ for(const asset of manifest.assets){
  assert.equal(buf.readUInt32BE(20),asset.height);
  assert.equal(crypto.createHash('sha256').update(buf).digest('hex'),asset.sha256);
 }
-assert.ok(game.includes('water-fx.js?v=20261110-waterfx-b4'));
+assert.ok(game.includes('water-fx.js?v=20261110-waterfx-b5'));
 const srcInline=game.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
 assert.ok(srcInline,'Main game script not found');new vm.Script(srcInline);
 assert.ok(game.includes('waterFx.ambient(ctx,time,WATER_SURFACE_Y,W,H)'));
@@ -86,8 +86,18 @@ assert.ok(fx);
  fx.emit('release',650,430,3.5,293);
  fx.drawEvents(ctx,3.6,293,1280,720);
  assert.ok(frameCalls.length>4,'Bitmap splash and bubbles did not draw');
+ draws.length=0;
  fx.current(ctx,3.6,650,430,293,70,2,3,3);
+ const currents=draws.filter(d=>d.args[0].path.includes('water_current'));
+ assert.equal(currents.length,1,'Only one current effect may draw, without faint side duplicates');
+ assert.equal(currents[0].x,650,'Current must be centered horizontally on the octopus/bait');
+ assert.equal(currents[0].y,430,'Current must be centered vertically on the octopus/bait');
+ draws.length=0;
  fx.fever(ctx,3.6,{x:650,y:420,radius:100,elapsed:.2,suctionEnd:1.1},293);
+ const feverCurrents=draws.filter(d=>d.args[0].path.includes('water_current'));
+ assert.equal(feverCurrents.length,1,'Fever octopus must have one centered current accent only');
+ assert.equal(feverCurrents[0].x,650,'Fever accent must sit at octopus center X');
+ assert.equal(feverCurrents[0].y,420,'Fever accent must sit at octopus center Y');
  fx.observeLure(4,630,350,293,true);
  fx.observeLure(4.3,630,267,293,true);
  assert.ok(fx.pendingEvents>0);

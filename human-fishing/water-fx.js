@@ -4,7 +4,7 @@
  */
 (function(root){
  'use strict';
- var version='20261110-waterfx-b4',base='./assets/water-fx/';
+ var version='20261110-waterfx-b5',base='./assets/water-fx/';
  var specs={
   surface:['water_surface_8f.png',4,2],
   splash:['water_splash_8f.png',4,2],
@@ -167,13 +167,12 @@
   var opacity=Math.min(fadeIn,fadeOut);
   if(opacity<=0)return;
   ctx.save();ctx.beginPath();ctx.rect(0,waterY+6,1280,720-waterY-6);ctx.clip();
-  var sign=vx<0?-1:1,frame=Math.floor(now*9)%8;
-  atlas(ctx,'current',frame,bobX+sign*34,bobY,180,98,.54*opacity,(Math.atan2(vy,vx||1))*.16);
-  // The drifting current has secondary vortices spread across the water.
-  for(var i=0;i<3;i++){
-   var x=(bobX+(i-1)*240+1280)%1280,y=Math.max(waterY+32,bobY+(i-1)*37);
-   atlas(ctx,'current',frame+i*2,x,y,230,95,.17*opacity,0);
-  }
+  // One bitmap current centered exactly on the moving octopus/bait.
+  // No faint repeated currents on either side; Fever owns its own single
+  // centered suction accent in fever().
+  var frame=Math.floor(now*9)%8;
+  atlas(ctx,'current',frame,bobX,bobY,180,98,.54*opacity,
+   (Math.atan2(vy,vx||1))*.16);
   ctx.restore();
  }
  function fever(ctx,now,fx,waterY){
