@@ -469,7 +469,7 @@ function createBubble(){bubbles.push({x:rnd(10,1280),y:730,r:rnd(2,8),speed:rnd(
 function spawnParticles(x,y,n,kind){for(var i=0;i<n;i++)particles.push({x:x,y:y,vx:rnd(-5,5),vy:rnd(-6,1),life:1,size:rnd(2,7),kind:kind})}
 function ripple(x,y){
  // Bitmap water ripple, never a vector ellipse.
- if(waterFx)waterFx.emit(y<=WATER_SURFACE_Y+20?'entry':'release',x,y,time,WATER_SURFACE_Y);
+ if(typeof waterFx!=='undefined'&&waterFx)waterFx.emit(y<=WATER_SURFACE_Y+20?'entry':'release',x,y,time,WATER_SURFACE_Y);
 }
 function announce(icon,title,sub){$('bannerIcon').textContent=icon;$('bannerTitle').textContent=title;$('bannerSub').textContent=sub;$('banner').classList.add('visible');bannerTimer=2.2}
 // CC0 physical Foley bus: no synthesized oscillator or digital beeps.
@@ -1183,7 +1183,7 @@ function release(){
  if(hook||view!=='fish')return;
  var found=nearest();ripple(bob.x,bob.y);
  if(found){
-  if(waterFx)waterFx.emit('bite',bob.x,bob.y,time,WATER_SURFACE_Y);
+  if(typeof waterFx!=='undefined'&&waterFx)waterFx.emit('bite',bob.x,bob.y,time,WATER_SURFACE_Y);
   hook={obj:found.obj,kind:found.kind,elapsed:0,startX:found.obj.x,startY:found.obj.y,originX:bob.x,originY:bob.y};
   $('hintTitle').textContent=found.kind==='human'?(humanTier(found.obj.id)+' 인간이 낚싯줄에 걸렸어!'):'물고기 입질 성공!';
   $('hint').textContent=found.kind==='human'?'엘리트는 격렬하게 저항하지만 자동으로 끌려옵니다.':'낚싯줄이 당겨지며 자동으로 올라옵니다.';
@@ -1204,7 +1204,7 @@ function release(){
   }
   playFoley(scared?'panic':'miss');
   spawnParticles(bob.x,bob.y,scared?14:8,'water');
-  if(waterFx)waterFx.emit('miss',bob.x,bob.y,time,WATER_SURFACE_Y);
+  if(typeof waterFx!=='undefined'&&waterFx)waterFx.emit('miss',bob.x,bob.y,time,WATER_SURFACE_Y);
   beginMissReturn();
  }
 }
@@ -2200,7 +2200,7 @@ function castMotion(dt){
   bob.x=cast.sinkX;bob.y=cast.sinkY;
   ripple(cast.impactX,surface);
   spawnParticles(cast.impactX,surface,24,'water');
-  if(waterFx)waterFx.emit('entry',cast.impactX,surface,time,WATER_SURFACE_Y);
+  if(typeof waterFx!=='undefined'&&waterFx)waterFx.emit('entry',cast.impactX,surface,time,WATER_SURFACE_Y);
   vibrationPulse('splash');
   $('hintTitle').textContent='입수! 바로 조작 가능';
   $('hint').textContent='조이스틱을 움직이고 손을 떼면 물고기를 낚습니다.';
@@ -3361,7 +3361,7 @@ function tick(stamp){
  if(view==='tank')drawingTank(time);
  else{
   sea(false);coral(time);
-  if(waterFx)waterFx.ambient(ctx,time,WATER_SURFACE_Y,W,H);
+  if(typeof waterFx!=='undefined'&&waterFx)waterFx.ambient(ctx,time,WATER_SURFACE_Y,W,H);
   updateEcosystem(dt);
   if(view==='fish'){
    castMotion(dt);
@@ -3405,7 +3405,7 @@ function tick(stamp){
    updateWaterCurrent(dt);
    updateLureHang(time,rodTip(time),lureLineAnchor());
    checkBaitBrush();checkBaitWeakspot();
-   if(waterFx)waterFx.observeLure(time,bob.x,bob.y,WATER_SURFACE_Y,true);
+   if(typeof waterFx!=='undefined'&&waterFx)waterFx.observeLure(time,bob.x,bob.y,WATER_SURFACE_Y,true);
   }
   // 1) Advance lure and hooked-fish WORLD positions before any rendering.
   // This keeps the bitmap lure and the reel path synchronized to the same frame.
@@ -3475,7 +3475,7 @@ function tick(stamp){
   // layer: above player/rod/line and BELOW every swimming or hooked fish.
   if(view==='fish'&&!introEntrance.active&&feverFx){
    drawFeverFx(dt);
-   if(waterFx)waterFx.fever(ctx,time,feverFx,WATER_SURFACE_Y);
+   if(typeof waterFx!=='undefined'&&waterFx)waterFx.fever(ctx,time,feverFx,WATER_SURFACE_Y);
   }
   // Explicit foreground-over-PLAYER bait layer (do not merge with the
   // protagonist/rod draw group). This must stay AFTER the last drawOcto,
@@ -3484,7 +3484,7 @@ function tick(stamp){
   if(view==='fish'&&!introEntrance.active&&(!feverFx||lureRecovery.active)){
    drawBaitAbovePlayer(time);
   }
-  if(view==='fish'&&!introEntrance.active&&waterCurrent.active&&waterFx)
+  if(view==='fish'&&!introEntrance.active&&waterCurrent.active&&typeof waterFx!=='undefined'&&waterFx)
    waterFx.current(ctx,time,bob.x,bob.y,WATER_SURFACE_Y,
     waterCurrent.vx,waterCurrent.vy,waterCurrent.duration,waterCurrent.start);
   // 3) Draw all ambient creatures IN FRONT of the ordinary lure. The
@@ -3534,7 +3534,7 @@ function tick(stamp){
  if(view==='fish'&&!introEntrance.active&&feverFx)
   drawFeverSuctionParticles(feverFx,time);
  // Foreground animated surface over protagonist, subtle gradient underwater.
- if(waterFx&&(view==='fish'||view==='tank')){
+ if(typeof waterFx!=='undefined'&&waterFx&&(view==='fish'||view==='tank')){
   waterFx.drawEvents(ctx,time,WATER_SURFACE_Y,W,H);
   waterFx.surface(ctx,time,WATER_SURFACE_Y,W);
  }
@@ -4996,7 +4996,7 @@ function drawEscapeFx(dt){
  if(!fx.splash&&pose.y>=WATER_SURFACE_Y+4&&fx.lastWasAboveWater!==false){
   fx.splash=true;playFoley('escapeSplash');
   ripple(pose.x,WATER_SURFACE_Y+4);spawnParticles(pose.x,WATER_SURFACE_Y+4,20,'water');
-  if(waterFx)waterFx.emit('escape',pose.x,WATER_SURFACE_Y+4,time,WATER_SURFACE_Y);
+  if(typeof waterFx!=='undefined'&&waterFx)waterFx.emit('escape',pose.x,WATER_SURFACE_Y+4,time,WATER_SURFACE_Y);
  }
  fx.lastWasAboveWater=pose.y<WATER_SURFACE_Y+4;
  ctx.save();ctx.translate(pose.x,pose.y);
@@ -5772,7 +5772,7 @@ function activateOctoFever(){
   swallowSpacing:swallowSpacing,reelProgress:0,reelFrame:0,reeling:false
  };
  feverFx.surfaceAt=feverSurfaceTime(feverFx,time);
- if(waterFx)waterFx.emit('fever',center.x,center.y,time,WATER_SURFACE_Y);
+ if(typeof waterFx!=='undefined'&&waterFx)waterFx.emit('fever',center.x,center.y,time,WATER_SURFACE_Y);
  $('hintTitle').textContent='🐙 피버! '+targets.length+'마리 함께 끌어올리는 중';
  $('hint').textContent='주변 물고기를 미끼 주위로 모아 함께 끌어올립니다.';
 }
@@ -6211,7 +6211,7 @@ loadRemainingPlayerAtlases();
 if(window.octoSidekicksStartFullLoad)window.octoSidekicksStartFullLoad();
 if(window.HumanFishingArt)window.HumanFishingArt.primeHabitat(zone,species);
 function beginLoadedGame(){
- if(waterFx&&!waterFx.ready){waterFx.preload().then(beginLoadedGame);return;}
+ if(typeof waterFx!=='undefined'&&waterFx&&!waterFx.ready){waterFx.preload().then(beginLoadedGame);return;}
  if(window.HumanFishingFoley)window.HumanFishingFoley.unlock();
  document.querySelectorAll('[inert]').forEach(function(el){el.removeAttribute('inert');});
  last=performance.now();requestAnimationFrame(tick);
