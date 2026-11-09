@@ -3473,10 +3473,9 @@ function tick(stamp){
   if(view==='fish'&&!introEntrance.active)drawLine();
   // New bitmapped OCTO FEVER bait shares the exact ordinary bait middle
   // layer: above player/rod/line and BELOW every swimming or hooked fish.
-  if(view==='fish'&&!introEntrance.active&&feverFx){
-   drawFeverFx(dt);
-   if(typeof waterFx!=='undefined'&&waterFx)waterFx.fever(ctx,time,feverFx,WATER_SURFACE_Y);
-  }
+  if(view==='fish'&&!introEntrance.active&&feverFx)drawFeverFx(dt);
+  if(view==='fish'&&!introEntrance.active&&feverFx&&
+    typeof waterFx!=='undefined'&&waterFx)waterFx.fever(ctx,time,feverFx,WATER_SURFACE_Y);
   // Explicit foreground-over-PLAYER bait layer (do not merge with the
   // protagonist/rod draw group). This must stay AFTER the last drawOcto,
   // drawRod and drawLine call but BEFORE swimming and singly hooked fish.
