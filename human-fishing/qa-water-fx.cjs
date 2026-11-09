@@ -18,7 +18,7 @@ for(const asset of manifest.assets){
  assert.equal(buf.readUInt32BE(20),asset.height);
  assert.equal(crypto.createHash('sha256').update(buf).digest('hex'),asset.sha256);
 }
-assert.ok(game.includes('water-fx.js?v=20261110-waterfx-b3'));
+assert.ok(game.includes('water-fx.js?v=20261110-waterfx-b4'));
 const srcInline=game.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
 assert.ok(srcInline,'Main game script not found');new vm.Script(srcInline);
 assert.ok(game.includes('waterFx.ambient(ctx,time,WATER_SURFACE_Y,W,H)'));
@@ -68,12 +68,16 @@ assert.ok(fx);
    draws.length=0;fx.drawEvents(ctx,10+age,293,1280,720);
    const crowns=draws.filter(d=>d.args[0].path.includes('water_splash')&&d.args[8]>27);
    assert.ok(crowns.length>0);
-   assert.ok(crowns.every(d=>Math.abs(d.y+d.args[8]/2-301)<1e-6),'Splash fans must anchor to the exact surface sprite band center');
+   assert.ok(crowns.every(d=>Math.abs(d.y+d.args[8]/2-313)<1e-6),'Half-size splash origins must overlap the foreground surface wave at waterY+20');
+   assert.ok(crowns.every(d=>d.args[7]<=160&&d.args[8]<=71),'Entry and exit crowns should be approximately 50% of original dimensions');
    anchors.push(crowns.map(d=>[d.y,d.args[8]]));
    if(kind==='exit')assert.equal(crowns.length,3,'Exit uses three staggered fountain fans');
   }
   assert.deepEqual(anchors[1],anchors[0],kind+' splash must not jump vertically between frames');
   assert.deepEqual(anchors[2],anchors[0],kind+' splash must not shrink or hop vertically on fade');
+  fx.clear();fx.emit(kind,640,293,10,293);
+  fx.drawEvents(ctx,10+(kind==='entry'?.81:1.01),293,1280,720);
+  assert.equal(fx.pendingEvents,0,kind+' animation should finish faster');
  }
  fx.drawEvents(ctx,12,293,1280,720);assert.equal(fx.pendingEvents,0,'Effects must expire');
  fx.clear();draws.length=0;

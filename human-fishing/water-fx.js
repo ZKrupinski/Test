@@ -4,7 +4,7 @@
  */
 (function(root){
  'use strict';
- var version='20261110-waterfx-b3',base='./assets/water-fx/';
+ var version='20261110-waterfx-b4',base='./assets/water-fx/';
  var specs={
   surface:['water_surface_8f.png',4,2],
   splash:['water_splash_8f.png',4,2],
@@ -99,31 +99,32 @@
   if(!events.length)return;
   for(var i=events.length-1;i>=0;i--){
    var e=events[i],age=Math.max(0,now-e.start),kind=e.type;
-   var duration=kind==='exit'?1.18:kind==='entry'?.94:kind==='miss'?.68:kind==='current'?.8:kind==='release'?.42:kind==='bite'?.46:kind==='fever'?.72:.82;
+   var duration=kind==='exit'?1.0:kind==='entry'?.8:kind==='miss'?.68:kind==='current'?.8:kind==='release'?.42:kind==='bite'?.46:kind==='fever'?.72:.82;
    if(age>=duration){events.splice(i,1);continue}
    var p=clamp01(age/duration),alpha=(1-fade((p-.58)/.42));
    if(kind==='entry'||kind==='exit'||kind==='escape'){
     var line=Number.isFinite(e.waterY)?e.waterY:waterY;
-    var exit=kind==='exit',scale=kind==='escape'?1.22:1;
-    // Water surface sprite band spans waterY-28 .. waterY+44; anchor every splash
-    // to its exact visual center, waterY+8. Keep fixed vertical size/position.
-    var surfaceLine=line+8;
+    var exit=kind==='exit',crossing=kind==='entry'||exit,scale=kind==='escape'?1.22:.5;
+    // Surface bitmap spans waterY-28 .. waterY+44. Lower entry/exit origins
+    // into its opaque front band (waterY+20); hold this bottom pivot fixed
+    // between sprite frames. Escape feedback retains its previous anchor/size.
+    var surfaceLine=line+(crossing?20:8);
     ctx.save();ctx.beginPath();ctx.rect(0,0,width,Math.max(0,surfaceLine+3));ctx.clip();
     if(exit){
      // Reuse the approved crown in three staggered fans instead of a new atlas.
      for(var wing=-1;wing<=1;wing++){
-      var q=clamp01((age-Math.abs(wing)*.065)/.86);
-      var w=(242+76*q)*(wing===0?1:.78),h=142*(wing===0?1:.78);
-      var x=e.x+wing*(20+66*Math.sin(q*PI*.7));
+      var q=clamp01((age-Math.abs(wing)*.055)/.73);
+      var w=.5*(242+76*q)*(wing===0?1:.78),h=.5*142*(wing===0?1:.78);
+      var x=e.x+wing*.5*(20+66*Math.sin(q*PI*.7));
       atlas(ctx,'splash',Math.min(7,Math.floor(q*8)),x,surfaceLine-h*.5,
        w,h,(wing===0?.98:.68)*(1-fade((q-.58)/.42)),0);
      }
      // Existing bubble PNGs become ballistic spray, then fall back to the surface.
      for(var drop=0;drop<10;drop++){
       var seed=e.seed+drop*1.73,t=age,dir=drop%2?-1:1;
-      var dx=e.x+dir*(24+(45+55*hash(seed))*t);
-      var dy=line-12-(190+100*hash(seed+2))*t+310*t*t;
-      var ds=9+9*hash(seed+4);
+      var dx=e.x+dir*.5*(24+(45+55*hash(seed))*t);
+      var dy=surfaceLine-6-(95+50*hash(seed+2))*t+155*t*t;
+      var ds=.5*(9+9*hash(seed+4));
       if(dy+ds<surfaceLine+3)atlas(ctx,'bubbles',drop%16,dx,dy,ds*.72,ds*1.22,.78*alpha,0);
      }
     }else{
@@ -136,7 +137,7 @@
     if(p>.42){
      var r=(p-.42)/.58;
      atlas(ctx,'splash',5+Math.min(2,Math.floor(r*3)),e.x,surfaceLine,
-      (exit?250:154)*(1+r*.65),20,.58*Math.sin(r*PI),0);
+      (exit?250:154)*(crossing?.5:1)*(1+r*.65),20*(crossing?.5:1),.58*Math.sin(r*PI),0);
     }
    }else{
     var d=kind==='fever'?245:kind==='miss'?140:kind==='bite'?114:103;
