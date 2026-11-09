@@ -38,7 +38,7 @@ assert.equal(mirror('F240'),true);
 assert.equal(mirror('F304'),true);
 assert.equal(mirror('F306'),true);
 assert.equal(mirror('F314'),true);
-assert.equal(mirror('F315'),false,'Sawfish F315 already faces left');
+assert.equal(mirror('F315'),true,'Sawfish F315 master has head and toothed snout on the right');
 assert.equal(mirror('F316'),true);
 assert.equal(mirror('F341'),true);
 assert.equal(mirror('F365'),true);
@@ -63,7 +63,7 @@ const trophy=id=>sandbox.catchShowcaseCard({sp:{id},name:'fish',size:'large',qua
 assert.match(trophy('F373'),/class="fish-ui-art fish-ui-mirror"/);
 assert.match(trophy('F377'),/class="fish-ui-art fish-ui-mirror"/);
 assert.match(trophy('S008'),/class="fish-ui-art fish-ui-mirror"/);
-assert.doesNotMatch(trophy('F315'),/fish-ui-mirror/);
+assert.match(trophy('F315'),/fish-ui-mirror/);
 assert.doesNotMatch(trophy('F379'),/fish-ui-mirror/);
 assert.equal((inline.match(/fishUiMirrorSource\(/g)||[]).length,3,'Only two UI call sites, not gameplay');
 console.log('PASS: all 389 PNGs hash-bound; codex, locked silhouettes, solo/Fever/aquarium catch cards face left; new art must be registered.');
