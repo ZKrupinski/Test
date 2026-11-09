@@ -66,7 +66,10 @@
    if(Date.now()-startedAt>30000){failure(active.filter(function(im){return decoded.get(im)!==source(im);}));return;}
    if(done.length===active.length){
     var decodeFailed=[];
-    await Promise.all(active.map(async function(im){
+    // Bound decoding work: hundreds of simultaneous PNG decodes can exhaust
+    // mobile memory or expire together even after every download succeeds.
+    for(var offset=0;offset<active.length;offset+=4){
+     await Promise.all(active.slice(offset,offset+4).map(async function(im){
      var src=source(im);if(decoded.get(im)===src)return;
      try{
       // A broken decode must not leave the loading screen waiting forever.
@@ -78,6 +81,8 @@
       if(source(im)===src)decoded.set(im,src);
      }catch(e){decodeFailed.push(im);}
     }));
+     if(token!==generation)return;
+    }
     if(token!==generation)return;
     if(decodeFailed.length){failure(decodeFailed);return;}
     var current=activeImages();
