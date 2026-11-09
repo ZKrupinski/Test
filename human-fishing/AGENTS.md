@@ -14,3 +14,8 @@
 추가 어종 제작은 [FISH_ART_PRODUCTION_PLAN.md](FISH_ART_PRODUCTION_PLAN.md)와 [fish-art-next-work-queue.json](fish-art-next-work-queue.json)을 확인한다. 기존 제작/설치 기록과 학명으로 대조하고, 미검증 지역·크기를 확정값으로 사용하지 않는다. art-review의 원화는 검토용이며 LIVE 이미지로 취급하지 않는다.
 
 11차 신규 어종 F373–F378 6종은 원본 검증 후 게임에 설치됨. F376·F377·F378의 해부학적 정확성은 후속 재검토 대상.
+
+## 도감·획득창 원화 방향 (모든 신규 추가분 필수)
+- 모든 **물고기·방향성 특수 생물의 머리**는 도감(미획득 실루엣 포함)과 획득창(일반·피버·수족관)에서 왼쪽으로 통일. 월드 수영 애니메이션·원본 PNG는 변경 금지.
+- 새 PNG 설치 전 머리의 실제 좌/우/정면을 판정해 `fish-ui-facing-registry.js`에 ID, R/L/N, 원본 SHA-256을 추가. ID 숫자 범위로 방향을 추측하지 않는다.
+- `node human-fishing/qa-fish-ui-heading.cjs`가 전체 원화 해시/등록 누락 및 도감·획득창 예외를 검사한다. 추가 작업 시 `tools/UPLOAD_DEPLOY_GUIDE.md`의 머리 방향 표준을 따른다.
