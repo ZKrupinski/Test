@@ -149,4 +149,33 @@ assert.match(source,/showCatchShowcase\(\[human\?catchShowcaseHuman/,
  'Regular single catch must show showcase at the swallow-success moment');
 assert.doesNotMatch(root.innerHTML,/data:image\/svg\+xml|<svg/,
  'No vector or generated image substituted for original PNG art');
-console.log('PASS: captured fish text right-aligned, unchanged art/position, chest/NEW rewards reduced to 0.76, Fever ticks and tail softened.');
+
+// Regression: prize DOM must not survive after the visible animation ends.
+// Expired CSS-hidden children would otherwise restart when a panel toggled.
+sandbox.time=20;
+sandbox.showCatchShowcase([prize],false);
+assert.ok(root.innerHTML.includes('홍염 금붕어'));
+sandbox.time=22.36;sandbox.updateCatchShowcaseAudio();
+assert.equal(root.innerHTML,'','Solo reward must be removed at the end of its 2.35s animation');
+assert.equal(sandbox.catchShowcaseExpiresAt,-1,'Expired reward must reset its timer');
+sandbox.time=30;
+sandbox.showCatchShowcase(batch,true);
+assert.ok(root.innerHTML.includes('다랑어'));
+sandbox.time=31.70;sandbox.updateCatchShowcaseAudio();
+assert.equal(root.innerHTML,'','Fever rewards must also expire after their last staggered card');
+sandbox.time=40;
+sandbox.showCatchShowcase([prize],false);
+sandbox.showCatchShowcase([],true);
+assert.equal(root.innerHTML,'','Zero confirmed Fever catches cannot leave old species visible');
+sandbox.time=50;
+sandbox.showCatchShowcase([prize],false);
+sandbox.stopCatchShowcase();
+assert.equal(root.innerHTML,'','Starting a new gesture or failed attempt must clear the previous trophy');
+assert.match(source,/function onBaitPointerDown\(e\)\{[\s\S]*?stopCatchShowcase\(\);[\s\S]*?joystick\.active=true/,
+ 'Starting a new active bait gesture must erase stale trophies');
+assert.match(source,/release=function\(\)\{[\s\S]*?stopCatchShowcase\(\);[\s\S]*?if\(save\.fever\.ready\)/,
+ 'A new release, including failure, must erase any previous trophy');
+const brushBody=source.slice(source.indexOf('function checkBaitBrush(){'),source.indexOf('// The weakspot uses'));
+assert.doesNotMatch(brushBody,/showCatchShowcase|save\.owned\[/,
+ 'Brushing a fish is haptic-only feedback; it must not award or display a species');
+console.log('PASS: trophy cards expire and clear across new attempts, misses and empty Fever; brushes cannot award fish.');

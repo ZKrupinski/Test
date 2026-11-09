@@ -2240,7 +2240,8 @@ function onBaitPointerDown(e){
  // Once started, moving the finger anywhere remains valid for all directions.
  // Mouse behavior remains unchanged for desktop play.
  if((e.pointerType==='touch'||e.pointerType==='pen')&&p.y<H*.5)return;
-
+ // New bait contact is not a new catch; retire any previous catch card.
+ stopCatchShowcase();
  if(cast.sinkActive)cast.sinkActive=false;
  joystick.active=true;joystick.id=e.pointerId;joystick.x=p.x;joystick.y=p.y;
  playFoley('lureGrab',.8);
@@ -3770,20 +3771,27 @@ function catchShowcaseCard(item,fever,index){
   '<span class="size-label">SIZE</span> <b>'+size+'</b>'+extra+sale+
   '</div></div></div>';
 }
-var catchShowcaseSequence=null;
+var catchShowcaseSequence=null,catchShowcaseExpiresAt=-1;
 function stopCatchShowcase(){
- catchShowcaseSequence=null;
+ catchShowcaseSequence=null;catchShowcaseExpiresAt=-1;
  var root=$('catchShowcase');
  if(root)root.innerHTML='';
 }
 function updateCatchShowcaseAudio(){
+ // CSS opacity alone leaves expired prize images in the DOM; toggling an
+ // ancestor display state can replay their animation on an unrelated fish.
+ // Expire the actual nodes even after the prize audio has finished.
+ if(catchShowcaseExpiresAt>=0&&
+    (time>=catchShowcaseExpiresAt||view!=='fish'||
+     $('panel').classList.contains('open')||
+     $('sideinfo').classList.contains('show')||
+     $('motionTunePanel').classList.contains('visible')||
+     $('rodTunePanel').classList.contains('visible')||
+     $('banner').classList.contains('visible'))){
+  stopCatchShowcase();return;
+ }
  var seq=catchShowcaseSequence;
  if(!seq)return;
- if(view!=='fish'||$('panel').classList.contains('open')||
-    $('motionTunePanel').classList.contains('visible')||
-    $('rodTunePanel').classList.contains('visible')){
-  catchShowcaseSequence=null;return;
- }
  if(seq.next<seq.total&&time>=seq.nextAt){
   var i=seq.next++;
   // One distinct dry acoustic pluck per individual Fever trophy.
@@ -3797,11 +3805,15 @@ function updateCatchShowcaseAudio(){
 }
 function showCatchShowcase(items,fever){
  var root=$('catchShowcase');
- if(!root||!items||!items.length)return;
- if(view!=='fish'||$('panel').classList.contains('open'))return;
+ if(!root)return;
+ // An unsuccessful Fever lift must never retain a previous caught species.
+ if(!items||!items.length){stopCatchShowcase();return}
+ if(view!=='fish'||$('panel').classList.contains('open')){stopCatchShowcase();return}
  var shown=items.filter(Boolean).slice(0,36);
- if(!shown.length)return;
+ if(!shown.length){stopCatchShowcase();return}
  catchShowcaseSequence=null;
+ // Exact CSS durations: normal 2.35s, Fever .65s + .52s per stagger.
+ catchShowcaseExpiresAt=time+(fever?(shown.length-1)*.52+.65:2.35);
  root.innerHTML=shown.map(function(item,i){
   return catchShowcaseCard(item,!!fever,i);
  }).join('');
@@ -5040,6 +5052,8 @@ function drawEscapeFx(dt){
 var oldReleaseForDifficulty=release;
 release=function(){
  if(view!=='fish'||hook||cast.active||feverFx||escapeFx||octoGroggy>0||lureRecovery.active)return;
+ // Every new attempt, including misses and automatic fishing, clears stale UI.
+ stopCatchShowcase();
  if(save.fever.ready){activateOctoFever();return}
  // A fast one-shot opening/closing of the EXISTING red octopus PNG sheet
  // fires on every ordinary release, even if the fish was missed.
