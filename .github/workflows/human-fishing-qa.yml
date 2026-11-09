@@ -98,3 +98,33 @@ jobs:
           python -m pip install -q Pillow
           python human-fishing/scripts/audit_octopus_sheets.py
           python human-fishing/scripts/qa_player_reactions.py
+      - name: Verify latest six uploaded RGBA fish F379-F384 and save-safe catalog
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),assert=require('node:assert/strict'),crypto=require('node:crypto'),vm=require('node:vm');
+          const root='human-fishing/';
+          const manifest=JSON.parse(fs.readFileSync(root+'assets/fish-expansion-012/installed-manifest.json','utf8'));
+          const expected=['F379','F380','F381','F382','F383','F384'];
+          assert.deepEqual(manifest.species.map(x=>x.gameId),expected);
+          assert.equal(manifest.count,6);
+          assert.equal(manifest.originalPixelsPreserved,true);
+          assert.equal(fs.readFileSync(root+'assets/fish-expansion-012/ready.js','utf8').trim(),'window.HumanFishingFishExpansion012Ready=true;');
+          const env={window:{HumanFishingFishExpansion012Ready:true}};
+          vm.runInNewContext(fs.readFileSync(root+'fish-expansion-catalog-012.js','utf8'),env);
+          const species=[];
+          env.window.HumanFishingFishExpansion012.extend(species);
+          env.window.HumanFishingFishExpansion012.extend(species);
+          assert.equal(species.length,6);
+          assert.equal(new Set(species.map(x=>x.scientificName)).size,6);
+          assert.equal(new Set(species.map(x=>x.name)).size,6);
+          for(const r of manifest.species){
+            assert.equal(crypto.createHash('sha256').update(fs.readFileSync(root+r.installedPath)).digest('hex'),r.sha256);
+            assert.equal(species.find(x=>x.id===r.gameId).habitat,r.habitat);
+            assert.equal(species.find(x=>x.id===r.gameId).rarity,r.rarity);
+          }
+          const html=fs.readFileSync(root+'index.html','utf8');
+          assert.ok(html.includes('HumanFishingFishExpansion012.extend(species)'));
+          assert.ok(html.includes('fish-expansion-catalog-012.js'));
+          assert.ok(fs.existsSync(root+'assets/fish/individual/F378.png'),'Existing F378 sprite not retained');
+          console.log('PASS F379-F384 unique original sprites, hash, codex/habitat, save compatibility');
+          NODE
