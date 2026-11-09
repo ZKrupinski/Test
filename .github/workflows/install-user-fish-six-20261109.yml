@@ -1,0 +1,146 @@
+name: Install six uploaded fish originals (F379-F384)
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/install-user-fish-six-20261109.yml"
+      - "human_fishing_six_fish_originals.zip"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: human-fishing-user-six-20261109
+  cancel-in-progress: false
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify uploaded original RGBA fish and integrate game, collection and habitat
+        shell: bash
+        run: |
+          python3 -m pip -q install Pillow
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import hashlib,json,zipfile,io
+          root=Path('human-fishing')
+          archive=Path('human_fishing_six_fish_originals.zip')
+          assert archive.is_file(),'Missing six fish ZIP at repository root'
+          assert hashlib.sha256(archive.read_bytes()).hexdigest()=='448c4bcba4f8d8e31ce4765869a864832a4735f02b703e1c4d0f2063135236e9','ZIP checksum differs from user upload'
+          sprites=[
+          dict(id='F379',source='fish_01_29746.png',sha256='cf77e11b8d355d45433b741cac22c7bc7121b55dd3379bac3b2e38937cd0d496',name='유럽농어',scientificName='Dicentrarchus labrax',family='Moronidae',habitat=8,size='MEDIUM',rarity='UNCOMMON',level=38,region='북동대서양·지중해 온대 연안',mode='cruise',speed=1.08,swim=0.78,agility=1.12,turn=8,archetype='european_seabass_coastal_patrol'),
+          dict(id='F380',source='fish_02_29747.png',sha256='7227398dd8e66b07220c92b1aa327c6ce1e3d89d467389a46c846f9cb95c4db0',name='양머리돔',scientificName='Archosargus probatocephalus',family='Sparidae',habitat=8,size='MEDIUM',rarity='RARE',level=47,region='서대서양 암초·연안',mode='wander',speed=0.84,swim=0.9,agility=0.86,turn=11,archetype='sheepshead_reef_hover_nip'),
+          dict(id='F381',source='fish_03_29748.png',sha256='75a0334b94e2898bda31d2ea698d929ebac16885df96808ebe37feb6a36c72ae',name='캘리포니아방어',scientificName='Seriola dorsalis',family='Carangidae',habitat=9,size='LARGE',rarity='RARE',level=58,region='동태평양 외양·연안',mode='dart',speed=1.44,swim=0.55,agility=1.38,turn=7,archetype='california_yellowtail_pelagic_chase'),
+          dict(id='F382',source='fish_04_29749.png',sha256='af2ef626fc90e1003b7dbc0bede1c6ab6ed5c9ec868506e76ad1f38fc0afc90e',name='대서양대구',scientificName='Gadus morhua',family='Gadidae',habitat=11,size='LARGE',rarity='RARE',level=56,region='북대서양 냉수·대륙붕',mode='wander',speed=0.74,swim=0.64,agility=0.73,turn=13,archetype='atlantic_cod_cold_bottom_graze'),
+          dict(id='F383',source='fish_05_29750.png',sha256='dc31e66f38c1842dc3a1bd9e4c4e1a250ae29d8e3defc6c11495c650baf17a89',name='청점돔',scientificName='Pagrus caeruleostictus',family='Sparidae',habitat=8,size='MEDIUM',rarity='RARE',level=51,region='동대서양 서아프리카 연안',mode='wander',speed=0.86,swim=0.91,agility=1.04,turn=10,archetype='bluespotted_seabream_reef_roam'),
+          dict(id='F384',source='fish_06_29751.png',sha256='61b7d509ce397150589bb26d674488f3583f62b29137dd213819f2572c592489',name='줄무늬삼치',scientificName='Scomberomorus commerson',family='Scombridae',habitat=9,size='LARGE',rarity='RARE',level=55,region='인도·서태평양 연안·외양',mode='dart',speed=1.58,swim=0.51,agility=1.52,turn=6,archetype='narrowbarred_mackerel_rapid_sprint'),
+          ]
+          ids=[s['id'] for s in sprites]
+          assert ids==['F379','F380','F381','F382','F383','F384']
+          assert len({s['scientificName'].lower() for s in sprites})==6
+          assert len({s['name'] for s in sprites})==6
+          image_dir=root/'assets/fish/individual'
+          for x in sprites: assert not (image_dir/(x['id']+'.png')).exists(),'Never overwrite existing fish '+x['id']
+          assert (root/'assets/fish-expansion-011/ready.js').read_text().strip()=='window.HumanFishingFishExpansion011Ready=true;'
+          assert not (root/'fish-expansion-catalog-012.js').exists()
+          assert not (root/'assets/fish-expansion-012').exists()
+          assert not (root/'assets/fish-expansion-012/installed-manifest.json').exists()
+          current=' '.join(p.read_text() for p in root.glob('fish-expansion-catalog*.js'))+' '+(root/'index.html').read_text()
+          for x in sprites:
+            assert x['scientificName'] not in current,'Existing species conflict: '+x['scientificName']
+          verified={}
+          with zipfile.ZipFile(archive) as z:
+            expected={x['source'] for x in sprites}|{'README.txt'}
+            assert set(z.namelist())==expected and len(z.namelist())==7
+            assert z.testzip() is None
+            for x in sprites:
+              blob=z.read(x['source'])
+              assert hashlib.sha256(blob).hexdigest()==x['sha256'],'Original PNG mismatch: '+x['id']
+              im=Image.open(io.BytesIO(blob));im.load()
+              assert im.format=='PNG' and im.mode=='RGBA' and im.size==(2172,724),'Image format or native size mismatch'
+              a=im.getchannel('A');bbox=a.getbbox()
+              assert bbox is not None and a.getextrema()==(0,255),'Transparent alpha lost'
+              x['width'],x['height'],x['bytes']=im.width,im.height,len(blob)
+              x['alphaBounds']=list(bbox)
+              x['alphaTouchesCanvasEdge']=bbox[0]==0 or bbox[1]==0 or bbox[2]==im.width or bbox[3]==im.height
+              verified[x['id']]=blob
+          def replace_one(s,old,new,label):
+            assert s.count(old)==1,'Unexpected game source for '+label+' ('+str(s.count(old))+')'
+            return s.replace(old,new)
+          index=root/'index.html'
+          idx=index.read_text()
+          old='<script src="./fish-expansion-catalog-011.js?v=20261109-batch011-six"></script>'
+          idx=replace_one(idx,old,old+'\n<script src="./assets/fish-expansion-012/ready.js?v=20261109-user-six"></script>\n<script src="./fish-expansion-catalog-012.js?v=20261109-user-six"></script>','script load')
+          old='if(window.HumanFishingFishExpansion011&&window.HumanFishingFishExpansion011.extend)window.HumanFishingFishExpansion011.extend(species);'
+          idx=replace_one(idx,old,old+'\nif(window.HumanFishingFishExpansion012&&window.HumanFishingFishExpansion012.extend)window.HumanFishingFishExpansion012.extend(species);','collection registration')
+          bmp=root/'fish-bitmap-catalog.js'
+          txt=bmp.read_text()
+          old="Number(id.slice(1))>=373?'20261109-batch011-six':"
+          txt=replace_one(txt,old,"Number(id.slice(1))>=379?'20261109-user-six':"+old,'fish PNG cache')
+          qa=root/'qa-fish-curation.cjs'
+          q=qa.read_text()
+          old="'009','010','011']"
+          q=replace_one(q,old,"'009','010','011','012']", 'bitmap QA allowlist')
+          queuegen=root/'scripts/build_fish_art_work_queue.py'
+          gen=queuegen.read_text()
+          old="    'assets/fish-expansion-011/installed-manifest.json',"
+          gen=replace_one(gen,old,old+"\n    'assets/fish-expansion-012/installed-manifest.json',",'production queue exclusion')
+          # All input validation completed before altering project files.
+          records=[]
+          installed=[]
+          for x in sprites:
+            (image_dir/(x['id']+'.png')).write_bytes(verified[x['id']])
+            beh={'archetype':x['archetype'],'mode':x['mode'],'speedMultiplier':x['speed'],'swimAmpMultiplier':x['swim'],'agilityMultiplier':x['agility'],'turnSeconds':x['turn']}
+            records.append({'id':x['id'],'name':x['name'],'scientificName':x['scientificName'],'family':x['family'],'habitat':x['habitat'],'artSizeClass':x['size'],'rarity':x['rarity'],'level':x['level'],'nativeRegion':x['region'],'regionProvisional':False,'behaviorProfile':beh,'index':18,'expansionSpecies':True,'artBatch':'012'})
+            installed.append({'gameId':x['id'],'nameKo':x['name'],'scientificName':x['scientificName'],'family':x['family'],'habitat':x['habitat'],'artSizeClass':x['size'],'rarity':x['rarity'],'level':x['level'],'nativeRegion':x['region'],'regionProvisional':False,'behaviorProfile':beh,'sha256':x['sha256'],'sourceFilename':x['source'],'filename':x['id']+'.png','installedPath':'assets/fish/individual/'+x['id']+'.png','width':x['width'],'height':x['height'],'bytes':x['bytes'],'alphaBounds':x['alphaBounds'],'alphaTouchesCanvasEdge':x['alphaTouchesCanvasEdge'],'userApprovedArt':True,'imageSourceType':'individual_RGBA','gameStatus':'LIVE','visualReviewFlag':x['alphaTouchesCanvasEdge']})
+          js="/* Six distinct user-uploaded 2172x724 original fish PNG, catalog 012. */\n(function(){'use strict';\nvar enabled=!!window.HumanFishingFishExpansion012Ready,done=false;\nvar records="+json.dumps(records,ensure_ascii=False,separators=(',',':'))+";\nfunction extend(list){if(!enabled||done)return list;records.forEach(function(x){if(list.some(function(y){return y.id===x.id||(y.scientificName&&y.scientificName.toLowerCase()===x.scientificName.toLowerCase())}))return;list.push(Object.assign({},x));});done=true;return list;}\nwindow.HumanFishingFishExpansion012={enabled:enabled,count:enabled?records.length:0,extend:extend,records:records};\n})();\n"
+          (root/'fish-expansion-catalog-012.js').write_text(js)
+          destination=root/'assets/fish-expansion-012'
+          destination.mkdir()
+          (destination/'installed-manifest.json').write_text(json.dumps({'batch':'012','status':'LIVE_INSTALLED_ORIGINALS','source':'human_fishing_six_fish_originals.zip','count':6,'originalPixelsPreserved':True,'allIndividualRgba':True,'existingF001_F378Untouched':True,'gameLiveAdded':6,'species':installed},ensure_ascii=False,indent=2)+'\n')
+          (destination/'ready.js').write_text('window.HumanFishingFishExpansion012Ready=true;\n')
+          index.write_text(idx);bmp.write_text(txt);qa.write_text(q);queuegen.write_text(gen)
+          (root/'FISH_ART_BATCH_012.md').write_text('# 12차 6종 원본 PNG 설치\n\n사용자가 2026-11-09에 업로드한 6개 RGBA 원본을 해상도 변경 없이 F379–F384로 등록했다. 기존 F001–F378은 변경하지 않았다.\n\n'+ '\n'.join('- '+x['id']+' '+x['name']+' ('+x['scientificName']+'), 지역 '+str(x['habitat'])+', '+x['rarity']+', SHA-256 '+x['sha256']+(' [캔버스 가장자리 원화 검토]' if x['alphaTouchesCanvasEdge'] else '') for x in sprites)+'\n')
+          archive.unlink()
+          print('PASS: six exact SHA-256 original RGBA PNGs installed as F379–F384; original 378 sprites preserved')
+          PY
+          python3 human-fishing/scripts/build_fish_art_work_queue.py
+      - name: Validate game and fish catalog before publishing
+        shell: bash
+        run: |
+          node human-fishing/qa-smoke.cjs
+          node human-fishing/qa-fish-curation.cjs
+          node human-fishing/qa-fish-visual-catalog.cjs
+          node human-fishing/qa-fish-production-plan.cjs
+          node - <<'JS'
+          const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+          const base='human-fishing/';
+          const m=JSON.parse(fs.readFileSync(base+'assets/fish-expansion-012/installed-manifest.json'));
+          assert.deepEqual(m.species.map(x=>x.gameId),['F379','F380','F381','F382','F383','F384']);
+          const sandbox={window:{HumanFishingFishExpansion012Ready:true}};
+          vm.runInNewContext(fs.readFileSync(base+'fish-expansion-catalog-012.js','utf8'),sandbox);
+          const records=[];sandbox.window.HumanFishingFishExpansion012.extend(records);sandbox.window.HumanFishingFishExpansion012.extend(records);
+          assert.equal(records.length,6);
+          const idx=fs.readFileSync(base+'index.html','utf8');
+          assert.match(idx,/HumanFishingFishExpansion012.extend\(species\)/);
+          assert.match(idx,/fish-expansion-catalog-012.js/);
+          const bmp=fs.readFileSync(base+'fish-bitmap-catalog.js','utf8');
+          assert.match(bmp,/20261109-user-six/);
+          for(const sp of m.species){
+            assert.equal(records.find(x=>x.id===sp.gameId).scientificName,sp.scientificName);
+            assert.equal(crypto.createHash('sha256').update(fs.readFileSync(base+sp.installedPath)).digest('hex'),sp.sha256);
+          }
+          console.log('PASS: six unique species, game/codex, native RGBA SHA, cached bitmap versions, region/rarity data');
+          JS
+          git diff --check
+      - name: Commit installed fish and publish
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A human-fishing/ human_fishing_six_fish_originals.zip
+          git diff --cached --quiet || git commit -m 'Install six uploaded user fish originals F379-F384 into Human Fishing'
+          git push origin HEAD:main
