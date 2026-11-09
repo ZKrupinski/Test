@@ -1271,7 +1271,7 @@ function renderBook(filter,query){
  }).join('')+'</div>';
  var normalTotal=catalogueSpecies.filter(function(sp){return !sp.specialCreature}).length;
  var normalCount=catalogueSpecies.filter(function(sp){return !sp.specialCreature&&(save.owned[sp.id]||0)>0}).length;
- var specialTotal=species.length-normalTotal;
+ var specialTotal=catalogueSpecies.filter(function(sp){return sp.specialCreature}).length;
  var specialCount=catalogueSpecies.filter(function(sp){return sp.specialCreature&&(save.owned[sp.id]||0)>0}).length;
  openPanel('통합 생물 도감','물고기 '+normalCount+'/'+normalTotal+' · 특수 생물 '+specialCount+'/'+specialTotal+' · 인간 '+hCount+'/24 · '+(catalogueSpecies.length+humans.length)+'종 컬렉션',tool+cards);
  // The shared resource gate handles thumbnail failures and user retries.

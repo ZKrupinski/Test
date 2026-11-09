@@ -25,7 +25,8 @@ const server=http.createServer((req,res)=>{
   page.on('pageerror',e=>{errors.push(e.message);console.error('PAGE ERROR:',e.message);});
   page.on('response',r=>{if(r.status()>=400)console.log('HTTP',r.status(),r.url());});
   let holdResolve,held=false;
-  await page.route('**/F021.png*',async route=>{held=true;await new Promise(r=>holdResolve=r);await route.continue();});
+  const holdGate=new Promise(resolve=>{holdResolve=resolve;});
+  await page.route('**/F021.png*',async route=>{held=true;await holdGate;await route.continue();});
   await page.goto(`http://127.0.0.1:${server.address().port}/human-fishing/`,{waitUntil:'domcontentloaded'});
   try{await page.waitForFunction(()=>!document.querySelector('#bootStart').hidden||document.querySelector('#bootOverlay').hidden,{},{timeout:45000});}
   catch(e){console.error('BOOT STATE',await page.locator('#bootStatus').textContent(),errors);throw e;}
@@ -42,7 +43,7 @@ const server=http.createServer((req,res)=>{
   await page.waitForTimeout(250);assert.deepEqual(await page.evaluate(()=>window.__sceneQA.state()),before,'Loading pauses simulation');
   await page.evaluate(()=>document.querySelector('#navTank').click());
   assert.equal((await page.evaluate(()=>window.__sceneQA.state())).view,'fish','Navigation blocked during loading');
-  holdResolve();await page.unroute('**/F021.png*');await ready();
+  holdResolve();await ready();await page.unroute('**/F021.png*');
   let fail=true;
   await page.route('**/F050.png*',route=>fail?route.fulfill({status:503,body:'test failure'}):route.continue());
   await page.click('#navBook');
@@ -50,9 +51,11 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.evaluate(()=>window.HumanFishingBoot.busy),true);
   fail=false;await page.click('#bootStart');await ready();
   assert.ok(await page.locator('.book-fish-thumb img').count()>300);
+  const specialCount=await page.locator('.book-fish-thumb img[src*="special-creatures"]').count();
+  assert.match(await page.locator('#panelDesc').textContent(),new RegExp('특수 생물 0/'+specialCount+' ·'));
   assert.equal(await page.locator('.book-fish-thumb img').evaluateAll(ims=>ims.every(im=>im.complete&&im.naturalWidth>0)),true);
   await page.evaluate(()=>window.__sceneQA.own());
-  for(const id of ['navTank','aquaPlay','aquaPlay','navShop','navGear','navBook','closePanel']){await page.click('#'+id);await ready();}
+  for(const id of ['navTank','aquaPlay','aquaPlay','navShop','navGear','navBook','closePanel']){await page.click('#'+id);await ready();if(await page.locator('#aquaSaleClose').isVisible())await page.click('#aquaSaleClose');}
   for(let zone=0;zone<12;zone++){
    await page.click('#navFish');await ready();await page.click(`[data-zone="${zone}"]`);await ready();
    assert.equal((await page.evaluate(()=>window.__sceneQA.state())).zone,zone);
