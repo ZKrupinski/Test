@@ -33,7 +33,10 @@ const server=http.createServer((req,res)=>{
   console.log('BOOT STATE',await page.locator('#bootStatus').textContent());
   if(!await page.locator('#bootOverlay').evaluate(el=>el.hidden))await page.click('#bootStart');
   console.log('STARTED');
-  const ready=()=>page.waitForFunction(()=>document.querySelector('#bootOverlay').hidden&&!window.HumanFishingBoot.busy,{},{timeout:60000});
+  const ready=async()=>{
+   try{await page.waitForFunction(()=>document.querySelector('#bootOverlay').hidden&&!window.HumanFishingBoot.busy,{},{timeout:45000});}
+   catch(e){console.error('GATE STATE',await page.locator('#bootStatus').textContent(),await page.locator('img[src]').evaluateAll(ims=>ims.filter(im=>!im.complete||!im.naturalWidth).map(im=>im.src)));throw e;}
+  };
   await ready();
   await page.click('#navFish');await ready();console.log('STAGE SELECT');
   await page.click('[data-zone="1"]');

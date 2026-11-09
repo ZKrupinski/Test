@@ -26,7 +26,7 @@
   fit();
  }
  var busy=false,depth=0,generation=0,decoded=new WeakMap();
- var retryImages=[];
+ var retryImages=[],retrySerial=0;
  function activeImages(){
   var dom=document.querySelectorAll?Array.from(document.querySelectorAll('img[src]')):[];
   // Lazy thumbnails must also be fetched while their menu is covered.
@@ -42,8 +42,16 @@
   button.onclick=function(){
    if(button.disabled)return;
    button.disabled=true;
-   retryImages.forEach(function(im){decoded.delete(im);var src=im.src;im.src=src;});
-   ready();
+   var failedSources=new Set(retryImages.map(function(im){return im.src;}));
+   var retry=++retrySerial;
+   // Restart every consumer of a failed URL, even if its error event is pending.
+   activeImages().filter(function(im){return failedSources.has(im.src);}).forEach(function(im){
+    decoded.delete(im);
+    var base=im._hfRetryBase||(im._hfRetryBase=im.src);
+    im.src=base+(base.indexOf('?')<0?'?':'&')+'hfRetry='+retry;
+   });
+   // Let the browser invalidate the previous complete/error state first.
+   setTimeout(ready,0);
   };
  }
  async function ready(){
