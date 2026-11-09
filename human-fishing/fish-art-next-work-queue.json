@@ -2,8 +2,8 @@
   "version": "2026-11-09",
   "role": "Production review order, NOT a list of approved or live fish",
   "sourceCandidateCount": 1539,
-  "knownArtOrCurrentBatchMatched": 69,
-  "remainingCandidateCount": 1470,
+  "knownArtOrCurrentBatchMatched": 74,
+  "remainingCandidateCount": 1465,
   "remainingCountMeaning": "Candidates without matched production records; not proof every candidate is unique or has no Library art",
   "currentBatch": [
     "Piaractus brachypomus",
@@ -16,9 +16,9 @@
   "generationBatchSize": 6,
   "regionAssignmentsAreProvisional": true,
   "remainingByProposedStage": {
-    "열대 산호초": 351,
-    "온대 연안": 337,
-    "외양·대형 어종": 316,
+    "열대 산호초": 350,
+    "온대 연안": 334,
+    "외양·대형 어종": 315,
     "해초·모래 바다": 180,
     "아시아 강·습지": 86,
     "아프리카 호수·강": 66,

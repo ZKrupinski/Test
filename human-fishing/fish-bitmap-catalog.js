@@ -80,7 +80,7 @@
     loaded[id]=img;
    };
    img.onerror=function(){loaded[id]=false;};
-   img.src=approvedSpecial[id]?'./assets/special-creatures/'+id+'.png?v=20261109-special-live13':'./assets/fish/individual/'+id+'.png?v='+(Number(id.slice(1))>=373?'20261109-batch011-six':Number(id.slice(1))>=365?'20261109-batch010-eight':Number(id.slice(1))>=355?'20261108-batch009-ten':(Number(id.slice(1))>=348?'20261108-batch008':(Number(id.slice(1))>=342?'20261108-batch007':(Number(id.slice(1))>304?(Number(id.slice(1))<=328?'20261108-direct17':'20261108-original-expansion'):'20261106-fish304'))));
+   img.src=approvedSpecial[id]?'./assets/special-creatures/'+id+'.png?v=20261109-special-live13':'./assets/fish/individual/'+id+'.png?v='+(Number(id.slice(1))>=379?'20261109-user-six':Number(id.slice(1))>=373?'20261109-batch011-six':Number(id.slice(1))>=365?'20261109-batch010-eight':Number(id.slice(1))>=355?'20261108-batch009-ten':(Number(id.slice(1))>=348?'20261108-batch008':(Number(id.slice(1))>=342?'20261108-batch007':(Number(id.slice(1))>304?(Number(id.slice(1))<=328?'20261108-direct17':'20261108-original-expansion'):'20261106-fish304'))));
   }
   return loaded[id]||null;
  }
