@@ -402,6 +402,7 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 
 <div id="bootOverlay" role="dialog" aria-modal="true" aria-label="게임 준비"><h2>인간낚시</h2><p id="bootStatus" role="status">리소스 로딩 중</p><progress id="bootProgress" max="1" value="0"></progress><button id="bootStart" type="button" hidden disabled>터치하여 시작</button></div>
 </div>
+<script src="./water-fx.js?v=20261109-waterfx-a1"></script>
 <script src="./boot.js?v=20261106-fullscreen1"></script>
 <script src="./assets/fish/ready.js?v=20261106-fish304"></script>
 <script src="./assets/special-creatures/ready.js?v=20261108-direct17"></script>
@@ -466,7 +467,10 @@ function buildFish(){fish=[];for(var i=0;i<16;i++){var idx=Math.floor(rnd(0,20))
 function buildHum(){hum=[];for(var i=0;i<6;i++)hum.push({id:i+Math.floor(rnd(0,4)),x:360+i*145+random()*40,y:171+rnd(-14,15),phase:rnd(0,6.28),vx:rnd(.1,.3)*(random()<.5?-1:1)})}
 function createBubble(){bubbles.push({x:rnd(10,1280),y:730,r:rnd(2,8),speed:rnd(.3,1.3),phase:rnd(0,6.2)})}for(var i=0;i<34;i++){createBubble();bubbles[i].y=random()*720}
 function spawnParticles(x,y,n,kind){for(var i=0;i<n;i++)particles.push({x:x,y:y,vx:rnd(-5,5),vy:rnd(-6,1),life:1,size:rnd(2,7),kind:kind})}
-function ripple(x,y){ripples.push({x:x,y,r:6,life:1})}
+function ripple(x,y){
+ // Bitmap water ripple, never a vector ellipse.
+ if(waterFx)waterFx.emit(y<=WATER_SURFACE_Y+20?'entry':'release',x,y,time,WATER_SURFACE_Y);
+}
 function announce(icon,title,sub){$('bannerIcon').textContent=icon;$('bannerTitle').textContent=title;$('bannerSub').textContent=sub;$('banner').classList.add('visible');bannerTimer=2.2}
 // CC0 physical Foley bus: no synthesized oscillator or digital beeps.
 function playFoley(kind,intensity,pitch){
@@ -657,6 +661,7 @@ $('navFish').onclick=function(){setMode('fish');chooseZone()};$('navHuman').oncl
 function circle(x,y,r,col){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=col;ctx.fill()}
 function rounded(x,y,w,h,r,fill){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=fill;ctx.fill()}
 var WATER_SURFACE_Y=293,PLAYER_STAGE_DROP=46;
+var waterFx=window.HumanFishingWaterFX||null;
 // SURFACE_AND_UNDERWATER_AMBIENCE_BEGIN
 var ambientLureUnderwater=false;
 function updateAmbience(){
@@ -1101,11 +1106,24 @@ function humanIcon(a,now){var x=a.x,y=a.y+Math.sin(now*1.5+a.phase)*4;ctx.save()
 function backgroundHuman(){sea(false);ctx.fillStyle='#6f6a5a';ctx.fillRect(0,200,1280,22);ctx.fillStyle='#c1a982';ctx.fillRect(0,181,1280,20);for(var i=0;i<13;i++){ctx.fillStyle=i%2?'#564f48':'#866b4a';ctx.fillRect(i*100,208,23,72)}ctx.fillStyle='#4d6a6b';ctx.fillRect(0,190,280,15)}
 function drawingTank(now){sea(true);ctx.fillStyle='#fffdfa08';ctx.fillRect(20,25,1240,656);ctx.strokeStyle='#c3e3e78b';ctx.lineWidth=20;ctx.strokeRect(20,25,1240,656);ctx.strokeStyle='#194451';ctx.lineWidth=6;ctx.strokeRect(20,25,1240,656);ctx.fillStyle='#cfb98b';ctx.fillRect(32,656,1216,30);for(var i=0;i<20;i++){var x=80+i*58+Math.sin(i*12)*16;ctx.fillStyle=colors[(i+decor*3)%colors.length]+'77';ctx.beginPath();ctx.ellipse(x,638,35,17,0,0,7);ctx.fill()}
 coral(now);save.placed.forEach(function(id,i){var sp=species.find(function(v){return v.id===id});if(!sp)return;var xx=85+(i*151)%1090+Math.sin(now*(.34+(i%4)*.08)+i)*65,yy=155+((i*89)%445)+Math.sin(now*.8+i)*18;drawFish({sp:sp,x:clamp(xx,90,1130),y:yy,vx:(i%2===0?1:-1),size:fishVisualProfile(sp).baseScale,phase:i},now)})}
-function particleFrame(dt){for(var i=particles.length-1;i>=0;i--){var p=particles[i];p.life-=dt*1.55;p.x+=p.vx*dt*60;p.y+=p.vy*dt*60;p.vy+=dt*3;ctx.globalAlpha=Math.max(0,p.life);circle(p.x,p.y,p.size*(1.1-p.life*.4),p.kind==='gold'?'#ffce87':'#c0f6f5');if(p.life<=0)particles.splice(i,1)}ctx.globalAlpha=1;for(var j=ripples.length-1;j>=0;j--){var r=ripples[j];r.life-=dt;r.r+=dt*90;ctx.strokeStyle='rgba(218,255,243,'+Math.max(0,r.life)*.65+')';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(r.x,r.y,r.r,r.r*.33,0,0,7);ctx.stroke();if(r.life<=0)ripples.splice(j,1)}}
+function particleFrame(dt){
+ for(var i=particles.length-1;i>=0;i--){
+  var p=particles[i];p.life-=dt*1.55;p.x+=p.vx*dt*60;
+  p.y+=p.vy*dt*60;p.vy+=dt*3;
+  ctx.globalAlpha=Math.max(0,p.life);
+  if(p.kind==='water'){
+   if(p.y>WATER_SURFACE_Y+8&&waterFx)
+    waterFx.atlas(ctx,'bubbles',i%16,p.x,p.y,p.size*2.8,p.size*2.8,.8,0);
+  }else circle(p.x,p.y,p.size*(1.1-p.life*.4),p.kind==='gold'?'#ffce87':'#c0f6f5');
+  if(p.life<=0)particles.splice(i,1);
+ }
+ ctx.globalAlpha=1;
+ ripples.length=0;
+}
 function tick(stamp){var dt=Math.min((stamp-last)/1000,.045);last=stamp;time+=dt;ctx.clearRect(0,0,1280,720);if(view==='human'){backgroundHuman()}else if(view==='tank'){drawingTank(time)}else{sea(false);coral(time)}if(view==='fish'||view==='book'||view==='grow'){fish.forEach(function(a){if(!hook||a!==hook.obj){a.x+=a.vx*dt*60;a.phase+=dt*.4;if(a.x<300||a.x>1195)a.vx*=-1}drawFish(a,time)})}
 if(view==='human'){hum.forEach(function(a){if(!hook||a!==hook.obj){a.x+=a.vx*dt*55;if(a.x<345||a.x>1200)a.vx*=-1}humanIcon(a,time)})}
 if(view!=='tank'){drawOcto(time);if(view==='fish'||view==='human'){if(hook){hook.elapsed+=dt;var t=ease(hook.elapsed/(1.10-save.up[0]*.08)),o=hook.obj;o.x=mix(hook.startX,430,t);o.y=mix(hook.startY,315-100*Math.sin(t*Math.PI),t);bob.x=o.x;bob.y=o.y;if(hook.elapsed>1.2-save.up[0]*.08)success()}drawLine();if(!hook)drawBob()}}
-bubbles.forEach(function(b){b.y-=b.speed*dt*50;b.x+=Math.sin(time+b.phase)*dt*4;if(b.y<0){b.y=730;b.x=rnd(10,1250)}ctx.strokeStyle='#b4f8f052';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,7);ctx.stroke()});
+/* Old outlined bubble renderer removed in favor of independent bitmap atlas. */
 particleFrame(dt);if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}requestAnimationFrame(tick)}
 
 // ALPHA 0.2 — unified fish + elite/boss humans; human codex and underwater exhibits.
@@ -1165,6 +1183,7 @@ function release(){
  if(hook||view!=='fish')return;
  var found=nearest();ripple(bob.x,bob.y);
  if(found){
+  if(waterFx)waterFx.emit('bite',bob.x,bob.y,time,WATER_SURFACE_Y);
   hook={obj:found.obj,kind:found.kind,elapsed:0,startX:found.obj.x,startY:found.obj.y,originX:bob.x,originY:bob.y};
   $('hintTitle').textContent=found.kind==='human'?(humanTier(found.obj.id)+' 인간이 낚싯줄에 걸렸어!'):'물고기 입질 성공!';
   $('hint').textContent=found.kind==='human'?'엘리트는 격렬하게 저항하지만 자동으로 끌려옵니다.':'낚싯줄이 당겨지며 자동으로 올라옵니다.';
@@ -1185,6 +1204,7 @@ function release(){
   }
   playFoley(scared?'panic':'miss');
   spawnParticles(bob.x,bob.y,scared?14:8,'water');
+  if(waterFx)waterFx.emit('miss',bob.x,bob.y,time,WATER_SURFACE_Y);
   beginMissReturn();
  }
 }
@@ -1577,11 +1597,7 @@ function tick(stamp){
    drawLine();if(!hook)drawBob();
   }
  }
- bubbles.forEach(function(b){
-  b.y-=b.speed*dt*50;b.x+=Math.sin(time+b.phase)*dt*4;
-  if(b.y<0){b.y=730;b.x=rnd(10,1250)}
-  ctx.strokeStyle='#b4f8f052';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.stroke();
- });
+ /* Old outlined bubble renderer removed in favor of independent bitmap atlas. */
  particleFrame(dt);
  if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}
  requestAnimationFrame(tick);
@@ -1759,11 +1775,7 @@ function tick(stamp){
    save.coins+=pay;persist();updateStats();announce('🦑','응원단 보너스','진주 +'+pay);
   }
  }
- bubbles.forEach(function(b){
-  b.y-=b.speed*dt*50;b.x+=Math.sin(time+b.phase)*dt*4;
-  if(b.y<0){b.y=730;b.x=rnd(10,1250)}
-  ctx.strokeStyle='#b4f8f052';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.stroke();
- });
+ /* Old outlined bubble renderer removed in favor of independent bitmap atlas. */
  particleFrame(dt);
  if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}
  requestAnimationFrame(tick);
@@ -2188,6 +2200,7 @@ function castMotion(dt){
   bob.x=cast.sinkX;bob.y=cast.sinkY;
   ripple(cast.impactX,surface);
   spawnParticles(cast.impactX,surface,24,'water');
+  if(waterFx)waterFx.emit('entry',cast.impactX,surface,time,WATER_SURFACE_Y);
   vibrationPulse('splash');
   $('hintTitle').textContent='입수! 바로 조작 가능';
   $('hint').textContent='조이스틱을 움직이고 손을 떼면 물고기를 낚습니다.';
@@ -3348,6 +3361,7 @@ function tick(stamp){
  if(view==='tank')drawingTank(time);
  else{
   sea(false);coral(time);
+  if(waterFx)waterFx.ambient(ctx,time,WATER_SURFACE_Y,W,H);
   updateEcosystem(dt);
   if(view==='fish'){
    castMotion(dt);
@@ -3391,6 +3405,7 @@ function tick(stamp){
    updateWaterCurrent(dt);
    updateLureHang(time,rodTip(time),lureLineAnchor());
    checkBaitBrush();checkBaitWeakspot();
+   if(waterFx)waterFx.observeLure(time,bob.x,bob.y,WATER_SURFACE_Y,true);
   }
   // 1) Advance lure and hooked-fish WORLD positions before any rendering.
   // This keeps the bitmap lure and the reel path synchronized to the same frame.
@@ -3458,7 +3473,10 @@ function tick(stamp){
   if(view==='fish'&&!introEntrance.active)drawLine();
   // New bitmapped OCTO FEVER bait shares the exact ordinary bait middle
   // layer: above player/rod/line and BELOW every swimming or hooked fish.
-  if(view==='fish'&&!introEntrance.active&&feverFx)drawFeverFx(dt);
+  if(view==='fish'&&!introEntrance.active&&feverFx){
+   drawFeverFx(dt);
+   if(waterFx)waterFx.fever(ctx,time,feverFx,WATER_SURFACE_Y);
+  }
   // Explicit foreground-over-PLAYER bait layer (do not merge with the
   // protagonist/rod draw group). This must stay AFTER the last drawOcto,
   // drawRod and drawLine call but BEFORE swimming and singly hooked fish.
@@ -3466,6 +3484,9 @@ function tick(stamp){
   if(view==='fish'&&!introEntrance.active&&(!feverFx||lureRecovery.active)){
    drawBaitAbovePlayer(time);
   }
+  if(view==='fish'&&!introEntrance.active&&waterCurrent.active&&waterFx)
+   waterFx.current(ctx,time,bob.x,bob.y,WATER_SURFACE_Y,
+    waterCurrent.vx,waterCurrent.vy,waterCurrent.duration,waterCurrent.start);
   // 3) Draw all ambient creatures IN FRONT of the ordinary lure. The
   // hooked fish is rendered later, also in front of the lure.
   if(view==='fish'||view==='book'||view==='grow'||view==='shop'){
@@ -3505,17 +3526,18 @@ function tick(stamp){
      announce('🐙','응원단 지원','진주 +'+coins);playFoley('helperIncome',.72);
   }
  }
- bubbles.forEach(function(b){
-  b.y-=b.speed*dt*50;b.x+=Math.sin(time+b.phase)*dt*4;
-  if(b.y<0){b.y=730;b.x=rnd(10,1250)}
-  ctx.strokeStyle='#b4f8f052';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.stroke();
- });
+ /* Old outlined bubble renderer removed in favor of independent bitmap atlas. */
  particleFrame(dt);
  drawCatchFx(dt);drawEscapeFx(dt);drawGroggyFx(dt);
  // Dedicated topmost BITMAP pass: vortex/effect < caught fish < drops.
  // Keep above ordinary particles and all creature/escape overlays.
  if(view==='fish'&&!introEntrance.active&&feverFx)
   drawFeverSuctionParticles(feverFx,time);
+ // Foreground animated surface over protagonist, subtle gradient underwater.
+ if(waterFx&&(view==='fish'||view==='tank')){
+  waterFx.drawEvents(ctx,time,WATER_SURFACE_Y,W,H);
+  waterFx.surface(ctx,time,WATER_SURFACE_Y,W);
+ }
   if(!escapeFx&&octoGroggy===0&&pendingEscapeRestart){pendingEscapeRestart=false;if(view==='fish')startCast()}
  if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}
  ctx.restore();
@@ -4974,6 +4996,7 @@ function drawEscapeFx(dt){
  if(!fx.splash&&pose.y>=WATER_SURFACE_Y+4&&fx.lastWasAboveWater!==false){
   fx.splash=true;playFoley('escapeSplash');
   ripple(pose.x,WATER_SURFACE_Y+4);spawnParticles(pose.x,WATER_SURFACE_Y+4,20,'water');
+  if(waterFx)waterFx.emit('escape',pose.x,WATER_SURFACE_Y+4,time,WATER_SURFACE_Y);
  }
  fx.lastWasAboveWater=pose.y<WATER_SURFACE_Y+4;
  ctx.save();ctx.translate(pose.x,pose.y);
@@ -5749,6 +5772,7 @@ function activateOctoFever(){
   swallowSpacing:swallowSpacing,reelProgress:0,reelFrame:0,reeling:false
  };
  feverFx.surfaceAt=feverSurfaceTime(feverFx,time);
+ if(waterFx)waterFx.emit('fever',center.x,center.y,time,WATER_SURFACE_Y);
  $('hintTitle').textContent='🐙 피버! '+targets.length+'마리 함께 끌어올리는 중';
  $('hint').textContent='주변 물고기를 미끼 주위로 모아 함께 끌어올립니다.';
 }
@@ -6187,6 +6211,7 @@ loadRemainingPlayerAtlases();
 if(window.octoSidekicksStartFullLoad)window.octoSidekicksStartFullLoad();
 if(window.HumanFishingArt)window.HumanFishingArt.primeHabitat(zone,species);
 function beginLoadedGame(){
+ if(waterFx&&!waterFx.ready){waterFx.preload().then(beginLoadedGame);return;}
  if(window.HumanFishingFoley)window.HumanFishingFoley.unlock();
  document.querySelectorAll('[inert]').forEach(function(el){el.removeAttribute('inert');});
  last=performance.now();requestAnimationFrame(tick);

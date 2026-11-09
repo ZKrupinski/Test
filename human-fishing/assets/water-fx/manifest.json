@@ -1,0 +1,214 @@
+{
+  "version": "20261109-waterfx-v1",
+  "source": "user-approved-desaturated-water-vfx-sheets",
+  "frameLayouts": {
+    "surface": [
+      4,
+      2
+    ],
+    "splash": [
+      4,
+      2
+    ],
+    "current": [
+      4,
+      2
+    ],
+    "bubbles": [
+      4,
+      4
+    ]
+  },
+  "assets": [
+    {
+      "file": "water_surface_8f.png",
+      "width": 2048,
+      "height": 400,
+      "bytes": 640923,
+      "sha256": "8cc8fbc27d799affb3e946263bdd7acb72aee5b13f2b17114c902dca179d2412"
+    },
+    {
+      "file": "water_splash_8f.png",
+      "width": 1536,
+      "height": 448,
+      "bytes": 747471,
+      "sha256": "29f77a3efe9aba2b16a1b3b4c7e4289710afc38c9d0d867e7607d59f8d3c9f17"
+    },
+    {
+      "file": "water_current_8f.png",
+      "width": 1536,
+      "height": 448,
+      "bytes": 878073,
+      "sha256": "b8ff680c1fae36aab6623045caab820fa4db4a649552fdd22a697e96197e5297"
+    },
+    {
+      "file": "water_bubbles_individual_16.png",
+      "width": 384,
+      "height": 384,
+      "bytes": 42934,
+      "sha256": "3b577eeed2ae04f8c03d204ea18ab953715b6e8c0fa2676231d8e75e77ae8ae6"
+    }
+  ],
+  "bubbleOrigins": [
+    {
+      "atlasIndex": 0,
+      "originalBox": [
+        72,
+        337,
+        58,
+        55
+      ],
+      "sourceArea": 2538
+    },
+    {
+      "atlasIndex": 1,
+      "originalBox": [
+        303,
+        137,
+        54,
+        54
+      ],
+      "sourceArea": 2166
+    },
+    {
+      "atlasIndex": 2,
+      "originalBox": [
+        275,
+        215,
+        30,
+        29
+      ],
+      "sourceArea": 684
+    },
+    {
+      "atlasIndex": 3,
+      "originalBox": [
+        258,
+        270,
+        25,
+        24
+      ],
+      "sourceArea": 474
+    },
+    {
+      "atlasIndex": 4,
+      "originalBox": [
+        349,
+        371,
+        21,
+        21
+      ],
+      "sourceArea": 348
+    },
+    {
+      "atlasIndex": 5,
+      "originalBox": [
+        116,
+        228,
+        20,
+        20
+      ],
+      "sourceArea": 326
+    },
+    {
+      "atlasIndex": 6,
+      "originalBox": [
+        178,
+        407,
+        19,
+        18
+      ],
+      "sourceArea": 266
+    },
+    {
+      "atlasIndex": 7,
+      "originalBox": [
+        133,
+        149,
+        16,
+        16
+      ],
+      "sourceArea": 212
+    },
+    {
+      "atlasIndex": 8,
+      "originalBox": [
+        122,
+        390,
+        15,
+        15
+      ],
+      "sourceArea": 174
+    },
+    {
+      "atlasIndex": 9,
+      "originalBox": [
+        85,
+        295,
+        15,
+        15
+      ],
+      "sourceArea": 180
+    },
+    {
+      "atlasIndex": 10,
+      "originalBox": [
+        303,
+        329,
+        14,
+        14
+      ],
+      "sourceArea": 158
+    },
+    {
+      "atlasIndex": 11,
+      "originalBox": [
+        252,
+        403,
+        13,
+        13
+      ],
+      "sourceArea": 142
+    },
+    {
+      "atlasIndex": 12,
+      "originalBox": [
+        116,
+        177,
+        13,
+        13
+      ],
+      "sourceArea": 137
+    },
+    {
+      "atlasIndex": 13,
+      "originalBox": [
+        96,
+        313,
+        11,
+        11
+      ],
+      "sourceArea": 87
+    },
+    {
+      "atlasIndex": 14,
+      "originalBox": [
+        336,
+        273,
+        11,
+        11
+      ],
+      "sourceArea": 100
+    },
+    {
+      "atlasIndex": 15,
+      "originalBox": [
+        314,
+        356,
+        10,
+        10
+      ],
+      "sourceArea": 79
+    }
+  ]
+}

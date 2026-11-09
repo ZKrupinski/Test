@@ -79,6 +79,8 @@ jobs:
         run: node human-fishing/qa-catch-showcase.cjs
       - name: Verify fish face left in all codex and acquisition tiles
         run: node human-fishing/qa-fish-ui-heading.cjs
+      - name: Verify bitmap water FX and underwater-only bubbles
+        run: node human-fishing/qa-water-fx.cjs
       - name: Verify congested fish disperse, choose lanes and pass safely
         run: node human-fishing/qa-ecology-traffic.cjs
       - name: Verify context-driven 16-frame companion animation states
