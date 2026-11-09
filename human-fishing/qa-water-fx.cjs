@@ -18,7 +18,7 @@ for(const asset of manifest.assets){
  assert.equal(buf.readUInt32BE(20),asset.height);
  assert.equal(crypto.createHash('sha256').update(buf).digest('hex'),asset.sha256);
 }
-assert.ok(game.includes('water-fx.js?v=20261110-waterfx-b2'));
+assert.ok(game.includes('water-fx.js?v=20261110-waterfx-b3'));
 const srcInline=game.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
 assert.ok(srcInline,'Main game script not found');new vm.Script(srcInline);
 assert.ok(game.includes('waterFx.ambient(ctx,time,WATER_SURFACE_Y,W,H)'));
@@ -54,18 +54,26 @@ assert.ok(fx);
  assert.ok(tiles[0].x-tiles[0].args[7]/2<=0&&tiles.at(-1).x+tiles.at(-1).args[7]/2>=1280,'Tiles must cover full width');
  assert.ok(tiles.every(d=>Math.abs(d.args[7]/d.args[8]-d.args[3]/d.args[4])<1e-9),'Each tile must retain native aspect ratio');
  assert.ok(draws.at(-1).args[8]<=72,'Surface must stay a thin horizontal band');
- assert.ok(tiles.every(d=>Math.abs(d.alpha-.99)<1e-9),'Water surface must be nearly fully opaque at the canvas layer');
+ assert.ok(tiles.every(d=>d.alpha===1),'Water surface canvas opacity must be exactly 100%');
+ assert.ok(tiles.every(d=>Math.abs(d.y-301)<1e-9),'Surface tiles must have a static waterline-centered vertical anchor');
+ assert.ok(game.lastIndexOf('waterFx.surface(ctx,time,WATER_SURFACE_Y,W)')>game.lastIndexOf('waterFx.drawEvents(ctx,time,WATER_SURFACE_Y,W,H)'),'Surface must draw above water splashes and all world effects');
  draws.length=0;fx.ambient(ctx,3.2,293,1280,720);
  assert.ok(draws.every(d=>d.args[7]>=7.5),'Ambient bubbles must remain readable');
+ assert.ok(draws.every(d=>d.alpha<=.74+1e-9),'Ambient bubbles must be slightly more transparent');
+ assert.ok(src.includes('speed:.042+.09*hash(i*17+19)'),'Ambient bubbles must rise at the reduced speed');
  for(const kind of ['entry','exit']){
   fx.clear();fx.emit(kind,640,293,10,293);
-  for(const age of [.1,.3]){
+  const anchors=[];
+  for(const age of [.1,.3,.55]){
    draws.length=0;fx.drawEvents(ctx,10+age,293,1280,720);
    const crowns=draws.filter(d=>d.args[0].path.includes('water_splash')&&d.args[8]>27);
    assert.ok(crowns.length>0);
-   assert.ok(crowns.every(d=>Math.abs(d.y+d.args[8]/2-(293+5))<1e-6),'Splash fans must overlap the waterline by five pixels');
+   assert.ok(crowns.every(d=>Math.abs(d.y+d.args[8]/2-301)<1e-6),'Splash fans must anchor to the exact surface sprite band center');
+   anchors.push(crowns.map(d=>[d.y,d.args[8]]));
    if(kind==='exit')assert.equal(crowns.length,3,'Exit uses three staggered fountain fans');
   }
+  assert.deepEqual(anchors[1],anchors[0],kind+' splash must not jump vertically between frames');
+  assert.deepEqual(anchors[2],anchors[0],kind+' splash must not shrink or hop vertically on fade');
  }
  fx.drawEvents(ctx,12,293,1280,720);assert.equal(fx.pendingEvents,0,'Effects must expire');
  fx.clear();draws.length=0;

@@ -4,7 +4,7 @@
  */
 (function(root){
  'use strict';
- var version='20261110-waterfx-b2',base='./assets/water-fx/';
+ var version='20261110-waterfx-b3',base='./assets/water-fx/';
  var specs={
   surface:['water_surface_8f.png',4,2],
   splash:['water_splash_8f.png',4,2],
@@ -57,9 +57,9 @@
  // Bubble seed is uniformly distributed on-screen, not a fixed column or school.
  for(var i=0;i<66;i++)air.push({
   x:((i+.5)/66+.035*(hash(i*13+5)-.5)),
-  phase:hash(i*41+11),speed:.055+.12*hash(i*17+19),
+  phase:hash(i*41+11),speed:.042+.09*hash(i*17+19),
   drift:4+15*hash(i*23+3),size:12+22*Math.pow(hash(i*29+9),1.35),
-  alpha:.48+.34*hash(i*43+7),frame:i%16
+  alpha:.44+.30*hash(i*43+7),frame:i%16
  });
  function ambient(ctx,now,waterY,width,height){
   if(!images.bubbles||!images.bubbles.ready)return false;
@@ -69,7 +69,7 @@
   ctx.beginPath();ctx.rect(0,upper,width,Math.max(1,height-upper));ctx.clip();
   for(var i=0;i<air.length;i++){
    var b=air[i],t=(b.phase+now*b.speed)%1;
-   var x=(b.x*width+Math.sin(now*.85+b.phase*PI*2)*b.drift+width)%width;
+   var x=(b.x*width+Math.sin(now*.65+b.phase*PI*2)*b.drift+width)%width;
    var y=height+24-t*(span+56);
    if(y<upper||y>height+18)continue;
    var size=b.size*(.82+.18*Math.sin(now*1.7+b.phase*13));
@@ -105,15 +105,17 @@
    if(kind==='entry'||kind==='exit'||kind==='escape'){
     var line=Number.isFinite(e.waterY)?e.waterY:waterY;
     var exit=kind==='exit',scale=kind==='escape'?1.22:1;
-    // Let the splash overlap the waterline by five pixels while keeping its main fan above the surface.
-    ctx.save();ctx.beginPath();ctx.rect(0,0,width,Math.max(0,line+8));ctx.clip();
+    // Water surface sprite band spans waterY-28 .. waterY+44; anchor every splash
+    // to its exact visual center, waterY+8. Keep fixed vertical size/position.
+    var surfaceLine=line+8;
+    ctx.save();ctx.beginPath();ctx.rect(0,0,width,Math.max(0,surfaceLine+3));ctx.clip();
     if(exit){
      // Reuse the approved crown in three staggered fans instead of a new atlas.
      for(var wing=-1;wing<=1;wing++){
       var q=clamp01((age-Math.abs(wing)*.065)/.86);
-      var w=(242+76*q)*(wing===0?1:.78),h=(142+22*Math.sin(q*PI))*(wing===0?1:.78)*(1-.78*fade((q-.42)/.35));
+      var w=(242+76*q)*(wing===0?1:.78),h=142*(wing===0?1:.78);
       var x=e.x+wing*(20+66*Math.sin(q*PI*.7));
-      atlas(ctx,'splash',Math.min(7,Math.floor(q*8)),x,line+5-h*.5,
+      atlas(ctx,'splash',Math.min(7,Math.floor(q*8)),x,surfaceLine-h*.5,
        w,h,(wing===0?.98:.68)*(1-fade((q-.58)/.42)),0);
      }
      // Existing bubble PNGs become ballistic spray, then fall back to the surface.
@@ -122,19 +124,19 @@
       var dx=e.x+dir*(24+(45+55*hash(seed))*t);
       var dy=line-12-(190+100*hash(seed+2))*t+310*t*t;
       var ds=9+9*hash(seed+4);
-      if(dy+ds<line+8)atlas(ctx,'bubbles',drop%16,dx,dy,ds*.72,ds*1.22,.78*alpha,0);
+      if(dy+ds<surfaceLine+3)atlas(ctx,'bubbles',drop%16,dx,dy,ds*.72,ds*1.22,.78*alpha,0);
      }
     }else{
-     var sw=(174+24*p)*scale,sh=(106+12*p)*scale*(1-.78*fade((p-.42)/.35));
-     atlas(ctx,'splash',Math.min(7,Math.floor(p*8)),e.x,line+5-sh*.5,
+     var sw=(174+24*p)*scale,sh=106*scale;
+     atlas(ctx,'splash',Math.min(7,Math.floor(p*8)),e.x,surfaceLine-sh*.5,
       sw,sh,.98*alpha,0);
     }
     ctx.restore();
     // The last flat frames provide a spreading residual ripple without new art.
     if(p>.42){
      var r=(p-.42)/.58;
-     atlas(ctx,'splash',5+Math.min(2,Math.floor(r*3)),e.x,line+2,
-      (exit?250:154)*(1+r*.65),18+8*r,.58*Math.sin(r*PI),0);
+     atlas(ctx,'splash',5+Math.min(2,Math.floor(r*3)),e.x,surfaceLine,
+      (exit?250:154)*(1+r*.65),20,.58*Math.sin(r*PI),0);
     }
    }else{
     var d=kind==='fever'?245:kind==='miss'?140:kind==='bite'?114:103;
@@ -186,12 +188,12 @@
   // meet at identical edges instead of stretching one short wave across the view.
   var frame=Math.floor(now*4.8)%8,im=images.surface,sp=specs.surface;
   var tileH=72,tileW=tileH*(im.naturalWidth/sp[1])*.952/(im.naturalHeight/sp[2]);
-  var top=waterY-28+Math.sin(now*1.3)*.8,step=tileW;
+  var top=waterY-28,step=tileW;
   ctx.save();ctx.beginPath();ctx.rect(0,top,width,tileH);ctx.clip();
   for(var i=0;i<Math.ceil(width/step)+1;i++){
    ctx.save();ctx.translate(i*step+tileW*.5,top+tileH*.5);
    if(i%2)ctx.scale(-1,1);
-   atlas(ctx,'surface',frame,0,0,tileW,tileH,.99,0);
+   atlas(ctx,'surface',frame,0,0,tileW,tileH,1,0);
    ctx.restore();
   }
   ctx.restore();
