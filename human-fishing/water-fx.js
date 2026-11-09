@@ -4,13 +4,18 @@
  */
 (function(root){
  'use strict';
- var version='20261109-waterfx-a1',base='./assets/water-fx/';
+ var version='20261110-waterfx-b1',base='./assets/water-fx/';
  var specs={
   surface:['water_surface_8f.png',4,2],
   splash:['water_splash_8f.png',4,2],
   current:['water_current_8f.png',4,2],
   bubbles:['water_bubbles_individual_16.png',4,4]
  };
+ // Tight bounds within the unchanged 96px bubble cells (transparent padding excluded).
+ var bubbleBounds=[[14,15,82,80],[16,16,80,80],[28,28,68,67],[32,31,65,65],
+  [32,34,61,63],[36,37,63,63],[33,34,62,62],[38,38,57,57],
+  [35,35,60,60],[37,37,60,60],[36,36,60,60],[36,39,59,58],
+  [40,39,54,56],[37,37,58,58],[37,38,58,58],[38,38,58,58]];
  var images=Object.create(null),preloadPromise=null,ready=false;
  var events=[],air=[],lastUnderwater=null,lastCrossAt=-100;
  var PI=Math.PI;
@@ -35,17 +40,26 @@
   var sp=specs[name],cols=sp[1],rows=sp[2],count=cols*rows;
   var index=((Math.floor(frame)%count)+count)%count;
   var sw=image.naturalWidth/cols,sh=image.naturalHeight/rows;
+  var sx=(index%cols)*sw,sy=Math.floor(index/cols)*sh;
+  if(name==='bubbles'){
+   var box=bubbleBounds[index],unit=sw/96;
+   sx+=(box[0]-2)*unit;sy+=(box[1]-2)*unit;
+   sw=(box[2]-box[0]+4)*unit;sh=(box[3]-box[1]+4)*unit;
+  }else if(name==='surface'){
+   // Discard the baked transparent frame gutters, which otherwise make vertical seams.
+   var inset=sw*.024;sx+=inset;sw-=2*inset;
+  }
   ctx.save();ctx.globalAlpha*=clamp01(opacity);
   ctx.translate(x,y);if(rotation)ctx.rotate(rotation);
-  ctx.drawImage(image,(index%cols)*sw,Math.floor(index/cols)*sh,sw,sh,-w*.5,-h*.5,w,h);
+  ctx.drawImage(image,sx,sy,sw,sh,-w*.5,-h*.5,w,h);
   ctx.restore();return true;
  }
  // Bubble seed is uniformly distributed on-screen, not a fixed column or school.
  for(var i=0;i<66;i++)air.push({
   x:((i+.5)/66+.035*(hash(i*13+5)-.5)),
   phase:hash(i*41+11),speed:.055+.12*hash(i*17+19),
-  drift:4+15*hash(i*23+3),size:4+15*Math.pow(hash(i*29+9),2.1),
-  alpha:.21+.30*hash(i*43+7),frame:i%16
+  drift:4+15*hash(i*23+3),size:12+22*Math.pow(hash(i*29+9),1.35),
+  alpha:.48+.34*hash(i*43+7),frame:i%16
  });
  function ambient(ctx,now,waterY,width,height){
   if(!images.bubbles||!images.bubbles.ready)return false;
@@ -67,7 +81,7 @@
  }
  function emit(type,x,y,now,waterY){
   if(!Number.isFinite(x)||!Number.isFinite(y))return;
-  var s={type:type,x:x,y:y,start:Number.isFinite(now)?now:0,waterY:waterY||293,seed:hash(events.length*19+x+y)};
+  var s={type:type,x:x,y:y,start:Number.isFinite(now)?now:0,waterY:Number.isFinite(waterY)?waterY:293,seed:hash(events.length*19+x+y)};
   // Crossing event bursts remain distinct from normal release and misses.
   if((type==='entry'||type==='exit')&&s.start-lastCrossAt<.22)return;
   if(type==='entry'||type==='exit')lastCrossAt=s.start;
@@ -85,14 +99,43 @@
   if(!events.length)return;
   for(var i=events.length-1;i>=0;i--){
    var e=events[i],age=Math.max(0,now-e.start),kind=e.type;
-   var duration=kind==='miss'?.68:kind==='current'?.8:kind==='release'?.42:kind==='bite'?.46:kind==='fever'?.72:.82;
+   var duration=kind==='exit'?1.18:kind==='entry'?.94:kind==='miss'?.68:kind==='current'?.8:kind==='release'?.42:kind==='bite'?.46:kind==='fever'?.72:.82;
    if(age>=duration){events.splice(i,1);continue}
    var p=clamp01(age/duration),alpha=(1-fade((p-.58)/.42));
    if(kind==='entry'||kind==='exit'||kind==='escape'){
-    // Only splash/ripples cross the waterline. Never leak ambient bubbles above.
-    var scale=kind==='escape'?1.22:kind==='exit'?.94:1;
-    atlas(ctx,'splash',Math.min(7,Math.floor(p*8)),e.x,waterY-8,
-     (162+22*p)*scale,(92+11*p)*scale,.70*alpha,0);
+    var line=Number.isFinite(e.waterY)?e.waterY:waterY;
+    var exit=kind==='exit',scale=kind==='escape'?1.22:1;
+    // Keep the complete splash above the water; a separate late ring settles at it.
+    ctx.save();ctx.beginPath();ctx.rect(0,0,width,Math.max(0,line-3));ctx.clip();
+    if(exit){
+     // Reuse the approved crown in three staggered fans instead of a new atlas.
+     for(var wing=-1;wing<=1;wing++){
+      var q=clamp01((age-Math.abs(wing)*.065)/.86);
+      var w=(242+76*q)*(wing===0?1:.78),h=(142+22*Math.sin(q*PI))*(wing===0?1:.78)*(1-.78*fade((q-.42)/.35));
+      var x=e.x+wing*(20+66*Math.sin(q*PI*.7));
+      atlas(ctx,'splash',Math.min(7,Math.floor(q*8)),x,line-7-h*.5,
+       w,h,(wing===0?.98:.68)*(1-fade((q-.58)/.42)),0);
+     }
+     // Existing bubble PNGs become ballistic spray, then fall back to the surface.
+     for(var drop=0;drop<10;drop++){
+      var seed=e.seed+drop*1.73,t=age,dir=drop%2?-1:1;
+      var dx=e.x+dir*(24+(45+55*hash(seed))*t);
+      var dy=line-12-(190+100*hash(seed+2))*t+310*t*t;
+      var ds=9+9*hash(seed+4);
+      if(dy+ds<line-3)atlas(ctx,'bubbles',drop%16,dx,dy,ds*.72,ds*1.22,.78*alpha,0);
+     }
+    }else{
+     var sw=(174+24*p)*scale,sh=(106+12*p)*scale*(1-.78*fade((p-.42)/.35));
+     atlas(ctx,'splash',Math.min(7,Math.floor(p*8)),e.x,line-7-sh*.5,
+      sw,sh,.98*alpha,0);
+    }
+    ctx.restore();
+    // The last flat frames provide a spreading residual ripple without new art.
+    if(p>.42){
+     var r=(p-.42)/.58;
+     atlas(ctx,'splash',5+Math.min(2,Math.floor(r*3)),e.x,line+2,
+      (exit?250:154)*(1+r*.65),18+8*r,.58*Math.sin(r*PI),0);
+    }
    }else{
     var d=kind==='fever'?245:kind==='miss'?140:kind==='bite'?114:103;
     var y=Math.max(waterY+21,e.y),f=Math.min(7,Math.floor(p*8));
@@ -107,7 +150,7 @@
       var bx=e.x+Math.cos(angle)*radius+8*Math.sin(now*3+seed);
       var by=y+Math.sin(angle)*radius-p*(22+26*hash(seed*5));
       atlas(ctx,'bubbles',j%16,bx,Math.max(waterY+8,by),
-       6+11*hash(seed*7),6+11*hash(seed*7),.38*alpha*(1-p*.38),0);
+       12+17*hash(seed*7),12+17*hash(seed*7),.68*alpha*(1-p*.38),0);
      }
      ctx.restore();
     }
@@ -139,11 +182,19 @@
  }
  function surface(ctx,now,waterY,width){
   if(!images.surface||!images.surface.ready)return;
-  // Last render pass, OVER the protagonist. The soft gradient is baked into
-  // the transparent bitmap and fades DOWN into each independent 16:9 habitat.
-  var frame=Math.floor(now*4.8)%8;
-  atlas(ctx,'surface',frame,width*.5,waterY+31+Math.sin(now*1.3)*1.4,
-   width+4,176,.61,0);
+  // Keep each bitmap frame's native aspect ratio. Alternating mirrored tiles
+  // meet at identical edges instead of stretching one short wave across the view.
+  var frame=Math.floor(now*4.8)%8,im=images.surface,sp=specs.surface;
+  var tileH=72,tileW=tileH*(im.naturalWidth/sp[1])*.952/(im.naturalHeight/sp[2]);
+  var top=waterY-28+Math.sin(now*1.3)*.8,step=tileW;
+  ctx.save();ctx.beginPath();ctx.rect(0,top,width,tileH);ctx.clip();
+  for(var i=0;i<Math.ceil(width/step)+1;i++){
+   ctx.save();ctx.translate(i*step+tileW*.5,top+tileH*.5);
+   if(i%2)ctx.scale(-1,1);
+   atlas(ctx,'surface',frame,0,0,tileW,tileH,.86,0);
+   ctx.restore();
+  }
+  ctx.restore();
  }
  function clear(){events.length=0;lastUnderwater=null;lastCrossAt=-100}
  var api={version:version,preload:preload,atlas:atlas,ambient:ambient,
