@@ -22,15 +22,19 @@ const server=http.createServer((req,res)=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
  try{
   const page=await browser.newPage({viewport:{width:1536,height:864}}),errors=[];
-  page.on('pageerror',e=>errors.push(e.message));
+  page.on('pageerror',e=>{errors.push(e.message);console.error('PAGE ERROR:',e.message);});
+  page.on('response',r=>{if(r.status()>=400)console.log('HTTP',r.status(),r.url());});
   let holdResolve,held=false;
   await page.route('**/F021.png*',async route=>{held=true;await new Promise(r=>holdResolve=r);await route.continue();});
   await page.goto(`http://127.0.0.1:${server.address().port}/human-fishing/`,{waitUntil:'domcontentloaded'});
-  await page.waitForFunction(()=>document.querySelector('#bootStart').textContent==='터치하여 시작',{},{timeout:60000});
-  await page.click('#bootStart');
+  try{await page.waitForFunction(()=>!document.querySelector('#bootStart').hidden||document.querySelector('#bootOverlay').hidden,{},{timeout:45000});}
+  catch(e){console.error('BOOT STATE',await page.locator('#bootStatus').textContent(),errors);throw e;}
+  console.log('BOOT STATE',await page.locator('#bootStatus').textContent());
+  if(!await page.locator('#bootOverlay').evaluate(el=>el.hidden))await page.click('#bootStart');
+  console.log('STARTED');
   const ready=()=>page.waitForFunction(()=>document.querySelector('#bootOverlay').hidden&&!window.HumanFishingBoot.busy,{},{timeout:60000});
   await ready();
-  await page.click('#navFish');await ready();
+  await page.click('#navFish');await ready();console.log('STAGE SELECT');
   await page.click('[data-zone="1"]');
   await page.waitForFunction(()=>window.HumanFishingBoot.busy);
   for(let i=0;i<100&&!held;i++)await page.waitForTimeout(20);assert.equal(held,true);
