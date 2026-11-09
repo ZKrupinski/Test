@@ -68,6 +68,7 @@
  var approvedSpecialRoster=[{"id":"S001","name":"뱀파이어오징어","scientificName":"Vampyroteuthis infernalis","creatureType":"CEPHALOPODA","specialCreature":true,"realSpecies":true,"fictional":false,"habitat":10,"index":19,"rarity":"MYTHIC","level":65,"artSizeClass":"SPECIAL","behaviorArchetype":"slow_hover_webbed_cloak_eversion_blue_bioluminescent_escape"},{"id":"S006","name":"유리심장 해파리","scientificName":null,"creatureType":"FANTASY","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":10,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"MEDIUM","behaviorArchetype":"individual_design_required"},{"id":"S007","name":"심연의 종탑 생물","scientificName":null,"creatureType":"FANTASY","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":10,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"LARGE","behaviorArchetype":"individual_design_required"},{"id":"S008","name":"해류 가면귀","scientificName":null,"creatureType":"FANTASY","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":7,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"MEDIUM","behaviorArchetype":"individual_design_required"},{"id":"S009","name":"거울면가오리","scientificName":null,"creatureType":"FANTASY_FISH","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":8,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"LARGE","behaviorArchetype":"reflective_turn_reverse_escape"},{"id":"S010","name":"심연 촛불장어","scientificName":null,"creatureType":"FANTASY_FISH","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":10,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"LARGE","behaviorArchetype":"flickering_lure_false_depth"},{"id":"S011","name":"삼중입 나팔아귀","scientificName":null,"creatureType":"FANTASY_FISH","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":10,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"MEDIUM","behaviorArchetype":"triple_jaw_snap_combo"},{"id":"S012","name":"가시왕관 먹장어","scientificName":null,"creatureType":"FANTASY_FISH","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":10,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"MEDIUM","behaviorArchetype":"slime_trail_twist_escape"},{"id":"S013","name":"얼음유리 해마","scientificName":null,"creatureType":"FANTASY_FISH","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":11,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"SMALL","behaviorArchetype":"freeze_fake_statue"},{"id":"S014","name":"거울등 유령상어","scientificName":null,"creatureType":"FANTASY_FISH","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":9,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"LARGE","behaviorArchetype":"invisible_profile_flash_dodge"},{"id":"S015","name":"뇌전톱니어","scientificName":null,"creatureType":"FANTASY_FISH","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":9,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"MEDIUM","behaviorArchetype":"electric_chain_reversal"},{"id":"S016","name":"은하우산 해파리","scientificName":null,"creatureType":"FANTASY","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":10,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"MEDIUM","behaviorArchetype":"slow_orbit_many_circles"},{"id":"S017","name":"산호갑옷 거북","scientificName":null,"creatureType":"FANTASY","specialCreature":true,"realSpecies":false,"fictional":true,"habitat":6,"index":19,"rarity":"MYTHIC","level":75,"artSizeClass":"LARGE","behaviorArchetype":"armor_fold_charge"}];
  var approvedSpecial=Object.create(null);
  approvedSpecialRoster.forEach(function(sp){approvedSpecial[sp.id]=sp;});
+ function sourceFor(id){return approvedSpecial[id]?'./assets/special-creatures/'+id+'.png?v=20261109-special-live13':'./assets/fish/individual/'+id+'.png?v='+(Number(id.slice(1))>=379?'20261109-user-six':Number(id.slice(1))>=373?'20261109-batch011-six':Number(id.slice(1))>=365?'20261109-batch010-eight':Number(id.slice(1))>=355?'20261108-batch009-ten':(Number(id.slice(1))>=348?'20261108-batch008':(Number(id.slice(1))>=342?'20261108-batch007':(Number(id.slice(1))>304?(Number(id.slice(1))<=328?'20261108-direct17':'20261108-original-expansion'):'20261106-fish304'))));}
  function imageFor(id){
   if(!enabled||(!/^F\d{3}$/.test(id)&&!(specialEnabled&&approvedSpecial[id])))return null;
   if(!Object.prototype.hasOwnProperty.call(loaded,id)){
@@ -80,25 +81,30 @@
     loaded[id]=img;
    };
    img.onerror=function(){loaded[id]=false;};
-   img.src=approvedSpecial[id]?'./assets/special-creatures/'+id+'.png?v=20261109-special-live13':'./assets/fish/individual/'+id+'.png?v='+(Number(id.slice(1))>=379?'20261109-user-six':Number(id.slice(1))>=373?'20261109-batch011-six':Number(id.slice(1))>=365?'20261109-batch010-eight':Number(id.slice(1))>=355?'20261108-batch009-ten':(Number(id.slice(1))>=348?'20261108-batch008':(Number(id.slice(1))>=342?'20261108-batch007':(Number(id.slice(1))>304?(Number(id.slice(1))<=328?'20261108-direct17':'20261108-original-expansion'):'20261106-fish304'))));
+   img.src=sourceFor(id);
   }
   return loaded[id]||null;
  }
  function listZone(list,z){return list.filter(function(sp){return sp.habitat===z});}
  function waitImage(id){
-  var a=imageFor(id);if(a||loaded[id]===false)return Promise.resolve();
-  var img=created[id];if(!img)return Promise.resolve();
+  var a=imageFor(id);if(a)return Promise.resolve(true);
+  var img=created[id];if(!img)return Promise.resolve(false);
+  if(img.complete)return Promise.resolve(!!img.naturalWidth);
   return new Promise(function(resolve){
-   if(img.complete){resolve();return;}
-   img.addEventListener('load',resolve,{once:true});
-   img.addEventListener('error',resolve,{once:true});
+   function finish(){
+    img.removeEventListener('load',finish);img.removeEventListener('error',finish);
+    resolve(!!img.naturalWidth);
+   }
+   img.addEventListener('load',finish);img.addEventListener('error',finish);
   });
  }
  function primeHabitat(z,list){
-  if(!enabled)return Promise.resolve();
+  if(!enabled)return Promise.resolve(true);
   var ids=listZone(list,z).filter(function(x){return !x.archivedVisualDuplicate}).map(function(x){return x.id});
-  var key=String(z);
-  if(!preload[key])preload[key]=Promise.all(ids.map(waitImage)).then(function(){return true;});
+  var key=String(z)+':'+ids.join(',');
+  if(!preload[key])preload[key]=Promise.all(ids.map(waitImage)).then(function(results){
+   var ok=results.every(Boolean);if(!ok)delete preload[key];return ok;
+  });
   return preload[key];
  }
  function extend(list){
@@ -125,7 +131,7 @@
  function variantsFor(list,z,rarity){return list.filter(function(s){return s.artVariant&&s.habitat===z&&s.rarity===rarity});}
  window.HumanFishingArt={
   enabled:enabled,specialEnabled:specialEnabled,specialCount:specialEnabled?approvedSpecialRoster.length:0,
-  extend:extend,bitmap:imageFor,primeHabitat:primeHabitat,
+  extend:extend,bitmap:imageFor,primeHabitat:primeHabitat,sourceFor:sourceFor,
   visualAliases:visualAliases,migrateSave:migrateSave,
   variantsFor:variantsFor,originalCount:240,variantCount:64-Object.keys(visualAliases).filter(function(id){return Number(id.slice(1))>=241}).length,archivedVariantCount:64,
   assetPath:'./assets/fish/individual/'

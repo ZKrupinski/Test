@@ -66,7 +66,7 @@ assert.ok(a>0&&b>a,'Catch showcase implementation missing');
 let root={innerHTML:''},sounds=[];
 const sp={id:'F007',name:'홍염 금붕어',artSizeClass:'LARGE'};
 const sandbox={
- view:'fish',time:10,
+ window:{},view:'fish',time:10,
  $:id=>id==='catchShowcase'?root:
   ({classList:{contains:()=>false}}),
  fishVisualProfile:fish=>({category:fish.artSizeClass||'MEDIUM'}),

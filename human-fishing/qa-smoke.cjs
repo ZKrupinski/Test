@@ -1717,8 +1717,8 @@ console.log('PASS: rare Fever targets visibly reel up, evade at mouth, return al
   assert.ok(fs.existsSync('human-fishing/assets/fish/individual/'+id+'.png'),
    'Fish codex thumbnail must resolve to an existing original raster '+id);
  }
- assert.match(markup,/loading="lazy" decoding="async" draggable="false"/,
-  'Large codex inventory should lazy-load offscreen PNGs');
+ assert.doesNotMatch(markup,/loading="lazy"/,
+  'All codex thumbnails must load before scene reveal');
  assert.doesNotMatch(markup,/class="face">🐟|class="face">◈/,
   'Fish thumbnail cards must not use emoji or vector placeholders');
  assert.match(markup,/class="card book-fish-card locked"/,

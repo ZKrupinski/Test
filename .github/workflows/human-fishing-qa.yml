@@ -37,6 +37,8 @@ jobs:
           NODE
       - name: Verify resource gate and fixed landscape coordinates
         run: node human-fishing/qa-boot.cjs
+      - name: Verify scene image loading, retries and frozen input
+        run: node human-fishing/qa-scene-loading.cjs
       - name: Run game startup, input and shop smoke test
         run: node human-fishing/qa-smoke.cjs
       - name: Verify 304 approved originals retained and overlapping recolor filler removed
@@ -132,3 +134,20 @@ jobs:
           assert.ok(fs.existsSync(root+'assets/fish/individual/F378.png'),'Existing F378 sprite not retained');
           console.log('PASS F379-F384 unique original sprites, hash, codex/habitat, save compatibility');
           NODE
+
+  scene-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test runtime
+        run: |
+          npm install --prefix /tmp/human-fishing-browser playwright@1.58.2
+          /tmp/human-fishing-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Test real scene loading and navigation in Chromium
+        env:
+          NODE_PATH: /tmp/human-fishing-browser/node_modules
+        run: node human-fishing/qa-scene-browser.cjs

@@ -7,7 +7,7 @@ function fixture(width,height){
  class Image {constructor(){this.src='';this.complete=false;this.naturalWidth=0;}getAttribute(){return this.src;}decode(){return Promise.resolve();}}
  const timers=[],document={querySelector:()=>el('root'),getElementById:el,addEventListener(){},documentElement:{requestFullscreen:()=>Promise.reject(new Error('gesture required'))},fonts:{ready:Promise.resolve()}};
  const window={Image,innerWidth:width,innerHeight:height,addEventListener(){}};
- vm.runInNewContext(source,{window,document,screen:{orientation:{lock:()=>Promise.reject()}},location:{reload(){}},setTimeout:fn=>timers.push(fn)});
+ vm.runInNewContext(source,{window,document,screen:{orientation:{lock:()=>Promise.reject()}},location:{reload(){}},Date,WeakMap,clearTimeout(){},setTimeout:fn=>timers.push(fn)});
  return {window,nodes,timers};
 }
 async function flush(){for(let i=0;i<12;i++)await Promise.resolve();}
