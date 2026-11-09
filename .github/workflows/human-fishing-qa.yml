@@ -77,6 +77,8 @@ jobs:
         run: node human-fishing/qa-foley.cjs
       - name: Verify fish thumbnail, size, NEW badges and sequential Fever victory cards
         run: node human-fishing/qa-catch-showcase.cjs
+      - name: Verify fish face left in all codex and acquisition tiles
+        run: node human-fishing/qa-fish-ui-heading.cjs
       - name: Verify congested fish disperse, choose lanes and pass safely
         run: node human-fishing/qa-ecology-traffic.cjs
       - name: Verify context-driven 16-frame companion animation states

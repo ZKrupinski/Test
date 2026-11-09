@@ -221,6 +221,9 @@ nav{flex-wrap:nowrap}
 #panelBody .book-cards .book-fish-card.locked .book-fish-thumb img{
  filter:brightness(0) drop-shadow(0 0 1px #b7d8db) drop-shadow(0 0 3px #81b4b6bd);opacity:1
 }
+/* Display-only orientation correction. Never edit original fish PNGs. */
+#panelBody .book-fish-thumb img.fish-ui-mirror,
+#catchShowcase .catch-card-thumb img.fish-ui-mirror{transform:scaleX(-1)}
 #panelBody .book-fish-thumb.image-error{color:#c5dae0;font:800 10px system-ui;text-align:center}
 #panelBody .book-fish-caption{
  width:100%;height:23px;flex:0 0 23px;display:flex;
@@ -1241,7 +1244,7 @@ function renderBook(filter,query){
   var alt=n?sp.name+' 물고기 원본 그림':'미발견 물고기 검은 실루엣';
   return '<div class="card book-fish-card '+(n?'':'locked')+
    '" data-name="'+escapeHtml(sp.name)+'" title="'+escapeHtml(info)+'">'+
-   '<div class="book-fish-thumb"><img src="'+source+'" alt="'+escapeHtml(alt)+
+   '<div class="book-fish-thumb"><img class="fish-ui-art'+(fishUiMirrorSource(sp)?' fish-ui-mirror':'')+'" src="'+source+'" alt="'+escapeHtml(alt)+
    '" loading="'+(photoIndex<48?'eager':'lazy')+'" decoding="async" draggable="false"></div>'+
    '<div class="book-fish-caption"><span class="name">'+name+
    '</span><span class="book-detail">'+escapeHtml(detail)+'</span></div></div>';
@@ -3717,6 +3720,16 @@ function drawHookSwallow(now){
  drawSwallowCreature(entity,approach,0,1,mouthPos(now));
 }
 // CATCH_SHOWCASE_BEGIN — the individual RGBA PNG is also used in the codex.
+// The source F001–F372 faces right; newer F373–F384 already faces left.
+// Only DOM codex/catch thumbnails are mirrored, never in-water fish actors.
+function fishUiMirrorSource(sp){
+ if(!sp)return false;
+ if(sp.collectionArtFaces==='left')return false;
+ if(sp.collectionArtFaces==='right')return true;
+ var id=String(sp.id||'');
+ if(/^F\d{3}$/.test(id))return Number(id.slice(1))<=372;
+ return /^S(?:009|010|011|012|013|014|015|017)$/.test(id);
+}
 function catchShowcaseFish(sp,quantity,fresh,forSale){
  if(!sp)return null;
  var category=fishVisualProfile(sp).category;
@@ -3731,7 +3744,7 @@ function catchShowcaseHuman(id,quantity,fresh){
 function catchShowcaseCard(item,fever,index){
  var name=escapeHtml(item.name),size=escapeHtml(item.size||'중형');
  var source=item.sp?(item.sp.specialCreature?'./assets/special-creatures/'+encodeURIComponent(item.sp.id)+'.png?v=20261108-s001':'./assets/fish/individual/'+encodeURIComponent(item.sp.id)+'.png?v=20261106-fish304'):'';
- var thumb=source?'<img src="'+source+'" decoding="async" alt="'+name+'">':
+ var thumb=source?'<img class="fish-ui-art'+(fishUiMirrorSource(item.sp)?' fish-ui-mirror':'')+'" src="'+source+'" decoding="async" alt="'+name+'">':
   '<span style="font-size:38px">🧑</span>';
  var tag=item.fresh?'<span class="catch-card-new">NEW</span>':'';
  var extra=item.quantity>1?' <b>×'+Math.floor(item.quantity)+'</b>':'';
