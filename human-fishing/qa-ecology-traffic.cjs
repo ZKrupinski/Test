@@ -16,7 +16,7 @@ let now=0,id=0;
 const W=1280,fish=[],hum=[];
 const env={
  console,Math,W,fish,hum,hook:null,view:'fish',aquariumFishingActive:true,
- aquariumSpawnTimer:0,aquariumExhibitTarget:0,cast:{active:true},
+ aquariumSpawnTimer:0,aquariumHumanSpawnTimer:0,aquariumExhibitTarget:0,cast:{active:true},
  feverFx:null,escapeFx:null,catchFx:null,bob:{x:640,y:450},time:0,
  eco:{t:0,fishTimer:0,humanTimer:0,next:100,school:0,contests:0},
  clamp:(n,a,b)=>Math.max(a,Math.min(b,n)),
@@ -33,7 +33,7 @@ const env={
  baitTrait:()=>({type:'none'}),danglingBaitPosition:()=>({x:640,y:460}),
  isFishFleeing:()=>false,
  spawnWildFish:()=>0,spawnWildHuman:()=>0,
- aquariumSpawnCodexFish:()=>0,
+ aquariumSpawnCodexFish:()=>0,aquariumReplenishHumans:()=>0,
  spawnParticles:()=>{},vibrationPulse:()=>{}
 };
 vm.createContext(env);
