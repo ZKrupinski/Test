@@ -28,7 +28,10 @@ function render(ctx,actor,now,action){
  var frame=(Math.floor(Math.max(0,now||0)*fps+phase*1.5)%8+8)%8;
  var col=frame%4,row=Math.floor(frame/4),fw=sheet.fw,fh=sheet.fh;
  var size=Math.max(.7,Math.min(1.8,Number(actor.size)||1));
- var scale=(mood==='hooked'?.33:.36)*size*(actor.id>=20?1.05:1);
+ // Display-only scale: humans are more prominent than even large fish.
+ // Never change actor.size or fishing hitbox/weakspot physics.
+ var HUMAN_WORLD_RENDER_BOOST=1.85;
+ var scale=(mood==='hooked'?.33:.36)*size*(actor.id>=20?1.05:1)*HUMAN_WORLD_RENDER_BOOST;
  var facing=Number(actor.vx||actor.dir||1)<0?-1:1;
  ctx.save();
  ctx.translate(Number(actor.x)||0,Number(actor.y)||0);
