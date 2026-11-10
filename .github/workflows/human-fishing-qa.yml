@@ -45,6 +45,8 @@ jobs:
         run: node human-fishing/qa-gamesir-g8plus.cjs
       - name: Verify human codex and flawless fever guaranteed encounters
         run: node human-fishing/qa-human-codex-encounter.cjs
+      - name: Verify human residents survive aquarium-to-fishing transition
+        run: node human-fishing/qa-aquarium-human-play.cjs
       - name: Verify resource gate and fixed landscape coordinates
         run: node human-fishing/qa-boot.cjs
       - name: Verify scene image loading, retries and frozen input

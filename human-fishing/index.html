@@ -4661,6 +4661,13 @@ function updateEcosystem(dt){
  if(aquariumFishingActive){
   aquariumSpawnTimer+=dt;
   if(fish.length<aquariumExhibitTarget&&aquariumSpawnTimer>=.65){aquariumSpawnTimer=0;aquariumSpawnCodexFish(false)}
+  // Human residents were historically discarded by aquariumBeginPlay().
+  // Preserve each placed human, then replenish a missing slot offscreen.
+  aquariumHumanSpawnTimer+=dt;
+  if(aquariumHumanSpawnTimer>=1.25){
+   aquariumHumanSpawnTimer=0;
+   if(!hook&&!feverFx&&!catchFx)aquariumReplenishHumans(false);
+  }
  }else{
   var interval=fish.length<5?1.55:fish.length<11?3.3:fish.length<16?5.8:8.5;
   if(eco.fishTimer>interval){eco.fishTimer=0;spawnWildFish(false)}
@@ -4950,7 +4957,11 @@ function updateEcosystem(dt){
   }
   person.x+=person.vx*dt;person.y=clamp(person.y+person.vy*dt,330,615);
   person.phase+=dt*.5;
-  if(person.x< -185||person.x>W+185)hum.splice(h,1);
+  if(person.aquariumResident&&aquariumFishingActive){
+   // Display residents turn around before disappearing at a screen edge.
+   if(person.x<160&&person.vx<0){person.x=160;person.vx=Math.abs(person.vx)}
+   else if(person.x>W-160&&person.vx>0){person.x=W-160;person.vx=-Math.abs(person.vx)}
+  }else if(person.x< -185||person.x>W+185)hum.splice(h,1);
  }
 }
 
@@ -6251,7 +6262,8 @@ setMode=function(mode){
 
 
 /* Aquarium stage and codex-only fishing; normal casts, fever, capture unchanged. */
-var aquariumFishingActive=false,aquariumPanelOpen=false,aquariumSpawnTimer=0,aquariumStageImage=null;
+var aquariumFishingActive=false,aquariumPanelOpen=false,aquariumSpawnTimer=0,
+ aquariumHumanSpawnTimer=0,aquariumStageImage=null;
 if(typeof Image!=='undefined'){
  aquariumStageImage=new Image();aquariumStageImage.ready=false;aquariumStageImage.decoding='async';
  aquariumStageImage.onload=function(){aquariumStageImage.ready=true};
@@ -6299,9 +6311,36 @@ setMode=function(mode){
  if(mode==='fish'&&!aquariumFishingActive&&eco.zone<0){buildFish();buildHum();}
  aquariumRefreshControls();
 };
+// The aquarium's humans are currently rendered from save.humanPlaced in
+// drawingTank(). Convert those very same displayed residents to gameplay
+// actors rather than replacing them with the unrelated random human pool.
+function aquariumMakePlayHuman(id,slot,inView){
+ var humanId=Number(id);
+ if(!Number.isInteger(humanId)||humanId<0||humanId>=humans.length)return null;
+ var sx=235+(slot%4)*239+Math.sin(time*.6+slot)*14;
+ var sy=426+Math.floor(slot/4)*160+Math.sin(time*1.3+slot)*10;
+ var dir=inView?1:(slot%2===0?1:-1);
+ return {ecoId:++eco.next,id:humanId,aquariumSlot:slot,
+  aquariumResident:true,x:inView?sx:(dir>0?-170:W+170),
+  y:clamp(sy+6,330,615),phase:slot,
+  vx:dir*rnd(26,38),vy:0,size:humanId>=20?1.05:1,
+  nextTurn:eco.t+rnd(8,14)};
+}
+function aquariumReplenishHumans(inView){
+ var placed=Array.isArray(save.humanPlaced)?save.humanPlaced:[];
+ var active=Object.create(null);
+ hum.forEach(function(person){
+  if(person.aquariumResident&&!person.feverCaptured)active[person.aquariumSlot]=true;
+ });
+ placed.forEach(function(id,slot){
+  if(active[slot])return;
+  var resident=aquariumMakePlayHuman(id,slot,inView);
+  if(resident)hum.push(resident);
+ });
+}
 function aquariumBeginPlay(){
- if(!aquariumKnownSpecies().length){
-  announce('🐟','도감에 물고기가 없어요','일반 스테이지에서 먼저 물고기를 잡아주세요.');return;
+ if(!aquariumKnownSpecies().length&&!(save.humanPlaced||[]).length){
+  announce('🐟','전시 생물이 없어요','물고기나 인간을 먼저 아쿠아리움에 배치해 주세요.');return;
  }
  aquariumCloseSaleReceipt();
  aquariumEnsureFish(time);
@@ -6315,8 +6354,10 @@ function aquariumBeginPlay(){
   f.aquariumResident=true;f._btFacing=a.dir;
   return f;
  });
- aquariumFishingActive=true;aquariumPanelOpen=false;aquariumSpawnTimer=0;
+ aquariumFishingActive=true;aquariumPanelOpen=false;
+ aquariumSpawnTimer=0;aquariumHumanSpawnTimer=0;
  fish=displayed;hum=[];hook=null;eco.fishTimer=0;eco.humanTimer=0;
+ aquariumReplenishHumans(true); // Preserve ID, slot, initial screen position and the approved bitmap.
  eco.zone=zone;eco.humanZone=zone;
  setMode('fish');
  if(!introEntrance.active&&!cast.active)startCast();
@@ -6340,7 +6381,8 @@ function aquariumReturnToExhibit(){
  aquariumFishSignature=aquariumKnownSpecies().map(function(sp){return sp.id}).join('|');
  aquariumLastTime=time;aquariumPreserveReturn=true;
  hideVirtualJoystick();cast.active=false;feverFx=null;hook=null;
- aquariumFishingActive=false;eco.zone=-1;eco.humanZone=-1;
+ aquariumFishingActive=false;aquariumHumanSpawnTimer=0;
+ eco.zone=-1;eco.humanZone=-1;
  setMode('tank');
  aquariumPreserveReturn=false;
 }
