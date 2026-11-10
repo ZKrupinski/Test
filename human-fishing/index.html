@@ -403,7 +403,7 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 <div id="bootOverlay" role="dialog" aria-modal="true" aria-label="게임 준비"><h2>인간낚시</h2><p id="bootStatus" role="status">리소스 로딩 중</p><progress id="bootProgress" max="1" value="0"></progress><button id="bootStart" type="button" hidden disabled>터치하여 시작</button></div>
 </div>
 <script src="./boot.js?v=20261110-scene-gate3"></script>
-<script src="./water-fx.js?v=20261110-waterfx-b5"></script>
+<script src="./water-fx.js?v=20261110-waterfx-b6"></script>
 <script src="./fx-shader.js?v=20261110-fxgl-v1"></script>
 <script src="./assets/fish/ready.js?v=20261106-fish304"></script>
 <script src="./assets/special-creatures/ready.js?v=20261108-direct17"></script>
@@ -3554,16 +3554,18 @@ function tick(stamp){
   drawFeverSuctionParticles(feverFx,time);
   if(fxLightContext())drawFeverSuctionParticles(feverFx,time,fxLightContext());
  }
- // Original world/creatures/particles already rendered normally.
- // The WebGL2 result adds only 30% light + 35% soft bloom on TOP.
- // IMPORTANT: keep opaque surface AFTER shader so it still covers fish/FX.
+ // Keep the original 100%-opacity surface ABOVE every fish and world FX.
+ // Copy only the water wave bitmap into the WebGL2 light buffer; the FX
+ // light-only composite is the sole pass after the original foreground wave.
  if(typeof waterFx!=='undefined'&&waterFx&&(view==='fish'||view==='tank')){
   waterFx.drawEvents(ctx,time,WATER_SURFACE_Y,W,H);
   if(fxLightContext())waterFx.drawEvents(fxLightContext(),time,WATER_SURFACE_Y,W,H);
- }
- if(fxShader)fxShader.composite(ctx);
- if(typeof waterFx!=='undefined'&&waterFx&&(view==='fish'||view==='tank'))
   waterFx.surface(ctx,time,WATER_SURFACE_Y,W);
+  if(fxLightContext())waterFx.surface(fxLightContext(),time,WATER_SURFACE_Y,W);
+ }
+ // ADD 30% and Bloom 35% now illuminate surface waves as well as other FX.
+ // Fish and HUD are never copied to the FX buffer.
+ if(fxShader)fxShader.composite(ctx);
   if(!escapeFx&&octoGroggy===0&&pendingEscapeRestart){pendingEscapeRestart=false;if(view==='fish')startCast()}
  if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}
  ctx.restore();
@@ -5525,7 +5527,9 @@ function feverBubblePose(fx,now,i){
   sceneFade=1-castEasing((fx.elapsed-(stopAt-.20))/.20),
   fadeIn=castEasing(life/.24),
   fadeOut=1-castEasing((life-.79)/.20);
- var alpha=appear*sceneFade*fadeIn*fadeOut*
+ // Fever glass bubbles share the 50%-opacity target with ambient bubbles.
+ // Keep their lifecycle fade and separate full-opacity vortex artwork.
+ var alpha=.50*appear*sceneFade*fadeIn*fadeOut*
   (.78+.18*feverBubbleHash(i*11+cycle*19+6));
  return{x:x,y:y,size:size,startSize:startSize,alpha:alpha,
   angle:angle,life:life,cycle:cycle,pull:pull,

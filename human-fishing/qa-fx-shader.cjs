@@ -20,14 +20,16 @@ assert.match(fx,/worldCtx\.globalAlpha=add/,'Independent adjustable ADD strength
 assert.match(fx,/worldCtx\.globalAlpha=bloom/,'Independent adjustable Bloom strength required');
 const after=(x,after)=>html.lastIndexOf(x)>html.lastIndexOf(after);
 assert.ok(after('fxShader.composite(ctx)','waterFx.drawEvents(ctx,time,WATER_SURFACE_Y,W,H)'),'Bloom must follow normal world and splash effects');
-assert.ok(after('waterFx.surface(ctx,time,WATER_SURFACE_Y,W)','fxShader.composite(ctx)'),'Opaque surface must remain TOP of all shader light');
+assert.ok(after('waterFx.surface(ctx,time,WATER_SURFACE_Y,W)','drawFish(a,time)'),'Original foreground wave must draw above fish');
+assert.ok(after('fxShader.composite(ctx)','waterFx.surface(ctx,time,WATER_SURFACE_Y,W)'),'ADD/Bloom must illuminate the original foreground wave');
+assert.match(html,/waterFx\.surface\(fxLightContext\(\),time,WATER_SURFACE_Y,W\)/,'Wave bitmap must also enter FX light buffer');
 assert.ok(after('fxShader.composite(ctx)','drawFeverSuctionParticles(feverFx,time)'),'Fever FX should be present before compositing');
 assert.match(html,/if\(fxLightContext\(\)\)drawFishRankTag\(a,fxLightContext\(\)\)/,'Rare glints must use FX pass');
 assert.match(html,/drawFish\(a,time\);drawFishRankTag\(a\);/,'Normal fish rendering must remain on world pass');
 assert.match(html,/drawFeverVortex\(feverFx,feverReelState\(feverFx,time\),fxLightContext\(\)\)/,'Only Fever vortex graphics must receive shader');
 assert.match(html,/if\(fxLightContext\(\)\)waterFx\.ambient\(fxLightContext\(\),time,WATER_SURFACE_Y,W,H\)/,'Underwater bitmap FX must receive shader');
 assert.match(html,/if\(fxLightContext\(\)\)waterFx\.drawEvents\(fxLightContext\(\),time,WATER_SURFACE_Y,W,H\)/,'Splash sprites must receive shader');
-assert.doesNotMatch(html,/waterFx\.surface\(fxLightContext\(\)/,'Opaque water surface must never enter shader');
+assert.match(html,/waterFx\.surface\(ctx,time,WATER_SURFACE_Y,W\)/,'The original 100%-opacity surface must remain in the normal 2D foreground');
 assert.doesNotMatch(html,/drawFish\(a,time,fxLightContext\(\)\)/,'Fish silhouettes must never enter shader');
 const noop=function(){};
 function surface(){
@@ -58,4 +60,4 @@ const full=desktop.window.HumanFishingFXShader.create({width:1280,height:720});
 assert.equal(full.lowPower,false);assert.equal(full.scale,4,'Desktop bloom uses quarter resolution');
 assert.equal(full.settings.addStrength,.30);assert.equal(full.settings.bloomStrength,.35);
 assert.equal(full.settings.radius,10);
-console.log('PASS: WebGL2 shader source/GLSL, ADD 30%, Bloom 35%/10px, bitmap-only selection, top surface, low-end 1/6 and original-effect CPU fallback.');
+console.log('PASS: WebGL2 shader, ADD 30%, Bloom 35%/10px, glowing foreground surface, excluded fish/HUD, low-end 1/6 and Canvas2D fallback.');

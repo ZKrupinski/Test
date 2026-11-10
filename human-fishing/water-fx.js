@@ -4,7 +4,7 @@
  */
 (function(root){
  'use strict';
- var version='20261110-waterfx-b5',base='./assets/water-fx/';
+ var version='20261110-waterfx-b6',base='./assets/water-fx/';
  var specs={
   surface:['water_surface_8f.png',4,2],
   splash:['water_splash_8f.png',4,2],
@@ -49,6 +49,8 @@
    // Discard the baked transparent frame gutters, which otherwise make vertical seams.
    var inset=sw*.024;sx+=inset;sw-=2*inset;
   }
+  // Every water-bubble bitmap is at most 50% opaque, including spray.
+  if(name==='bubbles')opacity=Math.min(opacity,.50);
   ctx.save();ctx.globalAlpha*=clamp01(opacity);
   ctx.translate(x,y);if(rotation)ctx.rotate(rotation);
   ctx.drawImage(image,sx,sy,sw,sh,-w*.5,-h*.5,w,h);
@@ -59,7 +61,7 @@
   x:((i+.5)/66+.035*(hash(i*13+5)-.5)),
   phase:hash(i*41+11),speed:.042+.09*hash(i*17+19),
   drift:4+15*hash(i*23+3),size:12+22*Math.pow(hash(i*29+9),1.35),
-  alpha:.44+.30*hash(i*43+7),frame:i%16
+  alpha:.50,frame:i%16
  });
  function ambient(ctx,now,waterY,width,height){
   if(!images.bubbles||!images.bubbles.ready)return false;

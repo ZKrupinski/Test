@@ -18,7 +18,7 @@ for(const asset of manifest.assets){
  assert.equal(buf.readUInt32BE(20),asset.height);
  assert.equal(crypto.createHash('sha256').update(buf).digest('hex'),asset.sha256);
 }
-assert.ok(game.includes('water-fx.js?v=20261110-waterfx-b5'));
+assert.ok(game.includes('water-fx.js?v=20261110-waterfx-b6'));
 const srcInline=game.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
 assert.ok(srcInline,'Main game script not found');new vm.Script(srcInline);
 assert.ok(game.includes('waterFx.ambient(ctx,time,WATER_SURFACE_Y,W,H)'));
@@ -57,10 +57,14 @@ assert.ok(fx);
  assert.ok(tiles.every(d=>d.alpha===1),'Water surface canvas opacity must be exactly 100%');
  assert.ok(tiles.every(d=>Math.abs(d.y-301)<1e-9),'Surface tiles must have a static waterline-centered vertical anchor');
  assert.ok(game.lastIndexOf('waterFx.surface(ctx,time,WATER_SURFACE_Y,W)')>game.lastIndexOf('waterFx.drawEvents(ctx,time,WATER_SURFACE_Y,W,H)'),'Surface must draw above water splashes and all world effects');
- assert.ok(game.lastIndexOf('waterFx.surface(ctx,time,WATER_SURFACE_Y,W)')>game.lastIndexOf('fxShader.composite(ctx)'),'Opaque foreground water must be drawn after the glow pass');
+ assert.ok(game.lastIndexOf('fxShader.composite(ctx)')>game.lastIndexOf('waterFx.surface(ctx,time,WATER_SURFACE_Y,W)'),'Wave ADD/Bloom must composite after the original foreground surface');
+ assert.ok(game.lastIndexOf('waterFx.surface(fxLightContext(),time,WATER_SURFACE_Y,W)')>game.lastIndexOf('waterFx.surface(ctx,time,WATER_SURFACE_Y,W)'),'The wave must be copied to FX source while original stays over fish');
  draws.length=0;fx.ambient(ctx,3.2,293,1280,720);
  assert.ok(draws.every(d=>d.args[7]>=7.5),'Ambient bubbles must remain readable');
- assert.ok(draws.every(d=>d.alpha<=.74+1e-9),'Ambient bubbles must be slightly more transparent');
+ assert.ok(draws.every(d=>d.alpha<=.50+1e-9),'Ambient bubbles must not exceed 50% opacity');
+ assert.ok(draws.some(d=>Math.abs(d.alpha-.50)<1e-9),'Unfaded ambient bubbles should render at 50% opacity');
+ draws.length=0;fx.atlas(ctx,'bubbles',0,640,430,22,22,.95,0);
+ assert.equal(draws.at(-1).alpha,.50,'Standalone bubble sprite must be capped at 50% opacity');
  assert.ok(src.includes('speed:.042+.09*hash(i*17+19)'),'Ambient bubbles must rise at the reduced speed');
  for(const kind of ['entry','exit']){
   fx.clear();fx.emit(kind,640,293,10,293);
