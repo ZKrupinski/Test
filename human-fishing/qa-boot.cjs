@@ -10,7 +10,7 @@ function fixture(width,height){
  vm.runInNewContext(source,{window,document,screen:{orientation:{lock:()=>Promise.reject()}},location:{reload(){}},Date,WeakMap,clearTimeout(){},setTimeout:fn=>timers.push(fn)});
  return {window,nodes,timers};
 }
-async function flush(){for(let i=0;i<12;i++)await Promise.resolve();}
+async function flush(){for(let i=0;i<36;i++)await Promise.resolve();}
 (async()=>{
  const a=fixture(1536,864);let starts=0;
  const image=new a.window.Image();image.src='test.webp';
@@ -20,6 +20,21 @@ async function flush(){for(let i=0;i<12;i++)await Promise.resolve();}
  assert.equal(a.nodes.bootStart.hidden,false);assert.equal(starts,0);
  a.nodes.bootStart.onclick();await flush();assert.equal(starts,1);assert.equal(a.nodes.bootOverlay.hidden,true);
  a.nodes.bootStart.onclick();assert.equal(starts,1);
+ // Stage audio preloader is a real prerequisite, not merely initiated.
+ const audioGate=fixture(1536,864);
+ let finishAudio,readyStarts=0,preloadRequests=0;
+ audioGate.window.HumanFishingBoot.registerPreload(function(){
+  preloadRequests++;
+  return new Promise(function(resolve){finishAudio=resolve;});
+ });
+ audioGate.window.HumanFishingBoot.begin(()=>readyStarts++);
+ await flush();
+ assert.equal(preloadRequests,1,'Initial ambient preload must start with artwork');
+ assert.equal(audioGate.nodes.bootStart.hidden,true,'START must wait for ambient decode');
+ finishAudio();await flush();
+ assert.equal(audioGate.nodes.bootStart.hidden,false,'START appears after audio is decoded');
+ audioGate.nodes.bootStart.onclick();await flush();
+ assert.equal(readyStarts,1,'Audio-ready start must only run once');
  const b=fixture(390,844);assert.match(b.nodes.root.style.transform,/rotate\(90deg\)/);
  const p=b.window.HumanFishingBoot.point({clientX:195,clientY:422},{getBoundingClientRect:()=>({top:0,right:390,width:390,height:844})},1280,720);
  assert.equal(p.x,640);assert.equal(p.y,360);
