@@ -1756,8 +1756,20 @@ console.log('PASS: rare Fever targets visibly reel up, evade at mouth, return al
  const humanHtml=element('panelBody').innerHTML;
  assert.ok(humanHtml.includes('book-human-card'),
   'The human collection must remain available and use landscape cards');
- assert.ok(!humanHtml.includes('book-fish-thumb'),
-  'The human-only filter must exclude fish thumbnails');
+ // Human cards now use the approved swimming baby bitmap, in the same
+ // thumbnail container as fish; exclude fish CARD records, not shared styles.
+ assert.ok(!humanHtml.includes('book-fish-card'),
+  'The human-only filter must exclude fish species cards');
+ assert.match(humanHtml,/class="book-fish-thumb book-human-thumb"/,
+  'Human codex entries should use the approved bitmap thumbnail container');
+ assert.match(humanHtml,/class="human-codex-canvas" width="362" height="360" data-human-owned="0"/,
+  'Unobtained human must use an alpha-preserving silhouette canvas');
+ const humanOwned=game.getSave().human,priorHuman=humanOwned['0'];
+ humanOwned['0']=1;
+ game.renderCodex(-2,'');
+ assert.match(element('panelBody').innerHTML,/class="human-codex-canvas" width="362" height="360" data-human-owned="1"/,
+  'Obtained human must show original color artwork');
+ if(priorHuman===undefined)delete humanOwned['0'];else humanOwned['0']=priorHuman;
 }
 console.log('PASS: codex displays 304 original high-res fish PNGs in landscape cards, black silhouettes for unowned and one-line captions');
 // Difficulty is driven by true movement decisions, not by a label or
