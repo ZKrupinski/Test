@@ -9,6 +9,10 @@ function where(value){const p=active.indexOf(value);assert.ok(p>=0,'Missing rend
 const stateUpdate=where('hook.elapsed+=dt;');
 const rod=where('drawRod(time);');
 const line=where("if(view==='fish'&&!introEntrance.active)drawLine();");
+const entranceRig=where('drawIntroRig(time);');
+assert.ok(entranceRig>line,'Intro must paint rod-to-octopus line and dangling bait before the fish');
+assert.match(source,/function drawIntroRig\(now\)\{[\s\S]*?ctx\.translate\(introEntrance\.offset,0\);[\s\S]*?drawLine\(\);drawBaitAbovePlayer\(now\);/,
+ 'Opening octopus, hanging bait and line must share the hero/rod entrance offset');
 const ordinaryBack=where("if(view==='fish'&&!introEntrance.active&&(!feverFx||lureRecovery.active)){");
 // During Fever's mouth-return phase the normal red lure must replace the
 // giant-mouth atlas in the same foreground-over-player, behind-fish pass.

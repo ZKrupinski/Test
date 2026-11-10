@@ -166,6 +166,11 @@ window.__hfTest={
  swapRandom:function(fn){const old=random;random=fn;return old},
  getIntro:function(){return introEntrance},
  markIntroHeroReady:function(){playerOctoAtlas.swim={ready:true}},
+ markIntroRigReady:function(){
+  rodBitmapSprites[selectedGear('rod').id]={ready:true};
+  polishedRedLureArt.idle={ready:true};
+  hangingBaitAtlas.ready=true;
+ },
  advanceIntro:advanceIntroEntrance,
  getHook:function(){return hook},
  redLureReleasePose:redLurePose,
@@ -220,6 +225,10 @@ game.markIntroHeroReady();
 game.advanceIntro(4);
 assert.equal(game.getIntro().elapsed,0,'A lone purple hero must not appear before red cheerleader');
 mock.window.octoSidekicksIntroReady=function(){return true};
+game.advanceIntro(.5);
+assert.equal(game.getIntro().visualReady,false,
+ 'Hero and cheerleaders cannot start before the real rod, red octopus and hooked bait art');
+game.markIntroRigReady();
 let syncedEntranceSignal=0;
 mock.window.octoSidekicksSignal=function(kind){if(kind==='entrance')syncedEntranceSignal++};
 game.advanceIntro(.90);
@@ -232,6 +241,8 @@ game.advanceIntro(.93);
 assert.equal(game.getIntro().active,false,'Arrival must settle on the stage');
 assert.equal(game.getIntro().offset,0,'Characters must finish at their usual x positions');
 assert.ok(game.getCast().active,'First bait throw begins only after arrival');
+assert.match(script,/function drawIntroRig\(now\)\{[\s\S]*?ctx\.translate\(introEntrance\.offset,0\);[\s\S]*?drawLine\(\);drawBaitAbovePlayer\(now\);/,
+ 'Line and both lure bitmaps must enter from the left with the protagonist');
 const runtimeTick=script.slice(script.lastIndexOf('function tick(stamp){'));
 const translate=runtimeTick.indexOf('ctx.translate(introEntrance.offset,0)');
 const sidekicks=runtimeTick.indexOf('window.drawOctopusSidekicks(ctx,time,octo)',translate);
@@ -240,7 +251,9 @@ const restore=runtimeTick.indexOf('ctx.restore()',hero);
 assert.ok(translate>=0&&sidekicks>translate&&hero>sidekicks&&restore>hero,
  'The FINAL active renderer must translate the hero, both friends and fishing rod together');
 assert.match(runtimeTick,/if\(view==='fish'&&!introEntrance\.active\)/,
- 'No bait movement may start until the visible entrance finishes');
+ 'Do not cast before the visible entrance finishes');
+assert.match(runtimeTick,/introEntrance\.active&&introEntrance\.visualReady\)[\s\S]*?drawIntroRig\(time\)/,
+ 'All entrance frames must draw the suspended rod-line, red octopus and hook');
 assert.match(script,/WATER_SURFACE_Y=293,PLAYER_STAGE_DROP=46/,
  'The waterline must move down 24px while the hero has 46px headroom');
 assert.match(runtimeTick,/ctx\.translate\(0,PLAYER_STAGE_DROP\)/,

@@ -2091,7 +2091,13 @@ function advanceIntroEntrance(dt){
  if(!introEntrance.visualReady){
   var heroIntroImage=playerOctoAtlas.swim;
   var redIntroReady=window.octoSidekicksIntroReady&&window.octoSidekicksIntroReady();
-  if(!heroIntroImage||!heroIntroImage.ready||!redIntroReady)return;
+  // All rod-end sprites must be ready before the first visible entrance
+  // frame. This prevents a later lure pop when casting starts.
+  var introRod=rodBitmapSprites[selectedGear('rod').id];
+  var introLure=polishedRedLureArt.idle;
+  if(!heroIntroImage||!heroIntroImage.ready||!redIntroReady||
+     !introRod||!introRod.ready||!introLure||!introLure.ready||
+     !hangingBaitAtlas||!hangingBaitAtlas.ready)return;
   introEntrance.visualReady=true;
   introEntrance.elapsed=0;
   // Starting the cheering animation at boot caused the red friend to finish
@@ -2099,6 +2105,10 @@ function advanceIntroEntrance(dt){
   if(window.octoSidekicksSignal)window.octoSidekicksSignal('entrance',time);
   if(window.octoSidekicksStartFullLoad)window.octoSidekicksStartFullLoad();
   loadRemainingPlayerAtlases();
+ }
+ // The bait stays connected to the moving rod tip for the entire entrance.
+ if(!cast.active&&!hook&&!feverFx){
+  var parked=readyBaitPosition(time);bob.x=parked.x;bob.y=parked.y;
  }
  introEntrance.elapsed=Math.min(introEntrance.duration,introEntrance.elapsed+dt);
  var u=clamp(introEntrance.elapsed/introEntrance.duration,0,1);
@@ -2164,8 +2174,14 @@ function updateLureRecovery(dt){
  bob.y=mix(r.retractY,toY,snap)-21*Math.sin(Math.PI*p);
  if(p>=1){r.active=false;if(view==='fish'&&!hook&&!cast.active)startCast()}
 }
+// Shared rod-end resting pose for entrance, cast wind-up and launch.
+function readyBaitPosition(now){
+ var tip=rodTip(now);
+ return{x:tip.x-18,y:tip.y+52};
+}
 function startCast(){
  if(introEntrance.active)return; // No rod cast before the arrival is complete.
+ var parked=readyBaitPosition(time);
  playFoley('cast');
  playerOctoCueState=null;playerOctoIdleState=null;
  if(window.octoSidekicksSignal)window.octoSidekicksSignal('cast',time);
@@ -2174,7 +2190,7 @@ function startCast(){
  cast.targetDepth=rnd(350,585); // Random height every cast, including first
  cast.sinkDuration=rnd(1.45,2.05);
  drag=false;dragPointer=null;dragQualified=false;
- bob.x=rodTip(time).x-18;bob.y=rodTip(time).y+13;
+ bob.x=parked.x;bob.y=parked.y;
  $('hintTitle').textContent='낚싯대를 휘둘러 찌를 던지는 중…';
  $('hint').textContent='수면 아래로 들어오는 순간부터 바로 조작할 수 있습니다.';
 }
@@ -2184,12 +2200,13 @@ function castMotion(dt){
  cast.elapsed+=dt;
  var u=cast.elapsed,tip=rodTip(time),impact=cast.impactAt,
   surface=WATER_SURFACE_Y+3;
+ var ready=readyBaitPosition(time);
  if(u<.26){
-  bob.x=tip.x-18;bob.y=tip.y+13;
+  bob.x=ready.x;bob.y=ready.y;
  }else if(u<impact){
   var p=clamp((u-.26)/(impact-.26),0,1);
-  bob.x=mix(tip.x-18,cast.impactX,1-Math.pow(1-p,1.85));
-  bob.y=mix(tip.y+13,surface,p)-76*Math.sin(Math.PI*p);
+  bob.x=mix(ready.x,cast.impactX,1-Math.pow(1-p,1.85));
+  bob.y=mix(ready.y,surface,p)-76*Math.sin(Math.PI*p);
  }else if(!cast.landing){
   // Unlock input the very first frame the bait breaks the water surface.
   // Continue natural sinking independently; NO input lock while sinking.
@@ -3043,6 +3060,14 @@ function drawLine(){
  ctx.strokeStyle=hook?'#ffefd1':'#d8f5f0df';ctx.lineWidth=1.55;ctx.stroke();
  ctx.restore();
 }
+// While the characters enter, the LINE, red carrier octopus and pierced
+// bait are rendered together, in front of the rod and behind the fish.
+function drawIntroRig(now){
+ if(!introEntrance.active||!introEntrance.visualReady)return;
+ ctx.save();ctx.translate(introEntrance.offset,0);
+ drawLine();drawBaitAbovePlayer(now);
+ ctx.restore();
+}
 function drawBob(){
  var lure=selectedGear('bait'),x=bob.x,y=bob.y+Math.sin(time*2.6)*(cast.active?0:2.2);
  // Soft halo is art; only fishing line uses vector stroke.
@@ -3477,6 +3502,8 @@ function tick(stamp){
    ctx.restore();
   }
   if(view==='fish'&&!introEntrance.active)drawLine();
+  if(view==='fish'&&introEntrance.active&&introEntrance.visualReady)
+   drawIntroRig(time);
   // New bitmapped OCTO FEVER bait shares the exact ordinary bait middle
   // layer: above player/rod/line and BELOW every swimming or hooked fish.
   if(view==='fish'&&!introEntrance.active&&feverFx)drawFeverFx(dt);

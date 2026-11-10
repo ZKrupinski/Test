@@ -11,7 +11,22 @@ const server=http.createServer((req,res)=>{
   if(fs.statSync(file).isDirectory())file=path.join(file,'index.html');
   let data=fs.readFileSync(file);
   if(file===path.join(__dirname,'index.html')){
-   data=Buffer.from(data.toString().replace('})();\n</script>',`window.__sceneQA={state:()=>({time,view,zone}),own:()=>{save.owned.F001=2;save.owned.F021=1;save.owned.F201=1;}};})();\n</script>`));
+   data=Buffer.from(data.toString().replace('})();\n</script>',`var introRigFrames=0,introRigAttached=true,introRigOffsets=[];
+var originalIntroRig=drawIntroRig;
+drawIntroRig=function(now){
+ var parked=readyBaitPosition(now);
+ introRigAttached=introRigAttached&&Math.abs(bob.x-parked.x)<.001&&
+  Math.abs(bob.y-parked.y)<.001;
+ if(introRigOffsets.length<5)introRigOffsets.push(introEntrance.offset);
+ introRigFrames++;
+ return originalIntroRig(now);
+};
+window.__sceneQA={state:()=>({time,view,zone}),introRig:()=>({
+ frames:introRigFrames,attached:introRigAttached,offsets:introRigOffsets,
+ ready:introEntrance.visualReady,rod:rodBitmapSprites[selectedGear('rod').id].ready,
+ lure:polishedRedLureArt.idle.ready,hook:hangingBaitAtlas.ready
+}),own:()=>{save.owned.F001=2;save.owned.F021=1;save.owned.F201=1;}};
+})();\n</script>`));
   }
   const type={'.html':'text/html','.js':'application/javascript','.png':'image/png','.webp':'image/webp','.wav':'audio/wav','.ogg':'audio/ogg','.mp3':'audio/mpeg'}[path.extname(file)]||'application/octet-stream';
   res.writeHead(200,{'Content-Type':type,'Cache-Control':'no-store'}).end(data);
@@ -38,6 +53,17 @@ const server=http.createServer((req,res)=>{
    catch(e){console.error('GATE STATE',await page.locator('#bootStatus').textContent(),await page.locator('img[src]').evaluateAll(ims=>ims.filter(im=>!im.complete||!im.naturalWidth).map(im=>im.src)));throw e;}
   };
   await ready();
+  // The real game must render its red octopus, hooked bait and line while
+  // the hero is still entering. This catches first-cast "pop in" regressions.
+  await page.waitForFunction(()=>window.__sceneQA.introRig().frames>0,{},{timeout:8000});
+  const introRig=await page.evaluate(()=>window.__sceneQA.introRig());
+  assert.equal(introRig.attached,true,'Entrance bait must follow the same physical rod tip');
+  assert.equal(introRig.ready,true,'Entrance may begin only after rod+lure artwork loads');
+  assert.equal(introRig.rod,true);
+  assert.equal(introRig.lure,true);
+  assert.equal(introRig.hook,true);
+  assert.ok(introRig.offsets.some(v=>v<0),'Line and bait must join the left-to-right entrance');
+  console.log('INTRO RIG',introRig);
   await page.click('#navFish');await ready();console.log('STAGE SELECT');
   await page.click('[data-zone="1"]');
   await page.waitForFunction(()=>window.HumanFishingBoot.busy);

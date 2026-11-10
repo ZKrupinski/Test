@@ -12,7 +12,7 @@ assert.match(script,/if\(cast\.sinkActive\)cast\.sinkActive=false;[\s\S]*?joysti
 assert.match(script,/if\(view!=='fish'\|\|introEntrance\.active[\s\S]*?cast\.active\|\|lureRecovery\.active\)return;/,
  'Airborne lure may remain locked, submerged lure may not');
 
-const castPart=script.slice(script.indexOf('function startCast(){'),
+const castPart=script.slice(script.indexOf('function readyBaitPosition(now){'),
  script.indexOf('// Each rod has its own actual velocity'));
 assert.ok(castPart.includes('function updateCastSink(dt)'));
 let roll=.15,splash=0;
@@ -32,9 +32,14 @@ const castEnv={
 };
 vm.createContext(castEnv);vm.runInContext(castPart,castEnv,{filename:'cast-unlock.js'});
 castEnv.startCast();
+assert.equal(castEnv.bob.x,472,'Bait must begin at its rod tip X without teleporting');
+assert.equal(castEnv.bob.y,144,'Bait hangs 52px below the rod tip before casting');
+castEnv.castMotion(.10);
+assert.equal(castEnv.bob.x,472,'Wind-up must hold the connected bait at rod X');
+assert.equal(castEnv.bob.y,144,'Wind-up must not jump vertically');
 const shallow=castEnv.cast.targetDepth;
 assert.ok(shallow>=350&&shallow<=585);
-castEnv.castMotion(.94);
+castEnv.castMotion(.84);
 assert.equal(castEnv.cast.active,true);
 castEnv.castMotion(.10);
 assert.equal(splash,1,'Water-entry splash should fire exactly once');
