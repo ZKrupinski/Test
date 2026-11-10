@@ -35,6 +35,8 @@ jobs:
           }
           console.log('PASS: JavaScript parses, all 240 fish are present, gameplay handlers exist.');
           NODE
+      - name: Validate approved human baby sprite PNG hashes and renderer
+        run: node human-fishing/qa-human-sprites.cjs
       - name: Verify resource gate and fixed landscape coordinates
         run: node human-fishing/qa-boot.cjs
       - name: Verify scene image loading, retries and frozen input
