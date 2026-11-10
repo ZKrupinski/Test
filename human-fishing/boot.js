@@ -25,6 +25,35 @@
   try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');}catch(e){}
   fit();
  }
+ // Allow first START/A press to launch once preload is complete.
+ // Gamepad polling here is independent of gameplay, which begins only after start().
+ var startPadPolling=false,startPadWasPressed=false;
+ function prestartGamepadFrame(){
+  if(started){startPadPolling=false;return;}
+  var pressed=false;
+  if(!button.hidden&&!button.disabled&&typeof navigator!=='undefined'&&
+     typeof navigator.getGamepads==='function'){
+   try{
+    var list=navigator.getGamepads()||[];
+    for(var k=0;k<list.length;k++){
+     var pad=list[k];if(!pad||pad.connected===false)continue;
+     var a=pad.buttons&&pad.buttons[0],start=pad.buttons&&pad.buttons[9];
+     if((a&&(a.pressed||a.value>.55))||(start&&(start.pressed||start.value>.55))){
+      pressed=true;break;
+     }
+    }
+   }catch(e){}
+  }
+  if(pressed&&!startPadWasPressed&&!button.hidden&&!button.disabled){start();return;}
+  startPadWasPressed=pressed;
+  if(typeof requestAnimationFrame==='function')requestAnimationFrame(prestartGamepadFrame);
+  else startPadPolling=false;
+ }
+ function enablePrestartGamepad(){
+  if(!startPadPolling&&typeof requestAnimationFrame==='function'){
+   startPadPolling=true;requestAnimationFrame(prestartGamepadFrame);
+  }
+ }
  var busy=false,depth=0,generation=0,decoded=new WeakMap();
  var retryImages=[],retrySerial=0,retryAttempts=0,retryTimer=null;
  function activeImages(){
@@ -113,8 +142,8 @@
    });});
    return;
   }
-  button.textContent='터치하여 시작';button.hidden=false;button.disabled=false;
-  button.onclick=start;
+  button.textContent='터치 · A / START로 시작';button.hidden=false;button.disabled=false;
+  button.onclick=start;enablePrestartGamepad();
   await fullscreen();
   if(document.fullscreenElement||document.webkitFullscreenElement)start();
  }
