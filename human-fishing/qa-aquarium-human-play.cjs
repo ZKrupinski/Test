@@ -9,8 +9,8 @@ assert.match(body,/function aquariumReplenishHumans\(inView\)/);
 assert.match(body,/aquariumReplenishHumans\(true\);/);
 assert.match(body,/if\(person\.aquariumResident&&aquariumFishingActive\)/);
 assert.match(body,/if\(!hook&&!feverFx&&!catchFx\)aquariumReplenishHumans\(false\)/);
-assert.doesNotMatch(body,/fish=displayed;hum=\[\];hook=null;eco\.fishTimer=0;eco\.humanTimer=0;/,
- 'Fish-to-play transition must not permanently clear all humans without rebuilding them');
+assert.match(body,/fish=displayed;hum=\[\];hook=null;eco\.fishTimer=0;eco\.humanTimer=0;\s*aquariumReplenishHumans\(true\)/,
+ 'The cleared temporary actor array must be repopulated from the same exhibited humans before scene entry');
 // Execute the real aquarium conversion functions in a controlled scene
 // rather than checking text only.
 const start=body.indexOf('function aquariumMakePlayHuman(');
