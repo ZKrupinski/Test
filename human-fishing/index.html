@@ -439,6 +439,7 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
 <script src="./assets/humans/ready.js?v=20261110-baby-v1"></script>
 <script src="./human-sprites.js?v=20261110-baby-v2-hooked"></script>
+<script src="./gamepad.js?v=20261110-pad1"></script>
 <script src="./foley.js?v=20261108-chest-prize-bells-v1"></script>
 <script src="./ambient.js?v=20261108-deep-dual-ambience-v2"></script>
 <script>
@@ -2294,6 +2295,7 @@ function onBaitPointerDown(e){
  if(view==='tank'){aquariumTapFish(e);return;}
  // Touch control starts only AFTER the full cast, splash and slow settle.
  // As before, the lower half sets the virtual joystick center.
+ if(joystick.id==='gamepad')hideVirtualJoystick(); // Any actual pointer gesture wins.
  if(view!=='fish'||introEntrance.active||hook||feverFx||catchFx||escapeFx||octoGroggy>0||joystick.active||cast.active||lureRecovery.active)return;
  var p=resizePointer(e);
  // Touch/pen gestures only begin in the bottom half of the 16:9 game view.
@@ -3142,16 +3144,20 @@ var deviceHapticPatterns={
 };
 var deviceHapticPriority={brush:1,weakspot:3,bite:4,pull:2,swallow:6,escape:6,counter:5,fever:4,splash:5};
 var deviceHaptics={until:-10,priority:0,lastReel:-10};
-function deviceVibrate(pattern,priority){
- if(typeof navigator==='undefined'||typeof navigator.vibrate!=='function')return false;
+function deviceVibrate(pattern,priority,kind){
  if(time<deviceHaptics.until&&(priority||0)<deviceHaptics.priority)return false;
- try{
-  if(navigator.vibrate(pattern)===false)return false;
-  var ms=Array.isArray(pattern)?pattern.reduce(function(a,b){return a+b},0):pattern;
-  deviceHaptics.until=time+Math.max(0,ms)/1000;
-  deviceHaptics.priority=priority||0;
-  return true;
- }catch(e){return false}
+ // Native pad motors are independent from phone vibration permissions.
+ var gamepad=window.HumanFishingGamepad;
+ var padRumble=!!(gamepad&&gamepad.rumble&&gamepad.rumble(pattern,priority,kind));
+ var phoneRumble=false;
+ if(typeof navigator!=='undefined'&&typeof navigator.vibrate==='function'){
+  try{phoneRumble=navigator.vibrate(pattern)!==false}catch(e){}
+ }
+ if(!padRumble&&!phoneRumble)return false;
+ var ms=Array.isArray(pattern)?pattern.reduce(function(a,b){return a+b},0):Number(pattern)||0;
+ deviceHaptics.until=time+Math.max(0,ms)/1000;
+ deviceHaptics.priority=priority||0;
+ return true;
 }
 function updateReelHaptics(h,progress){
  if(!h||view!=='fish')return;
@@ -3160,7 +3166,7 @@ function updateReelHaptics(h,progress){
  if(p<.075||time-deviceHaptics.lastReel<.13+.065*p)return;
  deviceHaptics.lastReel=time;
  playFoley('reel',.60);
- deviceVibrate(Math.round(40-29*Math.pow(p,.85)),deviceHapticPriority.pull);
+ deviceVibrate(Math.round(40-29*Math.pow(p,.85)),deviceHapticPriority.pull,'pull');
 }
 function vibrationPulse(kind){
  var p=vibrationPresets[kind];if(!p)return false;
@@ -3175,7 +3181,7 @@ function vibrationPulse(kind){
   var items=vibrations[k];if(items.length>=5)items.shift();
   items.push({start:time,duration:p.duration,power:p[k],phase:Math.random()*Math.PI*2});
  }
- if(deviceHapticPatterns[kind])deviceVibrate(deviceHapticPatterns[kind],deviceHapticPriority[kind]);
+ if(deviceHapticPatterns[kind])deviceVibrate(deviceHapticPatterns[kind],deviceHapticPriority[kind],kind);
  var foleyKind={brush:'brush',weakspot:'weakspot',bite:'bite',pull:'rodPump',swallow:'swallow',escape:'escape',counter:'counter',fever:'fever',splash:'splash'}[kind];
  if(foleyKind)playFoley(foleyKind);
  return true;
@@ -3406,6 +3412,7 @@ function autoFishingStep(dt){
 function tick(stamp){
  if(window.HumanFishingBoot&&window.HumanFishingBoot.busy){last=stamp;requestAnimationFrame(tick);return;}
  var dt=Math.min((stamp-last)/1000,.045);last=stamp;time+=dt;
+ if(window.HumanFishingGamepad)window.HumanFishingGamepad.poll();
  updateCatchShowcaseAudio();
  ctx.clearRect(0,0,W,H);
  if(view==='fish')advanceIntroEntrance(dt);
@@ -6359,6 +6366,42 @@ humanIcon=function(a,now){
  if(sprites&&sprites.render(ctx,a,now,pose))return;
  previousHumanIcon(a,now);
 };
+// Use the SAME movement physics as the virtual joystick: rod quality,
+// acceleration, drift, bounds and capture rules are left unchanged.
+function gamepadMoveLure(x,y){
+ var blocked=view!=='fish'||introEntrance.active||hook||cast.active||
+  feverFx||catchFx||escapeFx||octoGroggy>0||lureRecovery.active||
+  $('panel').classList.contains('open');
+ if(blocked){
+  if(joystick.id==='gamepad')hideVirtualJoystick();
+  return;
+ }
+ // Never interrupt a player's touch/mouse gesture.
+ if(joystick.active&&joystick.id!=='gamepad'&&joystick.id!=='auto')return;
+ var length=Math.hypot(x,y);
+ if(length>.001&&joystick.id!=='gamepad'){
+  autoFishingStop();
+  joystick.active=true;joystick.id='gamepad';joystick.engaged=true;
+  if(cast.sinkActive)cast.sinkActive=false;
+  stopCatchShowcase();
+ }
+ if(joystick.id==='gamepad'){
+  joystick.dx=length>1?x/length:x;joystick.dy=length>1?y/length:y;
+  joystick.engaged=length>.12;
+ }
+}
+if(window.HumanFishingGamepad)window.HumanFishingGamepad.init({
+ busy:function(){return !!(window.HumanFishingBoot&&window.HumanFishingBoot.busy);},
+ userInput:function(){autoFishingStop();},
+ move:gamepadMoveLure,
+ action:function(){
+  if(view==='tank'&&$('aquaPlay')){$('aquaPlay').click();return;}
+  if(view!=='fish'||introEntrance.active||$('panel').classList.contains('open'))return;
+  // Press once to release/capture; Octo Fever uses the same release().
+  release();
+ },
+ cancel:function(){if(view==='tank'&&aquariumFishingActive)aquariumReturnToExhibit();}
+});
 // The old Blue Tang animation QA preview is no longer required.
 buildFish();buildHum();
 updateStats();setMode('fish');
