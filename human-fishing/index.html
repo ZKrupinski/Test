@@ -242,10 +242,17 @@ nav{flex-wrap:nowrap}
 #panelBody .book-fish-card.locked .book-fish-caption .name{
  color:#9ab2b7
 }
-#panelBody .book-cards .book-human-card .face{
- flex:1;display:grid;place-items:center;width:100%;font-size:40px
+/* The approved first swim frame is shared by all 24 human codex entries. */
+#panelBody .book-human-card .book-human-thumb{width:100%;min-height:0}
+#panelBody .book-human-card .human-codex-canvas{
+ display:block;width:auto;height:auto;max-width:100%;max-height:100%;object-fit:contain;image-rendering:auto
 }
-#panelBody .book-cards .book-human-card.locked{opacity:.66}
+#panelBody .book-cards .book-human-card.locked{
+ opacity:1;filter:none;background:linear-gradient(155deg,#274550,#18313c);border-color:#435d69
+}
+#panelBody .book-cards .book-human-card.locked .human-codex-canvas{
+ filter:drop-shadow(0 0 2px #a3c5ca8c)
+}
 #panelBody .book-cards .book-human-card .book-fish-caption .name{
  font-size:12px
 }
@@ -1246,6 +1253,26 @@ function sortFishForCodexByRegion(list){
   return (parseInt(String(a.id).slice(1),10)||0)-(parseInt(String(b.id).slice(1),10)||0);
  });
 }
+// Crop the approved first swim frame without changing the original bitmap.
+// source-in paints only nontransparent pixels, preserving soft alpha edges.
+function paintHumanCodexThumbs(){
+ var art=window.HumanFishingBabySprites,img=art&&art.images&&art.images.swim;
+ if(!img)return;
+ if(!img.complete||img.naturalWidth!==1448||img.naturalHeight!==1086){
+  if(!img.complete)img.addEventListener('load',paintHumanCodexThumbs,{once:true});
+  return;
+ }
+ document.querySelectorAll('#panelBody .human-codex-canvas').forEach(function(canvas){
+  var c=canvas.getContext('2d');if(!c)return;
+  c.clearRect(0,0,362,360);
+  c.drawImage(img,0,90,362,360,0,0,362,360);
+  if(canvas.dataset.humanOwned!=='1'){
+   c.globalCompositeOperation='source-in';
+   c.fillStyle='#000000';c.fillRect(0,0,362,360);
+   c.globalCompositeOperation='source-over';
+  }
+ });
+}
 function renderBook(filter,query){
  filter=filter===undefined?-3:Number(filter);query=query||'';
  var catalogueSpecies=species.filter(function(sp){return !sp.archivedVisualDuplicate});
@@ -1263,7 +1290,7 @@ function renderBook(filter,query){
   var id=String(a.id),n=save.human[id]||0,tier=humanTier(a.id);
   var name=n?escapeHtml(a.name):'???',detail=n?tier+' · 보유 '+n:'H'+String(a.id+1).padStart(3,'0')+' · 미발견';
   return '<div class="card book-human-card '+(n?'':'locked')+'" data-name="'+escapeHtml(a.name)+'" title="'+escapeHtml(a.name+' · '+tier)+'">'+
-   '<div class="face">'+(n?(tier==='BOSS'?'👑':'🧑'):'◈')+'</div>'+
+   '<div class="book-fish-thumb book-human-thumb"><canvas class="human-codex-canvas" width="362" height="360" data-human-owned="'+(n?'1':'0')+'" role="img" aria-label="'+(n?'획득한 인간형 컬러 원화':'미획득 인간형 검은 실루엣')+'"></canvas></div>'+
    '<div class="book-fish-caption"><span class="name">'+name+'</span><span class="book-detail">'+detail+'</span></div></div>';
  }).join('')+visibleFish.map(function(sp,photoIndex){
   var n=save.owned[sp.id]||0,visual=fishVisualProfile(sp);
@@ -1290,6 +1317,7 @@ function renderBook(filter,query){
  var specialTotal=catalogueSpecies.filter(function(sp){return sp.specialCreature}).length;
  var specialCount=catalogueSpecies.filter(function(sp){return sp.specialCreature&&(save.owned[sp.id]||0)>0}).length;
  openPanel('통합 생물 도감','물고기 '+normalCount+'/'+normalTotal+' · 특수 생물 '+specialCount+'/'+specialTotal+' · 인간 '+hCount+'/24 · '+(catalogueSpecies.length+humans.length)+'종 컬렉션',tool+cards);
+ paintHumanCodexThumbs();
  // The shared resource gate handles thumbnail failures and user retries.
   $('search').oninput=function(){
   var q=this.value.toLowerCase();
@@ -3961,6 +3989,8 @@ save.fever.count=clamp(Number(save.fever.count)||0,0,6);
 save.fever.ready=!!save.fever.ready||save.fever.count>=6;
 save.fever.total=Math.max(0,Number(save.fever.total)||0);
 save.fever.activations=Math.max(0,Number(save.fever.activations)||0);
+// A mid-charge save cannot retroactively claim a flawless meter fill.
+var perfectFeverRun={clean:save.fever.count===0&&!save.fever.ready,successfulCasts:0};
 function octoStats(tier,lv){
  return {
   size:52+tier*12+lv*3,
@@ -3987,6 +4017,7 @@ function updateFeverHud(){
 }
 function recordFeverCapture(qty){
  if(save.fever.ready)return;
+ perfectFeverRun.successfulCasts++;
  var gained=Math.max(1,Math.floor(Number(qty)||1)),special=baitTrait();
  // The forbidden bait adds one earned Fever charge every few catches.
  if(special.type==='feverCharge'&&save.catches>0&&
@@ -4366,7 +4397,7 @@ function spawnWildFish(startInView,forceSolo,visualClass){
 function spawnWildHuman(){
  if(hum.length>=2)return false;
  var p=gearPower('bait'),bossChance=.00006+p*.000005,
-  eliteChance=.014+p*.00035;
+  eliteChance=.018+p*.00040;
  var special=baitTrait();
  if(special.type==='humanEncounter')eliteChance*=1+special.power;
  var roll=Math.random();
@@ -4376,6 +4407,17 @@ function spawnWildHuman(){
  hum.push({ecoId:++eco.next,id:id,x:dir>0?-95:W+95,y:rnd(360,575),
   phase:rnd(0,6.28),vx:dir*rnd(23,38),vy:rnd(-4,4),
   size:boss?1.31:1.02,nextTurn:eco.t+rnd(7,13)});
+ return true;
+}
+// Perfect-fever reward bypasses ordinary two-human limit, no probability roll.
+function spawnGuaranteedHuman(){
+ if(view!=='fish'||aquariumFishingActive)return false;
+ var dir=Math.random()<.5?1:-1;
+ hum.push({ecoId:++eco.next,id:Math.floor(rnd(0,20)),
+  x:dir>0?-64:W+64,y:rnd(360,565),phase:rnd(0,6.28),
+  vx:dir*rnd(33,46),vy:0,size:1.05,
+  nextTurn:eco.t+rnd(12,17),guaranteedEncounter:true});
+ announce('🧑','완벽한 옥토피버!','인간 1명이 확정 등장합니다.');
  return true;
 }
 function buildFish(){
@@ -4890,6 +4932,7 @@ var escapeFx=null,octoGroggy=0,pendingEscapeRestart=false,feverFx=null,feverSpri
 var groggyStars={};
 function escapeHook(){
  if(!hook||escapeFx)return;
+ perfectFeverRun.clean=false;
  var o=hook.obj,human=hook.kind==='human',mouth=mouthPos(time);
  var dir=o.x>=mouth.x?1:-1;
  escapeFx={
@@ -5131,6 +5174,7 @@ release=function(){
  var danglingTip=danglingBaitPosition(time);
  var lureAtRelease={x:danglingTip.x,y:danglingTip.y};
  oldReleaseForDifficulty();
+ if(!hook)perfectFeverRun.clean=false;
  if(hook){
   if(hook.kind==='fish'){
    var mouthRig=makeMouthHookRig(hook.obj,time,lureAtRelease);
@@ -5786,10 +5830,14 @@ function activateOctoFever(){
  hideVirtualJoystick();
  var g=selectedGear('octopus'),v=octoStats(g.tier,gearLevel('octopus',g.id));
  var targets=[],resisted=0,coins=0,net=gearPower('net');
+ var fishAttempted=0,fishFailed=0;
+ var perfectFeverReady=perfectFeverRun.clean&&perfectFeverRun.successfulCasts>0&&
+  save.fever.count===6&&!aquariumFishingActive;
  var center={x:bob.x,y:bob.y};
  fish.filter(function(f){return !f.feverCaptured&&Math.hypot(f.x-center.x,f.y-center.y)<=v.radius}).forEach(function(f){
+  fishAttempted++;
   var chance=catchProbability(f.sp,false,true),captured=Math.random()<chance;
-  if(!captured)resisted++;
+  if(!captured){resisted++;fishFailed++;}
   // Common fish keep their existing success gate. RARE+ fish ALWAYS
   // join the visible pull-up, then visibly break away at the player's mouth
   // if their resistance roll fails. No unpaid fish enters the inventory.
@@ -5831,6 +5879,9 @@ function activateOctoFever(){
   return Math.atan2(a.y-center.y,a.x-center.x)-
    Math.atan2(b.y-center.y,b.x-center.x);
  });
+ // All in-range fish must pass their capture roll, even those not lifted.
+ var awardPerfectHuman=perfectFeverReady&&fishAttempted>0&&fishFailed===0;
+ perfectFeverRun.clean=true;perfectFeverRun.successfulCasts=0;
  save.fever.ready=false;save.fever.count=0;save.fever.activations++;
  persist();updateStats();updateFeverHud();vibrationPulse('fever');
  spawnParticles(center.x,center.y,52,'gold');ripple(center.x,center.y);
@@ -5849,6 +5900,7 @@ function activateOctoFever(){
  if(typeof waterFx!=='undefined'&&waterFx)waterFx.emit('fever',center.x,center.y,time,WATER_SURFACE_Y);
  $('hintTitle').textContent='🐙 피버! '+targets.length+'마리 함께 끌어올리는 중';
  $('hint').textContent='주변 물고기를 미끼 주위로 모아 함께 끌어올립니다.';
+ if(awardPerfectHuman)spawnGuaranteedHuman();
 }
 // Keep line attached to stationary suction bait, then retrieve the closed bait.
 function feverSurfaceTime(fx,now){
