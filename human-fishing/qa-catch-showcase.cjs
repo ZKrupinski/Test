@@ -161,7 +161,7 @@ assert.equal(sandbox.catchShowcaseExpiresAt,-1,'Expired reward must reset its ti
 sandbox.time=30;
 sandbox.showCatchShowcase(batch,true);
 assert.ok(root.innerHTML.includes('다랑어'));
-sandbox.time=31.70;sandbox.updateCatchShowcaseAudio();
+sandbox.time=31.90;sandbox.updateCatchShowcaseAudio();
 assert.equal(root.innerHTML,'','Fever rewards must also expire after their last staggered card');
 sandbox.time=40;
 sandbox.showCatchShowcase([prize],false);
@@ -178,4 +178,25 @@ assert.match(source,/release=function\(\)\{[\s\S]*?stopCatchShowcase\(\);[\s\S]*
 const brushBody=source.slice(source.indexOf('function checkBaitBrush(){'),source.indexOf('// The weakspot uses'));
 assert.doesNotMatch(brushBody,/showCatchShowcase|save\.owned\[/,
  'Brushing a fish is haptic-only feedback; it must not award or display a species');
+// Regression: Fever cards cannot be erased by early recasts, touch movement,
+ // or a new normal reward. Future rewards queue and play only after all
+ // existing Fever cards have finished.
+sandbox.time=60;
+sandbox.showCatchShowcase(batch,true);
+sandbox.time=60.18;sandbox.stopCatchShowcase();
+assert.equal((root.innerHTML.match(/class="catch-card fever"/g)||[]).length,3,
+ 'Continuing to fish must NOT clear an unfinished three-fish Fever');
+sandbox.showCatchShowcase([prize],false);
+assert.equal(sandbox.catchShowcasePending.length,1,
+ 'Newly caught fish must queue behind an active Fever');
+sandbox.time=61.91;sandbox.updateCatchShowcaseAudio();
+assert.doesNotMatch(root.innerHTML,/class="catch-card fever"/,
+ 'Queued normal reward must start after last Fever card has finished');
+assert.match(root.innerHTML,/홍염 금붕어/);
+sandbox.time=64.30;sandbox.updateCatchShowcaseAudio();
+assert.equal(root.innerHTML,'','The queued normal prize should expire cleanly');
+sandbox.time=70;sandbox.showCatchShowcase(batch,true);
+sandbox.stopCatchShowcase(true);
+assert.equal(root.innerHTML,'','Explicit menu transitions may close Fever awards');
+console.log('PASS: Fever awards survive recasting and chain with queued later catches.');
 console.log('PASS: trophy cards expire and clear across new attempts, misses and empty Fever; brushes cannot award fish.');
