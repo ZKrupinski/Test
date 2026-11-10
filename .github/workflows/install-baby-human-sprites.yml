@@ -1,0 +1,86 @@
+name: Install approved baby human sprites
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'human-fishing/human-character-import.zip'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: human-fishing-baby-sprites
+  cancel-in-progress: false
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate and install exactly the four approved RGBA sheets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install -q Pillow
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import hashlib,io,json,zipfile
+          root=Path('human-fishing')
+          zpath=root/'human-character-import.zip'
+          assert zpath.is_file(),'Upload human-character-import.zip at human-fishing/'
+          hashes={
+           'baby_swim_8f.png':'77df32dbccbc68847d9b1eadf32a92402efacb6d8cd0f37ddc96f91310462a7e',
+           'baby_resist_8f.png':'ed6e3fbb9ee784c4d66e2ec61a9d82841dd6d011247843a7ac6c624d2086196e',
+           'baby_taunt_8f.png':'77890fbe410721244adf06cd422c3d90fad5755c384d85a44adbf6a675eb0565',
+           'baby_hooked_8f.png':'b2693e7e2459a64080d3d7aa87369957aa93b882c54e9aa230a6b755eaf2c0d5'}
+          with zipfile.ZipFile(zpath) as z:
+           assert z.testzip() is None,'Corrupt ZIP'
+           assert set(z.namelist())==set(hashes)|{'human-manifest.json','README.txt'},'Unexpected ZIP layout'
+           manifest=json.loads(z.read('human-manifest.json'))
+           assert manifest['id']=='baby-human-v1'
+           assert manifest['layout']=={'columns':4,'rows':2,'frames':8}
+           validated={}
+           for name,expected in hashes.items():
+            b=z.read(name)
+            assert hashlib.sha256(b).hexdigest()==expected,'Not the approved original: '+name
+            assert manifest['files'][name]['sha256']==expected
+            assert manifest['files'][name]['bytes']==len(b)
+            im=Image.open(io.BytesIO(b));im.load()
+            assert im.format=='PNG' and im.mode=='RGBA' and im.size==(1448,1086),name
+            assert im.getchannel('A').getextrema()==(0,255),name+' lacks real transparency'
+            validated[name]=b
+          dest=root/'assets/humans'
+          dest.mkdir(parents=True,exist_ok=True)
+          for name,b in validated.items():
+           target=dest/name
+           if target.exists():
+            assert target.read_bytes()==b,'Unexpected overwrite: '+name
+           else:
+            target.write_bytes(b)
+          ready=dest/'ready.js'
+          assert ready.exists()
+          flag=ready.read_text()
+          assert flag in ('window.HumanFishingBabySpritesReady=false;\n',
+                          'window.HumanFishingBabySpritesReady=true;\n')
+          ready.write_text('window.HumanFishingBabySpritesReady=true;\n')
+          print('Four approved human sprites installed without any rescaling')
+          PY
+      - name: Verify hashes, format, integration and fallback
+        run: |
+          node human-fishing/qa-human-sprites.cjs
+          node human-fishing/qa-boot.cjs
+      - name: Commit installed original PNGs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add human-fishing/assets/humans/
+          if git diff --cached --quiet; then
+            echo "Approved sprite assets are already installed"
+          else
+            git commit -m "Install 4 approved baby human RGBA sprite sheets (8 frames each)"
+            git push origin HEAD:main
+          fi
