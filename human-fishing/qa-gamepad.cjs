@@ -41,7 +41,7 @@ doc.hidden=true;assert.equal(win.HumanFishingGamepad.rumble([70],4,'fever'),fals
 doc.hidden=false;pads=[];
 win.HumanFishingGamepad.poll();
 assert.equal(moves[moves.length-1][0],0,'disconnect must release analog control');
-assert.match(html,/gamepad\.js\?v=20261110-pad1/);
+assert.match(html,/gamepad\.js\?v=20261110-g8plus-haptics-v2/);
 assert.match(html,/window\.HumanFishingGamepad\.poll\(\)/);
 assert.match(html,/window\.HumanFishingGamepad\.init\(/);
 assert.match(html,/joystick\.id==='gamepad'/);

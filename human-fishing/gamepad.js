@@ -7,6 +7,7 @@ var doc=global.document,nav=global.navigator||{},api=null,activeIndex=-1;
 var lastButtons=[],lastAxis=false,lastControl=-1,status=null,rumbleButton=null,testButton=null,infoText=null;
 var lastHapticResult='not-tested',lastResultText='',rumbleRequestSerial=0;
 var vibrationOn=true,rumbleEnd=0,rumblePriority=0,deadzone=.17;
+var lastCapabilitySignature='',lastCapabilityCheckedAt=-1;
 var strength={
  brush:[35,.06,.21],weakspot:[125,.28,.48],bite:[142,.78,.68],
  pull:[43,.12,.25],swallow:[190,.53,.35],escape:[240,.87,.75],
@@ -119,12 +120,30 @@ function setStatus(p){
   if(isGameSirG8Plus(p)){
    infoText.title='G8+ Android 모드는 노란 LED. G-Touch(청록) 대신 일반 블루투스 연결을 사용하세요. M + 방향키 위/아래로 패드 모터 세기를 조절할 수 있습니다.';
   }
+  lastCapabilitySignature=p.index+':'+supported;
   updateToggle();
  }
 }
 function updateToggle(){
  if(!rumbleButton)return;
  rumbleButton.textContent=rumbleButton.disabled?'진동 미지원':vibrationOn?'진동 ON':'진동 OFF';
+}
+// Bluetooth GameSir G8+ actuator access can appear after its initial button
+// event. Refresh capability without rebuilding the HUD or losing test text.
+function refreshCapability(p){
+ if(!testButton||!rumbleButton||!p)return;
+ var cap=hapticPaths(p).length>0,sig=p.index+':'+cap;
+ if(sig===lastCapabilitySignature)return;
+ lastCapabilitySignature=sig;
+ var wasDisabled=testButton.disabled;
+ rumbleButton.disabled=!cap;testButton.disabled=!cap;
+ rumbleButton.title=cap?'게임패드 진동 켜기/끄기':'현재 브라우저에서 패드 진동 모터를 사용할 수 없습니다';
+ testButton.title=cap?'양쪽 그립 직접 진동 TEST':'G8+ Android(노란 LED) 모드와 Chrome 직접 실행을 확인하세요';
+ updateToggle();
+ if(wasDisabled&&!testButton.disabled&&infoText){
+  infoText.textContent=diagnosticText(p);
+  lastHapticResult='not-tested';lastResultText='';
+ }
 }
 function focusable(){
  if(!doc||!doc.querySelectorAll)return [];
@@ -202,12 +221,13 @@ function poll(){
  var p=current();
  if(!p||!canUse()){
   if(activeIndex!==-1&&api.move)api.move(0,0);
-  activeIndex=-1;lastButtons=[];lastAxis=false;setStatus(null);
+  activeIndex=-1;lastButtons=[];lastAxis=false;lastCapabilitySignature='';setStatus(null);
   return;
  }
  if(p.index!==activeIndex){
   activeIndex=p.index;lastButtons=[];lastAxis=false;lastControl=-1;setStatus(p);
  }
+ refreshCapability(p);
  var buttons=Array.from({length:p.buttons.length},function(_,i){return pressed(p,i);});
  function rising(i){return buttons[i]&&!lastButtons[i];}
  var x=axis(p.axes[0]),y=axis(p.axes[1]),mag=Math.hypot(x,y);

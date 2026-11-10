@@ -49,6 +49,6 @@ new vm.Script(source);
  // Physical button connectivity and haptics are separate capabilities.
  p.vibrationActuator=null;
  assert.equal(pad.hapticInfo().connected,true);
- assert.match(html,/gamepad\.js\?v=20261110-pad1/);
+ assert.match(html,/gamepad\.js\?v=20261110-g8plus-haptics-v2/);
  console.log('PASS: GameSir G8+ recognition, mobile dual-rumble, async pulse fallback, test command, unsupported diagnosis');
 })().catch(function(e){console.error(e);process.exitCode=1});
