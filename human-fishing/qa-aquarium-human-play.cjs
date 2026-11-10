@@ -13,7 +13,7 @@ assert.match(body,/fish=displayed;hum=\[\];hook=null;eco\.fishTimer=0;eco\.human
  'The cleared temporary actor array must be repopulated from the same exhibited humans before scene entry');
 // Execute the real aquarium conversion functions in a controlled scene
 // rather than checking text only.
-const start=body.indexOf('function aquariumMakePlayHuman(');
+const start=body.indexOf('function aquariumEnsureHumans(');
 const end=body.indexOf('function aquariumReturnToExhibit(',start);
 assert(start>0&&end>start,'Aquarium game transition functions not found');
 const fx=body.slice(start,end);
