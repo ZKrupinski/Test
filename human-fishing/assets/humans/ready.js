@@ -1,1 +1,1 @@
-window.HumanFishingBabySpritesReady=false;
+window.HumanFishingBabySpritesReady=true;
