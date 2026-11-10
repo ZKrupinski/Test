@@ -7,10 +7,13 @@ assert(body,'Game inline script missing');
 new vm.Script(body,{filename:'human-fishing.js'});
 assert.match(body,/function aquariumReplenishHumans\(inView\)/);
 assert.match(body,/aquariumReplenishHumans\(true\);/);
-assert.match(body,/if\(person\.aquariumResident&&aquariumFishingActive\)/);
+assert.match(body,/humanSwimStep\(person,dt,time,/,'Aquarium Play humans use the shared human swim AI');
+assert.match(body,/humanSwimStep\(h,humanDt,now,null,true\)/,'Aquarium exhibit humans also move autonomously');
 assert.match(body,/if\(!hook&&!feverFx&&!catchFx\)aquariumReplenishHumans\(false\)/);
-assert.match(body,/fish=displayed;hum=\[\];hook=null;eco\.fishTimer=0;eco\.humanTimer=0;\s*aquariumReplenishHumans\(true\)/,
- 'The cleared temporary actor array must be repopulated from the same exhibited humans before scene entry');
+assert.match(body,/fish=displayed;hum=\[\];hook=null;eco\.fishTimer=0;eco\.humanTimer=0;\s*hum=aquariumHumanActors\.filter\(function\(h\)/,
+ 'Aquarium Play should inherit the actual active exhibit human actors');
+assert.match(body,/aquariumReplenishHumans\(true\)/,
+ 'Every placed human should be present on entry');
 // Execute the real aquarium conversion functions in a controlled scene
 // rather than checking text only.
 const start=body.indexOf('function aquariumEnsureHumans(');
