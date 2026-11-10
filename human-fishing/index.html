@@ -1613,15 +1613,15 @@ function drawingTank(now){
   ctx.restore();
   drawFishRankTag(a);
  });
- save.humanPlaced.forEach(function(id,i){
-  var humanId=Number(id),sx=235+(i%4)*239+Math.sin(now*.6+i)*14;
-  var sy=426+Math.floor(i/4)*160+Math.sin(now*1.3+i)*10;
-  // No procedural vector bubble, elliptical outline or glowing halo:
-  // draw the approved transparent human sprite directly in the aquarium.
-  ctx.save();ctx.translate(sx,sy+6);ctx.scale(1.0,1.0);
-  humanIcon({id:humanId,x:0,y:0,phase:i,size:1},now);ctx.restore();
+ // Exhibition humans now use the same autonomous swim system as Play.
+ aquariumEnsureHumans();
+ var humanDt=aquariumHumanLastTime>0?clamp(now-aquariumHumanLastTime,0,.05):0;
+ aquariumHumanLastTime=now;
+ aquariumHumanActors.forEach(function(h){
+  humanSwimStep(h,humanDt,now,null,true);
+  humanIcon(h,now);
   ctx.fillStyle='#f9e7c3';ctx.textAlign='center';ctx.font='bold 12px system-ui';
-  ctx.fillText(humans[humanId],sx,sy+128);
+  ctx.fillText(humans[h.id],h.x,h.y+118);
  });
  drawAquariumKeeper(now);
 }
@@ -4758,6 +4758,131 @@ function ecoResolveHumanFishSpacing(dt){
   }
  }
 }
+// Shared human AI for regular stages, aquarium fishing and exhibition.
+// Decision timings are randomized per actor, never tied to the screen's frame
+// rate. All three contexts use the approved swim, taunt and resist PNGs.
+function humanSwimStep(person,dt,now,bait,exhibit){
+ if(!person||person.feverCaptured||dt<=0)return;
+ dt=clamp(dt,0,.05);
+ if(!Number.isFinite(person.swimCruiseSpeed)){
+  person.swimCruiseSpeed=clamp(Math.abs(person.vx||32)*rnd(.92,1.32),24,56);
+  person.swimDir=(person.vx||person.dir||1)<0?-1:1;
+  person.dir=person.swimDir;
+  person.swimMode='cruise';person.swimModeEnd=now;
+  person.swimDecisionAt=now+rnd(.8,2.0);
+  person.swimTargetY=person.y+rnd(-25,25);
+  person.swimNextReactionAt=now+rnd(.4,1.2);
+  person.swimAnimationClock=now;
+  person.swimHeadingStartedAt=now;
+  person.swimTurnAt=-100;person.swimTurnTo=person.swimDir;
+  person.swimLaneX=Number.isFinite(person.swimLaneX)?person.swimLaneX:person.x;
+  person.swimPersonality=(person.id%4+4)%4;
+ }
+ var left=exhibit?clamp(person.swimLaneX-135,138,W-165):145,
+  right=exhibit?clamp(person.swimLaneX+135,165,W-138):W-145;
+ if(left>=right){left=145;right=W-145}
+ var top=exhibit?
+   clamp(person.swimLaneY-43,335,590):340;
+ var bottom=exhibit?
+   clamp(person.swimLaneY+43,355,610):608;
+ if(!Number.isFinite(person.swimLaneY))person.swimLaneY=person.y;
+ if(!Number.isFinite(top)||!Number.isFinite(bottom)||top>=bottom){
+  top=340;bottom=608;
+ }
+ // A human feels like a wilful swimmer: notice the lure, briefly tease,
+ // then burst away. In exhibits (no bait) this behavior is never triggered.
+ if(bait&&person.x>145&&person.x<W-145&&
+    now>=person.swimNextReactionAt&&person.swimMode!=='turn'){
+  var bx=person.x-bait.x,by=person.y-bait.y,dist=Math.hypot(bx,by);
+  if(dist<115){
+   person.swimNextReactionAt=now+rnd(3.5,6);
+   person.swimTargetY=clamp(person.y+(by>=0?32:-32),top,bottom);
+   person.swimMode='dash';person.swimModeEnd=now+rnd(.55,.9);
+   person.swimDecisionAt=person.swimModeEnd+rnd(.5,1.1);
+   if((person.swimDir>0&&bx<0)||(person.swimDir<0&&bx>0)){
+    // Slow and visibly brace BEFORE reversing away from the lure.
+    person.swimTurnTo=-person.swimDir;
+    person.swimMode='turn';
+    person.swimTurnAt=now+rnd(.24,.37);
+    person.swimAfterTurn='dash';
+    person.swimModeEnd=person.swimTurnAt+rnd(.6,.9);
+   }
+  }
+ }
+ // Do not instantly flip the bitmap when a boundary is reached.
+ var nearEdge=(person.x>=right-27&&person.swimDir>0)||
+              (person.x<=left+27&&person.swimDir<0);
+ if(nearEdge&&person.swimMode!=='turn'){
+  person.swimTurnTo=-person.swimDir;
+  person.swimMode='turn';person.swimTurnAt=now+rnd(.22,.36);
+  person.swimAfterTurn='cruise';
+  person.swimModeEnd=person.swimTurnAt+.2;
+ }
+ if(person.swimMode==='turn'&&now>=person.swimTurnAt){
+  person.swimDir=person.swimTurnTo;
+  person.dir=person.swimDir;
+  person.swimMode=person.swimAfterTurn||'cruise';
+  person.swimHeadingStartedAt=now;
+  person.swimDecisionAt=Math.max(person.swimDecisionAt,now+rnd(1,2.2));
+ }
+ if(now>=person.swimDecisionAt&&person.swimMode!=='turn'){
+  var roll=Math.random(),id=person.swimPersonality;
+  person.swimTargetY=clamp(person.y+rnd(-57,57),top,bottom);
+  if(roll<.16+(id===0?.09:0)){
+   person.swimMode='pause';
+   person.swimModeEnd=now+rnd(.45,1.1);
+  }else if(roll<.38+(id===1?.12:0)){
+   person.swimMode='dash';
+   person.swimModeEnd=now+rnd(.48,.85);
+  }else if(roll<.59+(id===2?.08:0)){
+   person.swimTurnTo=-person.swimDir;
+   person.swimMode='turn';
+   person.swimTurnAt=now+rnd(.24,.43);
+   person.swimAfterTurn='cruise';
+   person.swimModeEnd=person.swimTurnAt+.2;
+  }else{
+   person.swimMode='cruise';
+   person.swimModeEnd=now+rnd(1.25,2.7);
+  }
+  person.swimDecisionAt=Math.max(person.swimModeEnd,now)+rnd(.6,1.8);
+ }
+ // Finite activities return to ordinary meandering, rather than sticking
+ // in a permanent dash/pause or a perpetual taunt animation.
+ if((person.swimMode==='pause'||person.swimMode==='dash')&&now>=person.swimModeEnd){
+  person.swimMode='cruise';person.swimDecisionAt=Math.max(now+.35,person.swimDecisionAt);
+ }
+ var speed=person.swimCruiseSpeed*
+  (.70+.30*Math.sin(now*(1.05+person.swimPersonality*.12)+(person.phase||0))**2);
+ var factor=person.swimMode==='turn'?.06:
+  person.swimMode==='pause'?.035:
+  person.swimMode==='dash'?2.25:1;
+ var wishX=person.swimDir*speed*factor;
+ var steer=clamp(dt*(person.swimMode==='dash'?6.8:4.5),0,1);
+ person.vx=(person.vx||0)+(wishX-(person.vx||0))*steer;
+ // Varied diagonals and gentle floats; turning/pausing naturally slow them.
+ var bob=Math.sin(now*(1.25+person.swimPersonality*.22)+(person.phase||0))*8;
+ var targetY=clamp(person.swimTargetY+bob,top,bottom);
+ var wishY=person.swimMode==='pause'?0:
+   clamp((targetY-person.y)*.9,-49,49);
+ if(person.swimMode==='dash')wishY*=1.35;
+ person.vy=(person.vy||0)+(wishY-(person.vy||0))*clamp(dt*3.6,0,1);
+ person.x+=person.vx*dt;
+ person.y=clamp(person.y+person.vy*dt,top,bottom);
+ // Exhibition swimmers patrol their own territory. Fishing swimmers can
+ // cross the whole habitat, but never pass through its visible edge.
+ if(exhibit){
+  person.x=clamp(person.x,left-5,right+5);
+ }else if(person.x>left&&person.x<right){
+  person.swimHadEntered=true;
+ }
+ person.spriteAction=person.swimMode==='dash'?'taunt':'swim';
+ person.phase=(person.phase||0)+dt*.18;
+ var animationRate=person.swimMode==='pause'?.27:
+   person.swimMode==='turn'?.4:
+   person.swimMode==='dash'?1.6:.70+Math.min(1.0,Math.abs(person.vx)/64);
+ person.swimAnimationClock+=dt*animationRate;
+}
+// End shared human AI.
 function updateEcosystem(dt){
  if(view!=='fish')return;
  eco.t+=dt;eco.fishTimer+=dt;eco.humanTimer+=dt;
@@ -5051,21 +5176,12 @@ function updateEcosystem(dt){
  for(var h=hum.length-1;h>=0;h--){
   var person=hum[h];
   if(person.feverCaptured){hum.splice(h,1);continue}
-  if(!Number.isFinite(person.nextTurn)){
-   person.nextTurn=eco.t+10;person.vx=person.vx<0?-28:28;person.vy=0;
-  }
   if(person===fLocked)continue;
-  if(person.nextTurn<eco.t){
-   person.nextTurn=eco.t+rnd(7,16);
-   person.vy=rnd(-9,9);
-  }
-  person.x+=person.vx*dt;person.y=clamp(person.y+person.vy*dt,330,615);
-  person.phase+=dt*.5;
-  if(person.aquariumResident&&aquariumFishingActive){
-   // Display residents turn around before disappearing at a screen edge.
-   if(person.x<160&&person.vx<0){person.x=160;person.vx=Math.abs(person.vx)}
-   else if(person.x>W-160&&person.vx>0){person.x=W-160;person.vx=-Math.abs(person.vx)}
-  }else if(person.x< -185||person.x>W+185)hum.splice(h,1);
+  // The same AI drives random encounters, guaranteed human rewards, and
+  // every placed aquarium resident during the Play scene.
+  humanSwimStep(person,dt,time,cast.active||feverFx||lureRecovery.active?null:liveBaitTip,false);
+  if(!person.aquariumResident&&(person.x< -185||person.x>W+185))
+   hum.splice(h,1);
  }
 }
 
@@ -6368,6 +6484,7 @@ setMode=function(mode){
 /* Aquarium stage and codex-only fishing; normal casts, fever, capture unchanged. */
 var aquariumFishingActive=false,aquariumPanelOpen=false,aquariumSpawnTimer=0,
  aquariumHumanSpawnTimer=0,aquariumStageImage=null;
+var aquariumHumanActors=[],aquariumHumanLastTime=0;
 if(typeof Image!=='undefined'){
  aquariumStageImage=new Image();aquariumStageImage.ready=false;aquariumStageImage.decoding='async';
  aquariumStageImage.onload=function(){aquariumStageImage.ready=true};
@@ -6418,6 +6535,20 @@ setMode=function(mode){
 // The aquarium's humans are currently rendered from save.humanPlaced in
 // drawingTank(). Convert those very same displayed residents to gameplay
 // actors rather than replacing them with the unrelated random human pool.
+function aquariumEnsureHumans(){
+ // Keep actors stable while the exhibit is visible, including duplicates of
+ // the same owned human in distinct display slots.
+ var placed=Array.isArray(save.humanPlaced)?save.humanPlaced:[];
+ aquariumHumanActors=placed.map(function(id,slot){
+  var prev=aquariumHumanActors.find(function(h){
+   return h.aquariumSlot===slot&&h.id===Number(id);
+  });
+  if(prev)return prev;
+  var made=aquariumMakePlayHuman(id,slot,true);
+  if(made){made.swimLaneX=made.x;made.swimLaneY=made.y}
+  return made;
+ }).filter(Boolean);
+}
 function aquariumMakePlayHuman(id,slot,inView){
  var humanId=Number(id);
  if(!Number.isInteger(humanId)||humanId<0||humanId>=humans.length)return null;
@@ -6458,10 +6589,14 @@ function aquariumBeginPlay(){
   f.aquariumResident=true;f._btFacing=a.dir;
   return f;
  });
+ aquariumEnsureHumans(); // Reuse positions and motion state from exhibition.
  aquariumFishingActive=true;aquariumPanelOpen=false;
  aquariumSpawnTimer=0;aquariumHumanSpawnTimer=0;
  fish=displayed;hum=[];hook=null;eco.fishTimer=0;eco.humanTimer=0;
- aquariumReplenishHumans(true); // Preserve ID, slot, initial screen position and the approved bitmap.
+ hum=aquariumHumanActors.filter(function(h){return h&&!h.feverCaptured});
+ aquariumReplenishHumans(true); // Newly placed occupants also appear immediately.
+ hum.forEach(function(h){h.swimLaneX=undefined;h.swimLaneY=undefined;});
+ aquariumHumanLastTime=0;
  eco.zone=zone;eco.humanZone=zone;
  setMode('fish');
  if(!introEntrance.active&&!cast.active)startCast();
@@ -6486,6 +6621,11 @@ function aquariumReturnToExhibit(){
  aquariumLastTime=time;aquariumPreserveReturn=true;
  hideVirtualJoystick();cast.active=false;feverFx=null;hook=null;
  aquariumFishingActive=false;aquariumHumanSpawnTimer=0;
+ aquariumHumanActors=hum.filter(function(h){return h&&h.aquariumResident&&!h.feverCaptured});
+ aquariumHumanActors.forEach(function(h){
+  h.swimLaneX=h.x;h.swimLaneY=h.y;
+ });
+ aquariumHumanLastTime=0;
  eco.zone=-1;eco.humanZone=-1;
  setMode('tank');
  aquariumPreserveReturn=false;

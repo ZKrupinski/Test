@@ -42,7 +42,9 @@ function render(ctx,actor,now,action){
  if(!img||!img.complete||img.naturalWidth!==sheet.w||img.naturalHeight!==sheet.h)return false;
  var fps=mood==='resist'?13:mood==='hooked'?12:mood==='taunt'?11:8;
  var phase=Number.isFinite(actor.phase)?actor.phase:0;
- var frame=(Math.floor(Math.max(0,now||0)*fps+phase*1.5)%8+8)%8;
+ var motionTime=mood==='swim'&&Number.isFinite(actor.swimAnimationClock)?
+  actor.swimAnimationClock:Math.max(0,now||0);
+ var frame=(Math.floor(motionTime*fps+phase*1.5)%8+8)%8;
  var col=frame%4,row=Math.floor(frame/4),fw=sheet.fw,fh=sheet.fh;
  var size=Math.max(.7,Math.min(1.8,Number(actor.size)||1));
  // Display-only scale: humans are more prominent than even large fish.
