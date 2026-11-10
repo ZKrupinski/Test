@@ -61,7 +61,9 @@ for(const mood of ['swim','resist','taunt','hooked']){
  const call=captures[captures.length-1];
  assert(call[7]>145&&call[7]<200,mood+' must be exactly 70% of previous bitmap display width');
 }
-assert.match(index,/ctx\.translate\(sx,sy\+6\);ctx\.scale\(1\.0,1\.0\);/,'aquarium human no longer must be shrunk to .76');
+assert.match(index,/aquariumHumanActors\.forEach\(function\(h\)\{/,'Exhibition humans must render from persistent swimming actors');
+assert.match(index,/humanSwimStep\(h,humanDt,now,null,true\)/,'Exhibition humans must swim with shared AI');
+assert.doesNotMatch(index,/ctx\.scale\(\.76,\.76\)/,'Aquarium humans must not restore the old .76 shrink');
 assert.doesNotMatch(index,/circle\(sx,sy\+24,86/,'aquarium human vector halo still present');
 assert.doesNotMatch(index,/ctx\.ellipse\(sx,sy\+24,84,108/,'aquarium human elliptical bubble still present');
 const pos=art.geometry({id:8,x:500,y:420,vx:40,size:1});
