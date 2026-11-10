@@ -30,7 +30,7 @@ const c={
  aquariumExhibitTarget:10,zone:0,view:'tank',hook:{kind:'fish'},
  time:12,W:1280,WATER_SURFACE_Y:293,
  clamp:(n,lo,hi)=>Math.min(hi,Math.max(lo,n)),rnd:(lo,hi)=>(lo+hi)/2,
- setMode(mode){this.view=mode;},introEntrance:{active:true},cast:{active:true},
+ setMode(mode){c.view=mode;},introEntrance:{active:true},cast:{active:true},
  startCast(){throw Error('Should not cast during intro fixture')},
  announce(){throw Error('Should not fail when aquarium has display humans')},
  $: $,Math,
