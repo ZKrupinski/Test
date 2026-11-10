@@ -397,8 +397,10 @@ assert.doesNotMatch(script,/escapeHtml\(sp\.rarity\)\+' Lv\.'/,
  'Fish codex cards must not show rarity text or fish levels');
 assert.doesNotMatch(script,/tierLabels\[target\.rarity\]\+' Lv\.'/,
  'Fish catch hints must not display rarity or level text');
-assert.match(script,/function drawFishRankTag\(f\)\{[\s\S]*?ctx\.drawImage\(sheet,/,
- 'Rare fish must use bitmap sparkle frames, not text labels');
+assert.match(script,/function drawFishRankTag\(f,lightTarget\)\{[\s\S]*?g\.drawImage\(sheet,/,
+ 'Rare fish must still use bitmap sparkle frames on the world or FX context, never text labels');
+assert.match(script,/var g=lightTarget\|\|ctx,sheet=raritySparkleAtlases/,
+ 'Rare sprite sparkle must retain original Canvas2D context when no shader target exists');
 const sceneDigests=new Map();
 for(const name of [...new Set([...backgroundZones,'ruins'])]){
  const path='human-fishing/assets/backgrounds/bg_'+name+'.webp';
