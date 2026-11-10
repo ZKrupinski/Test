@@ -4,7 +4,7 @@
  */
 (function(root){
  'use strict';
- var version='20261110-waterfx-b6',base='./assets/water-fx/';
+ var version='20261110-waterfx-b7',base='./assets/water-fx/';
  var specs={
   surface:['water_surface_8f.png',4,2],
   splash:['water_splash_8f.png',4,2],
@@ -61,7 +61,7 @@
   x:((i+.5)/66+.035*(hash(i*13+5)-.5)),
   phase:hash(i*41+11),speed:.042+.09*hash(i*17+19),
   drift:4+15*hash(i*23+3),size:12+22*Math.pow(hash(i*29+9),1.35),
-  alpha:.50,frame:i%16
+  alpha:.35,frame:i%16
  });
  function ambient(ctx,now,waterY,width,height){
   if(!images.bubbles||!images.bubbles.ready)return false;

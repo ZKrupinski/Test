@@ -40,18 +40,27 @@ function fixture(){
  assert.equal(api.busy,true,'Load alone cannot reveal before decode');release();await f.flush();
  assert.equal(api.busy,false);assert.equal(f.nodes.bootOverlay.hidden,false);await f.paint();assert.equal(f.nodes.bootOverlay.hidden,true);
  const decodeCount=image.decodes;api.guard(()=>{});await f.flush();await f.paint();assert.equal(image.decodes,decodeCount,'Reuse decoded source');
- // Broken image retry keeps the same Image object used by the renderer.
+ // Failed image auto-retries without exposing a manual button or the new scene.
  api.guard(()=>{image.src='broken.png';image.finish(false);});await f.flush();
- assert.equal(api.busy,true);assert.equal(f.nodes.bootStart.textContent,'다시 불러오기');
- f.nodes.bootStart.onclick();image.finish();await f.step(100);await f.paint();assert.equal(api.busy,false);
- // Decode failure is recoverable, not an infinite loop.
+ assert.equal(api.busy,true);assert.match(f.nodes.bootStatus.textContent,/자동 재시도/);
+ assert.equal(f.nodes.bootStart.hidden,true);
+ const badSrc=image.src;
+ await f.step(350);assert.notEqual(image.src,badSrc,'Broken image must reload automatically');
+ assert.match(image.src,/hfRetry=1/,'Recovery must force a new URL');
+ assert.equal(api.busy,true,'Scene must stay paused during automatic retry');
+ image.finish();await f.step(100);await f.paint();assert.equal(api.busy,false);
+ // Decode failure is also retried automatically, keeping the same Image object.
  api.guard(()=>{image.src='decode.png';image.finish();image.decodeImpl=()=>Promise.reject(Error('bad decode'));});await f.flush();
- assert.equal(api.busy,true);assert.equal(f.nodes.bootStart.hidden,false);
- image.decodeImpl=null;f.nodes.bootStart.onclick();image.finish();await f.step(100);await f.paint();assert.equal(api.busy,false);
- // Hung requests give a retry action, without uncovering the scene.
+ assert.equal(api.busy,true);assert.equal(f.nodes.bootStart.hidden,true);
+ image.decodeImpl=null;await f.step(350);
+ assert.match(image.src,/hfRetry=2/);
+ image.finish();await f.step(100);await f.paint();assert.equal(api.busy,false);
+ // Hung requests time out and retry with backoff, never uncovering the scene.
  api.guard(()=>{image.src='hung.png';});await f.flush();await f.step(30100);
- assert.equal(api.busy,true);assert.equal(f.nodes.bootStart.hidden,false);
- f.nodes.bootStart.onclick();image.finish();await f.step(100);await f.paint();assert.equal(api.busy,false);
+ assert.equal(api.busy,true);assert.match(f.nodes.bootStatus.textContent,/자동 재시도/);
+ assert.equal(f.nodes.bootStart.hidden,true);
+ await f.step(350);assert.match(image.src,/hfRetry=3/);
+ image.finish();await f.step(100);await f.paint();assert.equal(api.busy,false);
  // A URL changed while decode is pending must be loaded and decoded again.
  let resolveOld;api.guard(()=>{image.src='old.png';image.finish();image.decodeImpl=()=>new Promise(r=>resolveOld=r);});await f.flush();
  image.src='new.png';image.decodeImpl=null;resolveOld();await f.flush();assert.equal(api.busy,true);
@@ -68,5 +77,5 @@ function fixture(){
  assert.match(html,/HumanFishingBoot\.busy\)\{last=stamp;requestAnimationFrame\(tick\);return;/);
  assert.match(html,/mode==='book'\?species/);assert.match(html,/aquariumKnownSpecies\(\):species\.filter/);
  assert.equal((html.match(/source=window\.HumanFishingArt\.sourceFor/g)||[]).length,2,'World, codex and reward cards share URLs');
- console.log('PASS: pending/decode/DOM gates, nested and repeated navigation, keyboard blocking, cached decode, failed image retry, decode failure retry, timeout, changing source, habitat failure/cache invalidation, shared water tracking');
+ console.log('PASS: pending/decode/DOM gates, blocked inputs, automated image/decode/timeout retries without button, frozen scenes, cached decode, URL changes and habitat asset recovery');
 })().catch(e=>{console.error(e);process.exitCode=1;});

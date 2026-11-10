@@ -26,7 +26,7 @@
   fit();
  }
  var busy=false,depth=0,generation=0,decoded=new WeakMap();
- var retryImages=[],retrySerial=0;
+ var retryImages=[],retrySerial=0,retryAttempts=0,retryTimer=null;
  function activeImages(){
   var dom=document.querySelectorAll?Array.from(document.querySelectorAll('img[src]')):[];
   // Lazy thumbnails must also be fetched while their menu is covered.
@@ -35,24 +35,31 @@
  }
  function source(img){return img.currentSrc||img.src;}
  function delay(ms){return new Promise(function(resolve){setTimeout(resolve,ms);});}
- function failure(list){
-  retryImages=list;
-  status.textContent='리소스 '+list.length+'개 로딩 실패 · 다시 시도해주세요';
-  button.hidden=false;button.disabled=false;button.textContent='다시 불러오기';
-  button.onclick=function(){
-   if(button.disabled)return;
-   button.disabled=true;
+ function failure(list,token){
+  if(token!==generation)return;
+  retryImages=Array.from(new Set(list));
+  // Keep the existing preloading screen and simulation pause. Do not open a
+  // new failure dialog or require a click; the START button is for startup only.
+  button.hidden=true;button.disabled=true;button.onclick=null;
+  status.textContent='이미지 '+retryImages.length+'개 로딩 지연 · 자동 재시도 중';
+  // Short exponential backoff avoids hammering slow mobile connections.
+  // Continue retrying transient HTTP, decode and timeout failures indefinitely.
+  var backoff=Math.min(5000,350*Math.pow(2,Math.min(4,retryAttempts++)));
+  if(retryTimer!==null)clearTimeout(retryTimer);
+  retryTimer=setTimeout(function(){
+   retryTimer=null;
+   if(token!==generation)return;
    var failedSources=new Set(retryImages.map(function(im){return im.src;}));
    var retry=++retrySerial;
-   // Restart every consumer of a failed URL, even if its error event is pending.
+   // Restart every consumer of the same failed URL, preserving Image identity.
    activeImages().filter(function(im){return failedSources.has(im.src);}).forEach(function(im){
     decoded.delete(im);
     var base=im._hfRetryBase||(im._hfRetryBase=im.src);
     im.src=base+(base.indexOf('?')<0?'?':'&')+'hfRetry='+retry;
    });
-   // Let the browser invalidate the previous complete/error state first.
-   setTimeout(ready,0);
-  };
+   // A fresh gate must decode the replacement image before showing the scene.
+   ready();
+  },backoff);
  }
  async function ready(){
   var token=++generation,startedAt=Date.now();
@@ -62,8 +69,8 @@
    var done=active.filter(function(im){return im.complete&&im.naturalWidth;});
    status.textContent='리소스 로딩 중 · '+done.length+' / '+active.length;
    document.getElementById('bootProgress').value=active.length?done.length/active.length:0;
-   if(failed.length){failure(failed);return;}
-   if(Date.now()-startedAt>30000){failure(active.filter(function(im){return decoded.get(im)!==source(im);}));return;}
+   if(failed.length){failure(failed,token);return;}
+   if(Date.now()-startedAt>30000){failure(active.filter(function(im){return decoded.get(im)!==source(im);}),token);return;}
    if(done.length===active.length){
     var decodeFailed=[];
     // Bound decoding work: hundreds of simultaneous PNG decodes can exhaust
@@ -84,7 +91,7 @@
      if(token!==generation)return;
     }
     if(token!==generation)return;
-    if(decodeFailed.length){failure(decodeFailed);return;}
+    if(decodeFailed.length){failure(decodeFailed,token);return;}
     var current=activeImages();
     if(current.every(function(im){return im.complete&&im.naturalWidth&&decoded.get(im)===source(im);}))break;
    }
@@ -93,6 +100,8 @@
   if(token!==generation)return;
   if(document.fonts)await document.fonts.ready;
   if(token!==generation)return;
+  retryImages=[];retryAttempts=0;
+  if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null}
   status.textContent='모든 리소스 준비 완료';
   document.getElementById('bootProgress').value=1;
   if(started){

@@ -47,12 +47,15 @@ const server=http.createServer((req,res)=>{
   await page.evaluate(()=>document.querySelector('#navTank').click());
   assert.equal((await page.evaluate(()=>window.__sceneQA.state())).view,'fish','Navigation blocked during loading');
   holdResolve();await ready();await page.unroute('**/F021.png*');
-  let fail=true;
-  await page.route('**/F050.png*',route=>fail?route.fulfill({status:503,body:'test failure'}):route.continue());
+  let failureCount=0;
+  await page.route('**/F050.png*',route=>++failureCount===1?
+   route.fulfill({status:503,body:'synthetic transient load failure'}):route.continue());
   await page.click('#navBook');
-  await page.waitForFunction(()=>document.querySelector('#bootStart').textContent==='다시 불러오기'&&!document.querySelector('#bootStart').hidden);
-  assert.equal(await page.evaluate(()=>window.HumanFishingBoot.busy),true);
-  fail=false;await page.click('#bootStart');await ready();
+  await page.waitForFunction(()=>document.querySelector('#bootStatus').textContent.includes('자동 재시도'));
+  assert.equal(await page.locator('#bootStart').isVisible(),false,'No separate retry dialog/button');
+  assert.equal(await page.evaluate(()=>window.HumanFishingBoot.busy),true,'Scene must stay frozen');
+  await ready();
+  assert.ok(failureCount>=2,'Failed fish PNG must be re-fetched automatically');
   assert.ok(await page.locator('.book-fish-thumb img').count()>300);
   const specialCount=await page.locator('.book-fish-thumb img[src*="special-creatures"]').count();
   assert.match(await page.locator('#panelDesc').textContent(),new RegExp('특수 생물 0/'+specialCount+' ·'));
@@ -71,6 +74,6 @@ const server=http.createServer((req,res)=>{
   await page.waitForFunction(()=>document.querySelector('.wrap').style.transform.includes('rotate(90deg)'));await page.click('#navBook');await ready();
   assert.equal(await page.locator('img[src]').evaluateAll(ims=>ims.every(im=>im.complete&&im.naturalWidth>0)),true);
   assert.deepEqual(errors,[]);
-  console.log('PASS browser: delayed stage holds simulation/input, failed codex retries, all thumbnails ready, aquarium/play/exhibit/shop/gear, 12 habitats, portrait layout, no runtime errors');
+  console.log('PASS browser: delayed stage holds simulation/input, automatic 503 recovery with hidden button, all thumbnails ready, aquarium/gear, 12 habitats, portrait layout');
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});

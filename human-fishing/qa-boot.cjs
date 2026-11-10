@@ -26,6 +26,11 @@ async function flush(){for(let i=0;i<12;i++)await Promise.resolve();}
  const c=fixture(844,390);assert.match(c.nodes.root.style.transform,/rotate\(0deg\)/);
  const bad=new c.window.Image();bad.src='missing.webp';bad.complete=true;
  c.window.HumanFishingBoot.begin(()=>{throw Error('Must not start with failed art');});await flush();
- assert.match(c.nodes.bootStatus.textContent,/로딩 실패/);assert.equal(c.nodes.bootStart.textContent,'다시 불러오기');
- console.log('PASS: startup blocks pending/failed images, decoded assets require start gesture, duplicate start prevented; portrait input axes and landscape composition correct');
+ assert.match(c.nodes.bootStatus.textContent,/자동 재시도/);
+ assert.equal(c.nodes.bootStart.hidden,true,'Failed boot must not display a separate retry button');
+ assert.equal(c.nodes.bootStart.onclick,null,'Failed boot must not depend on manual retry');
+ c.timers.shift()();await flush();
+ assert.match(bad.src,/hfRetry=1/,'Failed startup image must automatically restart with a new URL');
+ assert.equal(starts,1,'Automatic startup recovery must not start a new game without user gesture');
+ console.log('PASS: startup blocks pending assets, automatically retries failures without extra dialog, retains start gesture and landscape composition');
 })();
