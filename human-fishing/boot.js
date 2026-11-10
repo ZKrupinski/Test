@@ -55,6 +55,15 @@
   }
  }
  var busy=false,depth=0,generation=0,decoded=new WeakMap();
+ var extraPreload=null;
+ function boundedAudioLoad(promise){
+  var timer;
+  return Promise.race([Promise.resolve(promise),new Promise(function(resolve){
+   timer=setTimeout(resolve,12000);
+  })]).catch(function(e){
+   if(window.console&&window.console.warn)window.console.warn('Ambient preloading unavailable:',e);
+  }).finally(function(){clearTimeout(timer)});
+ }
  var retryImages=[],retrySerial=0,retryAttempts=0,retryTimer=null;
  function activeImages(){
   var dom=document.querySelectorAll?Array.from(document.querySelectorAll('img[src]')):[];
@@ -92,6 +101,13 @@
  }
  async function ready(){
   var token=++generation,startedAt=Date.now();
+  // Start sound decoding in parallel with image download/decode. AudioContext
+  // can decode before gesture; its actual playback is unlocked by START.
+  var soundReady=Promise.resolve();
+  if(extraPreload){
+   try{soundReady=boundedAudioLoad(extraPreload())}
+   catch(e){soundReady=Promise.resolve()}
+  }
   button.hidden=true;button.disabled=true;
   while(token===generation){
    var active=activeImages(),failed=active.filter(function(im){return im.complete&&!im.naturalWidth;});
@@ -128,6 +144,9 @@
   }
   if(token!==generation)return;
   if(document.fonts)await document.fonts.ready;
+  if(token!==generation)return;
+  status.textContent='환경음 준비 중';
+  await soundReady;
   if(token!==generation)return;
   retryImages=[];retryAttempts=0;
   if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null}
@@ -166,6 +185,7 @@
  function start(){
   if(started)return;
   started=true;fullscreen();overlay.hidden=true;root.removeAttribute('inert');
+  if(window.HumanFishingAmbient)window.HumanFishingAmbient.unlock();
   onStart();
  }
  // Re-enter fullscreen on a later real gesture if the user has left it.
@@ -179,6 +199,7 @@
   },true);
  });
  window.HumanFishingBoot={
+  registerPreload:function(fn){extraPreload=typeof fn==='function'?fn:null;},
   guard:guard,
   get busy(){return busy;},
   begin:function(callback){onStart=callback;ready();},

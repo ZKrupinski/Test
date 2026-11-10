@@ -28,7 +28,9 @@ function zoneNumber(z){
 function load(name){
  if(decoded[name])return Promise.resolve(decoded[name]);
  if(loading[name])return loading[name];
- if(failed[name])return Promise.resolve(null);
+ // A transient network/decode failure must be retried on a later
+ // scene gate rather than staying silent for the whole game session.
+ if(failed[name]&&Date.now()-failed[name]<3000)return Promise.resolve(null);
  var ac=getContext();
  if(!ac)return Promise.resolve(null);
  loading[name]=fetch(root+name+'.ogg',{cache:'force-cache'})
@@ -42,10 +44,13 @@ function load(name){
    sync();
    return buffer;
   }).catch(function(e){
-   failed[name]=true;
+   failed[name]=Date.now();
    if(window.console&&window.console.warn)
     window.console.warn('Human Fishing ambient unavailable:',name,e.message);
    return null;
+  }).then(function(result){
+   delete loading[name];
+   return result;
   });
  return loading[name];
 }
@@ -120,7 +125,11 @@ function sync(){
    hz.linearRampToValueAtTime(cutoff,now+(sub?.75:1.05));
    active.surface.cutoffTarget=cutoff;
   }
-  ramp(active.surface,enabled?(sub?.22:.62):0,sub?.83:1.12);
+  // The first audible habitat should fade in promptly once START is tapped.
+  // Later underwater/region transitions keep their normal smooth ramps.
+  var firstStart=enabled&&!active.surface.everAudible;
+  ramp(active.surface,enabled?(sub?.22:.62):0,firstStart?.28:(sub?.83:1.12));
+  if(enabled)active.surface.everAudible=true;
  }
  if(active.underwater)
   ramp(active.underwater,enabled&&sub?.79:0,sub?.95:1.15);

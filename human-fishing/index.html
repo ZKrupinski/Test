@@ -285,8 +285,8 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 #stage:has(.panel.open) #catchShowcase,
 #stage:has(.sideinfo.show) #catchShowcase,
 #stage:has(#motionTunePanel.visible) #catchShowcase,
-#stage:has(#rodTunePanel.visible) #catchShowcase,
-#stage:has(#banner.visible) #catchShowcase{display:none}
+#stage:has(#rodTunePanel.visible) #catchShowcase{display:none}
+/* A small bonus/achievement banner must not interrupt Fever trophies. */
 /* One sculpted glass ribbon, not a box nested inside another box. */
 .catch-card{position:absolute;top:0;left:0;box-sizing:border-box;width:100%;
  height:100%;display:flex;align-items:center;gap:0;padding:4px 9px 4px 4px;
@@ -297,7 +297,7 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
  will-change:opacity,transform}
 .catch-card::after{content:'';position:absolute;pointer-events:none;left:52%;right:15px;
  bottom:12px;height:1px;background:linear-gradient(90deg,#aee3d385,transparent)}
-.catch-card.fever{animation:catchCardFever .65s both linear}
+.catch-card.fever{animation:catchCardFever .85s both linear}
 /* No picture frame: the original RGBA fish floats over a soft water-light halo. */
 .catch-card-thumb{position:relative;flex:0 0 52%;width:52%;height:100%;
  display:flex;align-items:center;justify-content:center;overflow:visible;border:0;
@@ -441,7 +441,7 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 <script src="./human-sprites.js?v=20261110-large-human-no-ring-v3"></script>
 <script src="./gamepad.js?v=20261110-g8plus-haptics-v2"></script>
 <script src="./foley.js?v=20261108-chest-prize-bells-v1"></script>
-<script src="./ambient.js?v=20261108-deep-dual-ambience-v2"></script>
+<script src="./ambient.js?v=20261110-ambient-preload-v3"></script>
 <script>
 (function(){
 'use strict';
@@ -3875,24 +3875,41 @@ function catchShowcaseCard(item,fever,index){
   '<span class="size-label">SIZE</span> <b>'+size+'</b>'+extra+sale+
   '</div></div></div>';
 }
-var catchShowcaseSequence=null,catchShowcaseExpiresAt=-1;
-function stopCatchShowcase(){
+var catchShowcaseSequence=null,catchShowcaseExpiresAt=-1,
+ catchShowcaseActiveFever=false,catchShowcasePending=[];
+function stopCatchShowcase(force){
+ // A completed Fever group must play ALL awards even if the next
+ // cast, a joystick grab or auto-fishing starts immediately.
+ if(!force&&catchShowcaseActiveFever&&catchShowcaseExpiresAt>time)return false;
  catchShowcaseSequence=null;catchShowcaseExpiresAt=-1;
+ catchShowcaseActiveFever=false;
+ if(force)catchShowcasePending.length=0;
  var root=$('catchShowcase');
  if(root)root.innerHTML='';
+ return true;
 }
 function updateCatchShowcaseAudio(){
  // CSS opacity alone leaves expired prize images in the DOM; toggling an
  // ancestor display state can replay their animation on an unrelated fish.
  // Expire the actual nodes even after the prize audio has finished.
- if(catchShowcaseExpiresAt>=0&&
-    (time>=catchShowcaseExpiresAt||view!=='fish'||
-     $('panel').classList.contains('open')||
-     $('sideinfo').classList.contains('show')||
-     $('motionTunePanel').classList.contains('visible')||
-     $('rodTunePanel').classList.contains('visible')||
-     $('banner').classList.contains('visible'))){
-  stopCatchShowcase();return;
+ if(catchShowcaseExpiresAt<0)return;
+ // Only an explicit scene/menu change may cancel a currently displayed
+ // group. Ordinary achievements and the next fishing input never can.
+ if(view!=='fish'||$('panel').classList.contains('open')||
+    $('sideinfo').classList.contains('show')||
+    $('motionTunePanel').classList.contains('visible')||
+    $('rodTunePanel').classList.contains('visible')){
+  stopCatchShowcase(true);return;
+ }
+ if(time>=catchShowcaseExpiresAt){
+  // Later catches are queued rather than replacing the ongoing Fever.
+  var next=catchShowcasePending.shift()||null;
+  catchShowcaseSequence=null;catchShowcaseExpiresAt=-1;
+  catchShowcaseActiveFever=false;
+  var display=$('catchShowcase');
+  if(display)display.innerHTML='';
+  if(next)showCatchShowcase(next.items,next.fever);
+  return;
  }
  var seq=catchShowcaseSequence;
  if(!seq)return;
@@ -3915,9 +3932,14 @@ function showCatchShowcase(items,fever){
  if(view!=='fish'||$('panel').classList.contains('open')){stopCatchShowcase();return}
  var shown=items.filter(Boolean).slice(0,36);
  if(!shown.length){stopCatchShowcase();return}
+ if(catchShowcaseActiveFever&&catchShowcaseExpiresAt>time){
+  catchShowcasePending.push({items:shown,fever:!!fever});
+  return;
+ }
  catchShowcaseSequence=null;
- // Exact CSS durations: normal 2.35s, Fever .65s + .52s per stagger.
- catchShowcaseExpiresAt=time+(fever?(shown.length-1)*.52+.65:2.35);
+ catchShowcaseActiveFever=!!fever;
+ // Each Fever prize gets a complete 0.85s display, staggered by 0.52s.
+ catchShowcaseExpiresAt=time+(fever?(shown.length-1)*.52+.85:2.35);
  root.innerHTML=shown.map(function(item,i){
   return catchShowcaseCard(item,!!fever,i);
  }).join('');
@@ -3958,7 +3980,7 @@ var previousModeAlpha04=setMode;
 setMode=function(m){
  // Leaving fishing cancels any dangling post-mouth recovery. Returning to
  // fishing starts the ordinary rod cast from a clean, continuous state.
- if(m!=='fish'){lureRecovery.active=false;stopCatchShowcase();}
+ if(m!=='fish'){lureRecovery.active=false;stopCatchShowcase(true);}
  previousModeAlpha04(m);
  if(m!=='fish')playFoley(m==='tank'?'aquarium':'menuOpen',.72);
  if(m==='fish')startCast();else hideVirtualJoystick();
@@ -6410,10 +6432,17 @@ if(window.octoSidekicksStartFullLoad)window.octoSidekicksStartFullLoad();
 if(window.HumanFishingArt)window.HumanFishingArt.primeHabitat(zone,species);
 function beginLoadedGame(){
  if(typeof waterFx!=='undefined'&&waterFx&&!waterFx.ready){waterFx.preload().then(beginLoadedGame);return;}
+ if(window.HumanFishingAmbient)window.HumanFishingAmbient.unlock();
  if(window.HumanFishingFoley)window.HumanFishingFoley.unlock();
  document.querySelectorAll('[inert]').forEach(function(el){el.removeAttribute('inert');});
  last=performance.now();requestAnimationFrame(tick);
 }
+// Decode this habitat's surface and underwater OGGs WHILE the scene's
+// images are preloading. The start screen waits on both (bounded).
+if(window.HumanFishingBoot&&window.HumanFishingAmbient)
+ window.HumanFishingBoot.registerPreload(function(){
+  return window.HumanFishingAmbient.prime(zone);
+ });
 if(window.HumanFishingBoot)window.HumanFishingBoot.begin(beginLoadedGame);
 else requestAnimationFrame(tick);
 })();

@@ -39,6 +39,8 @@ jobs:
         run: node human-fishing/qa-human-sprites.cjs
       - name: Validate standard gamepad mapping and controller vibration
         run: node human-fishing/qa-gamepad.cjs
+      - name: Verify Fever multi-catch display and ambient audio preload
+        run: node human-fishing/qa-fever-audio.cjs
       - name: Verify GameSir G8+ Android rumble API fallback and diagnostics
         run: node human-fishing/qa-gamesir-g8plus.cjs
       - name: Verify human codex and flawless fever guaranteed encounters
