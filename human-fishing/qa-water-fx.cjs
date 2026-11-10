@@ -57,6 +57,7 @@ assert.ok(fx);
  assert.ok(tiles.every(d=>d.alpha===1),'Water surface canvas opacity must be exactly 100%');
  assert.ok(tiles.every(d=>Math.abs(d.y-301)<1e-9),'Surface tiles must have a static waterline-centered vertical anchor');
  assert.ok(game.lastIndexOf('waterFx.surface(ctx,time,WATER_SURFACE_Y,W)')>game.lastIndexOf('waterFx.drawEvents(ctx,time,WATER_SURFACE_Y,W,H)'),'Surface must draw above water splashes and all world effects');
+ assert.ok(game.lastIndexOf('waterFx.surface(ctx,time,WATER_SURFACE_Y,W)')>game.lastIndexOf('fxShader.composite(ctx)'),'Opaque foreground water must be drawn after the glow pass');
  draws.length=0;fx.ambient(ctx,3.2,293,1280,720);
  assert.ok(draws.every(d=>d.args[7]>=7.5),'Ambient bubbles must remain readable');
  assert.ok(draws.every(d=>d.alpha<=.74+1e-9),'Ambient bubbles must be slightly more transparent');

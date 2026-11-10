@@ -404,6 +404,7 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 </div>
 <script src="./boot.js?v=20261110-scene-gate3"></script>
 <script src="./water-fx.js?v=20261110-waterfx-b5"></script>
+<script src="./fx-shader.js?v=20261110-fxgl-v1"></script>
 <script src="./assets/fish/ready.js?v=20261106-fish304"></script>
 <script src="./assets/special-creatures/ready.js?v=20261108-direct17"></script>
 <script src="./fish-bitmap-catalog.js?v=20261109-scene-gate1"></script>
@@ -457,6 +458,10 @@ function persist(){try{localStorage.setItem(key,JSON.stringify(save))}catch(e){}
 var removedBottomUi={textContent:'',innerHTML:'',style:{},classList:{add:function(){},remove:function(){},toggle:function(){}},onclick:null};
 function $(id){return document.getElementById(id)||((id==='hintTitle'||id==='hint'||id==='action')?removedBottomUi:null)}
 var canvas=$('game'),ctx=canvas.getContext('2d'),W=1280,H=720,view='fish',zone=Number.isInteger(save.zone)&&save.zone>=0&&save.zone<12?save.zone:0,fish=[],hum=[],bubbles=[],particles=[],ripples=[];
+var fxShader=window.HumanFishingFXShader&&window.HumanFishingFXShader.create({
+ width:W,height:H,addStrength:.30,bloomStrength:.35,radius:10
+});
+function fxLightContext(){return fxShader&&fxShader.available?fxShader.context:null}
 var bob={x:680,y:390},drag=false,hook=null,time=0,last=performance.now(),bannerTimer=0,random=Math.random,decor=save.decor||0;
 var colors=['#ffbd75','#fa8196','#69e7df','#e8d574','#90b6ef','#b191eb','#67c68e','#f89767','#f7d88a','#ff9eba','#ace38d','#96dbed'];
 function rnd(a,b){return a+random()*(b-a)}function clamp(v,a,b){return Math.max(a,Math.min(b,v))}function mix(a,b,t){return a+(b-a)*t}function ease(t){return 1-Math.pow(1-clamp(t,0,1),3)}
@@ -1105,14 +1110,23 @@ function backgroundHuman(){sea(false);ctx.fillStyle='#6f6a5a';ctx.fillRect(0,200
 function drawingTank(now){sea(true);ctx.fillStyle='#fffdfa08';ctx.fillRect(20,25,1240,656);ctx.strokeStyle='#c3e3e78b';ctx.lineWidth=20;ctx.strokeRect(20,25,1240,656);ctx.strokeStyle='#194451';ctx.lineWidth=6;ctx.strokeRect(20,25,1240,656);ctx.fillStyle='#cfb98b';ctx.fillRect(32,656,1216,30);for(var i=0;i<20;i++){var x=80+i*58+Math.sin(i*12)*16;ctx.fillStyle=colors[(i+decor*3)%colors.length]+'77';ctx.beginPath();ctx.ellipse(x,638,35,17,0,0,7);ctx.fill()}
 coral(now);save.placed.forEach(function(id,i){var sp=species.find(function(v){return v.id===id});if(!sp)return;var xx=85+(i*151)%1090+Math.sin(now*(.34+(i%4)*.08)+i)*65,yy=155+((i*89)%445)+Math.sin(now*.8+i)*18;drawFish({sp:sp,x:clamp(xx,90,1130),y:yy,vx:(i%2===0?1:-1),size:fishVisualProfile(sp).baseScale,phase:i},now)})}
 function particleFrame(dt){
+ var light=fxLightContext();
  for(var i=particles.length-1;i>=0;i--){
   var p=particles[i];p.life-=dt*1.55;p.x+=p.vx*dt*60;
   p.y+=p.vy*dt*60;p.vy+=dt*3;
-  ctx.globalAlpha=Math.max(0,p.life);
+  var alpha=Math.max(0,p.life),size=p.size*(1.1-p.life*.4),
+   color=p.kind==='gold'?'#ffce87':'#c0f6f5';
+  ctx.globalAlpha=alpha;
   if(p.kind==='water'){
-   if(p.y>WATER_SURFACE_Y+8&&waterFx)
+   if(p.y>WATER_SURFACE_Y+8&&waterFx){
     waterFx.atlas(ctx,'bubbles',i%16,p.x,p.y,p.size*2.8,p.size*2.8,.8,0);
-  }else circle(p.x,p.y,p.size*(1.1-p.life*.4),p.kind==='gold'?'#ffce87':'#c0f6f5');
+    if(light)waterFx.atlas(light,'bubbles',i%16,p.x,p.y,p.size*2.8,p.size*2.8,.8,0);
+   }
+  }else{
+   circle(p.x,p.y,size,color);
+   if(light){light.save();light.globalAlpha=alpha;light.fillStyle=color;
+    light.beginPath();light.arc(p.x,p.y,size,0,Math.PI*2);light.fill();light.restore();}
+  }
   if(p.life<=0)particles.splice(i,1);
  }
  ctx.globalAlpha=1;
@@ -3345,10 +3359,15 @@ function tick(stamp){
   ctx.translate(W/2,H/2);ctx.scale(1.016,1.016);
   ctx.translate(-W/2+cameraVibration.x,-H/2+cameraVibration.y);
  }
+ // Separate FX source buffer keeps EXACTLY the world camera transform.
+ if(fxShader)fxShader.beginFrame(cameraVibration);
  if(view==='tank')drawingTank(time);
  else{
   sea(false);coral(time);
-  if(typeof waterFx!=='undefined'&&waterFx)waterFx.ambient(ctx,time,WATER_SURFACE_Y,W,H);
+  if(typeof waterFx!=='undefined'&&waterFx){
+   waterFx.ambient(ctx,time,WATER_SURFACE_Y,W,H);
+   if(fxLightContext())waterFx.ambient(fxLightContext(),time,WATER_SURFACE_Y,W,H);
+  }
   updateEcosystem(dt);
   if(view==='fish'){
    castMotion(dt);
@@ -3462,7 +3481,13 @@ function tick(stamp){
   // layer: above player/rod/line and BELOW every swimming or hooked fish.
   if(view==='fish'&&!introEntrance.active&&feverFx)drawFeverFx(dt);
   if(view==='fish'&&!introEntrance.active&&feverFx&&
-    typeof waterFx!=='undefined'&&waterFx)waterFx.fever(ctx,time,feverFx,WATER_SURFACE_Y);
+    typeof waterFx!=='undefined'&&waterFx){
+    waterFx.fever(ctx,time,feverFx,WATER_SURFACE_Y);
+    if(fxLightContext())waterFx.fever(fxLightContext(),time,feverFx,WATER_SURFACE_Y);
+   }
+   // Copy only the vortex art, NOT the red octopus/line/fever labels.
+   if(view==='fish'&&!introEntrance.active&&feverFx&&fxLightContext())
+    drawFeverVortex(feverFx,feverReelState(feverFx,time),fxLightContext());
   // Explicit foreground-over-PLAYER bait layer (do not merge with the
   // protagonist/rod draw group). This must stay AFTER the last drawOcto,
   // drawRod and drawLine call but BEFORE swimming and singly hooked fish.
@@ -3471,13 +3496,21 @@ function tick(stamp){
    drawBaitAbovePlayer(time);
   }
   if(view==='fish'&&!introEntrance.active&&waterCurrent.active&&typeof waterFx!=='undefined'&&waterFx)
-   waterFx.current(ctx,time,bob.x,bob.y,WATER_SURFACE_Y,
-    waterCurrent.vx,waterCurrent.vy,waterCurrent.duration,waterCurrent.start);
+   {
+    waterFx.current(ctx,time,bob.x,bob.y,WATER_SURFACE_Y,
+     waterCurrent.vx,waterCurrent.vy,waterCurrent.duration,waterCurrent.start);
+    if(fxLightContext())waterFx.current(fxLightContext(),time,bob.x,bob.y,WATER_SURFACE_Y,
+     waterCurrent.vx,waterCurrent.vy,waterCurrent.duration,waterCurrent.start);
+   }
   // 3) Draw all ambient creatures IN FRONT of the ordinary lure. The
   // hooked fish is rendered later, also in front of the lure.
   if(view==='fish'||view==='book'||view==='grow'||view==='shop'){
    fish.forEach(function(a){
-    if(!a.feverCaptured&&(!hook||hook.obj!==a)){drawFish(a,time);drawFishRankTag(a)}
+    if(!a.feverCaptured&&(!hook||hook.obj!==a)){
+     drawFish(a,time);drawFishRankTag(a);
+     // Rare sparkles are copied into FX; the fish PNG remains untouched.
+     if(fxLightContext())drawFishRankTag(a,fxLightContext());
+    }
    });
    hum.forEach(function(a){
     if(!a.feverCaptured&&(!hook||hook.obj!==a))humanIcon(a,time);
@@ -3517,14 +3550,20 @@ function tick(stamp){
  drawCatchFx(dt);drawEscapeFx(dt);drawGroggyFx(dt);
  // Dedicated topmost BITMAP pass: vortex/effect < caught fish < drops.
  // Keep above ordinary particles and all creature/escape overlays.
- if(view==='fish'&&!introEntrance.active&&feverFx)
+ if(view==='fish'&&!introEntrance.active&&feverFx){
   drawFeverSuctionParticles(feverFx,time);
- // FINAL WORLD COMPOSITE: draw splashes first, then 100%-opacity surface on the
- // topmost gameplay layer. Only independent HTML/preview UI sits above it.
+  if(fxLightContext())drawFeverSuctionParticles(feverFx,time,fxLightContext());
+ }
+ // Original world/creatures/particles already rendered normally.
+ // The WebGL2 result adds only 30% light + 35% soft bloom on TOP.
+ // IMPORTANT: keep opaque surface AFTER shader so it still covers fish/FX.
  if(typeof waterFx!=='undefined'&&waterFx&&(view==='fish'||view==='tank')){
   waterFx.drawEvents(ctx,time,WATER_SURFACE_Y,W,H);
-  waterFx.surface(ctx,time,WATER_SURFACE_Y,W);
+  if(fxLightContext())waterFx.drawEvents(fxLightContext(),time,WATER_SURFACE_Y,W,H);
  }
+ if(fxShader)fxShader.composite(ctx);
+ if(typeof waterFx!=='undefined'&&waterFx&&(view==='fish'||view==='tank'))
+  waterFx.surface(ctx,time,WATER_SURFACE_Y,W);
   if(!escapeFx&&octoGroggy===0&&pendingEscapeRestart){pendingEscapeRestart=false;if(view==='fish')startCast()}
  if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}
  ctx.restore();
@@ -4047,14 +4086,14 @@ function raritySparklesFor(f,now){
  }
  return result;
 }
-function drawFishRankTag(f){
- var sheet=raritySparkleAtlases[f.sp&&f.sp.rarity];if(!sheet)return;
+function drawFishRankTag(f,lightTarget){
+ var g=lightTarget||ctx,sheet=raritySparkleAtlases[f.sp&&f.sp.rarity];if(!sheet)return;
  var lights=raritySparklesFor(f,time);
  for(var i=0;i<lights.length;i++){
   var p=lights[i],sz=p.size;
-  ctx.save();ctx.globalAlpha=p.alpha;
-  ctx.drawImage(sheet,p.frame*64,0,64,64,p.x-sz/2,p.y-sz/2,sz,sz);
-  ctx.restore();
+  g.save();g.globalAlpha=p.alpha;
+  g.drawImage(sheet,p.frame*64,0,64,64,p.x-sz/2,p.y-sz/2,sz,sz);
+  g.restore();
  }
 }
 // ALPHA 1.5 — continuous reef ecosystem. No re-roll/rebuild per cast.
@@ -5365,15 +5404,15 @@ if(typeof Image!=='undefined'){
   feverSuctionArt[entry[0]]=im;
  });
 }
-function feverSuctionAtlasFrame(im,frame,x,y,d,rotation,alpha){
+function feverSuctionAtlasFrame(im,frame,x,y,d,rotation,alpha,lightTarget){
  if(!im||!im.ready||alpha<=0)return false;
- var sw=(im.naturalWidth||im.width)/4,sh=(im.naturalHeight||im.height)/4;
+ var g=lightTarget||ctx,sw=(im.naturalWidth||im.width)/4,sh=(im.naturalHeight||im.height)/4;
  var n=((Math.floor(frame)%16)+16)%16;
- ctx.save();
- ctx.globalAlpha=clamp(alpha,0,1);
- ctx.translate(x,y);ctx.rotate(rotation);
- ctx.drawImage(im,n%4*sw,Math.floor(n/4)*sh,sw,sh,-d/2,-d/2,d,d);
- ctx.restore();return true;
+ g.save();
+ g.globalAlpha=clamp(alpha,0,1);
+ g.translate(x,y);g.rotate(rotation);
+ g.drawImage(im,n%4*sw,Math.floor(n/4)*sh,sw,sh,-d/2,-d/2,d,d);
+ g.restore();return true;
 }
 // Keep the real catch radius unchanged. The illustrated whirlpool contracts
 // from full size to HALF exactly while the full-size fish snap inward, not
@@ -5387,7 +5426,8 @@ function feverCatchGatherProgress(fx){
  var p=clamp((fx.elapsed-.024)/.066,0,1);
  return 1-Math.pow(1-p,4);
 }
-function drawFeverVortex(fx,reel){
+function drawFeverVortex(fx,reel,lightTarget){
+ var paint=lightTarget||ctx;
  if(!feverVortexArt||!feverVortexArt.ready)return false;
  var releaseAt=fx.reelStart+.82,arrivalAt=releaseAt+.72,t=fx.elapsed;
  // 100% when the effect appears, 90% after .10-.27 s underwater.
@@ -5417,10 +5457,10 @@ function drawFeverVortex(fx,reel){
  var paired=!!(front&&front.ready&&back&&back.ready);
  // The existing approved vortex is the fallback and a faint core
  // under the new two counter-rotating illustrated sheets.
- ctx.save();ctx.globalAlpha=opacity*(paired?.23:1);
- ctx.translate(center.x,center.y);ctx.rotate(tilt);
- ctx.drawImage(image,dx,dy,sw,sh,-d/2,-d/2,d,d);
- ctx.restore();
+ paint.save();paint.globalAlpha=opacity*(paired?.23:1);
+ paint.translate(center.x,center.y);paint.rotate(tilt);
+ paint.drawImage(image,dx,dy,sw,sh,-d/2,-d/2,d,d);
+ paint.restore();
  if(!paired)return true;
  // Two offset painted rings breathe independently, but the dense WHITE
  // rear sheet is spatially softened and its opacity pulses in time.
@@ -5433,10 +5473,10 @@ function drawFeverVortex(fx,reel){
  var whiteAlpha=opacity*whiteBreath*(1-.20*feverSnapProgress(fx));
  feverSuctionAtlasFrame(feverSuctionArt.backSoft||back,
   Math.floor((t+.12)*18)+5,center.x,center.y,
-  d*scaleB,tilt-t*3.7+.54,whiteAlpha);
+  d*scaleB,tilt-t*3.7+.54,whiteAlpha,paint);
  var frontBreath=.60+.12*Math.sin(t*8.1-.7);
  feverSuctionAtlasFrame(front,Math.floor(t*21),center.x,center.y,
-  d*scaleA,tilt+t*5.1,opacity*(frontBreath-.07*waveA));
+  d*scaleA,tilt+t*5.1,opacity*(frontBreath-.07*waveA),paint);
  return true;
 }
 // A pre-rasterized glass-bubble atlas passes ABOVE all fish and effects;
@@ -5492,7 +5532,7 @@ function feverBubblePose(fx,now,i){
   radius:radius,outer:outer,inner:inner,visualRadius:visualRadius,
   speed:speed,shift:shift};
 }
-function drawFeverSuctionParticles(fx,now){
+function drawFeverSuctionParticles(fx,now,lightTarget){
  if(!fx)return;
  var im=feverSuctionArt.bubbles||
   feverSuctionArt.dropsVisible||feverSuctionArt.drops;
@@ -5504,7 +5544,7 @@ function drawFeverSuctionParticles(fx,now){
   var p=feverBubblePose(fx,now,i);
   if(p.alpha<=.025)continue;
   feverSuctionAtlasFrame(im,(i*5+Math.floor(p.life*15))%16,
-   p.x,p.y,p.size,p.angle*.20,p.alpha);
+   p.x,p.y,p.size,p.angle*.20,p.alpha,lightTarget);
  }
 }
 // A softly damped pendulum for the actual octopus BAIT, not the player.

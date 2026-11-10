@@ -83,6 +83,8 @@ jobs:
         run: node human-fishing/qa-fish-ui-heading.cjs
       - name: Verify bitmap water FX and underwater-only bubbles
         run: node human-fishing/qa-water-fx.cjs
+      - name: Verify GPU FX light pipeline, isolation and CPU fallback
+        run: node human-fishing/qa-fx-shader.cjs
       - name: Verify congested fish disperse, choose lanes and pass safely
         run: node human-fishing/qa-ecology-traffic.cjs
       - name: Verify context-driven 16-frame companion animation states
@@ -147,6 +149,10 @@ jobs:
         run: |
           npm install --prefix /tmp/human-fishing-browser playwright@1.58.2
           /tmp/human-fishing-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Verify shader Bloom/ADD in Chromium and low-power fallback
+        env:
+          NODE_PATH: /tmp/human-fishing-browser/node_modules
+        run: node human-fishing/qa-fx-shader-browser.cjs
       - name: Test real scene loading and navigation in Chromium
         env:
           NODE_PATH: /tmp/human-fishing-browser/node_modules
