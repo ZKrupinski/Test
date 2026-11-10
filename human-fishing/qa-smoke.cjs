@@ -169,7 +169,7 @@ window.__hfTest={
  markIntroRigReady:function(){
   rodBitmapSprites[selectedGear('rod').id]={ready:true};
   polishedRedLureArt.idle={ready:true};
-  hangingBaitAtlas.ready=true;
+  hangingBaitAtlas={ready:true};
  },
  advanceIntro:advanceIntroEntrance,
  getHook:function(){return hook},
