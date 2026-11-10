@@ -47,6 +47,8 @@ jobs:
         run: node human-fishing/qa-human-codex-encounter.cjs
       - name: Verify human residents survive aquarium-to-fishing transition
         run: node human-fishing/qa-aquarium-human-play.cjs
+      - name: Verify human mouth weakspot and fish human collision panic
+        run: node human-fishing/qa-human-mouth-collision.cjs
       - name: Verify resource gate and fixed landscape coordinates
         run: node human-fishing/qa-boot.cjs
       - name: Verify scene image loading, retries and frozen input

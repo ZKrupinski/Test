@@ -18,6 +18,23 @@ if(enabled){
   images[state]=img;
  });
 }
+// Keep geometry in the same coordinate frame as the approved 8-frame PNG.
+ // The source pose looks right; negative vx mirrors it consistently.
+var HUMAN_WORLD_RENDER_BOOST=1.295; // exactly 70% of the previous 1.85
+function poseGeometry(actor){
+ var size=Math.max(.7,Math.min(1.8,Number(actor&&actor.size)||1));
+ var scale=.36*size*(actor&&actor.id>=20?1.05:1)*HUMAN_WORLD_RENDER_BOOST;
+ var facing=Number(actor&&(actor.vx||actor.dir)||1)<0?-1:1;
+ var x=Number(actor&&actor.x)||0,y=Number(actor&&actor.y)||0;
+ var width=362*scale,height=543*scale;
+ // Head/mouth is toward the right-hand leading edge in the approved frame.
+ // Cropped transparent padding is intentionally excluded from collision size.
+ return{width:width,height:height,scale:scale,facing:facing,
+  mouth:{x:x+facing*width*.34,y:y+height*.09-8,
+   rx:actor&&actor.id>=20?8:12,ry:actor&&actor.id>=20?6.5:9,
+   facing:facing},
+  body:{x:x,y:y+height*.02-8,rx:width*.43,ry:height*.30}};
+}
 function render(ctx,actor,now,action){
  if(!enabled||!actor)return false;
  var mood=paths[action]?action:'swim',img=images[mood];
@@ -30,7 +47,6 @@ function render(ctx,actor,now,action){
  var size=Math.max(.7,Math.min(1.8,Number(actor.size)||1));
  // Display-only scale: humans are more prominent than even large fish.
  // Never change actor.size or fishing hitbox/weakspot physics.
- var HUMAN_WORLD_RENDER_BOOST=1.85;
  var scale=(mood==='hooked'?.33:.36)*size*(actor.id>=20?1.05:1)*HUMAN_WORLD_RENDER_BOOST;
  var facing=Number(actor.vx||actor.dir||1)<0?-1:1;
  ctx.save();
@@ -40,5 +56,6 @@ function render(ctx,actor,now,action){
  ctx.restore();
  return true;
 }
-global.HumanFishingBabySprites={enabled:enabled,images:images,render:render};
+global.HumanFishingBabySprites={enabled:enabled,images:images,
+ render:render,geometry:poseGeometry};
 })(window);

@@ -8,7 +8,7 @@ const root=__dirname;
 const base=path.join(root,'assets','humans');
 const ready=fs.readFileSync(path.join(base,'ready.js'),'utf8');
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
-assert(index.includes('human-sprites.js?v=20261110-large-human-no-ring-v3'));
+assert(index.includes('human-sprites.js?v=20261111-human70-mouth-avoid-v4'));
 assert(index.includes('assets/humans/ready.js?v=20261110-baby-v1'));
 const renderer=fs.readFileSync(path.join(root,'human-sprites.js'),'utf8');
 new Function(renderer);
@@ -37,7 +37,7 @@ if(ready.includes('Ready=true')){
 }
 
 // All 24 human types share one world-space sprite with a DISPLAY-only boost.
-assert.match(renderer,/var HUMAN_WORLD_RENDER_BOOST=1\.85/,'human world render boost missing');
+assert.match(renderer,/var HUMAN_WORLD_RENDER_BOOST=1\.295/,'human 70 percent render factor missing');
 assert.match(renderer,/var scale=\(mood==='hooked'\?\.33:\.36\)\*size\*\(actor\.id>=20\?1\.05:1\)\*HUMAN_WORLD_RENDER_BOOST/);
 const vm=require('node:vm');
 class MockHumanImage{
@@ -59,9 +59,17 @@ for(const mood of ['swim','resist','taunt','hooked']){
  assert(art.render(context,{id:8,x:0,y:445,vx:1,size:1.02,phase:0},0,mood),
   mood+' should use the approved existing bitmap');
  const call=captures[captures.length-1];
- assert(call[7]>205,mood+' must appear larger than the typical large fish');
+ assert(call[7]>145&&call[7]<200,mood+' must be exactly 70% of previous bitmap display width');
 }
 assert.match(index,/ctx\.translate\(sx,sy\+6\);ctx\.scale\(1\.0,1\.0\);/,'aquarium human no longer must be shrunk to .76');
 assert.doesNotMatch(index,/circle\(sx,sy\+24,86/,'aquarium human vector halo still present');
 assert.doesNotMatch(index,/ctx\.ellipse\(sx,sy\+24,84,108/,'aquarium human elliptical bubble still present');
-console.log('PASS: adult-scale cartoon human world sprites, larger aquarium display, no vector oval or bubble');
+const pos=art.geometry({id:8,x:500,y:420,vx:40,size:1});
+const mirrored=art.geometry({id:8,x:500,y:420,vx:-40,size:1});
+assert(Math.abs(pos.width-362*.36*1.295)<1e-6);
+assert.equal(pos.mouth.x-500,500-mirrored.mouth.x,'mouth must mirror with sprite facing');
+assert(pos.mouth.x>500&&pos.mouth.rx<=12&&pos.mouth.ry<=9,
+ 'human mouth must be a hidden small ellipse, not the old 100px body radius');
+assert.equal(art.geometry({id:22,x:500,y:420,vx:40,size:1}).mouth.rx,8,
+ 'Boss human weakspot must be smaller');
+console.log('PASS: human bitmap size is exactly 70%, mirrored mouth weakspot, no aquarium vector oval');

@@ -438,7 +438,7 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 <script src="./fish-expansion-catalog-012.js?v=20261109-user-six"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
 <script src="./assets/humans/ready.js?v=20261110-baby-v1"></script>
-<script src="./human-sprites.js?v=20261110-large-human-no-ring-v3"></script>
+<script src="./human-sprites.js?v=20261111-human70-mouth-avoid-v4"></script>
 <script src="./gamepad.js?v=20261110-g8plus-haptics-v2"></script>
 <script src="./foley.js?v=20261108-chest-prize-bells-v1"></script>
 <script src="./ambient.js?v=20261110-ambient-preload-v3"></script>
@@ -574,6 +574,29 @@ function fishMouthOverlapsLure(f,point,now){
  var dy=(point.y-mouth.y)/(mouth.ry+radius);
  return dx*dx+dy*dy<=1;
 }
+// Human targets have the exact same mouth-weakspot rule as fish.
+// These hidden zones track the bitmap orientation and its 70%-size drawing.
+function humanPoseGeometry(h){
+ var sprites=window.HumanFishingBabySprites;
+ return h&&sprites&&typeof sprites.geometry==='function'?sprites.geometry(h):null;
+}
+function humanMouthWeakspot(h,now){
+ if(!h||h.feverCaptured)return null;
+ var geometry=humanPoseGeometry(h);
+ return geometry?geometry.mouth:null;
+}
+function humanBodyContact(h,point){
+ var geometry=humanPoseGeometry(h);if(!geometry||!point)return false;
+ var a=geometry.body,r=baitCenterRadius();
+ var dx=(point.x-a.x)/(a.rx+r),dy=(point.y-a.y)/(a.ry+r);
+ return dx*dx+dy*dy<=1;
+}
+function humanMouthOverlapsLure(h,point,now){
+ var mouth=humanMouthWeakspot(h,now);if(!mouth||!point)return false;
+ var r=baitCenterRadius();
+ var dx=(point.x-mouth.x)/(mouth.rx+r),dy=(point.y-mouth.y)/(mouth.ry+r);
+ return dx*dx+dy*dy<=1;
+}
 // Unlike the former 215px-wide guaranteed chain reaction, a wrong-body
 // release scares a small random cluster. Roughly 30% of misses use an even
 // smaller surprise radius; none exceeds 150px.
@@ -644,13 +667,19 @@ function ordinaryFishingTarget(){
   if(d2<=1&&d2<score){best=f;score=d2}
  });
  if(best)return{obj:best,kind:'fish'};
- if(blockedByBody)return null;
- var human=null,lowest=1,rod=gearPower('rod'),bait=gearPower('bait');
+ var human=null,lowest=1;
  hum.forEach(function(a){
-  var d=Math.hypot(a.x-baitTip.x,a.y+22-baitTip.y)/
-   (107+save.up[1]*14+(a.id>=20?35:0)+rod*11+bait*8);
-  if(d<lowest){lowest=d;human=a}
+  if(!a||a.feverCaptured)return;
+  var mouth=humanMouthWeakspot(a,time);
+  if(!mouth)return;
+  var radius=baitCenterRadius();
+  var dx=(baitTip.x-mouth.x)/(mouth.rx+radius),
+   dy=(baitTip.y-mouth.y)/(mouth.ry+radius),d2=dx*dx+dy*dy;
+  if(d2<=1&&d2<lowest){lowest=d2;human=a}
+  if(d2>1&&humanBodyContact(a,baitTip))blockedByBody=true;
  });
+ // Touching an unhookable body no longer catches humans by proximity.
+ if(blockedByBody)return null;
  return human?{obj:human,kind:'human'}:null;
 }
 function nearest(){return ordinaryFishingTarget()}
@@ -3221,6 +3250,7 @@ function checkBaitWeakspot(){
   !feverFx&&!escapeFx&&!catchFx&&!lureRecovery.active;
  if(!active){
   for(var n=0;n<fish.length;n++)fish[n].weakTouching=false;
+  for(var h=0;h<hum.length;h++)hum[h].weakTouching=false;
   return;
  }
  for(var i=0;i<fish.length;i++){
@@ -3232,6 +3262,16 @@ function checkBaitWeakspot(){
   }
   // Fire on contact ENTRY, not every animation frame while held in place.
   f.weakTouching=weak;
+ }
+ var baitTip=danglingBaitPosition(time);
+ for(var j=0;j<hum.length;j++){
+  var h=hum[j];if(!h||h.feverCaptured)continue;
+  var touching=humanMouthOverlapsLure(h,baitTip,time);
+  if(touching&&!h.weakTouching){
+   vibrationPulse('weakspot');
+   h.shakeUntil=time+.18;
+  }
+  h.weakTouching=touching;
  }
 }
 // Intermittent underwater currents: physical drift with clear bottom indicator.
@@ -3338,9 +3378,10 @@ function autoFishingCandidate(now){
  });
  // Human elites remain valid; fish are preferred for a calm auto loop.
  hum.forEach(function(h){
-  if(!h||h.feverCaptured||h.x<100||h.x>W-100||
-    h.y+22<280||h.y+22>610)return;
-  var score=Math.hypot(h.x-bait.x,h.y+22-bait.y)+150;
+  if(!h||h.feverCaptured||h.x<100||h.x>W-100)return;
+  var mouth=humanMouthWeakspot(h,now);
+  if(!mouth||mouth.y<280||mouth.y>610)return;
+  var score=Math.hypot(mouth.x-bait.x,mouth.y-bait.y)+150;
   if(score<bestScore){bestScore=score;best={entity:h,kind:'human'}}
  });
  return best;
@@ -3378,7 +3419,7 @@ function autoFishingStep(dt){
  if(!autoFishing.target)return;
  var target=autoFishing.target;
  var aim=autoFishing.kind==='fish'?fishMouthWeakspot(target,time):
-  {x:target.x,y:target.y+22};
+  humanMouthWeakspot(target,time);
  if(!aim)return;
  var bait=danglingBaitPosition(time),dx=aim.x-bait.x,dy=aim.y-bait.y,
   ready=save.fever&&save.fever.ready,canRelease=false;
@@ -4477,6 +4518,11 @@ function ecoPairSpace(f,g){
  var a=ecoBodyRadius(f),b=ecoBodyRadius(g);
  return{x:Math.max(70,a.x+b.x+6),y:Math.max(44,a.y+b.y+6)};
 }
+function ecoHumanFishSpace(f,h){
+ var radius=ecoBodyRadius(f),geom=humanPoseGeometry(h);
+ var body=geom&&geom.body||{rx:72,ry:70};
+ return{x:radius.x+body.rx+10,y:radius.y+body.ry+9};
+}
 function ecoCrowd(f,dt){
  var cx=0,cy=0,count=0,ax=0,ay=0,sepX=0,sepY=0;
  var prey=null,predator=null,rival=null,predDist=1e9,preyDist=1e9,rivalDist=1e9;
@@ -4504,6 +4550,22 @@ function ecoCrowd(f,dt){
   if(!f.hunter&&g.hunter&&dist<112&&dist<predDist&&g.size>f.size*.96){
    predator=g;predDist=dist;
   }
+ }
+ // Large human silhouettes steer fish onto different lanes before contact.
+ // A full panic/dart is reserved for real physical impact below.
+ for(var k=0;k<hum.length;k++){
+  var person=hum[k];
+  if(!person||person.feverCaptured||person===(hook&&hook.obj)||
+     person.x<0||person.x>W)continue;
+  var area=ecoHumanFishSpace(f,person),dx=person.x-f.x,
+   dy=person.y-f.y,nx=dx/area.x,ny=dy/area.y,
+   norm=Math.hypot(nx,ny);
+  if(norm>=1.55)continue;
+  var ux=norm>.001?nx/norm:(person.vx>=0?1:-1);
+  var uy=norm>.001?ny/norm:(k%2?.4:-.4);
+  var weight=Math.pow((1.55-norm)/1.55,1.4);
+  sepX-=ux*weight*155;
+  sepY-=uy*weight*124;
  }
  return{count:count,cx:cx,cy:cy,ax:ax,ay:ay,
   sepX:sepX,sepY:sepY,prey:prey,predator:predator,rival:rival};
@@ -4652,6 +4714,47 @@ function ecoResolveFishSpacing(dt){
    g.x=clamp(g.x+ux*push*moveG*xWeight,0,W);
    f.y=ecoSafeDepth(f,f.y-uy*push*moveF*yWeight);
    g.y=ecoSafeDepth(g,g.y+uy*push*moveG*yWeight);
+  }
+ }
+}
+// Physical impact only: a fish must touch a human's body to scatter.
+// Short per-fish cooldowns stop continuous collisions from restarting
+// the same panic. Safe-screen bounds keep their full PNG in the viewport.
+function ecoResolveHumanFishSpacing(dt){
+ for(var i=0;i<fish.length;i++){
+  var f=fish[i];
+  if(!f||f.feverCaptured||f===(hook&&hook.obj)||
+     f.x<0||f.x>W)continue;
+  for(var j=0;j<hum.length;j++){
+   var h=hum[j];
+   if(!h||h.feverCaptured||h===(hook&&hook.obj)||
+      h.x<0||h.x>W)continue;
+   var range=ecoHumanFishSpace(f,h),dx=f.x-h.x,dy=f.y-h.y,
+    norm=Math.hypot(dx/range.x,dy/range.y);
+   if(norm>=1)continue;
+   var sign=Math.abs(dx)>2?(dx>=0?1:-1):
+    (f.vx||h.vx||1)>=0?1:-1;
+   var nx=norm>.001?dx/range.x/norm:sign;
+   var ny=norm>.001?dy/range.y/norm:((i+j)%2?.45:-.45);
+   var push=Math.min(110*dt,(1-norm)*35);
+   var bounds=missScareScreenLimits(f);
+   f.x=clamp(f.x+nx*push,bounds.left,bounds.right);
+   f.y=ecoSafeDepth(f,f.y+ny*push*.80);
+   if(eco.t<(f.humanImpactCooldownUntil||0))continue;
+   var fleeDir=sign;
+   if(f.x>bounds.right-85)fleeDir=-1;
+   else if(f.x<bounds.left+85)fleeDir=1;
+   f.humanImpactCooldownUntil=eco.t+1.9;
+   f.fearX=h.x;f.fearY=h.y;
+   f.fleeDir=fleeDir;f.dir=fleeDir;
+   f.missScareStayVisible=true;
+   f.panicUntil=Math.max(f.panicUntil||0,eco.t+1.1);
+   f.fleeBurstUntil=Math.max(f.fleeBurstUntil||0,eco.t+.48);
+   f.escapeNoCatchUntil=Math.max(f.escapeNoCatchUntil||0,eco.t+.8);
+   f.fightUntil=0;
+   f.trafficExit=false;
+   f.shakeUntil=time+.14;f.shakePower=1.7;
+   f.behavior='flee';
   }
  }
 }
@@ -4944,6 +5047,7 @@ function updateEcosystem(dt){
   if(!f.missScareStayVisible&&(f.x< -185||f.x>W+185))fish.splice(i,1);
  }
  ecoResolveFishSpacing(dt);
+ ecoResolveHumanFishSpacing(dt);
  for(var h=hum.length-1;h>=0;h--){
   var person=hum[h];
   if(person.feverCaptured){hum.splice(h,1);continue}
