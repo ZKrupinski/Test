@@ -430,6 +430,8 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 <script src="./assets/fish-expansion-012/ready.js?v=20261109-user-six"></script>
 <script src="./fish-expansion-catalog-012.js?v=20261109-user-six"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
+<script src="./assets/humans/ready.js?v=20261110-baby-v1"></script>
+<script src="./human-sprites.js?v=20261110-baby-v1"></script>
 <script src="./foley.js?v=20261108-chest-prize-bells-v1"></script>
 <script src="./ambient.js?v=20261108-deep-dual-ambience-v2"></script>
 <script>
@@ -3690,7 +3692,7 @@ function drawSwallowCreature(entity,elapsed,delay,travel,mouth){
  if(entity.vibration){var shake=entity.vibration;ctx.translate(Math.sin(time*48+(entity.phase||0))*shake,Math.cos(time*63+(entity.phase||0))*shake*.55);ctx.rotate(Math.sin(time*36+(entity.phase||0))*shake*.021)}
  if(entity.human){
   ctx.rotate(Math.sin(p*10+(entity.id||0))*.14);
-  humanIcon({id:entity.id,x:0,y:0,phase:entity.phase||0,size:1},time);
+  humanIcon({id:entity.id,x:0,y:0,phase:entity.phase||0,size:entity.size||1,vx:entity.vx||1,spriteAction:p<.10?'hooked':'resist'},time);
  }else if(entity.sp){
   ctx.rotate((mouth.x<entity.x?-.32:.24)*Math.sin(Math.PI*p));
   // Maintain a clear sequence: bite -> violent hook struggle -> lift ->
@@ -5074,7 +5076,7 @@ function drawEscapeFx(dt){
  ctx.rotate(fx.human?pose.rot:escapeFishHeading(fx,fx.elapsed));
  if(fx.human){
   ctx.scale(1.08,1.08);
-  humanIcon({id:fx.id,x:0,y:0,phase:fx.phase,size:fx.size||1},time);
+  humanIcon({id:fx.id,x:0,y:0,phase:fx.phase,size:fx.size||1,vx:fx.dir,spriteAction:(pose.stage==='flee'||pose.stage==='dive')?'taunt':'resist'},time);
   if(pose.stage==='strike'){
    ctx.strokeStyle='#fff0b3';ctx.lineWidth=6;ctx.lineCap='round';
    for(var i=0;i<3;i++){
@@ -6003,7 +6005,7 @@ function drawFeverTossCreature(entity,fx,index,now,layer){
  ctx.translate(pose.x,pose.y);ctx.rotate(pose.rotation);
  ctx.scale(pose.scale,pose.scale);
  if(entity.human){
-  humanIcon({id:entity.id,x:0,y:0,phase:entity.phase||0,size:entity.size||1},now);
+  humanIcon({id:entity.id,x:0,y:0,phase:entity.phase||0,size:entity.size||1,vx:pose.facing||entity.vx||1,spriteAction:pose.phase==='escape'?'taunt':'resist'},now);
  }else{
   drawFish({sp:entity.sp,x:0,y:0,
     vx:pose.phase==='escape'?pose.facing*180:pose.phase==='gather'?(pose.facing||1)*120:entity.vx||1,
@@ -6293,6 +6295,18 @@ setMode=function(mode){return sceneGuard(function(){
 var loadedSceneOpenPanel=openPanel;
 openPanel=function(title,desc,inner){return sceneGuard(function(){return loadedSceneOpenPanel(title,desc,inner);});};
 
+// Use one approved bitmap baby for EVERY human ID; retain the procedural
+// character only as a safe fallback until the alpha PNG install is verified.
+var previousHumanIcon=humanIcon;
+humanIcon=function(a,now){
+ var pose=a&&a.spriteAction||'swim';
+ if(a&&hook&&hook.kind==='human'&&hook.obj===a)
+  pose=hook.elapsed<.24?'hooked':'resist';
+ if(a&&a.feverCaptured)pose='resist';
+ var sprites=window.HumanFishingBabySprites;
+ if(sprites&&sprites.render(ctx,a,now,pose))return;
+ previousHumanIcon(a,now);
+};
 // The old Blue Tang animation QA preview is no longer required.
 buildFish();buildHum();
 updateStats();setMode('fish');
