@@ -1,5 +1,5 @@
 {
-  "version": "20261111-human-swim11-original-v3",
+  "version": "20261111-human-swim11-alpha-clean-v4",
   "baseCount": 24,
   "totalCount": 35,
   "swimOnly": true,
@@ -13,8 +13,8 @@
         1448,
         1086
       ],
-      "sha256": "b0e8aa26d151056688294c7583e9740371c01151c0678f27eaa40bee45e6d225",
-      "gitBlob": "86971f805dfd843ea1086201c7ee45b6b4c1e683"
+      "sha256": "f910c224b589ed90b4044ccf4de8e495d8e6088a3d3133290596811450a21c9c",
+      "gitBlob": "7082170fc7dc497beeca0b031ef34b655bbdc0fe"
     },
     {
       "id": 25,
@@ -57,8 +57,8 @@
         1774,
         887
       ],
-      "sha256": "a913010b7de6c26566b092b5f55bebab54646c7bd9f877e149b9315e7e3b36ff",
-      "gitBlob": "09cfedae67642aa038c71b727deee602b3beb2df"
+      "sha256": "4c165a368e8b85e5ea64e303df9b639c4c5ecebce4afd5c66115e783f63b36a4",
+      "gitBlob": "1989ed3807e975210b6bff7196135f189ac237cf"
     },
     {
       "id": 29,
@@ -79,8 +79,8 @@
         1774,
         887
       ],
-      "sha256": "d8c0b232d02f564325a2fdf3f74005a3f06858c2bd89fec1dae813d62fabb273",
-      "gitBlob": "9b9e0eb9269679d3a6e2c0bba99b3aa76262c451"
+      "sha256": "3d35bf3cc1cb674454fee14dd70690080cfbe962d59b61d7585ea04728b365a5",
+      "gitBlob": "0f12b2f12e9eb01f8df41a327d05aad809264a66"
     },
     {
       "id": 31,
@@ -127,5 +127,10 @@
       "gitBlob": "84b01dd53fdb857bdf60096475adfd28e87d6884"
     }
   ],
-  "imageChanges": "Original uploaded PNG bytes preserved; no alpha cleanup, crop, resize or re-encode"
+  "imageChanges": "Sleepy (24), nurse (28), idol (30) replaced by user-approved alpha-cleaned 8-frame PNG sheets; other eight new swimmer PNGs and all 24 older humans unchanged.",
+  "alphaCleanedIds": [
+    24,
+    28,
+    30
+  ]
 }

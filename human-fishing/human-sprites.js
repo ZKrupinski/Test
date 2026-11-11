@@ -24,7 +24,7 @@ if(enabled){
  Object.keys(swimVariantById).forEach(function(id){
   var variant=swimVariantById[id],img=new Image(); // Boot preloads this resource.
   img.decoding='async';
-  img.src='./assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)>=24?'20261111-human-swim11-v2':'20261111-human-swim4-v1');
+  img.src='./assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)>=24?'20261111-human-swim11-alpha-v4':'20261111-human-swim4-v1');
   swimVariants[id]=img;
  });
 }
