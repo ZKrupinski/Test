@@ -121,11 +121,11 @@ assert.ok(source.includes('function feverGripSlot(fx,index)')&&
 assert.ok(source.includes('makeFeverVortexOpaque(im)'),
  'Fever bitmap must boost original low-alpha paint without editing source art');
 assert.ok(source.includes('var opacity=1-.10*castEasing((t-.10)/.17);'),
- 'Fever vortex must start fully opaque and settle to 90% underwater');
+ 'Fever vortex uses the approved base fade, then applies a gentle 90% overall display intensity');
 assert.ok(source.includes('if(t>=fx.surfaceAt)opacity=.80;'),
- 'Fever vortex must stay at 80% after leaving the surface');
-assert.ok(source.includes('opacity*=1-castEasing((t-arrivalAt)/.16);'),
- 'Vortex must fade quickly only at player mouth arrival');
+ 'Fever vortex base is 80% after surface exit, before the new overall 90% multiplier');
+assert.ok(source.includes('opacity*=.90*(1-castEasing((t-arrivalAt)/.16));'),
+ 'Vortex must have 90% opacity while retaining the original fast mouth-arrival fade');
 assert.ok(source.includes('center=swallowPoint('),
  'Vortex must follow the catch to the player mouth after release');
 assert.ok(source.includes('var scale=.385+.015*Math.sin'),
