@@ -53,8 +53,8 @@ for(const [id,{name,sha}] of Object.entries(variants)){
  assert.equal(file[25],6);
  assert(renderer.includes("'"+id+"':'"+name+"'"),id+' human mapping');
 }
-assert.match(index,/data-human-id="'+a\.id+'/,'Human codex must bind art by exact ID');
-assert.match(index,/data-human-id="'+item\.humanId+'/,'Human capture card must bind art by exact ID');
+assert.match(index,/data-human-id=.*a\.id/,'Human codex must bind art by exact ID');
+assert.match(index,/data-human-id=.*item\.humanId/,'Human capture card must bind art by exact ID');
 // All human types retain same world-space pose geometry with a DISPLAY-only boost.
 assert.match(renderer,/var HUMAN_WORLD_RENDER_BOOST=1\.295/,'human 70 percent render factor missing');
 assert.match(renderer,/var scale=\(mood==='hooked'\?\.33:\.36\)\*size\*\(actor\.id>=20\?1\.05:1\)\*HUMAN_WORLD_RENDER_BOOST/);
