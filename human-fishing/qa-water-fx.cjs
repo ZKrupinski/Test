@@ -18,7 +18,7 @@ for(const asset of manifest.assets){
  assert.equal(buf.readUInt32BE(20),asset.height);
  assert.equal(crypto.createHash('sha256').update(buf).digest('hex'),asset.sha256);
 }
-assert.ok(game.includes('water-fx.js?v=20261110-waterfx-b7'));
+assert.ok(game.includes('water-fx.js?v=20261111-waterfx-current-waterline-opacity-v8'));
 const srcInline=game.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
 assert.ok(srcInline,'Main game script not found');new vm.Script(srcInline);
 assert.ok(game.includes('waterFx.ambient(ctx,time,WATER_SURFACE_Y,W,H)'));
@@ -26,7 +26,7 @@ assert.ok(game.includes('waterFx.surface(ctx,time,WATER_SURFACE_Y,W)'));
 assert.ok(game.includes('waterFx.observeLure(time,bob.x,bob.y,WATER_SURFACE_Y,true)'));
 assert.ok(game.includes('waterFx.current(ctx,time,bob.x,bob.y,WATER_SURFACE_Y'));
 assert.ok(game.includes('waterFx.fever(ctx,time,feverFx,WATER_SURFACE_Y)'));
-assert.ok(game.includes("waterFx.emit('escape',pose.x,WATER_SURFACE_Y+4,time,WATER_SURFACE_Y)"));
+assert.ok(game.includes("waterFx.emit('escape',pose.x,WATER_SURFACE_Y,time,WATER_SURFACE_Y)"));
 assert.ok(game.includes('waterFx.drawEvents(ctx,time,WATER_SURFACE_Y,W,H)'));
 assert.ok(game.includes("waterFx.emit('miss',bob.x,bob.y,time,WATER_SURFACE_Y)"));
 assert.ok(game.includes("waterFx.emit('entry',cast.impactX,surface,time,WATER_SURFACE_Y)"));
@@ -45,7 +45,8 @@ assert.ok(fx);
  assert.equal(fx.ready,true);assert.equal(fx.loaded,4);assert.equal(fx.ambientBubbleCount,66);
  const frameCalls=[];const stack=[];const draws=[];let tx=0,ty=0;
 
- const ctx={globalAlpha:1,save(){stack.push([this.globalAlpha,tx,ty])},restore(){[this.globalAlpha,tx,ty]=stack.pop()},translate(x,y){tx+=x;ty+=y},scale(){},rotate(){},beginPath(){},rect(){},clip(){},drawImage(...args){frameCalls.push(args);draws.push({args,x:tx,y:ty,alpha:this.globalAlpha})}};
+ let rotation=0;
+ const ctx={globalAlpha:1,save(){stack.push([this.globalAlpha,tx,ty,rotation])},restore(){[this.globalAlpha,tx,ty,rotation]=stack.pop()},translate(x,y){tx+=x;ty+=y},scale(){},rotate(a){rotation+=a},beginPath(){},rect(){},clip(){},drawImage(...args){frameCalls.push(args);draws.push({args,x:tx,y:ty,alpha:this.globalAlpha,rotation})}};
  fx.ambient(ctx,3.2,293,1280,720);
  assert.ok(frameCalls.length>30,'Underwater bubbles failed to draw');
  frameCalls.length=0;fx.surface(ctx,3.2,293,1280);
@@ -97,12 +98,43 @@ assert.ok(fx);
  assert.equal(currents.length,1,'Only one current effect may draw, without faint side duplicates');
  assert.equal(currents[0].x,650,'Current must be centered horizontally on the octopus/bait');
  assert.equal(currents[0].y,430,'Current must be centered vertically on the octopus/bait');
+ assert.ok(currents[0].alpha<=.40+1e-9,'Currents must be fainter than previous 54%');
+ const rightAngle=currents[0].rotation;
+ draws.length=0;
+ fx.current(ctx,3.6,650,430,293,-70,2,3,3);
+ const left=draws.filter(d=>d.args[0].path.includes('water_current'));
+ assert.equal(left.length,1);
+ assert.ok(Math.abs(Math.abs(left[0].rotation-rightAngle)-Math.PI)<1e-8,
+  'Current sprite must rotate exactly 180 degrees between left and right');
  draws.length=0;
  fx.fever(ctx,3.6,{x:650,y:420,radius:100,elapsed:.2,suctionEnd:1.1},293);
  const feverCurrents=draws.filter(d=>d.args[0].path.includes('water_current'));
  assert.equal(feverCurrents.length,1,'Fever octopus must have one centered current accent only');
  assert.equal(feverCurrents[0].x,650,'Fever accent must sit at octopus center X');
  assert.equal(feverCurrents[0].y,420,'Fever accent must sit at octopus center Y');
+ // Surface escape must be visually centered on the waterline, not floating.
+ fx.clear();draws.length=0;
+ fx.emit('escape',640,293,6,293);
+ fx.drawEvents(ctx,6.15,293,1280,720);
+ const splash=draws.filter(d=>d.args[0].path.includes('water_splash')&&d.args[8]>27);
+ assert.equal(splash.length,1,'Escape should use a single bitmap surface splash');
+ assert.ok(Math.abs(splash[0].y-305)<1e-6,
+  'Human escape splash center must be exactly waterY+12');
+ fx.clear();draws.length=0;
+ fx.emit('miss',650,430,6,293);
+ fx.drawEvents(ctx,6.15,293,1280,720);
+ const missStroke=draws.filter(d=>d.args[0].path.includes('water_current'));
+ assert.equal(missStroke.length,1);
+ assert.ok(missStroke[0].alpha<=.50+1e-9,'Miss bitmap must be a little fainter');
+ fx.clear();draws.length=0;
+ fx.emit('fever',650,430,6,293);
+ fx.drawEvents(ctx,6.15,293,1280,720);
+ const feverStroke=draws.filter(d=>d.args[0].path.includes('water_current'));
+ assert.equal(feverStroke.length,1);
+ assert.ok(feverStroke[0].alpha<=.42+1e-9,'Fever bitmap must be a little fainter');
+ assert.match(game,/opacity\*=\.90\*\(1-castEasing\(\(t-arrivalAt\)\/\.16\)\)/,
+  'Fever painted suction layers should all use the 90% opacity multiplier');
+ assert.doesNotMatch(game,/ripple\(pose\.x,WATER_SURFACE_Y\+4\)/,'Duplicate re-entry ripples must not appear');
  fx.observeLure(4,630,350,293,true);
  fx.observeLure(4.3,630,267,293,true);
  assert.ok(fx.pendingEvents>0);

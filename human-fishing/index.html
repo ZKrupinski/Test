@@ -410,7 +410,7 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 <div id="bootOverlay" role="dialog" aria-modal="true" aria-label="게임 준비"><h2>인간낚시</h2><p id="bootStatus" role="status">리소스 로딩 중</p><progress id="bootProgress" max="1" value="0"></progress><button id="bootStart" type="button" hidden disabled>터치하여 시작</button></div>
 </div>
 <script src="./boot.js?v=20261110-scene-gate4"></script>
-<script src="./water-fx.js?v=20261110-waterfx-b7"></script>
+<script src="./water-fx.js?v=20261111-waterfx-current-waterline-opacity-v8"></script>
 <script src="./fx-shader.js?v=20261110-fxgl-v1"></script>
 <script src="./assets/fish/ready.js?v=20261106-fish304"></script>
 <script src="./assets/special-creatures/ready.js?v=20261108-direct17"></script>
@@ -5360,12 +5360,16 @@ function drawEscapeFx(dt){
  if(fx.human&&!fx.impact&&fx.elapsed>=.74){
   fx.impact=true;octoGroggy=1.55;vibrationPulse('counter');
   spawnParticles(m.x+fx.dir*17,m.y-8,36,'gold');
-  ripple(m.x+fx.dir*17,m.y-8);
+  // No splash at the octopus' midair counter-hit. The ONLY surface splash
+  // occurs when the escaping human actually crosses WATER_SURFACE_Y.
  }
  if(!fx.splash&&pose.y>=WATER_SURFACE_Y+4&&fx.lastWasAboveWater!==false){
   fx.splash=true;playFoley('escapeSplash');
-  ripple(pose.x,WATER_SURFACE_Y+4);spawnParticles(pose.x,WATER_SURFACE_Y+4,20,'water');
-  if(typeof waterFx!=='undefined'&&waterFx)waterFx.emit('escape',pose.x,WATER_SURFACE_Y+4,time,WATER_SURFACE_Y);
+  // Emit a single bitmap re-entry on the waterline, not duplicate
+  // entry+escape sprites that floated above it.
+  spawnParticles(pose.x,WATER_SURFACE_Y+4,20,'water');
+  if(typeof waterFx!=='undefined'&&waterFx)
+   waterFx.emit('escape',pose.x,WATER_SURFACE_Y,time,WATER_SURFACE_Y);
  }
  fx.lastWasAboveWater=pose.y<WATER_SURFACE_Y+4;
  ctx.save();ctx.translate(pose.x,pose.y);
@@ -5766,8 +5770,9 @@ function drawFeverVortex(fx,reel,lightTarget){
  var opacity=1-.10*castEasing((t-.10)/.17);
  // After crossing the REAL water surface, hold at 80%.
  if(t>=fx.surfaceAt)opacity=.80;
- // Keep vortex with the flying catch, vanish quickly at the mouth.
- opacity*=1-castEasing((t-arrivalAt)/.16);
+ // Slightly quieter illustrated vortex and both counter-rotating rings.
+ // Preserve the suction timing, size and actual Fever capture radius.
+ opacity*=.90*(1-castEasing((t-arrivalAt)/.16));
  if(opacity<=.001)return false;
  var travel=clamp((t-releaseAt)/.72,0,1);
  var center={x:reel.x,y:reel.y},tilt=reel.tilt*.65;

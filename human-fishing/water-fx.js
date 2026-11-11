@@ -4,7 +4,7 @@
  */
 (function(root){
  'use strict';
- var version='20261110-waterfx-b7',base='./assets/water-fx/';
+ var version='20261111-waterfx-current-waterline-opacity-v8',base='./assets/water-fx/';
  var specs={
   surface:['water_surface_8f.png',4,2],
   splash:['water_splash_8f.png',4,2],
@@ -18,7 +18,44 @@
   [40,39,54,56],[37,37,58,58],[37,38,58,58],[38,38,58,58]];
  var images=Object.create(null),preloadPromise=null,ready=false;
  var events=[],air=[],lastUnderwater=null,lastCrossAt=-100;
- var PI=Math.PI;
+ var PI=Math.PI,currentSpriteAngle=0;
+ // Determine the painted current's long axis once, using actual alpha pixels.
+ // The source atlas is diagonal. In-game L/R current should be HORIZONTAL,
+ // rather than rotating the already-diagonal artwork by near zero radians.
+ function detectCurrentSpriteAngle(im){
+  if(typeof document==='undefined'||!document.createElement)return;
+  try{
+   var canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;
+   var g=canvas.getContext('2d',{willReadFrequently:true});if(!g)return;
+   g.drawImage(im,0,0,im.naturalWidth/4,im.naturalHeight/2,0,0,128,128);
+   var data=g.getImageData(0,0,128,128).data;
+   var sx=0,sy=0,weight=0;
+   for(var y=0;y<128;y+=2)for(var x=0;x<128;x+=2){
+    var i=(y*128+x)*4,a=data[i+3]/255;
+    if(a<.08)continue;
+    sx+=x*a;sy+=y*a;weight+=a;
+   }
+   if(weight<12)return;
+   var mx=sx/weight,my=sy/weight,xx=0,xy=0,yy=0;
+   for(var yyPos=0;yyPos<128;yyPos+=2)for(var xxPos=0;xxPos<128;xxPos+=2){
+    var k=(yyPos*128+xxPos)*4,alpha=data[k+3]/255;
+    if(alpha<.08)continue;
+    var dx=xxPos-mx,dy=yyPos-my;
+    xx+=alpha*dx*dx;xy+=alpha*dx*dy;yy+=alpha*dy*dy;
+   }
+   // Largest principal alpha axis; normalized to [-PI/2, PI/2].
+   // A roughly square/round sprite does not need orientation correction.
+   var spread=Math.hypot(xx-yy,2*xy)/Math.max(1,xx+yy);
+   if(spread>.12){
+    var diagonal=.5*Math.atan2(2*xy,xx-yy);
+    if(Number.isFinite(diagonal))currentSpriteAngle=diagonal;
+   }
+  }catch(e){currentSpriteAngle=0}
+ }
+ function horizontalCurrentRotation(vx){
+  // Right => horizontal source direction; left => exact 180 degree reversal.
+  return (vx<0?PI:0)-currentSpriteAngle;
+ }
  function hash(seed){var t=Math.sin(seed*127.1+78.233)*43758.5453;return t-Math.floor(t)}
  function clamp01(v){return Math.max(0,Math.min(1,v))}
  function fade(t){t=clamp01(t);return t*t*(3-2*t)}
@@ -28,7 +65,11 @@
    return new Promise(function(resolve){
     if(typeof Image==='undefined'){resolve(false);return}
     var im=new Image();im.decoding='async';
-    im.onload=function(){im.ready=true;images[name]=im;resolve(true)};
+    im.onload=function(){
+     im.ready=true;images[name]=im;
+     if(name==='current')detectCurrentSpriteAngle(im);
+     resolve(true);
+    };
     im.onerror=function(){im.ready=false;resolve(false)};
     im.src=base+specs[name][0]+'?v='+version;
    });
@@ -110,7 +151,7 @@
     // Surface bitmap spans waterY-28 .. waterY+44. Lower entry/exit origins
     // into its opaque front band (waterY+20); hold this bottom pivot fixed
     // between sprite frames. Escape feedback retains its previous anchor/size.
-    var surfaceLine=line+(crossing?20:8);
+    var surfaceLine=line+20; // All impacts are aligned to the water foreground band.
     ctx.save();ctx.beginPath();ctx.rect(0,0,width,Math.max(0,surfaceLine+3));ctx.clip();
     if(exit){
      // Reuse the approved crown in three staggered fans instead of a new atlas.
@@ -131,7 +172,11 @@
      }
     }else{
      var sw=(174+24*p)*scale,sh=106*scale;
-     atlas(ctx,'splash',Math.min(7,Math.floor(p*8)),e.x,surfaceLine-sh*.5,
+     // Human/fish escape previously centered its crown ABOVE the water.
+     // Entry keeps its legacy front-edge pivot; escape straddles the exact
+     // WATER_SURFACE_Y waterline and stays there on EVERY animation frame.
+     var crownY=kind==='escape'?line+12:surfaceLine-sh*.5;
+     atlas(ctx,'splash',Math.min(7,Math.floor(p*8)),e.x,crownY,
       sw,sh,.98*alpha,0);
     }
     ctx.restore();
@@ -145,7 +190,7 @@
     var d=kind==='fever'?245:kind==='miss'?140:kind==='bite'?114:103;
     var y=Math.max(waterY+21,e.y),f=Math.min(7,Math.floor(p*8));
     atlas(ctx,'current',f,e.x,y,d*(.82+.34*p),d*.48*(.82+.3*p),
-     (kind==='miss'?.60:kind==='fever'?.49:.40)*alpha,0);
+     (kind==='miss'?.50:kind==='fever'?.42:.40)*alpha,0);
     if(kind==='miss'||kind==='release'||kind==='bite'||kind==='fever'){
      ctx.save();ctx.beginPath();ctx.rect(0,waterY+6,width,height-waterY-6);ctx.clip();
      var count=kind==='miss'?8:kind==='fever'?14:5;
@@ -154,8 +199,9 @@
       var radius=(12+30*hash(seed*3))*(.35+p*.9);
       var bx=e.x+Math.cos(angle)*radius+8*Math.sin(now*3+seed);
       var by=y+Math.sin(angle)*radius-p*(22+26*hash(seed*5));
+      var opacityScale=kind==='miss'?.85:kind==='fever'?.90:1;
       atlas(ctx,'bubbles',j%16,bx,Math.max(waterY+8,by),
-       12+17*hash(seed*7),12+17*hash(seed*7),.68*alpha*(1-p*.38),0);
+       12+17*hash(seed*7),12+17*hash(seed*7),.68*opacityScale*alpha*(1-p*.38),0);
      }
      ctx.restore();
     }
@@ -173,8 +219,11 @@
   // No faint repeated currents on either side; Fever owns its own single
   // centered suction accent in fever().
   var frame=Math.floor(now*9)%8;
-  atlas(ctx,'current',frame,bobX,bobY,180,98,.54*opacity,
-   (Math.atan2(vy,vx||1))*.16);
+  // Align the source's diagonal painted streak with WORLD horizontal.
+  // The dominant current's Y drift still acts on physics, but the visual
+  // explicitly indicates left/right so it never falsely suggests a diagonal.
+  atlas(ctx,'current',frame,bobX,bobY,180,98,.40*opacity,
+   horizontalCurrentRotation(vx));
   ctx.restore();
  }
  function fever(ctx,now,fx,waterY){
@@ -182,7 +231,7 @@
   if(fx.y<waterY+12||fx.elapsed>fx.suctionEnd)return;
   var p=clamp01(fx.elapsed/Math.max(.1,fx.suctionEnd)),breath=.8+.2*Math.sin(now*10);
   atlas(ctx,'current',Math.floor(now*13),fx.x,fx.y,
-   fx.radius*2.35,fx.radius*1.48,.30*breath*(1-fade((p-.83)/.17)),now*.04);
+   fx.radius*2.35,fx.radius*1.48,.26*breath*(1-fade((p-.83)/.17)),now*.04);
  }
  function surface(ctx,now,waterY,width){
   if(!images.surface||!images.surface.ready)return;
