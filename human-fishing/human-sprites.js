@@ -57,6 +57,9 @@ function render(ctx,actor,now,action){
  var mood=newSwim?'swim':paths[action]?action:'swim',img=newSwim||images[mood];
  var sheet=mood==='hooked'?{w:1776,h:888,fw:444,fh:444}:{w:1448,h:1086,fw:362,fh:543};
  if(newSwim&&actor.id>=25)sheet={w:1776,h:888,fw:444,fh:444};
+ // Preserve user-provided source PNG bytes; original grids may be 1774x887.
+ if(newSwim&&actor.id>=25&&img&&img.naturalWidth===1774&&img.naturalHeight===887)
+  sheet={w:1774,h:887,fw:443.5,fh:443.5};
  if(!img||!img.complete||img.naturalWidth!==sheet.w||img.naturalHeight!==sheet.h)return false;
  // Human motion reads slightly slower without changing travel speed or catch physics.
  var HUMAN_ANIMATION_SPEED=.85;
@@ -75,7 +78,9 @@ function render(ctx,actor,now,action){
  ctx.save();
  ctx.translate(Number(actor.x)||0,Number(actor.y)||0);
  ctx.scale(newSwim&&actor.id>=24?-facing:facing,1);
- ctx.drawImage(img,col*fw,row*fh,fw,fh,-fw*scale*.5,-fh*scale*.5-8,fw*scale,fh*scale);
+ var sx=Math.round(col*sheet.w/4),sy=Math.round(row*sheet.h/2);
+ var sourceW=Math.round((col+1)*sheet.w/4)-sx,sourceH=Math.round((row+1)*sheet.h/2)-sy;
+ ctx.drawImage(img,sx,sy,sourceW,sourceH,-fw*scale*.5,-fh*scale*.5-8,fw*scale,fh*scale);
  ctx.restore();
  return true;
 }
