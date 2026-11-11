@@ -1,0 +1,126 @@
+{
+  "version": "20261111-human-swim11-original-v3",
+  "actors": [
+    {
+      "id": 24,
+      "name": "졸린이",
+      "key": "sleepy",
+      "path": "baby_swim_sleepy_8f.png",
+      "size": [
+        1448,
+        1086
+      ],
+      "sha256": "b0e8aa26d151056688294c7583e9740371c01151c0678f27eaa40bee45e6d225"
+    },
+    {
+      "id": 25,
+      "name": "탐험가",
+      "key": "explorer_new",
+      "path": "baby_swim_explorer_new_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "sha256": "1e380ab8e3811a10ab5ac49ec8853321685e2cef985d46ac5c4c41c47d908010"
+    },
+    {
+      "id": 26,
+      "name": "과학자",
+      "key": "scientist",
+      "path": "baby_swim_scientist_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "sha256": "80b84007e7b7c708317178b7df2ef1beb1716e442023b2119cc09293c6c7777a"
+    },
+    {
+      "id": 27,
+      "name": "해적",
+      "key": "pirate",
+      "path": "baby_swim_pirate_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "sha256": "26056746672c4f336dc89648be7129e1d62941d6ebae8af913c2bcf8b6ace8da"
+    },
+    {
+      "id": 28,
+      "name": "간호사",
+      "key": "nurse",
+      "path": "baby_swim_nurse_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "sha256": "a913010b7de6c26566b092b5f55bebab54646c7bd9f877e149b9315e7e3b36ff"
+    },
+    {
+      "id": 29,
+      "name": "운동선수",
+      "key": "athlete",
+      "path": "baby_swim_athlete_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "sha256": "7b3287871dbd9eab153cb34690ba2108def1b9abe0c9dc879d45039be4914079"
+    },
+    {
+      "id": 30,
+      "name": "아이돌",
+      "key": "idol",
+      "path": "baby_swim_idol_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "sha256": "d8c0b232d02f564325a2fdf3f74005a3f06858c2bd89fec1dae813d62fabb273"
+    },
+    {
+      "id": 31,
+      "name": "요리사",
+      "key": "chef",
+      "path": "baby_swim_chef_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "sha256": "b188d272f0b003cc6250ff6ecadee10c60307fa04e74091a6ef4f8ebc7a6864e"
+    },
+    {
+      "id": 32,
+      "name": "탐정",
+      "key": "detective",
+      "path": "baby_swim_detective_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "sha256": "33916864e5a6c4959e0428b08c5ff3eea0b9140a6af141056512ee7a6eb7a739"
+    },
+    {
+      "id": 33,
+      "name": "마법사",
+      "key": "wizard",
+      "path": "baby_swim_wizard_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "sha256": "63ab8f426f44a2b5694f9afcf572542973404c862a54a83cfa9327b8b24c16b0"
+    },
+    {
+      "id": 34,
+      "name": "천사",
+      "key": "angel",
+      "path": "baby_swim_angel_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "sha256": "201e96083ccb23a6797a37c1f5586f6dbc76867263cc4b7e0bfb47b476969a40"
+    }
+  ]
+}

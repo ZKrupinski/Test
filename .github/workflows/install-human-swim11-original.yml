@@ -1,0 +1,35 @@
+name: Install unmodified human swim 11 originals
+on:
+  push:
+    paths:
+      - human-fishing/human-swim11-original-import.zip
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify and copy original user PNG bytes
+        run: |
+          if [ ! -f human-fishing/human-swim11-original-import.zip ]; then
+            echo "ZIP has already been consumed"; exit 0
+          fi
+          mkdir -p /tmp/human-swim11-originals
+          unzip -tq human-fishing/human-swim11-original-import.zip
+          unzip -oq human-fishing/human-swim11-original-import.zip -d /tmp/human-swim11-originals
+          node human-fishing/tools/install-human-swim11-original.cjs /tmp/human-swim11-originals
+          node human-fishing/qa-human-swim11.cjs
+          node human-fishing/qa-human-sprites.cjs
+      - name: Commit installed originals to main
+        run: |
+          if [ ! -f human-fishing/human-swim11-original-import.zip ]; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add human-fishing/assets/humans human-fishing/index.html human-fishing/human-sprites.js human-fishing/qa-human-swim11.cjs
+          git rm human-fishing/human-swim11-original-import.zip
+          git diff --cached --quiet || git commit -m 'art(human-fishing): install untouched 11 human swimmer originals'
+          git push origin HEAD:main
