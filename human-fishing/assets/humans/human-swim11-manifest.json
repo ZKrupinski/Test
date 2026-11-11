@@ -1,5 +1,5 @@
 {
-  "version": "20261111-human-swim11-v2",
+  "version": "20261111-human-swim11-original-v3",
   "baseCount": 24,
   "totalCount": 35,
   "swimOnly": true,
@@ -13,118 +13,119 @@
         1448,
         1086
       ],
-      "sha256": "6d1c8ba6bb1e941e2f1f6d01a4e1d81a9cfcea65be9aa7c25965fcd8afc13266",
-      "gitBlob": "5d2f816fc28fea2a949fe0783bfb87ff62cef64b"
+      "sha256": "b0e8aa26d151056688294c7583e9740371c01151c0678f27eaa40bee45e6d225",
+      "gitBlob": "86971f805dfd843ea1086201c7ee45b6b4c1e683"
     },
     {
       "id": 25,
       "name": "탐험가",
       "path": "baby_swim_explorer_new_8f.png",
       "size": [
-        1776,
-        888
+        1774,
+        887
       ],
-      "sha256": "1073732ddf13fdb976aa58ab55d849fef4fef5dcdc8e5e300eec53b883557279",
-      "gitBlob": "6417946b7c923d6a2b76476b56a3c565aa65b306"
+      "sha256": "1e380ab8e3811a10ab5ac49ec8853321685e2cef985d46ac5c4c41c47d908010",
+      "gitBlob": "1b3975e02e2ccd493723445e693a8ef7396855cb"
     },
     {
       "id": 26,
       "name": "과학자",
       "path": "baby_swim_scientist_8f.png",
       "size": [
-        1776,
-        888
+        1774,
+        887
       ],
-      "sha256": "71729e2b53f3a885550981ad0309d5f6e69f1cf34f0eae4922313ffca2739899",
-      "gitBlob": "a70e9306ef9920c7f6169c4d40a43afb0598be9b"
+      "sha256": "80b84007e7b7c708317178b7df2ef1beb1716e442023b2119cc09293c6c7777a",
+      "gitBlob": "91803ee146c24ca08fe3763a6fa6aca054ce2c00"
     },
     {
       "id": 27,
       "name": "해적",
       "path": "baby_swim_pirate_8f.png",
       "size": [
-        1776,
-        888
+        1774,
+        887
       ],
-      "sha256": "07447532f51695487940ad181ad585f251c6a371eaf430a88856df659f007020",
-      "gitBlob": "729cbd267ba33087a00cdf8c1f4b11121c77d2bc"
+      "sha256": "26056746672c4f336dc89648be7129e1d62941d6ebae8af913c2bcf8b6ace8da",
+      "gitBlob": "f3afad64c815da3fb342d11ffb197ae9bfd3d87c"
     },
     {
       "id": 28,
       "name": "간호사",
       "path": "baby_swim_nurse_8f.png",
       "size": [
-        1776,
-        888
+        1774,
+        887
       ],
-      "sha256": "b3be89950875e9b74c050e78220d6cac8e57cfd0466bab290e6a3aa4418fc357",
-      "gitBlob": "d93877c76888cb13c2b498c21215a4b47b9a277f"
+      "sha256": "a913010b7de6c26566b092b5f55bebab54646c7bd9f877e149b9315e7e3b36ff",
+      "gitBlob": "09cfedae67642aa038c71b727deee602b3beb2df"
     },
     {
       "id": 29,
       "name": "운동선수",
       "path": "baby_swim_athlete_8f.png",
       "size": [
-        1776,
-        888
+        1774,
+        887
       ],
-      "sha256": "bb5bff19d2aaa3356dd6d11f6ab1afcd5147076982bd1403052470f17e3b96ef",
-      "gitBlob": "2a8589cbe9cf448b1717597cb3025f49c5d487d5"
+      "sha256": "7b3287871dbd9eab153cb34690ba2108def1b9abe0c9dc879d45039be4914079",
+      "gitBlob": "0fc33f8a544f830ebd6c9c0cb082b135db1a89b0"
     },
     {
       "id": 30,
       "name": "아이돌",
       "path": "baby_swim_idol_8f.png",
       "size": [
-        1776,
-        888
+        1774,
+        887
       ],
-      "sha256": "06b641fc61a2641d14ea013278538ff56c4d22b4d3cda010360f459d0a8fcb69",
-      "gitBlob": "64b3e7f4485f7bfb5d037f5c79edae6234cae1f1"
+      "sha256": "d8c0b232d02f564325a2fdf3f74005a3f06858c2bd89fec1dae813d62fabb273",
+      "gitBlob": "9b9e0eb9269679d3a6e2c0bba99b3aa76262c451"
     },
     {
       "id": 31,
       "name": "요리사",
       "path": "baby_swim_chef_8f.png",
       "size": [
-        1776,
-        888
+        1774,
+        887
       ],
-      "sha256": "8fe737025b2d12ccf3fb1c2fad79d37ee31d097f2415e4c746b8a38903b4e997",
-      "gitBlob": "0a73c4237d7cce35000248659b7776d9bbd59cb5"
+      "sha256": "b188d272f0b003cc6250ff6ecadee10c60307fa04e74091a6ef4f8ebc7a6864e",
+      "gitBlob": "9b517b5e329e0156c19c6922dee08738796b6c55"
     },
     {
       "id": 32,
       "name": "탐정",
       "path": "baby_swim_detective_8f.png",
       "size": [
-        1776,
-        888
+        1774,
+        887
       ],
-      "sha256": "4e2971151d421f8acd79f3f3922959c88b99dd9fe29a24529a249831711cea18",
-      "gitBlob": "db7e6b0a723c49ba792df0e4fb6156d4b747d612"
+      "sha256": "33916864e5a6c4959e0428b08c5ff3eea0b9140a6af141056512ee7a6eb7a739",
+      "gitBlob": "a4da7bb5f769af2de68c83c3467cbdba07ce7311"
     },
     {
       "id": 33,
       "name": "마법사",
       "path": "baby_swim_wizard_8f.png",
       "size": [
-        1776,
-        888
+        1774,
+        887
       ],
-      "sha256": "a2712513eb896f621ecc752d0310075f8de86c37d49126b376a3b2fba5de9b3c",
-      "gitBlob": "0598c551f4198bbce60d56edb6687063d8ba1cea"
+      "sha256": "63ab8f426f44a2b5694f9afcf572542973404c862a54a83cfa9327b8b24c16b0",
+      "gitBlob": "3a8de192773eac325fc57e68ef21c61b7e3558fb"
     },
     {
       "id": 34,
       "name": "천사",
       "path": "baby_swim_angel_8f.png",
       "size": [
-        1776,
-        888
+        1774,
+        887
       ],
-      "sha256": "0b42ffe04cd8139f101902852fec46190ff720b9c469201e0e33793abb6f10fa",
-      "gitBlob": "ba6aa742e6a5f6688490ef4671b90185b2b57b45"
+      "sha256": "201e96083ccb23a6797a37c1f5586f6dbc76867263cc4b7e0bfb47b476969a40",
+      "gitBlob": "84b01dd53fdb857bdf60096475adfd28e87d6884"
     }
-  ]
+  ],
+  "imageChanges": "Original uploaded PNG bytes preserved; no alpha cleanup, crop, resize or re-encode"
 }
