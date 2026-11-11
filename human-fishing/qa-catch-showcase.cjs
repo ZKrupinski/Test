@@ -78,6 +78,9 @@ const sandbox={
  console
 };
 vm.createContext(sandbox);
+const huStart=source.indexOf('// HUMAN_UI_THUMBS_BEGIN'),huEnd=source.indexOf('// HUMAN_UI_THUMBS_END',huStart);
+assert.ok(huStart>0&&huEnd>huStart,'Shared human thumbnail renderer must exist');
+vm.runInContext(source.slice(huStart,huEnd),sandbox,{filename:'human-ui-thumbs.js'});
 vm.runInContext(source.slice(a,b),sandbox,{filename:'catch-showcase.js'});
 const prize=sandbox.catchShowcaseFish(sp,2,true,false);
 assert.equal(prize.name,sp.name);
@@ -202,7 +205,7 @@ console.log('PASS: Fever awards survive recasting and chain with queued later ca
 console.log('PASS: trophy cards expire and clear across new attempts, misses and empty Fever; brushes cannot award fish.');
 
 // Human prizes must paint the approved RGBA art in ordinary and mixed Fever cards.
-let draws=[],loadCallback=null;
+let draws=[],transforms=[],loadCallback=null;
 const approved={complete:true,naturalWidth:1448,naturalHeight:1086,
  addEventListener(type,cb){assert.equal(type,'load');loadCallback=cb;}};
 const pixels=new Uint8ClampedArray(362*543*4);
@@ -210,17 +213,49 @@ const pixels=new Uint8ClampedArray(362*543*4);
 pixels[3]=1; // Near-invisible export noise must not shrink the visible character.
 pixels[(80*362+12)*4+3]=5;pixels[(460*362+340)*4+3]=255;
 const frameContext={drawImage(...args){assert.equal(args[0],approved);assert.deepEqual(args.slice(1),[0,0,362,543,0,0,362,543]);},getImageData(){return {data:pixels}}};
-sandbox.document={createElement(tag){assert.equal(tag,'canvas');return {getContext:()=>frameContext}}};
+sandbox.document={createElement(tag){assert.equal(tag,'canvas');return {getContext:()=>frameContext}},querySelectorAll(){return [];}};
 sandbox.window.HumanFishingBabySprites={images:{swim:approved}};
 root.querySelectorAll=selector=>{
  assert.equal(selector,'.catch-human-thumb');
- return [...root.innerHTML.matchAll(/class="catch-human-thumb"/g)].map(()=>({getContext:()=>({clearRect(){},drawImage(...args){draws.push(args)}})}));
+ return [...root.innerHTML.matchAll(/class="catch-human-thumb"/g)].map(()=>({
+  getContext:()=>({clearRect(){},save(){},restore(){},
+   translate(...a){transforms.push(['translate',...a])},
+   scale(...a){transforms.push(['scale',...a])},
+   drawImage(...args){draws.push(args)}})
+ }));
 };
 sandbox.stopCatchShowcase(true);sandbox.view='fish';
 const person=sandbox.catchShowcaseHuman(0,1,true);
 assert.equal(person.humanId,0);sandbox.showCatchShowcase([person],false);
 assert.match(root.innerHTML,/canvas class="catch-human-thumb"/);assert.equal(draws.length,1);
 assert.deepEqual(draws[0].slice(1),[8,76,337,389,0,0,337,389],'All nontransparent edges fit with padding');
+assert.deepEqual(transforms.slice(0,2),[['translate',337,0],['scale',-1,1]],
+ 'Capture portrait must face left');
+const codexDraws=[],codexFlips=[],silhouettes=[];
+function codexCanvas(owned){
+ return {dataset:{humanOwned:owned?'1':'0'},getContext:()=>({
+  clearRect(){},save(){},restore(){},fillStyle:'',globalCompositeOperation:'source-over',
+  translate(...a){codexFlips.push(['translate',...a])},
+  scale(...a){codexFlips.push(['scale',...a])},
+  drawImage(...args){codexDraws.push(args)},
+  fillRect(...args){silhouettes.push(args)}
+ })};
+}
+const ownedHuman=codexCanvas(true),lockedHuman=codexCanvas(false);
+sandbox.document.querySelectorAll=selector=>{
+ assert.equal(selector,'#panelBody .human-codex-canvas');
+ return [ownedHuman,lockedHuman];
+};
+sandbox.paintHumanCodexThumbs();
+assert.equal(codexDraws.length,2);
+assert.deepEqual(codexDraws[0].slice(1),draws[0].slice(1),
+ 'Catch and codex must use identical source crop and render area');
+assert.deepEqual(codexFlips,[['translate',337,0],['scale',-1,1],
+ ['translate',337,0],['scale',-1,1]],'Both codex portraits must face left');
+assert.equal(silhouettes.length,1,'Only locked codex character is a black silhouette');
+for(const canvas of [ownedHuman,lockedHuman]){
+ assert.equal(canvas.width,337);assert.equal(canvas.height,389);
+}
 sandbox.stopCatchShowcase(true);draws=[];
 sandbox.showCatchShowcase([prize,person,person],true);
 assert.equal(draws.length,2,'Each human in a mixed Fever batch receives artwork');

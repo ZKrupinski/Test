@@ -245,7 +245,7 @@ nav{flex-wrap:nowrap}
 /* The approved first swim frame is shared by all 24 human codex entries. */
 #panelBody .book-human-card .book-human-thumb{width:100%;min-height:0}
 #panelBody .book-human-card .human-codex-canvas{
- display:block;width:auto;height:auto;max-width:100%;max-height:100%;object-fit:contain;image-rendering:auto
+ display:block;flex:0 0 auto;width:auto;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center;image-rendering:auto
 }
 #panelBody .book-cards .book-human-card.locked{
  opacity:1;filter:none;background:linear-gradient(155deg,#274550,#18313c);border-color:#435d69
@@ -308,7 +308,7 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 .catch-card-thumb img{display:block;width:111%;height:105%;max-width:none;max-height:none;
  object-fit:contain;object-position:center;
  filter:drop-shadow(0 7px 7px #002333ab) drop-shadow(0 1px 2px #b2ffee25)}
-.catch-card-thumb canvas{display:block;flex-shrink:0;width:111%;height:105%;max-width:none;max-height:none;object-fit:contain;object-position:center}
+.catch-card-thumb canvas.catch-human-thumb{display:block;flex:0 0 auto;width:auto;height:105%;max-width:100%;max-height:105%;object-fit:contain;object-position:center;filter:drop-shadow(0 7px 7px #002333ab)}
 .catch-card-info{flex:1;min-width:0;height:100%;display:flex;
  flex-direction:column;justify-content:center;align-items:flex-end;text-align:right;
  gap:clamp(4px,1.3cqw,7px);padding:0 14px 0 8px;
@@ -1285,26 +1285,62 @@ function sortFishForCodexByRegion(list){
   return (parseInt(String(a.id).slice(1),10)||0)-(parseInt(String(b.id).slice(1),10)||0);
  });
 }
-// Crop the approved first swim frame without changing the original bitmap.
-// source-in paints only nontransparent pixels, preserving soft alpha edges.
-function paintHumanCodexThumbs(){
+// HUMAN_UI_THUMBS_BEGIN — UI-only; original PNG and in-game actor unchanged.
+// Source head faces right. Both codex and capture display the full body facing LEFT.
+var humanUiThumbCache=null;
+function humanUiThumbFrame(){
  var art=window.HumanFishingBabySprites,img=art&&art.images&&art.images.swim;
- if(!img)return;
+ if(!img)return null;
  if(!img.complete||img.naturalWidth!==1448||img.naturalHeight!==1086){
-  if(!img.complete)img.addEventListener('load',paintHumanCodexThumbs,{once:true});
-  return;
- }
- document.querySelectorAll('#panelBody .human-codex-canvas').forEach(function(canvas){
-  var c=canvas.getContext('2d');if(!c)return;
-  c.clearRect(0,0,362,360);
-  c.drawImage(img,0,90,362,360,0,0,362,360);
-  if(canvas.dataset.humanOwned!=='1'){
-   c.globalCompositeOperation='source-in';
-   c.fillStyle='#000000';c.fillRect(0,0,362,360);
-   c.globalCompositeOperation='source-over';
+  if(!img.complete&&!img._humanUiThumbWaiting){
+   img._humanUiThumbWaiting=true;
+   img.addEventListener('load',function(){
+    img._humanUiThumbWaiting=false;
+    paintHumanCodexThumbs();paintHumanCatchThumbs();
+   },{once:true});
   }
+  return null;
+ }
+ if(humanUiThumbCache&&humanUiThumbCache.image===img)return humanUiThumbCache;
+ var frame=document.createElement('canvas');frame.width=362;frame.height=543;
+ var g=frame.getContext('2d');if(!g)return null;
+ g.drawImage(img,0,0,362,543,0,0,362,543);
+ var pixels=g.getImageData(0,0,362,543).data,left=362,top=543,right=-1,bottom=-1;
+ for(var y=0;y<543;y++)for(var x=0;x<362;x++){
+  if(pixels[(y*362+x)*4+3]>4){
+   left=Math.min(left,x);top=Math.min(top,y);
+   right=Math.max(right,x);bottom=Math.max(bottom,y);
+  }
+ }
+ if(right<left)return null;
+ // Exclude near-invisible export noise, preserving soft edges with 4px padding.
+ left=Math.max(0,left-4);top=Math.max(0,top-4);
+ right=Math.min(361,right+4);bottom=Math.min(542,bottom+4);
+ humanUiThumbCache={image:img,frame:frame,x:left,y:top,w:right-left+1,h:bottom-top+1};
+ return humanUiThumbCache;
+}
+function paintHumanUiThumb(canvas,crop,locked){
+ if(!canvas||!crop)return;
+ // Native trimmed aspect ratio; contain scales the complete artwork to either card.
+ canvas.width=crop.w;canvas.height=crop.h;
+ var c=canvas.getContext('2d');if(!c)return;
+ c.clearRect(0,0,crop.w,crop.h);
+ c.save();c.translate(crop.w,0);c.scale(-1,1);
+ c.drawImage(crop.frame,crop.x,crop.y,crop.w,crop.h,0,0,crop.w,crop.h);
+ c.restore();
+ if(locked){
+  c.globalCompositeOperation='source-in';
+  c.fillStyle='#000000';c.fillRect(0,0,crop.w,crop.h);
+  c.globalCompositeOperation='source-over';
+ }
+}
+function paintHumanCodexThumbs(){
+ var crop=humanUiThumbFrame();if(!crop)return;
+ document.querySelectorAll('#panelBody .human-codex-canvas').forEach(function(canvas){
+  paintHumanUiThumb(canvas,crop,canvas.dataset.humanOwned!=='1');
  });
 }
+// HUMAN_UI_THUMBS_END
 function renderBook(filter,query){
  filter=filter===undefined?-3:Number(filter);query=query||'';
  var catalogueSpecies=species.filter(function(sp){return !sp.archivedVisualDuplicate});
@@ -3901,7 +3937,7 @@ function drawHookSwallow(now){
 // CATCH_SHOWCASE_BEGIN — the individual RGBA PNG is also used in the codex.
 // Render ORIGINAL source artwork with every recognizable head pointing left.
 // The reviewed, hash-bound registry covers every installed PNG. No ID-range guess.
-// Vertical/front-facing animals stay upright, human portraits are untouched.
+// Vertical/front-facing animals stay upright; human thumbnails mirror separately.
 function fishUiMirrorSource(sp){
  if(!sp)return false;
  var lib=typeof window!=='undefined'&&window.HumanFishingFishUiFacing;
@@ -3921,42 +3957,12 @@ function catchShowcaseHuman(id,quantity,fresh){
  return{name:humans[id]||'인간',human:true,humanId:id,quantity:quantity||1,
   size:humanTier(id),fresh:!!fresh};
 }
-// Reuse the approved, preloaded human bitmap; isolate ONE frame before
-// scanning alpha so neighboring animation frames can never enter the card.
-var humanCatchThumbCache=null;
+// Capture and codex use the same left-facing, alpha-tight approved swim frame.
 function paintHumanCatchThumbs(){
- var art=window.HumanFishingBabySprites,img=art&&art.images&&art.images.swim;
- if(!img)return;
- if(!img.complete||img.naturalWidth!==1448||img.naturalHeight!==1086){
-  if(!img.complete&&!img._catchThumbWaiting){
-   img._catchThumbWaiting=true;
-   img.addEventListener('load',function(){img._catchThumbWaiting=false;paintHumanCatchThumbs();},{once:true});
-  }
-  return;
- }
- if(!humanCatchThumbCache||humanCatchThumbCache.image!==img){
-  var frame=document.createElement('canvas');frame.width=362;frame.height=543;
-  var g=frame.getContext('2d');if(!g)return;
-  g.drawImage(img,0,0,362,543,0,0,362,543);
-  var pixels=g.getImageData(0,0,362,543).data,left=362,top=543,right=-1,bottom=-1;
-  for(var y=0;y<543;y++)for(var x=0;x<362;x++){
-   if(pixels[(y*362+x)*4+3]>4){
-    left=Math.min(left,x);top=Math.min(top,y);right=Math.max(right,x);bottom=Math.max(bottom,y);
-   }
-  }
-  if(right<left)return;
-  // Discard near-invisible export noise, then preserve soft silhouette edges.
-  left=Math.max(0,left-4);top=Math.max(0,top-4);
-  right=Math.min(361,right+4);bottom=Math.min(542,bottom+4);
-  humanCatchThumbCache={image:img,frame:frame,x:left,y:top,w:right-left+1,h:bottom-top+1};
- }
- var cached=humanCatchThumbCache,root=$('catchShowcase');if(!root)return;
+ var crop=humanUiThumbFrame(),root=$('catchShowcase');
+ if(!crop||!root)return;
  root.querySelectorAll('.catch-human-thumb').forEach(function(canvas){
-  // Intrinsic aspect ratio plus contain fits the full artwork into the card.
-  canvas.width=cached.w;canvas.height=cached.h;
-  var g=canvas.getContext('2d');if(!g)return;
-  g.clearRect(0,0,canvas.width,canvas.height);
-  g.drawImage(cached.frame,cached.x,cached.y,cached.w,cached.h,0,0,cached.w,cached.h);
+  paintHumanUiThumb(canvas,crop,false);
  });
 }
 function catchShowcaseCard(item,fever,index){
