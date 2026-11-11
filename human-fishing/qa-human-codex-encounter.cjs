@@ -7,7 +7,7 @@ new vm.Script(script[1],{filename:'human-fishing.js'});
 for(const [re,description] of [
  [/function paintHumanCodexThumbs\(\)/,'human codex renderer'],
  [/class="human-codex-canvas" width="362" height="360"/,'human canvas thumbnails'],
- [/drawImage\(img,0,0,362,543,0,0,362,543\)/,'approved full swim first-frame crop'],
+ [/drawImage\(img,0,0,fw,fh,0,0,fw,fh\)/,'approved 362x543 / 444x444 first-frame crop'],
  [/globalCompositeOperation='source-in'/,'locked alpha-preserved silhouette'],
   [/function humanUiThumbFrame\(id\)/,'per-id alpha-tight human UI frame'],
   [/c\.translate\(crop\.w,0\);c\.scale\(-1,1\)/,'both human UI portraits face left'],
