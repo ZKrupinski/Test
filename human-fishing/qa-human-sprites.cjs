@@ -8,7 +8,7 @@ const root=__dirname;
 const base=path.join(root,'assets','humans');
 const ready=fs.readFileSync(path.join(base,'ready.js'),'utf8');
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
-assert(index.includes('human-sprites.js?v=20261111-human-swim4-v1'));
+assert(index.includes('human-sprites.js?v=20261111-human-swim11-v2'));
 assert(index.includes('assets/humans/ready.js?v=20261110-baby-v1'));
 const renderer=fs.readFileSync(path.join(root,'human-sprites.js'),'utf8');
 new Function(renderer);
@@ -57,7 +57,7 @@ assert.match(index,/data-human-id=.*a\.id/,'Human codex must bind art by exact I
 assert.match(index,/data-human-id=.*item\.humanId/,'Human capture card must bind art by exact ID');
 // All human types retain same world-space pose geometry with a DISPLAY-only boost.
 assert.match(renderer,/var HUMAN_WORLD_RENDER_BOOST=1\.295/,'human 70 percent render factor missing');
-assert.match(renderer,/var scale=\(mood==='hooked'\?\.33:\.36\)\*size\*\(actor\.id>=20\?1\.05:1\)\*HUMAN_WORLD_RENDER_BOOST/);
+assert.match(renderer,/var scale=\(mood==='hooked'\?\.33:\.36\)\*size\*\(actor\.id>=20&&actor\.id<24\?1\.05:1\)\*HUMAN_WORLD_RENDER_BOOST/);
 const vm=require('node:vm');
 class MockHumanImage{
  constructor(){this.complete=true;this.naturalWidth=1448;this.naturalHeight=1086;}

@@ -439,7 +439,7 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 <script src="./fish-expansion-catalog-012.js?v=20261109-user-six"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
 <script src="./assets/humans/ready.js?v=20261110-baby-v1"></script>
-<script src="./human-sprites.js?v=20261111-human-swim4-v1"></script>
+<script src="./human-sprites.js?v=20261111-human-swim11-v2"></script>
 <script src="./gamepad.js?v=20261110-g8plus-haptics-v2"></script>
 <script src="./foley.js?v=20261111-capture-gun-recordings-v1"></script>
 <script src="./ambient.js?v=20261110-ambient-preload-v3"></script>
@@ -462,7 +462,7 @@ var raw=[
 ];
 var habitats=[],species=[];
 raw.forEach(function(s,h){var z=s.split('|');habitats.push(z[0]);z[1].split(',').forEach(function(n,k){species.push({id:'F'+String(species.length+1).padStart(3,'0'),name:n,habitat:h,rarity:k>=18?'LEGEND':k>=14?'RARE':'NORMAL',index:k})})});
-var humans=['졸린 어부','수다쟁이 관광객','과자 부자','꼬마 해적 선장','과학자','용감한 탐험가','황금 상인','진주 사냥꾼','잠수부','보물 수집가','망원경 선장','낚시왕','마술사','음악가','화가','장군','모험가','공주','왕','심해 교수','기계공','우주 여행자','고고학자','전설의 낚시왕'];
+var humans=['졸린 어부','수다쟁이 관광객','과자 부자','꼬마 해적 선장','과학자','용감한 탐험가','황금 상인','진주 사냥꾼','잠수부','보물 수집가','망원경 선장','낚시왕','마술사','음악가','화가','장군','모험가','공주','왕','심해 교수','기계공','우주 여행자','고고학자','전설의 낚시왕','졸린이','탐험가','과학자','해적','간호사','운동선수','아이돌','요리사','탐정','마법사','천사'];
 var key='humanFishingAlpha01',save={coins:80,owned:{},placed:[],human:{},humanPlaced:[],up:[0,0,0],catches:0,zone:0,decor:0};
 try{var old=JSON.parse(localStorage.getItem(key)||'null');if(old){save=Object.assign(save,old)}}catch(e){}
 function persist(){try{localStorage.setItem(key,JSON.stringify(save))}catch(e){}}
@@ -478,7 +478,7 @@ var colors=['#ffbd75','#fa8196','#69e7df','#e8d574','#90b6ef','#b191eb','#67c68e
 function rnd(a,b){return a+random()*(b-a)}function clamp(v,a,b){return Math.max(a,Math.min(b,v))}function mix(a,b,t){return a+(b-a)*t}function ease(t){return 1-Math.pow(1-clamp(t,0,1),3)}
 function resizePointer(e){if(window.HumanFishingBoot)return window.HumanFishingBoot.point(e,canvas,W,H);var rect=canvas.getBoundingClientRect();return {x:(e.clientX-rect.left)/rect.width*W,y:(e.clientY-rect.top)/rect.height*H}}
 function setMode(m){view=m;hook=null;drag=false;canvas.classList.remove('dragging');$('panel').classList.remove('open');$('sideinfo').classList.toggle('show',m==='tank');['Fish','Human','Tank','Book','Grow'].forEach(function(n){$('nav'+n).classList.toggle('active',({Fish:'fish',Human:'human',Tank:'tank',Book:'book',Grow:'grow'})[n]===m)});$('action').style.display=m==='fish'||m==='human'?'':'none';$('guide')?.classList.remove('x');$('hintTitle').textContent=m==='tank'?'내가 잡은 물고기가 살아 움직여요':m==='human'?'인간을 향해 찌를 던져보세요':'찌를 물고기 가까이 드래그!';$('hint').textContent=m==='tank'?'우측 전시 목록에서 물고기를 배치하세요.':m==='human'?'아기 같은 인간 캐리커처를 유혹해요.':'손을 떼면 주변 물고기가 낚여 올라옵니다.';$('stageName').textContent=m==='human'?'인간의 부두':m==='tank'?'나의 아쿠아리움':habitats[zone];$('stageNo').textContent=m==='human'?'SPECIAL FISHING':m==='tank'?'MY AQUARIUM':'STAGE '+String(zone+1).padStart(2,'0')+' / 12';bob={x:680,y:390};if(m==='book')renderBook();if(m==='grow')renderGrow();if(m==='tank')renderTankSide();updateStats()}
-function updateStats(){var count=Object.keys(save.owned).length;var h=Object.keys(save.human).length;$('coins').textContent='◈ '+save.coins.toLocaleString()+'　🐟 '+count+'/'+species.length+(h?'　🧑 '+h+'/24':'')}
+function updateStats(){var count=Object.keys(save.owned).length;var h=Object.keys(save.human).length;$('coins').textContent='◈ '+save.coins.toLocaleString()+'　🐟 '+count+'/'+species.length+(h?'　🧑 '+h+'/'+humans.length:'')}
 function buildFish(){fish=[];for(var i=0;i<16;i++){var idx=Math.floor(rnd(0,20));if(i<5)idx=i+Math.floor(rnd(0,3));var sp=species[zone*20+idx];fish.push({sp:sp,x:rnd(300,1180),y:rnd(290,600),vx:rnd(.24,.65)*(random()<.5?-1:1),phase:rnd(0,6.28),size:sp.index>=18?1.65:sp.index>=14?1.28:rnd(.76,1.18)})} }
 function buildHum(){hum=[];for(var i=0;i<6;i++)hum.push({id:i+Math.floor(rnd(0,4)),x:360+i*145+random()*40,y:171+rnd(-14,15),phase:rnd(0,6.28),vx:rnd(.1,.3)*(random()<.5?-1:1)})}
 function createBubble(){bubbles.push({x:rnd(10,1280),y:730,r:rnd(2,8),speed:rnd(.3,1.3),phase:rnd(0,6.2)})}for(var i=0;i<34;i++){createBubble();bubbles[i].y=random()*720}
@@ -1201,18 +1201,19 @@ $('navFish').textContent='🎣 스테이지 선택';
 $('navTank').textContent='🐠 생물 아쿠아리움';
 $('navBook').textContent='📖 통합 도감';
 $('action').innerHTML='찌 놓기<br>포획';
-function humanTier(id){return id>=20?'BOSS':'ELITE'}
+function isBossHumanId(id){return Number(id)>=20&&Number(id)<24}
+function humanTier(id){return isBossHumanId(id)?'BOSS':'ELITE'}
 function buildHum(){
  hum=[];
  for(var i=0;i<3;i++){
-   var id=i===2&&Math.random()<.17 ? 20+Math.floor(rnd(0,4)):i===0?8+Math.floor(rnd(0,12)):Math.floor(rnd(0,20));
-   hum.push({id:id,x:420+i*330+rnd(-85,45),y:325+i*78+rnd(-27,28),phase:rnd(0,6.28),vx:rnd(.18,.44)*(Math.random()<.5?-1:1),size:id>=20?1.27:1});
+   var id=i===2&&Math.random()<.17 ? 20+Math.floor(rnd(0,4)):i===0?8+Math.floor(rnd(0,12)):(Math.random()<.42?24+Math.floor(rnd(0,11)):Math.floor(rnd(0,20)));
+   hum.push({id:id,x:420+i*330+rnd(-85,45),y:325+i*78+rnd(-27,28),phase:rnd(0,6.28),vx:rnd(.18,.44)*(Math.random()<.5?-1:1),size:isBossHumanId(id)?1.27:1});
  }
 }
 function updateStats(){
  var visibleSpecies=species.filter(function(sp){return !sp.archivedVisualDuplicate});
  var count=visibleSpecies.filter(function(sp){return (save.owned[sp.id]||0)>0}).length,h=HUMAN_TEST_UNLOCK_ALL?humans.length:Object.keys(save.human).filter(function(k){return save.human[k]>0}).length;
- $('coins').textContent='◈ '+save.coins.toLocaleString()+'　🐟 '+count+'/'+visibleSpecies.length+'　🧑 '+h+'/24';
+ $('coins').textContent='◈ '+save.coins.toLocaleString()+'　🐟 '+count+'/'+visibleSpecies.length+'　🧑 '+h+'/'+humans.length;
 }
 function setMode(m){
  if(m==='human')m='fish';
@@ -1240,7 +1241,7 @@ function nearest(){
   if(d<score){score=d;best=a;kind='fish'}
  });
  hum.forEach(function(a){
-  var d=Math.hypot(a.x-bob.x,a.y+22-bob.y)/(117+save.up[1]*14+(a.id>=20?40:0));
+  var d=Math.hypot(a.x-bob.x,a.y+22-bob.y)/(117+save.up[1]*14+(isBossHumanId(a.id)?40:0));
   if(d<score){score=d;best=a;kind='human'}
  });
  return best?{obj:best,kind:kind}:null;
@@ -1278,7 +1279,7 @@ function success(){
  var o=hook.obj,human=hook.kind==='human',id=human?String(o.id):o.sp.id;
  var name=human?humans[o.id]:o.sp.name,owned=human?save.human:save.owned,fresh=!owned[id];
  owned[id]=(owned[id]||0)+1;
- var reward=(human?70:15)+(human?(o.id>=20?180:o.id*5):o.sp.index>=18?85:o.sp.index>=14?35:0)+save.up[2]*4;
+ var reward=(human?70:15)+(human?(isBossHumanId(o.id)?180:o.id*5):o.sp.index>=18?85:o.sp.index>=14?35:0)+save.up[2]*4;
  save.coins+=reward;save.catches++;
  if(human&&save.humanPlaced.length===0)save.humanPlaced.push(id);
  if(!human&&save.placed.length===0)save.placed.push(id);
@@ -1305,49 +1306,35 @@ function humanUiThumbFrame(id){
  var art=window.HumanFishingBabySprites;
  var img=art&&(typeof art.imageFor==='function'?art.imageFor(id,'swim'):art.images&&art.images.swim);
  if(!img)return null;
- if(!img.complete||img.naturalWidth!==1448||img.naturalHeight!==1086){
-  if(!img.complete&&!img._humanUiThumbWaiting){
+ var newer=Number(id)>=24,fw=newer&&Number(id)!==24?444:362,fh=newer&&Number(id)!==24?444:543;
+ if(!img.complete||img.naturalWidth!==fw*4||img.naturalHeight!==fh*2){
+  if(!img.complete&&!img._humanUiThumbWaiting&&typeof img.addEventListener==='function'){
    img._humanUiThumbWaiting=true;
-   img.addEventListener('load',function(){
-    img._humanUiThumbWaiting=false;
-    paintHumanCodexThumbs();paintHumanCatchThumbs();
-   },{once:true});
-  }
-  return null;
+   img.addEventListener('load',function(){img._humanUiThumbWaiting=false;paintHumanCodexThumbs();paintHumanCatchThumbs();},{once:true});
+  }return null;
  }
  if(humanUiThumbCache.has(img))return humanUiThumbCache.get(img);
- var frame=document.createElement('canvas');frame.width=362;frame.height=543;
+ var frame=document.createElement('canvas');frame.width=fw;frame.height=fh;
  var g=frame.getContext('2d');if(!g)return null;
- g.drawImage(img,0,0,362,543,0,0,362,543);
- var pixels=g.getImageData(0,0,362,543).data,left=362,top=543,right=-1,bottom=-1;
- for(var y=0;y<543;y++)for(var x=0;x<362;x++){
-  if(pixels[(y*362+x)*4+3]>4){
-   left=Math.min(left,x);top=Math.min(top,y);
-   right=Math.max(right,x);bottom=Math.max(bottom,y);
-  }
+ g.drawImage(img,0,0,fw,fh,0,0,fw,fh);
+ var pixels=g.getImageData(0,0,fw,fh).data,left=fw,top=fh,right=-1,bottom=-1;
+ for(var y=0;y<fh;y++)for(var x=0;x<fw;x++){
+  if(pixels[(y*fw+x)*4+3]>4){left=Math.min(left,x);top=Math.min(top,y);right=Math.max(right,x);bottom=Math.max(bottom,y)}
  }
  if(right<left)return null;
- // Exclude near-invisible export noise, preserving soft edges with 4px padding.
  left=Math.max(0,left-4);top=Math.max(0,top-4);
- right=Math.min(361,right+4);bottom=Math.min(542,bottom+4);
- var crop={image:img,frame:frame,x:left,y:top,w:right-left+1,h:bottom-top+1};
- humanUiThumbCache.set(img,crop);
- return crop;
+ right=Math.min(fw-1,right+4);bottom=Math.min(fh-1,bottom+4);
+ var crop={image:img,frame:frame,x:left,y:top,w:right-left+1,h:bottom-top+1,mirror:!newer};
+ humanUiThumbCache.set(img,crop);return crop;
 }
 function paintHumanUiThumb(canvas,crop,locked){
  if(!canvas||!crop)return;
- // Native trimmed aspect ratio; contain scales the complete artwork to either card.
  canvas.width=crop.w;canvas.height=crop.h;
  var c=canvas.getContext('2d');if(!c)return;
- c.clearRect(0,0,crop.w,crop.h);
- c.save();c.translate(crop.w,0);c.scale(-1,1);
- c.drawImage(crop.frame,crop.x,crop.y,crop.w,crop.h,0,0,crop.w,crop.h);
- c.restore();
- if(locked){
-  c.globalCompositeOperation='source-in';
-  c.fillStyle='#000000';c.fillRect(0,0,crop.w,crop.h);
-  c.globalCompositeOperation='source-over';
- }
+ c.clearRect(0,0,crop.w,crop.h);c.save();
+ if(crop.mirror){c.translate(crop.w,0);c.scale(-1,1)}
+ c.drawImage(crop.frame,crop.x,crop.y,crop.w,crop.h,0,0,crop.w,crop.h);c.restore();
+ if(locked){c.globalCompositeOperation='source-in';c.fillStyle='#000000';c.fillRect(0,0,crop.w,crop.h);c.globalCompositeOperation='source-over'}
 }
 function paintHumanCodexThumbs(){
  document.querySelectorAll('#panelBody .human-codex-canvas').forEach(function(canvas){
@@ -1362,7 +1349,7 @@ function renderBook(filter,query){
  var count=Object.keys(save.owned).length,hCount=HUMAN_TEST_UNLOCK_ALL?humans.length:Object.keys(save.human).filter(function(k){return save.human[k]>0}).length;
  var tool='<div class="toolbar"><input id="search" placeholder="인간·물고기 이름 검색" value="'+escapeHtml(query)+'"><select id="filter">'+
  '<option value="-3" '+(filter===-3?'selected':'')+'>전체 생물 · '+(catalogueSpecies.length+humans.length)+'종</option>'+
- '<option value="-2" '+(filter===-2?'selected':'')+'>🧑 인간 도감 · 24종</option>'+
+ '<option value="-2" '+(filter===-2?'selected':'')+'>🧑 인간 도감 · '+humans.length+'종</option>'+
  '<option value="-1" '+(filter===-1?'selected':'')+'>🐟 물고기 도감 · '+catalogueSpecies.filter(function(s){return !s.specialCreature}).length+'종</option>'+
   '<option value="-4" '+(filter===-4?'selected':'')+'>🆕 추가 일러스트 · '+catalogueSpecies.filter(function(sp){return sp.artVariant||sp.expansionSpecies}).length+'종</option>'+
  '<option value="-5" '+(filter===-5?'selected':'')+'>✨ 특수 생물 · '+catalogueSpecies.filter(function(sp){return sp.specialCreature}).length+'종</option>'+
@@ -1399,7 +1386,7 @@ function renderBook(filter,query){
  var normalCount=catalogueSpecies.filter(function(sp){return !sp.specialCreature&&(save.owned[sp.id]||0)>0}).length;
  var specialTotal=catalogueSpecies.filter(function(sp){return sp.specialCreature}).length;
  var specialCount=catalogueSpecies.filter(function(sp){return sp.specialCreature&&(save.owned[sp.id]||0)>0}).length;
- openPanel('통합 생물 도감','물고기 '+normalCount+'/'+normalTotal+' · 특수 생물 '+specialCount+'/'+specialTotal+' · 인간 '+hCount+'/24 · '+(catalogueSpecies.length+humans.length)+'종 컬렉션',tool+cards);
+ openPanel('통합 생물 도감','물고기 '+normalCount+'/'+normalTotal+' · 특수 생물 '+specialCount+'/'+specialTotal+' · 인간 '+hCount+'/'+humans.length+' · '+(catalogueSpecies.length+humans.length)+'종 컬렉션',tool+cards);
  paintHumanCodexThumbs();
  // The shared resource gate handles thumbnail failures and user retries.
   $('search').oninput=function(){
@@ -1414,19 +1401,19 @@ function renderTankSide(){
  exhibitHumans.forEach(function(id){humanUsed[id]=(humanUsed[id]||0)+1});
  var fishOptions=Object.keys(save.owned).filter(function(id){return save.owned[id]>(fishUsed[id]||0)});
  var humanOptions=HUMAN_TEST_UNLOCK_ALL?humans.map(function(_,i){return String(i)}):Object.keys(save.human).filter(function(id){return save.human[id]>(humanUsed[id]||0)});
- var html='<h3>🐙 생물 아쿠아리움</h3><p>보유 도감에서 물고기 '+aquariumExhibitTarget+'마리를 랜덤 전시합니다.<br>퇴장한 수만큼 다른 보유 어종이 등장합니다. 터치하면 방향을 바꿉니다.<br>수동 등록 '+save.placed.length+'/30 · 인간 '+exhibitHumans.length+'/8</p>'+(HUMAN_TEST_UNLOCK_ALL?'<p>테스트 미리보기 · 인간 24/24종 해금 (실제 획득 기록 유지)</p>':'');
+ var html='<h3>🐙 생물 아쿠아리움</h3><p>보유 도감에서 물고기 '+aquariumExhibitTarget+'마리를 랜덤 전시합니다.<br>퇴장한 수만큼 다른 보유 어종이 등장합니다. 터치하면 방향을 바꿉니다.<br>수동 등록 '+save.placed.length+'/30 · 인간 '+exhibitHumans.length+'/8</p>'+(HUMAN_TEST_UNLOCK_ALL?'<p>테스트 미리보기 · 인간 '+humans.length+'/'+humans.length+'종 해금 (실제 획득 기록 유지)</p>':'');
  html+='<div class="slot"><span>수조 테마</span><button id="decorChange">변경</button></div>';
  html+='<h3>🧑 인간 배치</h3>';
  if(HUMAN_TEST_UNLOCK_ALL){
    html+='<div class="slot"><span>인간 전시 그룹 '+(humanTestPreviewPage+1)+'/'+Math.ceil(humans.length/8)+'</span><button data-human-test-page="prev">◀ 이전</button><button data-human-test-page="next">다음 ▶</button></div>';
-   html+='<p>8명씩 화면에서 확인할 수 있습니다. 아래 24종은 모두 획득 상태로 미리보기 됩니다.</p>';
+   html+='<p>8명씩 화면에서 확인할 수 있습니다. 아래 '+humans.length+'종은 모두 획득 상태로 미리보기 됩니다.</p>';
    humanOptions.forEach(function(id){
     var shown=exhibitHumans.includes(id),name=humans[Number(id)]||'인간';
-    html+='<div class="slot"><span>'+(Number(id)>=20?'👑 ':'🧑 ')+escapeHtml(name)+'</span><span>'+(shown?'전시 중':'획득')+'</span></div>';
+    html+='<div class="slot"><span>'+(isBossHumanId(id)?'👑 ':'🧑 ')+escapeHtml(name)+'</span><span>'+(shown?'전시 중':'획득')+'</span></div>';
    });
   }else{
    if(!humanOptions.length)html+='<p>낚시터에서 엘리트 인간을 잡으면 배치할 수 있어요.</p>';
-   humanOptions.forEach(function(id){var name=humans[Number(id)]||'인간';html+='<div class="slot"><span>'+ (Number(id)>=20?'👑 ':'🧑 ')+escapeHtml(name)+'</span><button data-humanplace="'+id+'">＋</button></div>'});
+   humanOptions.forEach(function(id){var name=humans[Number(id)]||'인간';html+='<div class="slot"><span>'+ (isBossHumanId(id)?'👑 ':'🧑 ')+escapeHtml(name)+'</span><button data-humanplace="'+id+'">＋</button></div>'});
    if(save.humanPlaced.length){html+='<h3>🧑 전시 중인 인간</h3>';save.humanPlaced.forEach(function(id,i){html+='<div class="slot"><span>🧑 '+escapeHtml(humans[Number(id)]||'인간')+'</span><button data-humanremove="'+i+'">−</button></div>'})}
   }
   html+='<h3>🐟 물고기 배치</h3>';
@@ -1711,7 +1698,7 @@ function tick(stamp){
   if(view==='fish'){
    if(hook){
     hook.elapsed+=dt;
-    var duration=hook.kind==='human'?(hook.obj.id>=20?2.5:1.85):(1.10-save.up[0]*.08);
+    var duration=hook.kind==='human'?(isBossHumanId(hook.obj.id)?2.5:1.85):(1.10-save.up[0]*.08);
     var p=ease(hook.elapsed/duration),o=hook.obj;
     o.x=mix(hook.startX,390,p)+ (hook.kind==='human'?Math.sin(time*21)*(1-p)*15:0);
     o.y=mix(hook.startY,260-55*Math.sin(p*Math.PI),p);
@@ -1782,8 +1769,8 @@ function buildHum(){
  for(var i=0;i<3;i++){
   var bossChance=Math.min(.66,.12+save.shop.bait*.04),id;
   if(i===2&&Math.random()<bossChance)id=20+Math.floor(rnd(0,4));
-  else id=Math.floor(rnd(0,20));
-  hum.push({id:id,x:450+i*320+rnd(-65,45),y:350+i*71+rnd(-18,23),phase:rnd(0,6.28),vx:rnd(.18,.43)*(Math.random()<.5?-1:1),size:id>=20?1.25:1});
+  else id=(Math.random()<.42?24+Math.floor(rnd(0,11)):Math.floor(rnd(0,20)));
+  hum.push({id:id,x:450+i*320+rnd(-65,45),y:350+i*71+rnd(-18,23),phase:rnd(0,6.28),vx:rnd(.18,.43)*(Math.random()<.5?-1:1),size:isBossHumanId(id)?1.25:1});
  }
 }
 function nearest(){
@@ -1793,7 +1780,7 @@ function nearest(){
   if(d<score){score=d;best=f;kind='fish'}
  });
  hum.forEach(function(h){
-  var d=Math.hypot(h.x-bob.x,h.y+22-bob.y)/(117+save.up[1]*14+(h.id>=20?40:0)+rod*16+bait*9);
+  var d=Math.hypot(h.x-bob.x,h.y+22-bob.y)/(117+save.up[1]*14+(isBossHumanId(h.id)?40:0)+rod*16+bait*9);
   if(d<score){score=d;best=h;kind='human'}
  });
  return best?{obj:best,kind:kind}:null;
@@ -1803,7 +1790,7 @@ function success(){
  var name=human?humans[o.id]:o.sp.name,owned=human?save.human:save.owned,fresh=!owned[id];
  var extra=save.shop.net>0&&Math.random()<save.shop.net*.08,qty=extra?2:1;
  owned[id]=(owned[id]||0)+qty;
- var base=(human?70:15)+(human?(o.id>=20?180:o.id*5):o.sp.index>=18?85:o.sp.index>=14?35:0)+save.up[2]*4;
+ var base=(human?70:15)+(human?(isBossHumanId(o.id)?180:o.id*5):o.sp.index>=18?85:o.sp.index>=14?35:0)+save.up[2]*4;
  var reward=Math.floor(base*(1+save.shop.net*.04));
  save.coins+=reward;save.catches++;
  if(human&&save.humanPlaced.length===0)save.humanPlaced.push(id);
@@ -1881,7 +1868,7 @@ function tick(stamp){
   if(view==='fish'){
    if(hook){
     hook.elapsed+=dt;
-    var rawDuration=hook.kind==='human'?(hook.obj.id>=20?2.5:1.85):(1.10-save.up[0]*.08);
+    var rawDuration=hook.kind==='human'?(isBossHumanId(hook.obj.id)?2.5:1.85):(1.10-save.up[0]*.08);
     var duration=Math.max(.58,rawDuration*(1-save.shop.rod*.05-save.shop.helper*.02));
     var p=ease(hook.elapsed/duration),o=hook.obj;
     o.x=mix(hook.startX,390,p)+(hook.kind==='human'?Math.sin(time*21)*(1-p)*15:0);
@@ -2168,8 +2155,8 @@ function buildFish(){
 function buildHum(){
  hum=[];var bp=gearPower('bait'),rare=Math.min(.72,.11+bp*.014+selectedGear('bait').tier*.024);
  for(var i=0;i<3;i++){
-  var id=i===2&&Math.random()<rare?20+Math.floor(rnd(0,4)):Math.floor(rnd(0,20));
-  hum.push({id:id,x:430+i*325+rnd(-55,55),y:337+i*74+rnd(-22,24),phase:rnd(0,6.28),vx:rnd(.18,.44)*(Math.random()<.5?-1:1),size:id>=20?1.25:1});
+  var id=i===2&&Math.random()<rare?20+Math.floor(rnd(0,4)):(Math.random()<.42?24+Math.floor(rnd(0,11)):Math.floor(rnd(0,20)));
+  hum.push({id:id,x:430+i*325+rnd(-55,55),y:337+i*74+rnd(-22,24),phase:rnd(0,6.28),vx:rnd(.18,.44)*(Math.random()<.5?-1:1),size:isBossHumanId(id)?1.25:1});
  }
 }
 // The last-declared nearest() is the LIVE function. Do not restore the
@@ -2182,7 +2169,7 @@ function success(){
  var aquariumSale=aquariumFishingActive&&!human;
  // Aquarium catches pay only shop currency, without acquiring or using owned fish.
  if(!aquariumSale)owned[id]=(owned[id]||0)+qty;
- var base=(human?70:15)+(human?(o.id>=20?180:o.id*5):o.sp.index>=18?85:o.sp.index>=14?35:0)+save.up[2]*4;
+ var base=(human?70:15)+(human?(isBossHumanId(o.id)?180:o.id*5):o.sp.index>=18?85:o.sp.index>=14?35:0)+save.up[2]*4;
  var reward=aquariumSale?aquariumUnitSalePrice(o.sp)*qty:Math.floor(base*(1+power*.025));
  var baitSpecial=baitTrait();
  if(baitSpecial.type==='pearlBonus')reward=Math.round(reward*(1+baitSpecial.power));
@@ -2750,7 +2737,7 @@ function playerOctoPose(now){
  if(hook){
   // On reeling, the MAIN octopus begins opening immediately, reaches full
   // gape by ~63% of ascent and holds while the fish struggles near her mouth.
-  var base=hook.kind==='human'?(hook.obj.id>=20?2.5:1.85):(1.10-save.up[0]*.08);
+  var base=hook.kind==='human'?(isBossHumanId(hook.obj.id)?2.5:1.85):(1.10-save.up[0]*.08);
   var duration=hook.travelDuration||Math.max(.56,
    base*(1-gearPower('rod')*.035-gearPower('helper')*.012));
   var target=hook.willEscape?(hook.escapeAt||.88):1;
@@ -3314,7 +3301,7 @@ function checkBaitBrush(){
 // Contact windows use game time so pausing/loading never consumes input time.
 var captureCue=null;
 function captureWindowSeconds(a,kind){
- if(kind==='human')return a.id>=20?.16:a.id>=12?.20:.25;
+ if(kind==='human')return isBossHumanId(a.id)?.16:a.id>=12?.20:.25;
  return {COMMON:.62,NORMAL:.62,UNCOMMON:.49,RARE:.36,EPIC:.28,LEGEND:.21,MYTHIC:.15}[a.sp.rarity]||.36;
 }
 function captureCueActive(){
@@ -3608,7 +3595,7 @@ function tick(stamp){
   // This keeps the bitmap lure and the reel path synchronized to the same frame.
   if(view==='fish'&&!introEntrance.active&&hook){
     hook.elapsed+=dt;
-    var baseDuration=hook.kind==='human'?(hook.obj.id>=20?2.5:1.85):(1.10-save.up[0]*.08);
+    var baseDuration=hook.kind==='human'?(isBossHumanId(hook.obj.id)?2.5:1.85):(1.10-save.up[0]*.08);
     var duration=Math.max(.56,baseDuration*(1-gearPower('rod')*.035-gearPower('helper')*.012));
     var o=hook.obj,p=clamp(hook.elapsed/duration,0,1);
     hook.travelDuration=duration;
@@ -4209,7 +4196,7 @@ function catchProbability(target,isHuman,fever){
  var boost=rod*.007+bait*.004+net*.0018+oct*.003+helper*.0008;
  var chance,cap,lev;
  if(isHuman){
-  var boss=target.id>=20;
+  var boss=isBossHumanId(target.id);
   lev=boss?65+(target.id-20)*2:22+Math.floor(target.id*1.4);
   chance=boss?.0012:.043;
   cap=boss?.025:.19;
@@ -4241,8 +4228,8 @@ function catchProbability(target,isHuman,fever){
  // Best catches remain exceptionally rare until advanced gear is equipped.
  if(!isHuman&&target.rarity==='MYTHIC'&&rod+bait<22)cap=.004;
  if(!isHuman&&target.rarity==='LEGEND'&&rod+bait<10)cap=.018;
- if(isHuman&&target.id>=20&&rod+bait<35)cap=.0008;
- var floor=isHuman?(target.id>=20?.00005:.003):target.rarity==='MYTHIC'?.00065:.001;
+ if(isHuman&&isBossHumanId(target.id)&&rod+bait<35)cap=.0008;
+ var floor=isHuman?(isBossHumanId(target.id)?.00005:.003):target.rarity==='MYTHIC'?.00065:.001;
  return clamp(chance,floor,cap);
 }
 // Raster-only rarity FX: four transparent bitmap sprite frames per tier.
@@ -4570,7 +4557,7 @@ function spawnWildHuman(){
  if(special.type==='humanEncounter')eliteChance*=1+special.power;
  var roll=Math.random();
  if(roll>bossChance+eliteChance)return false;
- var boss=roll<bossChance,id=boss?20+Math.floor(rnd(0,4)):Math.floor(rnd(0,20));
+ var boss=roll<bossChance,id=boss?20+Math.floor(rnd(0,4)):(Math.random()<.42?24+Math.floor(rnd(0,11)):Math.floor(rnd(0,20)));
  var dir=Math.random()<.5?1:-1;
  hum.push({ecoId:++eco.next,id:id,x:dir>0?-95:W+95,y:rnd(360,575),
   phase:rnd(0,6.28),vx:dir*rnd(23,38),vy:rnd(-4,4),
@@ -4581,7 +4568,7 @@ function spawnWildHuman(){
 function spawnGuaranteedHuman(){
  if(view!=='fish'||aquariumFishingActive)return false;
  var dir=Math.random()<.5?1:-1;
- hum.push({ecoId:++eco.next,id:Math.floor(rnd(0,20)),
+ hum.push({ecoId:++eco.next,id:(Math.random()<.42?24+Math.floor(rnd(0,11)):Math.floor(rnd(0,20))),
   x:dir>0?-64:W+64,y:rnd(360,565),phase:rnd(0,6.28),
   vx:dir*rnd(33,46),vy:0,size:1.05,
   nextTurn:eco.t+rnd(12,17),guaranteedEncounter:true});
@@ -6226,7 +6213,7 @@ function activateOctoFever(){
  });
  // Human elites are exceptionally rare, and harder to hook than rare fish.
  // Boss humans remain immune to AOE harvesting, preserving their individual-boss status.
- hum.filter(function(h){return h.id<20&&!h.feverCaptured&&Math.hypot(h.x-center.x,h.y+22-center.y)<=v.radius}).forEach(function(h){
+ hum.filter(function(h){return !isBossHumanId(h.id)&&!h.feverCaptured&&Math.hypot(h.x-center.x,h.y+22-center.y)<=v.radius}).forEach(function(h){
   var chance=catchProbability({id:h.id},true,true)*.85;
   if(Math.random()<chance){
    var id=String(h.id),reward=70+h.id*5,freshHuman=!save.human[id];
@@ -6662,7 +6649,7 @@ function aquariumMakePlayHuman(id,slot,inView){
  return {ecoId:++eco.next,id:humanId,aquariumSlot:slot,
   aquariumResident:true,x:inView?sx:(dir>0?-170:W+170),
   y:clamp(sy+6,330,615),phase:slot,
-  vx:dir*rnd(26,38),vy:0,size:humanId>=20?1.05:1,
+  vx:dir*rnd(26,38),vy:0,size:isBossHumanId(humanId)?1.05:1,
   nextTurn:eco.t+rnd(8,14)};
 }
 function aquariumReplenishHumans(inView){
