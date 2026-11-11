@@ -40,7 +40,9 @@ function render(ctx,actor,now,action){
  var mood=paths[action]?action:'swim',img=images[mood];
  var sheet=mood==='hooked'?{w:1776,h:888,fw:444,fh:444}:{w:1448,h:1086,fw:362,fh:543};
  if(!img||!img.complete||img.naturalWidth!==sheet.w||img.naturalHeight!==sheet.h)return false;
- var fps=mood==='resist'?13:mood==='hooked'?12:mood==='taunt'?11:8;
+ // Human motion reads slightly slower without changing travel speed or catch physics.
+ var HUMAN_ANIMATION_SPEED=.85;
+ var fps=(mood==='resist'?13:mood==='hooked'?12:mood==='taunt'?11:8)*HUMAN_ANIMATION_SPEED;
  var phase=Number.isFinite(actor.phase)?actor.phase:0;
  var motionTime=mood==='swim'&&Number.isFinite(actor.swimAnimationClock)?
   actor.swimAnimationClock:Math.max(0,now||0);
