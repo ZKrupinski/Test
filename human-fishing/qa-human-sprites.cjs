@@ -16,7 +16,7 @@ new Function(renderer);
 // starting on a human illustration, not just on margins/text.
 assert(index.includes('#game{width:100%;height:100%;display:block;touch-action:none;cursor:grab}'),
  'Only the gameplay canvas should block touch scrolling');
-assert(!/canvas\\{[^}]*touch-action:none/.test(index),
+assert(!index.includes('canvas{width:100%;height:100%;display:block;touch-action:none'),
  'A global canvas touch-action:none breaks codex image dragging');
 assert(index.includes('pointer-events:none;touch-action:pan-y;user-select:none'),
  'Human codex thumbnail must not capture panel swipes');
