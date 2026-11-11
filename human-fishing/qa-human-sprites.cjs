@@ -8,18 +8,34 @@ const root=__dirname;
 const base=path.join(root,'assets','humans');
 const ready=fs.readFileSync(path.join(base,'ready.js'),'utf8');
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
-assert(index.includes('human-sprites.js?v=20261112-diver-alpha-v1'));
+assert(index.includes('human-sprites.js?v=20261112-human-size-scroll-v1'));
 assert(index.includes('assets/humans/ready.js?v=20261110-baby-v1'));
 const renderer=fs.readFileSync(path.join(root,'human-sprites.js'),'utf8');
 new Function(renderer);
+// Regression: mobile codex must allow finger-driven vertical scrolling
+// starting on a human illustration, not just on margins/text.
+assert(index.includes('#game{width:100%;height:100%;display:block;touch-action:none;cursor:grab}'),
+ 'Only the gameplay canvas should block touch scrolling');
+assert(!/canvas\\{[^}]*touch-action:none/.test(index),
+ 'A global canvas touch-action:none breaks codex image dragging');
+assert(index.includes('pointer-events:none;touch-action:pan-y;user-select:none'),
+ 'Human codex thumbnail must not capture panel swipes');
+assert(index.includes('overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y'),
+ 'Codex panel must support native vertical touch panning');
+assert(renderer.includes('var ORIGINAL_HUMAN_WORLD_SCALE=.72'),
+ 'Legacy design size normalization must be enabled');
+assert(renderer.includes('humanDesignWorldScale(actor&&actor.id)'),
+ 'Hitbox and weakspot geometry must match resized visible actors');
+assert(renderer.includes('humanDesignWorldScale(actor.id)'),
+ 'Both live and aquarium drawing must use normalized size');
 assert(renderer.includes("function diverFrameAt(frame)"),'Diver RGBA halo cleanup must exist');
 assert(renderer.includes("actorId===8?diverFrameAt(frame):null"),'Only diver swim frames should use diver alpha fix');
 assert(renderer.includes("Number(id)===8?diverFrameAt(frame):null"),'Diver UI must share the cleaned frame');
 assert(index.includes("cleanVariant=(Number(id)===8||Number(id)===29)"),'Diver codex/capture previews must be cleaned');
 assert(renderer.includes("function athleteFrameAt(frame)"),'Athlete cell-isolation helper is required');
-assert(renderer.includes("Number(actor.id)===29?athleteFrameAt(frame):null"),'Only athlete world sprite cells are isolated');
+assert(renderer.includes("actorId===29?athleteFrameAt(frame):"),'Only athlete world sprite cells are isolated');
 assert(renderer.includes("frameFor:function(id,frame)"),'UI must use the same isolated athlete frame');
-assert(index.includes("cleanAthlete=Number(id)===29"),'Codex and catch thumbnails must use the isolated frame');
+assert(index.includes("cleanVariant=(Number(id)===8||Number(id)===29"),'Codex and catch thumbnails must use the isolated frames');
 assert(renderer.includes("state==='hooked'?'20261110-hooked-v2':version"));
 assert(renderer.includes('fw:444,fh:444'));
 for(const action of ['swim','resist','taunt','hooked'])assert(renderer.includes('baby_'+action+'_8f.png'));
@@ -94,7 +110,7 @@ for(const mood of ['swim','resist','taunt','hooked']){
  assert(art.render(context,{id:8,x:0,y:445,vx:1,size:1.02,phase:0},0,mood),
   mood+' should use the approved existing bitmap');
  const call=captures[captures.length-1];
- assert(call[7]>145&&call[7]<200,mood+' must be exactly 70% of previous bitmap display width');
+ assert(call[7]>118&&call[7]<132,mood+' old human sprite must be 72% of its previously displayed width');
 }
 assert.match(index,/aquariumHumanActors\.forEach\(function\(h\)\{/,'Exhibition humans must render from persistent swimming actors');
 assert.match(index,/humanSwimStep\(h,humanDt,now,null,true\)/,'Exhibition humans must swim with shared AI');
@@ -103,13 +119,19 @@ assert.doesNotMatch(index,/circle\(sx,sy\+24,86/,'aquarium human vector halo sti
 assert.doesNotMatch(index,/ctx\.ellipse\(sx,sy\+24,84,108/,'aquarium human elliptical bubble still present');
 const pos=art.geometry({id:8,x:500,y:420,vx:40,size:1});
 const mirrored=art.geometry({id:8,x:500,y:420,vx:-40,size:1});
-assert(Math.abs(pos.width-362*.36*1.295)<1e-6);
+const female=art.geometry({id:25,x:500,y:420,vx:40,size:1});
+assert(Math.abs(female.width-362*.36*1.295)<1e-6,
+ 'New female designs must keep their world display scale');
+assert(Math.abs(female.width/pos.width-1/.72)<1e-6,
+ 'World scale comparison should differ only by legacy male correction');
+
+assert(Math.abs(pos.width-362*.36*1.295*.72)<1e-6);
 assert.equal(pos.mouth.x-500,500-mirrored.mouth.x,'mouth must mirror with sprite facing');
 assert(pos.mouth.x>500&&pos.mouth.rx<=12&&pos.mouth.ry<=9,
  'human mouth must be a hidden small ellipse, not the old 100px body radius');
 assert.equal(art.geometry({id:22,x:500,y:420,vx:40,size:1}).mouth.rx,8,
  'Boss human weakspot must be smaller');
-console.log('PASS: human bitmap size is exactly 70%, mirrored mouth weakspot, no aquarium vector oval');
+console.log('PASS: legacy male world sprites/weakspots scaled by 72%; female and UI assets unchanged');
 
 assert.match(renderer,/var HUMAN_ANIMATION_SPEED=\.85/,'All human animations should play at 85% of their previous frame rate');
 assert.match(renderer,/\*HUMAN_ANIMATION_SPEED/,'Shared slowdown must affect all four actions');
