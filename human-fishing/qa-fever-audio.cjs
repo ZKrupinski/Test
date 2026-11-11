@@ -16,7 +16,7 @@ for(const [re,msg] of [
  [/\.catch-card\.fever\{animation:catchCardFever \.85s both linear\}/,'last-card CSS matches timer'],
  [/if\(m!=='fish'\)\{lureRecovery\.active=false;stopCatchShowcase\(true\);\}/,'explicit scene changes cancel awards'],
  [/window\.HumanFishingBoot\.registerPreload\(function\(\)/,'habitat sound participates in image loading'],
- [/return window\.HumanFishingAmbient\.prime\(zone\)/,'preload correct habitat'],
+ [/Promise\.all\(\[window\.HumanFishingAmbient\.prime\(zone\)/,'preload correct habitat'],
  [/window\.HumanFishingAmbient\.unlock\(\)/,'start unlocks environment sound'],
  [/ambient\.js\?v=20261110-ambient-preload-v3/,'audio cache-bust']
  ])assert.match(html,re,msg);

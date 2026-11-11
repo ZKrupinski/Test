@@ -15,7 +15,7 @@ assert.match(html,/playFoley\('lureMove'/);
 assert.match(html,/playFoley\('aquarium'/);
 assert.match(html,/playFoley\('escapeSplash'/);
 const entries=[...foley.matchAll(/^\s*\w+:\['([\w-]+\.ogg)','(https:\/\/(?:raw\.githubusercontent\.com|opengameart\.org)\/[^']+)'\],?$/gm)];
-assert.equal(entries.length,29,'Only the 29 natural CC0 Foley recordings should ship');
+assert.equal(entries.length,29,'The 29 existing remote-backed Foley recordings remain intact');
 for(const [,filename] of entries){
  const file=path+'assets/foley/'+filename;
  assert.ok(fs.existsSync(file),'Audio clip missing: '+file);
@@ -25,7 +25,7 @@ for(const [,filename] of entries){
 }
 // Four original offline-produced, chest-style OGG prize melodies must ship
 // locally with the 29 licensed physical samples (no network fallback).
-const prizeFiles=['chest_prize.ogg','chest_prize_new.ogg',
+const prizeFiles=['capture_lock.ogg','capture_shot.ogg','chest_prize.ogg','chest_prize_new.ogg',
  'fever_prize_tick.ogg','fever_prize_finish.ogg'];
 for(const filename of prizeFiles){
  const asset=path+'assets/foley/'+filename;
@@ -64,10 +64,10 @@ const bus=sandbox.window.HumanFishingFoley;
 assert.ok(bus,'Foley runtime missing');
 (async()=>{
  await bus.prime();
- assert.equal(bus.getState().sampleCount,33);
+ assert.equal(bus.getState().sampleCount,35);
  assert.ok(bus.getState().cueCount>=40);
- assert.equal(bus.getState().loaded,33);
- const required=['cast','splash','lureGrab','lureMove','brush','weakspot','bite',
+ assert.equal(bus.getState().loaded,35);
+ const required=['captureLock','captureShot','cast','splash','lureGrab','lureMove','brush','weakspot','bite',
  'miss','panic','reel','rodPump','rodSnap','swallow','catch','feverReady','fever',
  'feverSnap','feverBubbles','fishFlail','escape','escapeSplash','counter',
  'groggy','catchFanfare','catchNew','feverCard','feverFinish','menuOpen','menuClose','menuTap','menuNavigate','stage','upgrade',
@@ -83,9 +83,14 @@ assert.ok(bus,'Foley runtime missing');
  assert.equal(bus.play('bite'),true);
  assert.equal(bus.play('bite'),false,'Fast retrigger should be debounced');
  assert.equal(bus.play('unknown_event'),false,'Unknown sounds must not generate audio');
- assert.equal(fetches.length,33,'Every audio source should be preloaded once');
+ assert.equal(fetches.length,35,'Every audio source should be preloaded once');
  assert.doesNotMatch(foley.slice(foley.indexOf('var CUES='),foley.indexOf('var context=')),/victoryBrass|catchFanfareFever/,
   'Do not play theatrical brass anywhere in reward cues');
- console.log('PASS: 29 natural CC0 OGG clips + 4 original chest/fever melodies decode; 40 cues are audible and responsive, '+
+ console.log('PASS: 29 existing Foley clips + 2 capture recordings + 4 chest/fever melodies decode; 42 cues are audible and responsive, '+
   'each cue starts playable physical sound, rapid retriggers are rate-limited.');
 })().catch(err=>{console.error(err);process.exitCode=1});
+
+assert.match(html,/vibrationPulse\('weakspot'\);playFoley\('captureLock'\)/,'Contact onset plays the recorded lock');
+assert.match(html,/vibrationPulse\('bite'\);playFoley\('captureShot'\)/,'Shared successful reel input plays recorded shot');
+assert.equal((html.match(/playFoley\('captureShot'\)/g)||[]).length,1,'Gunshot must not be duplicated across touch/controller paths');
+assert.match(html,/HumanFishingFoley\.prime\(\)/,'Recordings decode before scene start');

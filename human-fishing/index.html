@@ -440,7 +440,7 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 <script src="./assets/humans/ready.js?v=20261110-baby-v1"></script>
 <script src="./human-sprites.js?v=20261111-human-slow-no-name-v5"></script>
 <script src="./gamepad.js?v=20261110-g8plus-haptics-v2"></script>
-<script src="./foley.js?v=20261108-chest-prize-bells-v1"></script>
+<script src="./foley.js?v=20261111-capture-gun-recordings-v1"></script>
 <script src="./ambient.js?v=20261110-ambient-preload-v3"></script>
 <script>
 (function(){
@@ -3274,7 +3274,7 @@ function checkBaitWeakspot(){
    var duration=captureWindowSeconds(a,group.kind);
    captureCue={obj:a,kind:group.kind,start:time,until:time+duration,
     x:tip.x,y:tip.y,pose:Object.assign({},a)};
-   vibrationPulse('weakspot');playFoley('rodSnap',.8);
+   vibrationPulse('weakspot');playFoley('captureLock');
   });
  });
 }
@@ -5466,10 +5466,10 @@ release=function(){
     hook.startX=lureAtRelease.x;hook.startY=lureAtRelease.y;
    }
   }
-  vibrationPulse('bite');
+  vibrationPulse('bite');playFoley('captureShot');
   if(hook.kind==='fish'){hook.obj.shakeUntil=time+.22;hook.obj.shakePower=3.2}
   var h=hook.kind==='human',target=h?{id:hook.obj.id}:hook.obj.sp;
-  if(h||(target&&['EPIC','LEGEND','MYTHIC'].indexOf(target.rarity)>=0))playFoley('rodSnap',.82);
+  // The long recorded gunshot already marks this reel input for every tier.
   var chance=catchProbability(target,h,false);
   hook.captureChance=chance;
   hook.willEscape=Math.random()>chance;
@@ -6767,7 +6767,8 @@ function beginLoadedGame(){
 // images are preloading. The start screen waits on both (bounded).
 if(window.HumanFishingBoot&&window.HumanFishingAmbient)
  window.HumanFishingBoot.registerPreload(function(){
-  return window.HumanFishingAmbient.prime(zone);
+  return Promise.all([window.HumanFishingAmbient.prime(zone),
+   window.HumanFishingFoley?window.HumanFishingFoley.prime():Promise.resolve()]);
  });
 if(window.HumanFishingBoot)window.HumanFishingBoot.begin(beginLoadedGame);
 else requestAnimationFrame(tick);

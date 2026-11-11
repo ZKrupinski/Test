@@ -72,3 +72,27 @@ The master effects gain defaults to 72% and can be adjusted through
 `HumanFishingFoley.setVolume(0..1)` in the console. Browser audio is unlocked
 on the first permitted pointer/key gesture. Playback uses decoded buffers with
 small natural playback-rate variation, never an oscillator.
+
+
+## Capture timing recordings — 2026-11-11
+
+- `capture_lock.ogg`: SpringySpringo, **Gun reload sounds**, `shotguncock_0.wav`.
+  Source: https://opengameart.org/content/gun-reload-sounds
+  Download: https://opengameart.org/sites/default/files/shotguncock_0.wav
+  CC0. Author describes sounds made with airsoft guns. Trimmed 35ms leading
+  silence, high-pass, fade and peak limiting; converted to Vorbis.
+- `capture_shot.ogg`: Tabasco / Vincent Sevedge, **Gunshot Sounds**, `sounds/shotty.wav`.
+  Source: https://opengameart.org/content/gunshot-sounds
+  Download: https://opengameart.org/sites/default/files/sounds.zip
+  Author describes actual target-shooting recordings. The page labels CC0,
+  but the included `creativecommons.txt` states copyright (c) 2009 Vincent
+  Sevedge, Creative Commons Attribution 3.0 Unported. We retain attribution
+  and comply with CC BY 3.0: https://creativecommons.org/licenses/by/3.0/
+  Edits: high/low-pass filtering, original tail fade, multi-tap echo for a
+  roughly 2.3-second decay, peak limiting and Vorbis conversion. No synthesized
+  gunshot replaces the recorded attack. No endorsement by the original author.
+
+Playback: capture contact entry plays one lock sound; a valid ordinary reel
+input plays one gunshot (touch release and controller A share the same path).
+The sound's decay is not stopped when the freeze or reel animation finishes.
+Both local OGGs are decoded along with the initial scene preload.

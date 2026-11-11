@@ -1,9 +1,11 @@
 (function(){
 'use strict';
 // Physical Foley-only sound palette. No oscillators, pitched bleeps or UI synths.
-// All bundled clips are CC0. Source map and credits: FOLEY_CREDITS.md.
+// Recording licenses and edits: FOLEY_CREDITS.md.
 var root='./assets/foley/';
 var SRC={
+ captureLock:['capture_lock.ogg',null],
+ captureShot:['capture_shot.ogg',null],
  waterSplash:['water_splash.ogg','https://raw.githubusercontent.com/Julian-adv/OpenMMO/master/client/public/sounds/fishing-splash.ogg'],
  waterPlop:['water_plop.ogg','https://raw.githubusercontent.com/Julian-adv/OpenMMO/master/client/public/sounds/fishing-plop.ogg'],
  lineReel:['line_reel.ogg','https://raw.githubusercontent.com/Julian-adv/OpenMMO/master/client/public/sounds/fishing-reel.ogg'],
@@ -41,6 +43,8 @@ var SRC={
 };
 function layer(keys,gain,rate,offset){return {keys:keys,gain:gain,rate:rate||1,offset:offset||0};}
 var CUES={
+ captureLock:{gap:.08,l:[layer(['captureLock'],.95,1)]},
+ captureShot:{gap:.12,l:[layer(['captureShot'],1.08,1)]},
  cast:{gap:.24,l:[layer(['clothA','clothB'],.64,.95),layer(['creakA'],.31,1.07)]},
  splash:{gap:.18,l:[layer(['waterSplash'],.88),layer(['softA','softB'],.27,.88)]},
  lureGrab:{gap:.15,l:[layer(['leatherA','leatherB'],.19,1.2)]},
