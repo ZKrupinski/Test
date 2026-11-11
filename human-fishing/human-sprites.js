@@ -161,8 +161,24 @@ function diverFrameAt(frame){
   // premultiplied matte near the actual silhouette.
   if(d>=5)rgba[off+3]=0;
   else if(d>=3)rgba[off+3]=Math.round(a*.16);
-  else if(d===2&&a<210)rgba[off+3]=Math.round(a*.50);
-  else if(d===1&&a<128)rgba[off+3]=Math.round(a*.78);
+  else if(d<=2&&a<210){
+   // A near-white RGB matte can remain visible even after alpha trimming.
+   // Replace only this soft boundary fringe with the nearest solid costume
+   // color; do not recolor opaque white equipment/highlights.
+   var cx=i%w,cy=(i/w)|0,found=false;
+   for(var rad=1;rad<=2&&!found;rad++){
+    for(var oy=-rad;oy<=rad&&!found;oy++)
+     for(var ox=-rad;ox<=rad;ox++){
+      if(Math.max(Math.abs(ox),Math.abs(oy))!==rad)continue;
+      var nx=cx+ox,ny=cy+oy;
+      if(nx<0||ny<0||nx>=w||ny>=h)continue;
+      var z=(ny*w+nx)*4,pr=rgba[z],pg=rgba[z+1],pb=rgba[z+2];
+      if(rgba[z+3]<215||pr>=205&&pg>=205&&pb>=205)continue;
+      rgba[off]=pr;rgba[off+1]=pg;rgba[off+2]=pb;found=true;break;
+     }
+   }
+   rgba[off+3]=Math.round(a*(d===1?.68:.42));
+  }
  }
  g.putImageData(pixels,0,0);
  saved[frame]=canvas;
