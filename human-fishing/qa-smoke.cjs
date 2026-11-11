@@ -119,6 +119,7 @@ window.__hfTest={
  hideStick:hideVirtualJoystick,
  getJoystick:function(){return joystick},
  getSave:function(){return save},
+ setHumanTestUnlock:function(enabled){HUMAN_TEST_UNLOCK_ALL=!!enabled;},
  disableAutoForSmoke:function(){autoFishing.triggerSeconds=1e9;autoFishing.lastInput=time;autoFishing.active=false;},
  renderCodex:renderBook,
  aquariumEnsure:aquariumEnsureFish,
@@ -1752,6 +1753,8 @@ console.log('PASS: rare Fever targets visibly reel up, evade at mouth, return al
  const expected=game.species.filter(z=>z.habitat===0).length;
  assert.equal((habitatHtml.match(/class="book-fish-thumb"/g)||[]).length,expected,
   'Habitat filtering must still work with picture-first cards');
+ // Verify real locked/unlocked behavior independently of the active test preview.
+ game.setHumanTestUnlock(false);
  game.renderCodex(-2,'');
  const humanHtml=element('panelBody').innerHTML;
  assert.ok(humanHtml.includes('book-human-card'),
@@ -1770,6 +1773,11 @@ console.log('PASS: rare Fever targets visibly reel up, evade at mouth, return al
  assert.match(element('panelBody').innerHTML,/class="human-codex-canvas" width="362" height="360" data-human-owned="1"/,
   'Obtained human must show original color artwork');
  if(priorHuman===undefined)delete humanOwned['0'];else humanOwned['0']=priorHuman;
+ game.setHumanTestUnlock(true);
+ game.renderCodex(-2,'');
+ const previewHtml=element('panelBody').innerHTML;
+ assert.equal((previewHtml.match(/data-human-owned="1"/g)||[]).length,24,
+  'Test preview must show all 24 humans as acquired');
 }
 console.log('PASS: codex displays 304 original high-res fish PNGs in landscape cards, black silhouettes for unowned and one-line captions');
 // Difficulty is driven by true movement decisions, not by a label or
