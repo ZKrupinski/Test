@@ -10,6 +10,10 @@ var paths={
  hooked:'baby_hooked_8f.png'
 };
 var images=Object.create(null);
+// Approved swim-only designs. Do not substitute base baby's other action art
+// until matching resist/taunt/hooked sprite sheets exist for each character.
+var swimVariantById={'1':'street','5':'explorer','8':'sporty','18':'vip'};
+var swimVariants=Object.create(null);
 if(enabled){
  Object.keys(paths).forEach(function(state){
   var img=new Image(); // Tracked by boot.js: decode all assets before gameplay.
@@ -17,6 +21,16 @@ if(enabled){
   img.src='./assets/humans/'+paths[state]+'?v='+(state==='hooked'?'20261110-hooked-v2':version);
   images[state]=img;
  });
+ Object.keys(swimVariantById).forEach(function(id){
+  var variant=swimVariantById[id],img=new Image(); // Boot preloads this resource.
+  img.decoding='async';
+  img.src='./assets/humans/baby_swim_'+variant+'_8f.png?v=20261111-human-swim4-v1';
+  swimVariants[id]=img;
+ });
+}
+function imageFor(id,action){
+ var special=swimVariants[String(Number(id))];
+ return special||images[paths[action]?action:'swim']||null;
 }
 // Keep geometry in the same coordinate frame as the approved 8-frame PNG.
  // The source pose looks right; negative vx mirrors it consistently.
@@ -37,7 +51,10 @@ function poseGeometry(actor){
 }
 function render(ctx,actor,now,action){
  if(!enabled||!actor)return false;
- var mood=paths[action]?action:'swim',img=images[mood];
+ // These four new variants ONLY have swim art. Keep their appearance
+ // consistent in capture, resistance, escape and other animation states.
+ var newSwim=swimVariants[String(Number(actor.id))]||null;
+ var mood=newSwim?'swim':paths[action]?action:'swim',img=newSwim||images[mood];
  var sheet=mood==='hooked'?{w:1776,h:888,fw:444,fh:444}:{w:1448,h:1086,fw:362,fh:543};
  if(!img||!img.complete||img.naturalWidth!==sheet.w||img.naturalHeight!==sheet.h)return false;
  // Human motion reads slightly slower without changing travel speed or catch physics.
@@ -61,5 +78,6 @@ function render(ctx,actor,now,action){
  return true;
 }
 global.HumanFishingBabySprites={enabled:enabled,images:images,
+ swimVariants:swimVariants,swimVariantById:swimVariantById,imageFor:imageFor,
  render:render,geometry:poseGeometry};
 })(window);

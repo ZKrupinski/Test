@@ -439,7 +439,7 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 <script src="./fish-expansion-catalog-012.js?v=20261109-user-six"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
 <script src="./assets/humans/ready.js?v=20261110-baby-v1"></script>
-<script src="./human-sprites.js?v=20261111-human-slow-no-name-v5"></script>
+<script src="./human-sprites.js?v=20261111-human-swim4-v1"></script>
 <script src="./gamepad.js?v=20261110-g8plus-haptics-v2"></script>
 <script src="./foley.js?v=20261111-capture-gun-recordings-v1"></script>
 <script src="./ambient.js?v=20261110-ambient-preload-v3"></script>
@@ -1287,9 +1287,10 @@ function sortFishForCodexByRegion(list){
 }
 // HUMAN_UI_THUMBS_BEGIN — UI-only; original PNG and in-game actor unchanged.
 // Source head faces right. Both codex and capture display the full body facing LEFT.
-var humanUiThumbCache=null;
-function humanUiThumbFrame(){
- var art=window.HumanFishingBabySprites,img=art&&art.images&&art.images.swim;
+var humanUiThumbCache=new WeakMap();
+function humanUiThumbFrame(id){
+ var art=window.HumanFishingBabySprites;
+ var img=art&&(typeof art.imageFor==='function'?art.imageFor(id,'swim'):art.images&&art.images.swim);
  if(!img)return null;
  if(!img.complete||img.naturalWidth!==1448||img.naturalHeight!==1086){
   if(!img.complete&&!img._humanUiThumbWaiting){
@@ -1301,7 +1302,7 @@ function humanUiThumbFrame(){
   }
   return null;
  }
- if(humanUiThumbCache&&humanUiThumbCache.image===img)return humanUiThumbCache;
+ if(humanUiThumbCache.has(img))return humanUiThumbCache.get(img);
  var frame=document.createElement('canvas');frame.width=362;frame.height=543;
  var g=frame.getContext('2d');if(!g)return null;
  g.drawImage(img,0,0,362,543,0,0,362,543);
@@ -1316,8 +1317,9 @@ function humanUiThumbFrame(){
  // Exclude near-invisible export noise, preserving soft edges with 4px padding.
  left=Math.max(0,left-4);top=Math.max(0,top-4);
  right=Math.min(361,right+4);bottom=Math.min(542,bottom+4);
- humanUiThumbCache={image:img,frame:frame,x:left,y:top,w:right-left+1,h:bottom-top+1};
- return humanUiThumbCache;
+ var crop={image:img,frame:frame,x:left,y:top,w:right-left+1,h:bottom-top+1};
+ humanUiThumbCache.set(img,crop);
+ return crop;
 }
 function paintHumanUiThumb(canvas,crop,locked){
  if(!canvas||!crop)return;
@@ -1335,9 +1337,9 @@ function paintHumanUiThumb(canvas,crop,locked){
  }
 }
 function paintHumanCodexThumbs(){
- var crop=humanUiThumbFrame();if(!crop)return;
  document.querySelectorAll('#panelBody .human-codex-canvas').forEach(function(canvas){
-  paintHumanUiThumb(canvas,crop,canvas.dataset.humanOwned!=='1');
+  var crop=humanUiThumbFrame(Number(canvas.dataset.humanId));
+  if(crop)paintHumanUiThumb(canvas,crop,canvas.dataset.humanOwned!=='1');
  });
 }
 // HUMAN_UI_THUMBS_END
@@ -1358,7 +1360,7 @@ function renderBook(filter,query){
   var id=String(a.id),n=save.human[id]||0,tier=humanTier(a.id);
   var name=n?escapeHtml(a.name):'???',detail=n?tier+' · 보유 '+n:'H'+String(a.id+1).padStart(3,'0')+' · 미발견';
   return '<div class="card book-human-card '+(n?'':'locked')+'" data-name="'+escapeHtml(a.name)+'" title="'+escapeHtml(a.name+' · '+tier)+'">'+
-   '<div class="book-fish-thumb book-human-thumb"><canvas class="human-codex-canvas" width="362" height="360" data-human-owned="'+(n?'1':'0')+'" role="img" aria-label="'+(n?'획득한 인간형 컬러 원화':'미획득 인간형 검은 실루엣')+'"></canvas></div>'+
+   '<div class="book-fish-thumb book-human-thumb"><canvas class="human-codex-canvas" width="362" height="360" data-human-owned="'+(n?'1':'0')+'" data-human-id="'+a.id+'" role="img" aria-label="'+(n?'획득한 인간형 컬러 원화':'미획득 인간형 검은 실루엣')+'"></canvas></div>'+
    '<div class="book-fish-caption"><span class="name">'+name+'</span><span class="book-detail">'+detail+'</span></div></div>';
  }).join('')+visibleFish.map(function(sp,photoIndex){
   var n=save.owned[sp.id]||0,visual=fishVisualProfile(sp);
@@ -3959,17 +3961,17 @@ function catchShowcaseHuman(id,quantity,fresh){
 }
 // Capture and codex use the same left-facing, alpha-tight approved swim frame.
 function paintHumanCatchThumbs(){
- var crop=humanUiThumbFrame(),root=$('catchShowcase');
- if(!crop||!root)return;
+ var root=$('catchShowcase');if(!root)return;
  root.querySelectorAll('.catch-human-thumb').forEach(function(canvas){
-  paintHumanUiThumb(canvas,crop,false);
+  var crop=humanUiThumbFrame(Number(canvas.dataset.humanId));
+  if(crop)paintHumanUiThumb(canvas,crop,false);
  });
 }
 function catchShowcaseCard(item,fever,index){
  var name=escapeHtml(item.name),size=escapeHtml(item.size||'중형');
  var source=item.sp?(item.sp.specialCreature?'./assets/special-creatures/'+encodeURIComponent(item.sp.id)+'.png?v=20261108-s001':'./assets/fish/individual/'+encodeURIComponent(item.sp.id)+'.png?v=20261106-fish304'):'';
  if(item.sp&&window.HumanFishingArt&&window.HumanFishingArt.sourceFor)source=window.HumanFishingArt.sourceFor(item.sp.id);
- var thumb=item.human?'<canvas class="catch-human-thumb" width="362" height="543" role="img" aria-label="'+name+'"></canvas>':source?'<img src="'+source+'" class="fish-ui-art'+(fishUiMirrorSource(item.sp)?' fish-ui-mirror':'')+'" decoding="async" alt="'+name+'">':
+ var thumb=item.human?'<canvas class="catch-human-thumb" width="362" height="543" data-human-id="'+item.humanId+'" role="img" aria-label="'+name+'"></canvas>':source?'<img src="'+source+'" class="fish-ui-art'+(fishUiMirrorSource(item.sp)?' fish-ui-mirror':'')+'" decoding="async" alt="'+name+'">':
   '<span style="font-size:38px">🧑</span>';
  var tag=item.fresh?'<span class="catch-card-new">NEW</span>':'';
  var extra=item.quantity>1?' <b>×'+Math.floor(item.quantity)+'</b>':'';

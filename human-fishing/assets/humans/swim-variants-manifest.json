@@ -1,0 +1,49 @@
+{
+  "schema": "human-swim-variants-v1",
+  "created": "2026-11-11",
+  "stage": "installed",
+  "status": "swim-only",
+  "spriteSheet": {
+    "columns": 4,
+    "rows": 2,
+    "width": 1448,
+    "height": 1086,
+    "format": "RGBA PNG",
+    "frameWidth": 362,
+    "frameHeight": 543
+  },
+  "versions": {
+    "art": "20261111-human-swim4-v1"
+  },
+  "policy": "Approved 8-frame bitmaps; alpha-only export noise cleanup; all other action poses are deferred; reuse each variant's swim frames for all actions until matching art is delivered. Original base actor and animations retained.",
+  "entries": [
+    {
+      "humanId": 1,
+      "humanName": "수다쟁이 관광객",
+      "style": "street",
+      "file": "baby_swim_street_8f.png",
+      "sha256": "e6c0914af41024841e616aa2718a0c3d4f233b6a769220871535938521ce1404"
+    },
+    {
+      "humanId": 5,
+      "humanName": "용감한 탐험가",
+      "style": "explorer",
+      "file": "baby_swim_explorer_8f.png",
+      "sha256": "59709088963daecd1f1b66ec150d2ccb4746976a0d4aec2bf86422a0da27508f"
+    },
+    {
+      "humanId": 8,
+      "humanName": "잠수부",
+      "style": "sporty",
+      "file": "baby_swim_sporty_8f.png",
+      "sha256": "c5a0c76e45e3d234b0c69f12739750d4fea3711016d43c65c6f2f071a8b0b533"
+    },
+    {
+      "humanId": 18,
+      "humanName": "왕",
+      "style": "vip",
+      "file": "baby_swim_vip_8f.png",
+      "sha256": "3c18e41c644d89ac76785790d9219cdf2e8c47ceddca9c46dc53cd1ecf389409"
+    }
+  ]
+}

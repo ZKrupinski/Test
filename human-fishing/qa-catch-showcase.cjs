@@ -227,7 +227,10 @@ root.querySelectorAll=selector=>{
 sandbox.stopCatchShowcase(true);sandbox.view='fish';
 const person=sandbox.catchShowcaseHuman(0,1,true);
 assert.equal(person.humanId,0);sandbox.showCatchShowcase([person],false);
-assert.match(root.innerHTML,/canvas class="catch-human-thumb"/);assert.equal(draws.length,1);
+assert.match(root.innerHTML,/canvas class="catch-human-thumb"/);
+assert.match(source,/data-human-id="'+item\.humanId+'/,
+ 'Catch card must select the matching human concept image');
+assert.equal(draws.length,1);
 assert.deepEqual(draws[0].slice(1),[8,76,337,389,0,0,337,389],'All nontransparent edges fit with padding');
 assert.deepEqual(transforms.slice(0,2),[['translate',337,0],['scale',-1,1]],
  'Capture portrait must face left');

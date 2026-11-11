@@ -8,7 +8,7 @@ const root=__dirname;
 const base=path.join(root,'assets','humans');
 const ready=fs.readFileSync(path.join(base,'ready.js'),'utf8');
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
-assert(index.includes('human-sprites.js?v=20261111-human-slow-no-name-v5'));
+assert(index.includes('human-sprites.js?v=20261111-human-swim4-v1'));
 assert(index.includes('assets/humans/ready.js?v=20261110-baby-v1'));
 const renderer=fs.readFileSync(path.join(root,'human-sprites.js'),'utf8');
 new Function(renderer);
@@ -36,7 +36,26 @@ if(ready.includes('Ready=true')){
  console.log('PASS: sprite fallback remains active until all images are installed');
 }
 
-// All 24 human types share one world-space sprite with a DISPLAY-only boost.
+// New swim-only variants are bound to four specific humans. Existing action
+// sheets and geometry are unchanged, preventing mismatched outfits mid-catch.
+const variants={
+ 1:{name:'street',sha:'e6c0914af41024841e616aa2718a0c3d4f233b6a769220871535938521ce1404'},
+ 5:{name:'explorer',sha:'59709088963daecd1f1b66ec150d2ccb4746976a0d4aec2bf86422a0da27508f'},
+ 8:{name:'sporty',sha:'c5a0c76e45e3d234b0c69f12739750d4fea3711016d43c65c6f2f071a8b0b533'},
+ 18:{name:'vip',sha:'3c18e41c644d89ac76785790d9219cdf2e8c47ceddca9c46dc53cd1ecf389409'}
+};
+for(const [id,{name,sha}] of Object.entries(variants)){
+ const file=fs.readFileSync(path.join(base,'baby_swim_'+name+'_8f.png'));
+ assert.equal(crypto.createHash('sha256').update(file).digest('hex'),sha,name+' cleaned RGBA mismatch');
+ assert(file.subarray(0,8).equals(Buffer.from('89504e470d0a1a0a','hex')));
+ assert.equal(file.readUInt32BE(16),1448);
+ assert.equal(file.readUInt32BE(20),1086);
+ assert.equal(file[25],6);
+ assert(renderer.includes("'"+id+"':'"+name+"'"),id+' human mapping');
+}
+assert.match(index,/data-human-id="'+a\.id+'/,'Human codex must bind art by exact ID');
+assert.match(index,/data-human-id="'+item\.humanId+'/,'Human capture card must bind art by exact ID');
+// All human types retain same world-space pose geometry with a DISPLAY-only boost.
 assert.match(renderer,/var HUMAN_WORLD_RENDER_BOOST=1\.295/,'human 70 percent render factor missing');
 assert.match(renderer,/var scale=\(mood==='hooked'\?\.33:\.36\)\*size\*\(actor\.id>=20\?1\.05:1\)\*HUMAN_WORLD_RENDER_BOOST/);
 const vm=require('node:vm');
@@ -51,6 +70,14 @@ class MockHumanImage{
 const env={window:{HumanFishingBabySpritesReady:true},Image:MockHumanImage};
 vm.runInNewContext(renderer,env);
 const art=env.window.HumanFishingBabySprites;
+for(const [id,{name}] of Object.entries(variants)){
+ assert(art.imageFor(Number(id),'swim').src.includes('baby_swim_'+name+'_8f.png'),
+  'Expected distinct approved swim sprite for human '+id);
+ assert(art.imageFor(Number(id),'hooked').src.includes('baby_swim_'+name+'_8f.png'),
+  'Unfinished action sprite must not change the human appearance');
+}
+assert(art.imageFor(2,'hooked').src.includes('baby_hooked_8f.png'),
+ 'Other humans must keep existing original action sheets');
 const captures=[],context={
  save(){},restore(){},translate(){},scale(){},
  drawImage(...args){captures.push(args);}
