@@ -8,7 +8,7 @@ const root=__dirname;
 const base=path.join(root,'assets','humans');
 const ready=fs.readFileSync(path.join(base,'ready.js'),'utf8');
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
-assert(index.includes('human-sprites.js?v=20261111-human70-mouth-avoid-v4'));
+assert(index.includes('human-sprites.js?v=20261111-human-slow-no-name-v5'));
 assert(index.includes('assets/humans/ready.js?v=20261110-baby-v1'));
 const renderer=fs.readFileSync(path.join(root,'human-sprites.js'),'utf8');
 new Function(renderer);
@@ -75,3 +75,15 @@ assert(pos.mouth.x>500&&pos.mouth.rx<=12&&pos.mouth.ry<=9,
 assert.equal(art.geometry({id:22,x:500,y:420,vx:40,size:1}).mouth.rx,8,
  'Boss human weakspot must be smaller');
 console.log('PASS: human bitmap size is exactly 70%, mirrored mouth weakspot, no aquarium vector oval');
+
+assert.match(renderer,/var HUMAN_ANIMATION_SPEED=\.85/,'All human animations should play at 85% of their previous frame rate');
+assert.match(renderer,/\*HUMAN_ANIMATION_SPEED/,'Shared slowdown must affect all four actions');
+for(const [mood,at] of [['swim',.13],['resist',.08],['hooked',.09],['taunt',.10]]){
+ const start=captures.length;
+ assert(art.render(context,{id:8,x:0,y:445,vx:1,size:1,phase:0},at,mood));
+ assert.equal(captures.length,start+1);
+ assert.equal(captures.at(-1)[1],0,mood+' must remain on first frame for a longer interval');
+}
+assert.match(index,/humanSwimStep\(h,humanDt,now,null,true\);\s*humanIcon\(h,now\);/,'Keep aquarium human animation');
+assert.doesNotMatch(index,/ctx\.fillText\(humans\[h\.id\],h\.x,h\.y\+118\)/,'Never draw aquarium human name labels in the world');
+console.log('PASS: all human sprite animations play 15% slower; aquarium name overlays removed');
