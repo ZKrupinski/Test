@@ -218,6 +218,7 @@ sandbox.window.HumanFishingBabySprites={images:{swim:approved}};
 root.querySelectorAll=selector=>{
  assert.equal(selector,'.catch-human-thumb');
  return [...root.innerHTML.matchAll(/class="catch-human-thumb"/g)].map(()=>({
+  dataset:{humanId:'0'},
   getContext:()=>({clearRect(){},save(){},restore(){},
    translate(...a){transforms.push(['translate',...a])},
    scale(...a){transforms.push(['scale',...a])},

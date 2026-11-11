@@ -3961,7 +3961,7 @@ function catchShowcaseHuman(id,quantity,fresh){
 }
 // Capture and codex use the same left-facing, alpha-tight approved swim frame.
 function paintHumanCatchThumbs(){
- var root=$('catchShowcase');if(!root)return;
+ var root=$('catchShowcase');if(!root||typeof root.querySelectorAll!=='function')return;
  root.querySelectorAll('.catch-human-thumb').forEach(function(canvas){
   var crop=humanUiThumbFrame(Number(canvas.dataset.humanId));
   if(crop)paintHumanUiThumb(canvas,crop,false);
