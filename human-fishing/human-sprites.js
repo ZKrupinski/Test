@@ -31,7 +31,7 @@ if(enabled){
  Object.keys(swimVariantById).forEach(function(id){
   var variant=swimVariantById[id],img=new Image(); // Boot preloads this resource.
   img.decoding='async';
-  img.src='./assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)>=35?'20261112-sisters-v2':Number(id)>=24?'20261111-human-swim11-alpha-v4':'20261111-human-swim4-v1');
+  img.src='./assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)>=35?'20261112-sisters-recut-v3':Number(id)>=24?'20261111-human-swim11-alpha-v4':'20261111-human-swim4-v1');
   swimVariants[id]=img;
  });
 }
@@ -203,7 +203,7 @@ function humanDesignWorldScale(id){
  return Number.isInteger(n)&&n>=0&&n<24?ORIGINAL_HUMAN_WORLD_SCALE:1;
 }
 function sisterWorldScale(id){
- return Number(id)===35?1.18:Number(id)===36||Number(id)===37?1.38:1;
+ return Number(id)===35?1.45:Number(id)===36||Number(id)===37?1.38:1;
 }
 function poseGeometry(actor){
  var id=Number(actor&&actor.id),size=Math.max(.7,Math.min(1.8,Number(actor&&actor.size)||1));
