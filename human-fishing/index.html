@@ -652,10 +652,11 @@ function scareFishOnMiss(point){
  return scared;
 }
 function ordinaryFishingTarget(){
+ if(typeof captureCueActive==='function'&&captureCueActive())return {obj:captureCue.obj,kind:captureCue.kind};
  var best=null,score=Infinity,blockedByBody=false;
  var baitTip=danglingBaitPosition(time);
  fish.forEach(function(f){
-  if(!f||f.feverCaptured)return;
+  if(!f||f.feverCaptured||f.captureContactSpent)return;
   if(fishBodyContact(f,baitTip)&&!fishMouthOverlapsLure(f,baitTip,time))
    blockedByBody=true;
   var mouth=fishMouthWeakspot(f,time);
@@ -669,7 +670,7 @@ function ordinaryFishingTarget(){
  if(best)return{obj:best,kind:'fish'};
  var human=null,lowest=1;
  hum.forEach(function(a){
-  if(!a||a.feverCaptured)return;
+  if(!a||a.feverCaptured||a.captureContactSpent)return;
   var mouth=humanMouthWeakspot(a,time);
   if(!mouth)return;
   var radius=baitCenterRadius();
@@ -682,7 +683,7 @@ function ordinaryFishingTarget(){
  if(blockedByBody)return null;
  return human?{obj:human,kind:'human'}:null;
 }
-function nearest(){return ordinaryFishingTarget()}
+function nearest(){return captureCueActive()?{obj:captureCue.obj,kind:captureCue.kind}:ordinaryFishingTarget()}
 function release(){if(hook||view!=='fish'&&view!=='human')return;var found=nearest();ripple(bob.x,bob.y);if(found){hook={obj:found,kind:view,elapsed:0,startX:found.x,startY:found.y,originX:bob.x,originY:bob.y};$('hintTitle').textContent='입질 성공!';$('hint').textContent='당겨 올리는 중…';spawnParticles(bob.x,bob.y,12,'water')}else{announce('💧','앗, 놓쳤다!','움직이는 생물 가까이 찌를 놓아보세요.');$('hintTitle').textContent='다시 찌를 움직여보세요';spawnParticles(bob.x,bob.y,8,'water')}}
 function success(){var o=hook.obj, human=hook.kind==='human',id=human?String(o.id):o.sp.id,name=human?humans[o.id]:o.sp.name,owned=human?save.human:save.owned,fresh=!owned[id];owned[id]=(owned[id]||0)+1;var reward=(human?55:15)+(human?o.id*4:o.sp.index>=18?85:o.sp.index>=14?35:0)+save.up[2]*4;save.coins+=reward;save.catches++;if(!human&&save.placed.length===0)save.placed.push(id);persist();updateStats();announce(human?'🧑':'🐟',fresh?'NEW! '+name:name+' 포획!',(fresh?'도감에 새로 등록 · ':'')+'진주 +'+reward);beep('catch');spawnParticles(420,260,28,'gold');hook=null;buildFish();buildHum();$('hintTitle').textContent='다음 대상을 낚아보세요!';$('hint').textContent='찌를 드래그한 뒤 손을 놓으면 자동 포획';}
 canvas.addEventListener('pointerdown',onBaitPointerDown);
@@ -2106,7 +2107,7 @@ function buildHum(){
 }
 // The last-declared nearest() is the LIVE function. Do not restore the
 // old radius-based fish body proximity hook: only mouth overlap counts.
-function nearest(){return ordinaryFishingTarget()}
+function nearest(){return captureCueActive()?{obj:captureCue.obj,kind:captureCue.kind}:ordinaryFishingTarget()}
 function success(){
  var o=hook.obj,human=hook.kind==='human',id=human?String(o.id):o.sp.id;
  var name=human?humans[o.id]:o.sp.name,owned=human?save.human:save.owned,fresh=!owned[id];
@@ -3243,34 +3244,52 @@ function checkBaitBrush(){
 }
 // The weakspot uses the identical mouth ellipse as the actual fishing catch.
 // A finger can start in the lower half and then keep moving in any direction.
+// Contact windows use game time so pausing/loading never consumes input time.
+var captureCue=null;
+function captureWindowSeconds(a,kind){
+ if(kind==='human')return a.id>=20?.16:a.id>=12?.20:.25;
+ return {COMMON:.62,NORMAL:.62,UNCOMMON:.49,RARE:.36,EPIC:.28,LEGEND:.21,MYTHIC:.15}[a.sp.rarity]||.36;
+}
+function captureCueActive(){
+ return !!(captureCue&&time<captureCue.until&&view==='fish'&&!hook&&!cast.active&&
+ !feverFx&&!escapeFx&&!catchFx&&!lureRecovery.active&&
+ !$('panel').classList.contains('open')&&
+ (captureCue.kind==='fish'?fish:hum).indexOf(captureCue.obj)>=0);
+}
 function checkBaitWeakspot(){
  var active=view==='fish'&&joystick.active&&!cast.active&&!hook&&
-  !feverFx&&!escapeFx&&!catchFx&&!lureRecovery.active;
- if(!active){
-  for(var n=0;n<fish.length;n++)fish[n].weakTouching=false;
-  for(var h=0;h<hum.length;h++)hum[h].weakTouching=false;
-  return;
- }
- for(var i=0;i<fish.length;i++){
-  var f=fish[i];if(!f||f.feverCaptured||isFishFleeing(f))continue;
-  var weak=fishMouthOverlapsLure(f,danglingBaitPosition(time),time);
-  if(weak&&!f.weakTouching&&vibrationPulse('weakspot')){
-   f.shakeUntil=time+.235;f.shakePower=2.65;
-   f.shakeDuration=.235;
-  }
-  // Fire on contact ENTRY, not every animation frame while held in place.
-  f.weakTouching=weak;
- }
- var baitTip=danglingBaitPosition(time);
- for(var j=0;j<hum.length;j++){
-  var h=hum[j];if(!h||h.feverCaptured)continue;
-  var touching=humanMouthOverlapsLure(h,baitTip,time);
-  if(touching&&!h.weakTouching){
-   vibrationPulse('weakspot');
-   h.shakeUntil=time+.18;
-  }
-  h.weakTouching=touching;
- }
+  !feverFx&&!escapeFx&&!catchFx&&!lureRecovery.active&&!save.fever.ready&&
+  !$('panel').classList.contains('open');
+ if(!active){captureCue=null;return;}
+ if(captureCue&&!captureCueActive())captureCue=null;
+ var tip=danglingBaitPosition(time);
+ if(captureCue&&Math.hypot(tip.x-captureCue.x,tip.y-captureCue.y)>38)captureCue=null;
+ [{list:fish,kind:'fish'},{list:hum,kind:'human'}].forEach(function(group){
+  group.list.forEach(function(a){
+   if(!a||a.feverCaptured)return;
+   var touching=group.kind==='fish'?fishMouthOverlapsLure(a,tip,time):humanMouthOverlapsLure(a,tip,time);
+   if(!touching){a.captureContactSpent=false;return;}
+   if(captureCue||a.captureContactSpent)return;
+   a.captureContactSpent=true;
+   var duration=captureWindowSeconds(a,group.kind);
+   captureCue={obj:a,kind:group.kind,start:time,until:time+duration,
+    x:tip.x,y:tip.y,pose:Object.assign({},a)};
+   vibrationPulse('weakspot');playFoley('rodSnap',.8);
+  });
+ });
+}
+function drawCaptureCue(g){
+ if(!g||!captureCueActive())return;
+ var c=captureCue,p=(time-c.start)/(c.until-c.start);
+ var sheet=raritySparkleAtlases.RARE;
+ g.save();g.globalCompositeOperation='lighter';
+ // Existing RGBA bitmap, stretched horizontally for a sharp contact glint.
+ // A single bright attack fades to a steady cue; no repeated strobe.
+ g.globalAlpha=(.35+.65*Math.pow(1-p,2))*Math.min(1,(1-p)*8);
+ var width=180+120*Math.exp(-p*9),height=35+35*Math.exp(-p*12);
+ g.drawImage(sheet,128,0,64,64,c.x-width/2,c.y-height/2,width,height);
+ g.drawImage(sheet,128,0,64,64,c.x-22,c.y-22,44,44);
+ g.restore();
 }
 // Intermittent underwater currents: physical drift with clear bottom indicator.
 var waterCurrent={active:false,nextAt:time+rnd(7,14),start:0,
@@ -3667,6 +3686,7 @@ function tick(stamp){
  }
  // ADD 30% and Bloom 35% now illuminate surface waves as well as other FX.
  // Fish and HUD are never copied to the FX buffer.
+ drawCaptureCue(ctx);drawCaptureCue(fxLightContext());
  if(fxShader)fxShader.composite(ctx);
   if(!escapeFx&&octoGroggy===0&&pendingEscapeRestart){pendingEscapeRestart=false;if(view==='fish')startCast()}
  if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner').classList.remove('visible')}
@@ -6712,6 +6732,23 @@ if(window.HumanFishingGamepad)window.HumanFishingGamepad.init({
  },
  cancel:function(){if(view==='tank'&&aquariumFishingActive)aquariumReturnToExhibit();}
 });
+// Freeze only the contacted actor; ecology and other creatures keep moving.
+var ecosystemBeforeCaptureCue=updateEcosystem;
+updateEcosystem=function(dt){
+ var c=captureCueActive()?captureCue:null;
+ ecosystemBeforeCaptureCue(dt);
+ if(c)Object.assign(c.obj,c.pose);
+};
+function drawCaptureFrozenActor(draw,a,now){
+ if(!captureCueActive()||captureCue.obj!==a)return draw(a,now);
+ var c=captureCue,elapsed=time-c.start;
+ ctx.save();
+ ctx.translate(Math.sin(elapsed*151)*4.5,Math.sin(elapsed*183)*2.8);
+ draw(a,c.start);ctx.restore();
+}
+var fishBeforeCaptureCue=drawFish,humanBeforeCaptureCue=humanIcon;
+drawFish=function(a,now){return drawCaptureFrozenActor(fishBeforeCaptureCue,a,now)};
+humanIcon=function(a,now){return drawCaptureFrozenActor(humanBeforeCaptureCue,a,now)};
 // The old Blue Tang animation QA preview is no longer required.
 buildFish();buildHum();
 updateStats();setMode('fish');
