@@ -13,6 +13,13 @@ var images=Object.create(null);
 // Approved swim-only designs. Do not substitute base baby's other action art
 // until matching resist/taunt/hooked sprite sheets exist for each character.
 var swimVariantById={'1':'street','5':'explorer','8':'sporty','18':'vip','24':'sleepy','25':'explorer_new','26':'scientist','27':'pirate','28':'nurse','29':'athlete','30':'idol','31':'chef','32':'detective','33':'wizard','34':'angel'};
+var sisterSpritesEnabled=global.HumanFishingSisterSpritesReady===true;
+// Asset-ready gate: never fetch absent sheets or show a different baby's art.
+if(sisterSpritesEnabled){
+ swimVariantById['35']='sister_rabbit'; // smaller older sister
+ swimVariantById['36']='sister_shark';  // bigger older sister
+ swimVariantById['37']='sister_cat';    // bigger older sister
+}
 var swimVariants=Object.create(null);
 if(enabled){
  Object.keys(paths).forEach(function(state){
@@ -24,7 +31,7 @@ if(enabled){
  Object.keys(swimVariantById).forEach(function(id){
   var variant=swimVariantById[id],img=new Image(); // Boot preloads this resource.
   img.decoding='async';
-  img.src='./assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)>=24?'20261111-human-swim11-alpha-v4':'20261111-human-swim4-v1');
+  img.src='./assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)>=35?'20261112-sisters-v1':Number(id)>=24?'20261111-human-swim11-alpha-v4':'20261111-human-swim4-v1');
   swimVariants[id]=img;
  });
 }
@@ -195,20 +202,26 @@ function humanDesignWorldScale(id){
  var n=Number(id);
  return Number.isInteger(n)&&n>=0&&n<24?ORIGINAL_HUMAN_WORLD_SCALE:1;
 }
+function sisterWorldScale(id){
+ return Number(id)===35?1.18:Number(id)===36||Number(id)===37?1.38:1;
+}
 function poseGeometry(actor){
- var size=Math.max(.7,Math.min(1.8,Number(actor&&actor.size)||1));
- var scale=.36*size*(actor&&actor.id>=20&&actor.id<24?1.05:1)*HUMAN_WORLD_RENDER_BOOST*
-  humanDesignWorldScale(actor&&actor.id);
+ var id=Number(actor&&actor.id),size=Math.max(.7,Math.min(1.8,Number(actor&&actor.size)||1));
+ var sister=id>=35&&id<=37;
+ var scale=.36*size*(id>=20&&id<24?1.05:1)*HUMAN_WORLD_RENDER_BOOST*
+  humanDesignWorldScale(id)*sisterWorldScale(id);
  var facing=Number(actor&&(actor.vx||actor.dir)||1)<0?-1:1;
  var x=Number(actor&&actor.x)||0,y=Number(actor&&actor.y)||0;
- var width=362*scale,height=543*scale;
- // Head/mouth is toward the right-hand leading edge in the approved frame.
- // Cropped transparent padding is intentionally excluded from collision size.
+ var width=362*scale,height=sister?width*(id===35?362/543:1):543*scale;
+ // Each sister has a separate bitmap aspect ratio. The head leads left
+ // in the approved sprites and mirrors to the right when vx is positive.
+ // Fishing weakspot/contact geometry follows the actual displayed artwork.
+ var mouthY=id===35?y-20*size:id===36||id===37?y-10*size:y+height*.09-8;
+ var mouthRX=sister?(id===35?9:8):id>=20&&id<24?8:12;
+ var mouthRY=sister?(id===35?7:6):id>=20&&id<24?6.5:9;
  return{width:width,height:height,scale:scale,facing:facing,
-  mouth:{x:x+facing*width*.34,y:y+height*.09-8,
-   rx:actor&&actor.id>=20&&actor.id<24?8:12,ry:actor&&actor.id>=20&&actor.id<24?6.5:9,
-   facing:facing},
-  body:{x:x,y:y+height*.02-8,rx:width*.43,ry:height*.30}};
+  mouth:{x:x+facing*width*.34,y:mouthY,rx:mouthRX,ry:mouthRY,facing:facing},
+  body:{x:x,y:y+(sister?-3:height*.02-8),rx:width*(sister?.40:.43),ry:height*(sister?.39:.30)}};
 }
 function render(ctx,actor,now,action){
  if(!enabled||!actor)return false;
@@ -218,8 +231,9 @@ function render(ctx,actor,now,action){
  var mood=newSwim?'swim':paths[action]?action:'swim',img=newSwim||images[mood];
  var sheet=mood==='hooked'?{w:1776,h:888,fw:444,fh:444}:{w:1448,h:1086,fw:362,fh:543};
  if(newSwim&&actor.id>=25)sheet={w:1776,h:888,fw:444,fh:444};
+ if(newSwim&&Number(actor.id)===35)sheet={w:2172,h:724,fw:543,fh:362};
  // Preserve user-provided source PNG bytes; original grids may be 1774x887.
- if(newSwim&&actor.id>=25&&img&&img.naturalWidth===1774&&img.naturalHeight===887)
+ if(newSwim&&actor.id>=25&&actor.id<35&&img&&img.naturalWidth===1774&&img.naturalHeight===887)
   sheet={w:1774,h:887,fw:443.5,fh:443.5};
  if(!img||!img.complete||img.naturalWidth!==sheet.w||img.naturalHeight!==sheet.h)return false;
  // Human motion reads slightly slower without changing travel speed or catch physics.
@@ -235,7 +249,8 @@ function render(ctx,actor,now,action){
  // Never change actor.size or fishing hitbox/weakspot physics.
  var scale=(mood==='hooked'?.33:.36)*size*(actor.id>=20&&actor.id<24?1.05:1)*HUMAN_WORLD_RENDER_BOOST*
   humanDesignWorldScale(actor.id);
- if(newSwim&&actor.id>=25)scale*=362/444;
+ if(newSwim&&actor.id>=25)scale*=362/(Number(actor.id)===35?543:444);
+ if(newSwim&&actor.id>=35)scale*=sisterWorldScale(actor.id);
  var facing=Number(actor.vx||actor.dir||1)<0?-1:1;
  ctx.save();
  ctx.translate(Number(actor.x)||0,Number(actor.y)||0);
@@ -254,6 +269,7 @@ function render(ctx,actor,now,action){
 }
 global.HumanFishingBabySprites={enabled:enabled,images:images,
  swimVariants:swimVariants,swimVariantById:swimVariantById,imageFor:imageFor,
+ sisterSpritesReady:sisterSpritesEnabled,sisterWorldScale:sisterWorldScale,
  frameFor:function(id,frame){return Number(id)===29?athleteFrameAt(frame):
   Number(id)===8?diverFrameAt(frame):null},
  render:render,geometry:poseGeometry};
