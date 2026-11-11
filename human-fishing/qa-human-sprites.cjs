@@ -8,7 +8,7 @@ const root=__dirname;
 const base=path.join(root,'assets','humans');
 const ready=fs.readFileSync(path.join(base,'ready.js'),'utf8');
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
-assert(index.includes('human-sprites.js?v=20261112-human-size-scroll-v1'));
+assert(index.includes('human-sprites.js?v=20261112-sisters-v1'));
 assert(index.includes('assets/humans/ready.js?v=20261110-baby-v1'));
 const renderer=fs.readFileSync(path.join(root,'human-sprites.js'),'utf8');
 new Function(renderer);
@@ -22,6 +22,14 @@ assert(index.includes('pointer-events:none;touch-action:pan-y;user-select:none')
  'Human codex thumbnail must not capture panel swipes');
 assert(index.includes('overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y'),
  'Codex panel must support native vertical touch panning');
+assert(index.indexOf('sisters-ready.js?v=20261112-sisters-v1')<
+ index.indexOf('human-sprites.js?v=20261112-sisters-v1'),
+ 'Sister ready flag must load before sprite module');
+assert(index.includes("humans.push('토끼 작은언니','상어 큰언니','고양이 큰언니')"),
+ 'The 3 sisters must appear only when ready');
+assert(renderer.includes("sisterWorldScale(id)"),'Sister world-size helper is required');
+assert(renderer.includes("if(newSwim&&Number(actor.id)===35)sheet={w:2172,h:724,fw:543,fh:362}"),
+ 'Rabbit art must retain its 543x362 frame aspect');
 assert(renderer.includes('var ORIGINAL_HUMAN_WORLD_SCALE=.72'),
  'Legacy design size normalization must be enabled');
 assert(renderer.includes('humanDesignWorldScale(actor&&actor.id)'),
