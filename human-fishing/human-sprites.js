@@ -104,6 +104,70 @@ function athleteFrameAt(frame){
  cached[frame]=tile;
  return tile;
 }
+// ID 8 (잠수부): remove the white, semi-transparent matte/fog outside the
+// approved silhouette. This is a display-only RGBA correction: do not touch
+// the source PNG, character design, animation order or collision geometry.
+var diverFrameCache=new WeakMap();
+function diverFrameAt(frame){
+ var img=swimVariants['8'];
+ if(!img||!img.complete||img.naturalWidth!==1448||img.naturalHeight!==1086)return null;
+ if(typeof document==='undefined'||!document.createElement)return null;
+ var saved=diverFrameCache.get(img);
+ if(!saved){saved=new Array(8);diverFrameCache.set(img,saved)}
+ frame=((Math.floor(frame)||0)%8+8)%8;
+ if(saved[frame])return saved[frame];
+ var col=frame%4,row=Math.floor(frame/4),w=362,h=543;
+ var canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+ var g=canvas.getContext('2d',{willReadFrequently:true});
+ if(!g)return null;
+ g.drawImage(img,col*w,row*h,w,h,0,0,w,h);
+ var pixels;
+ try{pixels=g.getImageData(0,0,w,h)}catch(_){saved[frame]=canvas;return canvas}
+ var rgba=pixels.data,total=w*h,dist=new Uint8Array(total);
+ // The solid, colored subject is the reference for deciding whether an
+ // almost-white translucent pixel is a real highlight or exterior fog.
+ for(var i=0;i<total;i++){
+  var off=i*4,a=rgba[off+3],r=rgba[off],green=rgba[off+1],b=rgba[off+2];
+  var nearWhite=r>=205&&green>=205&&b>=205&&
+   Math.max(r,green,b)-Math.min(r,green,b)<44;
+  dist[i]=a>=215&&!nearWhite?0:15;
+ }
+ // Two-pass Chebyshev-distance transform; bounded cost and no blur on art.
+ for(var y=0;y<h;y++)for(var x=0;x<w;x++){
+  var p=y*w+x,d=dist[p];
+  if(x)d=Math.min(d,dist[p-1]+1);
+  if(y){d=Math.min(d,dist[p-w]+1);
+   if(x)d=Math.min(d,dist[p-w-1]+1);
+   if(x+1<w)d=Math.min(d,dist[p-w+1]+1)}
+  dist[p]=d;
+ }
+ for(var y=h-1;y>=0;y--)for(var x=w-1;x>=0;x--){
+  var p=y*w+x,d=dist[p];
+  if(x+1<w)d=Math.min(d,dist[p+1]+1);
+  if(y+1<h){d=Math.min(d,dist[p+w]+1);
+   if(x)d=Math.min(d,dist[p+w-1]+1);
+   if(x+1<w)d=Math.min(d,dist[p+w+1]+1)}
+  dist[p]=d;
+ }
+ for(var i=0;i<total;i++){
+  var off=i*4,a=rgba[off+3];if(!a)continue;
+  var r=rgba[off],green=rgba[off+1],b=rgba[off+2];
+  var light=Math.min(r,green,b)>=184 &&
+   Math.max(r,green,b)-Math.min(r,green,b)<=58;
+  var d=dist[i];
+  if(a<=9){rgba[off+3]=0;continue}
+  if(!light||a>=252)continue;
+  // Remove detached/cloudy background; soften only the very thin white
+  // premultiplied matte near the actual silhouette.
+  if(d>=5)rgba[off+3]=0;
+  else if(d>=3)rgba[off+3]=Math.round(a*.16);
+  else if(d===2&&a<210)rgba[off+3]=Math.round(a*.50);
+  else if(d===1&&a<128)rgba[off+3]=Math.round(a*.78);
+ }
+ g.putImageData(pixels,0,0);
+ saved[frame]=canvas;
+ return canvas;
+}
 // Keep geometry in the same coordinate frame as the approved 8-frame PNG.
  // The source pose looks right; negative vx mirrors it consistently.
 var HUMAN_WORLD_RENDER_BOOST=1.295; // exactly 70% of the previous 1.85
@@ -152,7 +216,9 @@ function render(ctx,actor,now,action){
  ctx.scale(newSwim&&actor.id>=24?-facing:facing,1);
  var sx=Math.round(col*sheet.w/4),sy=Math.round(row*sheet.h/2);
  var sourceW=Math.round((col+1)*sheet.w/4)-sx,sourceH=Math.round((row+1)*sheet.h/2)-sy;
- var cleanFrame=newSwim&&Number(actor.id)===29?athleteFrameAt(frame):null;
+ var actorId=Number(actor.id);
+ var cleanFrame=newSwim&&(actorId===29?athleteFrameAt(frame):
+  actorId===8?diverFrameAt(frame):null);
  if(cleanFrame)
   ctx.drawImage(cleanFrame,0,0,cleanFrame.width,cleanFrame.height,-fw*scale*.5,-fh*scale*.5-8,fw*scale,fh*scale);
  else
@@ -162,6 +228,7 @@ function render(ctx,actor,now,action){
 }
 global.HumanFishingBabySprites={enabled:enabled,images:images,
  swimVariants:swimVariants,swimVariantById:swimVariantById,imageFor:imageFor,
- frameFor:function(id,frame){return Number(id)===29?athleteFrameAt(frame):null},
+ frameFor:function(id,frame){return Number(id)===29?athleteFrameAt(frame):
+  Number(id)===8?diverFrameAt(frame):null},
  render:render,geometry:poseGeometry};
 })(window);
