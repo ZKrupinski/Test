@@ -45,6 +45,8 @@ jobs:
         run: node human-fishing/qa-gamesir-g8plus.cjs
       - name: Verify human codex and flawless fever guaranteed encounters
         run: node human-fishing/qa-human-codex-encounter.cjs
+      - name: Verify all 24 temporary human previews, aquarium groups and untouched saves
+        run: node human-fishing/qa-human-test-unlock.cjs
       - name: Verify human residents survive aquarium-to-fishing transition
         run: node human-fishing/qa-aquarium-human-play.cjs
       - name: Verify shared human swim behavior in aquarium and normal stages
