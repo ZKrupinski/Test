@@ -19,7 +19,9 @@ nav{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
 nav button,.smallbtn{color:#a9d0d0;border:1px solid #36616a;border-radius:10px;background:#123a48;padding:11px 14px;font-weight:800;white-space:nowrap}
 nav button.active{color:#173540;border-color:#e8d4a2;background:linear-gradient(#ffdeb1,#e3b96e);box-shadow:0 2px 16px #ffde9647}
 .stage{position:relative;border:1px solid #4d939c;border-radius:20px;overflow:hidden;background:#13536b;box-shadow:0 20px 75px #0008;aspect-ratio:16/9;min-height:0}
-canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}canvas.dragging{cursor:grabbing}
+/* Only the gameplay surface captures drag gestures; codex sprite canvases must scroll. */
+#game{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#game.dragging{cursor:grabbing}
 .hud{position:absolute;z-index:3;pointer-events:none}.hud>*{pointer-events:auto}
 .top{top:16px;left:17px;right:17px;display:flex;gap:8px;justify-content:space-between;align-items:flex-start}
 .tag,.coins{background:#062d3dcf;border:1px solid #86c8c86a;border-radius:12px;padding:9px 14px;backdrop-filter:blur(10px);color:#fff7df;font-weight:800;box-shadow:0 6px 18px #002b3b4f}
@@ -30,7 +32,7 @@ canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}canvas
 .action:active{transform:translateY(3px);box-shadow:0 3px 0 #9f5a3d,0 5px 16px #0006}
 .center-banner{position:absolute;z-index:4;top:21%;right:2.5%;left:auto;transform:translateY(-8px);background:transparent;border:none;border-radius:0;box-shadow:none;text-align:right;padding:4px 8px;min-width:0;max-width:46%;pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;text-shadow:0 2px 8px #01212d,0 3px 14px #00171d}
 .center-banner.visible{opacity:1;transform:translateY(0)}.center-banner .emoji{font-size:20px}.center-banner strong{display:block;color:var(--gold);font-size:15px}.center-banner p{margin:3px 0 0;color:#bce5e0;font-size:11px}
-.panel{position:absolute;z-index:6;inset:0;display:none;background:linear-gradient(135deg,#062e3def,#082333f7);padding:25px;overflow:auto;backdrop-filter:blur(9px)}.panel.open{display:block}
+.panel{position:absolute;z-index:6;inset:0;display:none;background:linear-gradient(135deg,#062e3def,#082333f7);padding:25px;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;backdrop-filter:blur(9px)}.panel.open{display:block}
 .panelhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}.panel h2{margin:0;font-size:27px;letter-spacing:-.05em}.panel .minor{color:#9ed3d4;font-size:13px}
 .toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:13px}.toolbar input,.toolbar select,.toolbar button{min-height:41px;background:#123e4a;color:#def5f5;border:1px solid #51818b;border-radius:11px;padding:8px 11px}
 .toolbar input{width:min(270px,60vw)}.toolbar button.selected{background:#adcfbd;color:#18363f}
@@ -243,9 +245,12 @@ nav{flex-wrap:nowrap}
  color:#9ab2b7
 }
 /* The approved first swim frame is shared by all 24 human codex entries. */
-#panelBody .book-human-card .book-human-thumb{width:100%;min-height:0}
+#panelBody .book-human-card .book-human-thumb{width:100%;min-height:0;touch-action:pan-y}
+#panelBody .book-human-card{touch-action:pan-y}
+#panelBody .book-fish-card .book-fish-thumb img{touch-action:pan-y}
 #panelBody .book-human-card .human-codex-canvas{
- display:block;flex:0 0 auto;width:auto;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center;image-rendering:auto
+ display:block;flex:0 0 auto;width:auto;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center;image-rendering:auto;
+ pointer-events:none;touch-action:pan-y;user-select:none;-webkit-user-select:none
 }
 /* Pirate only: restore the apparent character scale after alpha-bound cropping.
    Other human codex cards and all source PNG sheets remain unchanged. */
@@ -444,7 +449,7 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 <script src="./fish-expansion-catalog-012.js?v=20261109-user-six"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
 <script src="./assets/humans/ready.js?v=20261110-baby-v1"></script>
-<script src="./human-sprites.js?v=20261112-diver-alpha-v1"></script>
+<script src="./human-sprites.js?v=20261112-human-size-scroll-v1"></script>
 <script src="./gamepad.js?v=20261110-g8plus-haptics-v2"></script>
 <script src="./foley.js?v=20261111-capture-gun-recordings-v1"></script>
 <script src="./ambient.js?v=20261110-ambient-preload-v3"></script>
