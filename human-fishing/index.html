@@ -3258,9 +3258,14 @@ function captureCueActive(){
 }
 function checkBaitWeakspot(){
  var active=view==='fish'&&joystick.active&&!cast.active&&!hook&&
-  !feverFx&&!escapeFx&&!catchFx&&!lureRecovery.active&&!save.fever.ready&&
+  !feverFx&&!escapeFx&&!catchFx&&!lureRecovery.active&&
   !$('panel').classList.contains('open');
- if(!active){captureCue=null;return;}
+ if(!active){
+  captureCue=null;
+  // A completed/cancelled gesture must not poison the next contact attempt.
+  fish.concat(hum).forEach(function(a){if(a)a.captureContactSpent=false;});
+  return;
+ }
  if(captureCue&&!captureCueActive())captureCue=null;
  var tip=danglingBaitPosition(time);
  if(captureCue&&Math.hypot(tip.x-captureCue.x,tip.y-captureCue.y)>38)captureCue=null;
