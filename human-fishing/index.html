@@ -444,7 +444,7 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 <script src="./fish-expansion-catalog-012.js?v=20261109-user-six"></script>
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
 <script src="./assets/humans/ready.js?v=20261110-baby-v1"></script>
-<script src="./human-sprites.js?v=20261112-athlete-frames-v1"></script>
+<script src="./human-sprites.js?v=20261112-diver-alpha-v1"></script>
 <script src="./gamepad.js?v=20261110-g8plus-haptics-v2"></script>
 <script src="./foley.js?v=20261111-capture-gun-recordings-v1"></script>
 <script src="./ambient.js?v=20261110-ambient-preload-v3"></script>
@@ -1325,8 +1325,8 @@ function humanUiThumbFrame(id){
  var g=frame.getContext('2d');if(!g)return null;
  // Use the same border-isolated athlete frame in the codex and catch popup.
  // Other humans keep their unmodified first sprite frame.
- var cleanAthlete=Number(id)===29&&art&&typeof art.frameFor==='function'?art.frameFor(id,0):null;
- if(cleanAthlete)g.drawImage(cleanAthlete,0,0,cleanAthlete.width,cleanAthlete.height,0,0,fw,fh);
+ var cleanVariant=(Number(id)===8||Number(id)===29)&&art&&typeof art.frameFor==='function'?art.frameFor(id,0):null;
+ if(cleanVariant)g.drawImage(cleanVariant,0,0,cleanVariant.width,cleanVariant.height,0,0,fw,fh);
  else g.drawImage(img,0,0,fw,fh,0,0,fw,fh);
  var pixels=g.getImageData(0,0,fw,fh),data=pixels.data;
  var pirateUi=Number(id)===27,cutoff=pirateUi?42:4;
