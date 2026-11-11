@@ -23,7 +23,8 @@ const fx=body.slice(start,end);
 const elements={};
 const $=id=>elements[id]??={classList:{add(){},remove(){},toggle(){}}};
 const c={
- save:{humanPlaced:['8','21','3'],owned:{F001:1}},humans:Array.from({length:24},(_,i)=>'H'+i),
+ save:{humanPlaced:['8','21','3'],owned:{F001:1}},
+ humanExhibitIds(){return c.save.humanPlaced;},humans:Array.from({length:24},(_,i)=>'H'+i),
  species:[{id:'F001'}],hum:[],fish:[],aquariumFishActors:[],
  aquariumFishingActive:false,aquariumPanelOpen:true,aquariumSpawnTimer:3,
  aquariumHumanSpawnTimer:3,aquariumHumanActors:[],aquariumHumanLastTime:0,

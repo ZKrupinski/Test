@@ -1183,6 +1183,19 @@ particleFrame(dt);if(bannerTimer>0){bannerTimer-=dt;if(bannerTimer<=0)$('banner'
 // Preserve the existing humanFishingAlpha01 save key and the fish inventory.
 if(!Array.isArray(save.humanPlaced))save.humanPlaced=[];
 if(!save.human||typeof save.human!=='object')save.human={};
+// TEMPORARY HUMAN QA PREVIEW: All 24 are visibly owned, without modifying
+// saved capture counts or the permanent humanPlaced aquarium assignments.
+// Set false after testing to restore the real collection automatically.
+var HUMAN_TEST_UNLOCK_ALL=true,humanTestPreviewPage=0;
+function humanOwnedForDisplay(id){
+ var actual=Number(save.human[String(id)])||0;
+ return HUMAN_TEST_UNLOCK_ALL?Math.max(1,actual):Math.max(0,actual);
+}
+function humanExhibitIds(){
+ if(!HUMAN_TEST_UNLOCK_ALL)return Array.isArray(save.humanPlaced)?save.humanPlaced:[];
+ var start=humanTestPreviewPage*8;
+ return humans.slice(start,start+8).map(function(_,i){return String(start+i)});
+}
 $('navHuman').style.display='none';
 $('navFish').textContent='🎣 스테이지 선택';
 $('navTank').textContent='🐠 생물 아쿠아리움';
@@ -1198,7 +1211,7 @@ function buildHum(){
 }
 function updateStats(){
  var visibleSpecies=species.filter(function(sp){return !sp.archivedVisualDuplicate});
- var count=visibleSpecies.filter(function(sp){return (save.owned[sp.id]||0)>0}).length,h=Object.keys(save.human).filter(function(k){return save.human[k]>0}).length;
+ var count=visibleSpecies.filter(function(sp){return (save.owned[sp.id]||0)>0}).length,h=HUMAN_TEST_UNLOCK_ALL?humans.length:Object.keys(save.human).filter(function(k){return save.human[k]>0}).length;
  $('coins').textContent='◈ '+save.coins.toLocaleString()+'　🐟 '+count+'/'+visibleSpecies.length+'　🧑 '+h+'/24';
 }
 function setMode(m){
@@ -1346,7 +1359,7 @@ function paintHumanCodexThumbs(){
 function renderBook(filter,query){
  filter=filter===undefined?-3:Number(filter);query=query||'';
  var catalogueSpecies=species.filter(function(sp){return !sp.archivedVisualDuplicate});
- var count=Object.keys(save.owned).length,hCount=Object.keys(save.human).filter(function(k){return save.human[k]>0}).length;
+ var count=Object.keys(save.owned).length,hCount=HUMAN_TEST_UNLOCK_ALL?humans.length:Object.keys(save.human).filter(function(k){return save.human[k]>0}).length;
  var tool='<div class="toolbar"><input id="search" placeholder="인간·물고기 이름 검색" value="'+escapeHtml(query)+'"><select id="filter">'+
  '<option value="-3" '+(filter===-3?'selected':'')+'>전체 생물 · '+(catalogueSpecies.length+humans.length)+'종</option>'+
  '<option value="-2" '+(filter===-2?'selected':'')+'>🧑 인간 도감 · 24종</option>'+
@@ -1357,7 +1370,7 @@ function renderBook(filter,query){
  var visibleFish=sortFishForCodexByRegion(filter===-3||filter===-1||filter===-4||filter===-5||filter>=0?catalogueSpecies.filter(function(x){return filter===-5?!!x.specialCreature:filter===-4?!!(x.artVariant||x.expansionSpecies):filter===-1?!x.specialCreature:filter<0||x.habitat===filter}):[]);
  var visibleHuman=filter===-3||filter===-2?humans.map(function(n,id){return{id:id,name:n}}):[];
  var cards='<div class="cards book-cards">'+visibleHuman.map(function(a){
-  var id=String(a.id),n=save.human[id]||0,tier=humanTier(a.id);
+  var id=String(a.id),n=humanOwnedForDisplay(id),tier=humanTier(a.id);
   var name=n?escapeHtml(a.name):'???',detail=n?tier+' · 보유 '+n:'H'+String(a.id+1).padStart(3,'0')+' · 미발견';
   return '<div class="card book-human-card '+(n?'':'locked')+'" data-name="'+escapeHtml(a.name)+'" title="'+escapeHtml(a.name+' · '+tier)+'">'+
    '<div class="book-fish-thumb book-human-thumb"><canvas class="human-codex-canvas" width="362" height="360" data-human-owned="'+(n?'1':'0')+'" data-human-id="'+a.id+'" role="img" aria-label="'+(n?'획득한 인간형 컬러 원화':'미획득 인간형 검은 실루엣')+'"></canvas></div>'+
@@ -1396,24 +1409,39 @@ function renderBook(filter,query){
  $('filter').onchange=function(){renderBook(Number(this.value),'')};
 }
 function renderTankSide(){
- var fishUsed={},humanUsed={};
+ var fishUsed={},humanUsed={},exhibitHumans=humanExhibitIds();
  save.placed.forEach(function(id){fishUsed[id]=(fishUsed[id]||0)+1});
- save.humanPlaced.forEach(function(id){humanUsed[id]=(humanUsed[id]||0)+1});
+ exhibitHumans.forEach(function(id){humanUsed[id]=(humanUsed[id]||0)+1});
  var fishOptions=Object.keys(save.owned).filter(function(id){return save.owned[id]>(fishUsed[id]||0)});
- var humanOptions=Object.keys(save.human).filter(function(id){return save.human[id]>(humanUsed[id]||0)});
- var html='<h3>🐙 생물 아쿠아리움</h3><p>보유 도감에서 물고기 '+aquariumExhibitTarget+'마리를 랜덤 전시합니다.<br>퇴장한 수만큼 다른 보유 어종이 등장합니다. 터치하면 방향을 바꿉니다.<br>수동 등록 '+save.placed.length+'/30 · 인간 '+save.humanPlaced.length+'/8</p>';
+ var humanOptions=HUMAN_TEST_UNLOCK_ALL?humans.map(function(_,i){return String(i)}):Object.keys(save.human).filter(function(id){return save.human[id]>(humanUsed[id]||0)});
+ var html='<h3>🐙 생물 아쿠아리움</h3><p>보유 도감에서 물고기 '+aquariumExhibitTarget+'마리를 랜덤 전시합니다.<br>퇴장한 수만큼 다른 보유 어종이 등장합니다. 터치하면 방향을 바꿉니다.<br>수동 등록 '+save.placed.length+'/30 · 인간 '+exhibitHumans.length+'/8</p>'+(HUMAN_TEST_UNLOCK_ALL?'<p>테스트 미리보기 · 인간 24/24종 해금 (실제 획득 기록 유지)</p>':'');
  html+='<div class="slot"><span>수조 테마</span><button id="decorChange">변경</button></div>';
  html+='<h3>🧑 인간 배치</h3>';
- if(!humanOptions.length)html+='<p>낚시터에서 엘리트 인간을 잡으면 배치할 수 있어요.</p>';
- humanOptions.forEach(function(id){var name=humans[Number(id)]||'인간';html+='<div class="slot"><span>'+ (Number(id)>=20?'👑 ':'🧑 ')+escapeHtml(name)+'</span><button data-humanplace="'+id+'">＋</button></div>'});
- if(save.humanPlaced.length){html+='<h3>🧑 전시 중인 인간</h3>';save.humanPlaced.forEach(function(id,i){html+='<div class="slot"><span>🧑 '+escapeHtml(humans[Number(id)]||'인간')+'</span><button data-humanremove="'+i+'">−</button></div>'})}
- html+='<h3>🐟 물고기 배치</h3>';
+ if(HUMAN_TEST_UNLOCK_ALL){
+   html+='<div class="slot"><span>인간 전시 그룹 '+(humanTestPreviewPage+1)+'/'+Math.ceil(humans.length/8)+'</span><button data-human-test-page="prev">◀ 이전</button><button data-human-test-page="next">다음 ▶</button></div>';
+   html+='<p>8명씩 화면에서 확인할 수 있습니다. 아래 24종은 모두 획득 상태로 미리보기 됩니다.</p>';
+   humanOptions.forEach(function(id){
+    var shown=exhibitHumans.includes(id),name=humans[Number(id)]||'인간';
+    html+='<div class="slot"><span>'+(Number(id)>=20?'👑 ':'🧑 ')+escapeHtml(name)+'</span><span>'+(shown?'전시 중':'획득')+'</span></div>';
+   });
+  }else{
+   if(!humanOptions.length)html+='<p>낚시터에서 엘리트 인간을 잡으면 배치할 수 있어요.</p>';
+   humanOptions.forEach(function(id){var name=humans[Number(id)]||'인간';html+='<div class="slot"><span>'+ (Number(id)>=20?'👑 ':'🧑 ')+escapeHtml(name)+'</span><button data-humanplace="'+id+'">＋</button></div>'});
+   if(save.humanPlaced.length){html+='<h3>🧑 전시 중인 인간</h3>';save.humanPlaced.forEach(function(id,i){html+='<div class="slot"><span>🧑 '+escapeHtml(humans[Number(id)]||'인간')+'</span><button data-humanremove="'+i+'">−</button></div>'})}
+  }
+  html+='<h3>🐟 물고기 배치</h3>';
  if(!fishOptions.length)html+='<p>잡은 물고기를 먼저 모아보세요.</p>';
  fishOptions.slice(0,40).forEach(function(id){var sp=species.find(function(z){return z.id===id});if(sp)html+='<div class="slot"><span>🐟 '+escapeHtml(sp.name)+'</span><button data-fishplace="'+id+'">＋</button></div>'});
  if(save.placed.length){html+='<h3>🐠 전시 중인 물고기</h3>';save.placed.forEach(function(id,i){var sp=species.find(function(z){return z.id===id});html+='<div class="slot"><span>🐠 '+escapeHtml(sp?sp.name:id)+'</span><button data-fishremove="'+i+'">−</button></div>'})}
  $('sideinfo').innerHTML=html;
  $('decorChange').onclick=function(){decor=(decor+1)%3;save.decor=decor;persist();renderTankSide()};
- document.querySelectorAll('[data-humanplace]').forEach(function(btn){btn.onclick=function(){
+ document.querySelectorAll('[data-human-test-page]').forEach(function(btn){btn.onclick=function(){
+   var pages=Math.ceil(humans.length/8);
+   humanTestPreviewPage=(humanTestPreviewPage+(this.dataset.humanTestPage==='next'?1:pages-1))%pages;
+   aquariumHumanActors=[];aquariumHumanLastTime=0;
+   renderTankSide();
+  }});
+  document.querySelectorAll('[data-humanplace]').forEach(function(btn){btn.onclick=function(){
   var id=this.dataset.humanplace,c=save.humanPlaced.filter(function(x){return x===id}).length;
   if(save.humanPlaced.length>=8||c>=save.human[id]){announce('⚠','전시 공간 부족','인간 전시 8명까지 또는 보유 수량만 배치할 수 있어요.');return}
   save.humanPlaced.push(id);persist();renderTankSide();beep('catch');
@@ -6614,7 +6642,7 @@ setMode=function(mode){
 function aquariumEnsureHumans(){
  // Keep actors stable while the exhibit is visible, including duplicates of
  // the same owned human in distinct display slots.
- var placed=Array.isArray(save.humanPlaced)?save.humanPlaced:[];
+ var placed=humanExhibitIds();
  aquariumHumanActors=placed.map(function(id,slot){
   var prev=aquariumHumanActors.find(function(h){
    return h.aquariumSlot===slot&&h.id===Number(id);
@@ -6638,7 +6666,7 @@ function aquariumMakePlayHuman(id,slot,inView){
   nextTurn:eco.t+rnd(8,14)};
 }
 function aquariumReplenishHumans(inView){
- var placed=Array.isArray(save.humanPlaced)?save.humanPlaced:[];
+ var placed=humanExhibitIds();
  var active=Object.create(null);
  hum.forEach(function(person){
   if(person.aquariumResident&&!person.feverCaptured)active[person.aquariumSlot]=true;
@@ -6650,7 +6678,7 @@ function aquariumReplenishHumans(inView){
  });
 }
 function aquariumBeginPlay(){
- if(!aquariumKnownSpecies().length&&!(save.humanPlaced||[]).length){
+ if(!aquariumKnownSpecies().length&&!humanExhibitIds().length){
   announce('🐟','전시 생물이 없어요','물고기나 인간을 먼저 아쿠아리움에 배치해 주세요.');return;
  }
  aquariumCloseSaleReceipt();
