@@ -200,3 +200,30 @@ sandbox.stopCatchShowcase(true);
 assert.equal(root.innerHTML,'','Explicit menu transitions may close Fever awards');
 console.log('PASS: Fever awards survive recasting and chain with queued later catches.');
 console.log('PASS: trophy cards expire and clear across new attempts, misses and empty Fever; brushes cannot award fish.');
+
+// Human prizes must paint the approved RGBA art in ordinary and mixed Fever cards.
+let draws=[],loadCallback=null;
+const approved={complete:true,naturalWidth:1448,naturalHeight:1086,
+ addEventListener(type,cb){assert.equal(type,'load');loadCallback=cb;}};
+const pixels=new Uint8ClampedArray(362*543*4);
+// Pixels at opposite corners of a non-square silhouette verify exact alpha bounds.
+pixels[(80*362+12)*4+3]=1;pixels[(460*362+340)*4+3]=255;
+const frameContext={drawImage(...args){assert.equal(args[0],approved);assert.deepEqual(args.slice(1),[0,0,362,543,0,0,362,543]);},getImageData(){return {data:pixels}}};
+sandbox.document={createElement(tag){assert.equal(tag,'canvas');return {getContext:()=>frameContext}}};
+sandbox.window.HumanFishingBabySprites={images:{swim:approved}};
+root.querySelectorAll=selector=>{
+ assert.equal(selector,'.catch-human-thumb');
+ return [...root.innerHTML.matchAll(/class="catch-human-thumb"/g)].map(()=>({getContext:()=>({clearRect(){},drawImage(...args){draws.push(args)}})}));
+};
+sandbox.stopCatchShowcase(true);sandbox.view='fish';
+const person=sandbox.catchShowcaseHuman(0,1,true);
+assert.equal(person.humanId,0);sandbox.showCatchShowcase([person],false);
+assert.match(root.innerHTML,/canvas class="catch-human-thumb"/);assert.equal(draws.length,1);
+assert.deepEqual(draws[0].slice(1),[12,80,329,381,6,6,329,381],'All nontransparent edges fit with padding');
+sandbox.stopCatchShowcase(true);draws=[];
+sandbox.showCatchShowcase([prize,person,person],true);
+assert.equal(draws.length,2,'Each human in a mixed Fever batch receives artwork');
+sandbox.stopCatchShowcase(true);draws=[];approved.complete=false;
+sandbox.showCatchShowcase([person],false);assert.equal(draws.length,0);assert.ok(loadCallback);
+approved.complete=true;loadCallback();assert.equal(draws.length,1,'Deferred image completion paints the current card');
+console.log('PASS: human capture thumbnail, mixed Fever batch, exact alpha bounds and late image load');
