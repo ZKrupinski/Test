@@ -247,6 +247,11 @@ nav{flex-wrap:nowrap}
 #panelBody .book-human-card .human-codex-canvas{
  display:block;flex:0 0 auto;width:auto;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center;image-rendering:auto
 }
+/* Pirate only: restore the apparent character scale after alpha-bound cropping.
+   Other human codex cards and all source PNG sheets remain unchanged. */
+#panelBody .book-human-card .human-codex-canvas[data-human-id="27"]{
+ transform:scale(1.10);transform-origin:50% 50%
+}
 #panelBody .book-cards .book-human-card.locked{
  opacity:1;filter:none;background:linear-gradient(155deg,#274550,#18313c);border-color:#435d69
 }
@@ -1319,13 +1324,29 @@ function humanUiThumbFrame(id){
  var frame=document.createElement('canvas');frame.width=fw;frame.height=fh;
  var g=frame.getContext('2d');if(!g)return null;
  g.drawImage(img,0,0,fw,fh,0,0,fw,fh);
- var pixels=g.getImageData(0,0,fw,fh).data,left=fw,top=fh,right=-1,bottom=-1;
+ var pixels=g.getImageData(0,0,fw,fh),data=pixels.data;
+ var pirateUi=Number(id)===27,cutoff=pirateUi?42:4;
+ // The pirate source contains a wider semi-transparent fringe than its
+ // visible silhouette. Ignore low-alpha dust for the UI crop ONLY.
+ // Do not change the original PNG or its gameplay frames.
+ if(pirateUi){
+  var changed=false;
+  for(var p=3;p<data.length;p+=4){
+   if(data[p]>0&&data[p]<18){data[p]=0;changed=true}
+  }
+  if(changed)g.putImageData(pixels,0,0);
+ }
+ var left=fw,top=fh,right=-1,bottom=-1;
  for(var y=0;y<fh;y++)for(var x=0;x<fw;x++){
-  if(pixels[(y*fw+x)*4+3]>4){left=Math.min(left,x);top=Math.min(top,y);right=Math.max(right,x);bottom=Math.max(bottom,y)}
+  if(data[(y*fw+x)*4+3]>cutoff){
+   left=Math.min(left,x);top=Math.min(top,y);
+   right=Math.max(right,x);bottom=Math.max(bottom,y)
+  }
  }
  if(right<left)return null;
- left=Math.max(0,left-4);top=Math.max(0,top-4);
- right=Math.min(fw-1,right+4);bottom=Math.min(fh-1,bottom+4);
+ var pad=pirateUi?7:4;
+ left=Math.max(0,left-pad);top=Math.max(0,top-pad);
+ right=Math.min(fw-1,right+pad);bottom=Math.min(fh-1,bottom+pad);
  var crop={image:img,frame:frame,x:left,y:top,w:right-left+1,h:bottom-top+1,mirror:!newer};
  humanUiThumbCache.set(img,crop);return crop;
 }
