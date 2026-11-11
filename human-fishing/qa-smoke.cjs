@@ -1776,8 +1776,8 @@ console.log('PASS: rare Fever targets visibly reel up, evade at mouth, return al
  game.setHumanTestUnlock(true);
  game.renderCodex(-2,'');
  const previewHtml=element('panelBody').innerHTML;
- assert.equal((previewHtml.match(/data-human-owned="1"/g)||[]).length,24,
-  'Test preview must show all 24 humans as acquired');
+ assert.equal((previewHtml.match(/data-human-owned="1"/g)||[]).length,35,
+  'Test preview must show all 35 humans as acquired');
 }
 console.log('PASS: codex displays 304 original high-res fish PNGs in landscape cards, black silhouettes for unowned and one-line captions');
 // Difficulty is driven by true movement decisions, not by a label or
