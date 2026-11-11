@@ -32,6 +32,78 @@ function imageFor(id,action){
  var special=swimVariants[String(Number(id))];
  return special||images[paths[action]?action:'swim']||null;
 }
+// Athlete (human #29) sheet has some neighbor-frame fragments along cell edges.
+// Prepare each of its 8 cells on an independent transparent canvas. Preserve
+// the approved source PNG and every other character's atlas and animations.
+var athleteFrameCache=new WeakMap();
+function athleteFrameAt(frame){
+ var img=swimVariants['29'];
+ if(!img||!img.complete||!img.naturalWidth||!img.naturalHeight)return null;
+ if(img.naturalWidth!==1774&&img.naturalWidth!==1776)return null;
+ if(img.naturalHeight!==887&&img.naturalHeight!==888)return null;
+ var cached=athleteFrameCache.get(img);
+ if(!cached){cached=new Array(8);athleteFrameCache.set(img,cached)}
+ frame=((Math.floor(frame)||0)%8+8)%8;
+ if(cached[frame])return cached[frame];
+ if(typeof document==='undefined'||!document.createElement)return null;
+ var col=frame%4,row=Math.floor(frame/4);
+ var sx=Math.round(col*img.naturalWidth/4),sy=Math.round(row*img.naturalHeight/2);
+ var sw=Math.round((col+1)*img.naturalWidth/4)-sx;
+ var sh=Math.round((row+1)*img.naturalHeight/2)-sy;
+ var tile=document.createElement('canvas');tile.width=sw;tile.height=sh;
+ var g=tile.getContext('2d',{willReadFrequently:true});
+ if(!g)return null;
+ // 1px guard prevents linear sampling of the neighboring atlas cell.
+ g.drawImage(img,sx+1,sy+1,sw-2,sh-2,1,1,sw-2,sh-2);
+ var pixel;
+ try{pixel=g.getImageData(0,0,sw,sh)}catch(_){cached[frame]=tile;return tile}
+ var d=pixel.data,n=sw*sh,labels=new Int32Array(n),queue=new Int32Array(n);
+ var comps=[null],next=0;
+ // Eight-connected opaque silhouettes: a detached neighbor-cell fragment
+ // touches a cell edge, while the central athlete is the largest component.
+ for(var i=0;i<n;i++){
+  if(labels[i]||d[i*4+3]<36)continue;
+  var component=++next,head=0,tail=1,size=0,edge=false;
+  queue[0]=i;labels[i]=component;
+  while(head<tail){
+   var p=queue[head++],x=p%sw,y=(p/sw)|0;
+   size++;
+   if(x<3||y<3||x>=sw-3||y>=sh-3)edge=true;
+   for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){
+    if(!dx&&!dy)continue;
+    var nx=x+dx,ny=y+dy;
+    if(nx<0||ny<0||nx>=sw||ny>=sh)continue;
+    var k=ny*sw+nx;
+    if(!labels[k]&&d[k*4+3]>=36){labels[k]=component;queue[tail++]=k}
+   }
+  }
+  comps[component]={size:size,edge:edge};
+ }
+ var primary=0;
+ for(var c=1;c<comps.length;c++)
+  if(!primary||comps[c].size>comps[primary].size)primary=c;
+ // Remove only secondary, BORDER-CONNECTED islands. Interior accessories
+ // and detached painted details are deliberately retained.
+ var discard=new Uint8Array(n);
+ for(var j=0;j<n;j++){
+  var label=labels[j];
+  if(label&&label!==primary&&comps[label].edge)discard[j]=1;
+ }
+ // Include 2px antialias fringe of excluded islands in the cleanup mask.
+ var expanded=new Uint8Array(n);
+ for(var j=0;j<n;j++)if(discard[j]){
+  var px=j%sw,py=(j/sw)|0;
+  for(var yy=Math.max(0,py-2);yy<=Math.min(sh-1,py+2);yy++)
+   for(var xx=Math.max(0,px-2);xx<=Math.min(sw-1,px+2);xx++)
+    expanded[yy*sw+xx]=1;
+ }
+ for(var j=0;j<n;j++)if(expanded[j]||d[j*4+3]<10){
+  d[j*4]=d[j*4+1]=d[j*4+2]=d[j*4+3]=0;
+ }
+ g.putImageData(pixel,0,0);
+ cached[frame]=tile;
+ return tile;
+}
 // Keep geometry in the same coordinate frame as the approved 8-frame PNG.
  // The source pose looks right; negative vx mirrors it consistently.
 var HUMAN_WORLD_RENDER_BOOST=1.295; // exactly 70% of the previous 1.85
@@ -80,11 +152,16 @@ function render(ctx,actor,now,action){
  ctx.scale(newSwim&&actor.id>=24?-facing:facing,1);
  var sx=Math.round(col*sheet.w/4),sy=Math.round(row*sheet.h/2);
  var sourceW=Math.round((col+1)*sheet.w/4)-sx,sourceH=Math.round((row+1)*sheet.h/2)-sy;
- ctx.drawImage(img,sx,sy,sourceW,sourceH,-fw*scale*.5,-fh*scale*.5-8,fw*scale,fh*scale);
+ var cleanFrame=newSwim&&Number(actor.id)===29?athleteFrameAt(frame):null;
+ if(cleanFrame)
+  ctx.drawImage(cleanFrame,0,0,cleanFrame.width,cleanFrame.height,-fw*scale*.5,-fh*scale*.5-8,fw*scale,fh*scale);
+ else
+  ctx.drawImage(img,sx,sy,sourceW,sourceH,-fw*scale*.5,-fh*scale*.5-8,fw*scale,fh*scale);
  ctx.restore();
  return true;
 }
 global.HumanFishingBabySprites={enabled:enabled,images:images,
  swimVariants:swimVariants,swimVariantById:swimVariantById,imageFor:imageFor,
+ frameFor:function(id,frame){return Number(id)===29?athleteFrameAt(frame):null},
  render:render,geometry:poseGeometry};
 })(window);
