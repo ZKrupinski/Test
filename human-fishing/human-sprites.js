@@ -31,7 +31,7 @@ if(enabled){
  Object.keys(swimVariantById).forEach(function(id){
   var variant=swimVariantById[id],img=new Image(); // Boot preloads this resource.
   img.decoding='async';
-  img.src='./assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)>=35?'20261112-sisters-v1':Number(id)>=24?'20261111-human-swim11-alpha-v4':'20261111-human-swim4-v1');
+  img.src='./assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)>=35?'20261112-sisters-v2':Number(id)>=24?'20261111-human-swim11-alpha-v4':'20261111-human-swim4-v1');
   swimVariants[id]=img;
  });
 }
@@ -233,7 +233,7 @@ function render(ctx,actor,now,action){
  if(newSwim&&actor.id>=25)sheet={w:1776,h:888,fw:444,fh:444};
  if(newSwim&&Number(actor.id)===35)sheet={w:2172,h:724,fw:543,fh:362};
  // Preserve user-provided source PNG bytes; original grids may be 1774x887.
- if(newSwim&&actor.id>=25&&actor.id<35&&img&&img.naturalWidth===1774&&img.naturalHeight===887)
+ if(newSwim&&actor.id>=25&&img&&img.naturalWidth===1774&&img.naturalHeight===887)
   sheet={w:1774,h:887,fw:443.5,fh:443.5};
  if(!img||!img.complete||img.naturalWidth!==sheet.w||img.naturalHeight!==sheet.h)return false;
  // Human motion reads slightly slower without changing travel speed or catch physics.
@@ -249,7 +249,7 @@ function render(ctx,actor,now,action){
  // Never change actor.size or fishing hitbox/weakspot physics.
  var scale=(mood==='hooked'?.33:.36)*size*(actor.id>=20&&actor.id<24?1.05:1)*HUMAN_WORLD_RENDER_BOOST*
   humanDesignWorldScale(actor.id);
- if(newSwim&&actor.id>=25)scale*=362/(Number(actor.id)===35?543:444);
+ if(newSwim&&actor.id>=25)scale*=362/fw; // match live image cell width, including updated rabbit
  if(newSwim&&actor.id>=35)scale*=sisterWorldScale(actor.id);
  var facing=Number(actor.vx||actor.dir||1)<0?-1:1;
  ctx.save();

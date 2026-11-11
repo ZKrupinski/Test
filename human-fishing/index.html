@@ -450,7 +450,7 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
 <script src="./assets/humans/ready.js?v=20261110-baby-v1"></script>
 <script src="./assets/humans/sisters-ready.js?v=20261112-sisters-v1"></script>
-<script src="./human-sprites.js?v=20261112-sisters-v1"></script>
+<script src="./human-sprites.js?v=20261112-sisters-v2"></script>
 <script src="./gamepad.js?v=20261110-g8plus-haptics-v2"></script>
 <script src="./foley.js?v=20261111-capture-gun-recordings-v1"></script>
 <script src="./ambient.js?v=20261110-ambient-preload-v3"></script>
@@ -1329,12 +1329,12 @@ function humanUiThumbFrame(id){
  var art=window.HumanFishingBabySprites;
  var img=art&&(typeof art.imageFor==='function'?art.imageFor(id,'swim'):art.images&&art.images.swim);
  if(!img)return null;
- var newer=Number(id)>=24,sisterRabbit=Number(id)===35;
+ var newer=Number(id)>=24;
+ // Revised sister source sheets 1774x887; use 444x444 UI frame crop.
+ var sourceIsOriginal=newer&&Number(id)!==24&&img.naturalWidth===1774&&img.naturalHeight===887;
+ var sisterRabbit=Number(id)===35&&!sourceIsOriginal;
  var fw=sisterRabbit?543:newer&&Number(id)!==24?444:362;
  var fh=sisterRabbit?362:newer&&Number(id)!==24?444:543;
- // Original sheet 1774x887; sister sheets 2172x724 or 1776x888.
- // Use actual sprite aspect ratio and never stretch/crop source body parts.
- var sourceIsOriginal=newer&&Number(id)!==24&&img.naturalWidth===1774&&img.naturalHeight===887;
  if(!img.complete||(!sourceIsOriginal&&(img.naturalWidth!==fw*4||img.naturalHeight!==fh*2))){
   if(!img.complete&&!img._humanUiThumbWaiting&&typeof img.addEventListener==='function'){
    img._humanUiThumbWaiting=true;
