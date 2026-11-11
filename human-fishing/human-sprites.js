@@ -12,7 +12,7 @@ var paths={
 var images=Object.create(null);
 // Approved swim-only designs. Do not substitute base baby's other action art
 // until matching resist/taunt/hooked sprite sheets exist for each character.
-var swimVariantById={'1':'street','5':'explorer','8':'sporty','18':'vip','24':'sleepy','25':'explorer','26':'scientist','27':'pirate','28':'nurse','29':'athlete','30':'idol','31':'chef','32':'detective','33':'wizard','34':'angel'};
+var swimVariantById={'1':'street','5':'explorer','8':'sporty','18':'vip','24':'sleepy','25':'explorer_new','26':'scientist','27':'pirate','28':'nurse','29':'athlete','30':'idol','31':'chef','32':'detective','33':'wizard','34':'angel'};
 var swimVariants=Object.create(null);
 if(enabled){
  Object.keys(paths).forEach(function(state){
