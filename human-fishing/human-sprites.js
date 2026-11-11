@@ -186,10 +186,19 @@ function diverFrameAt(frame){
 }
 // Keep geometry in the same coordinate frame as the approved 8-frame PNG.
  // The source pose looks right; negative vx mirrors it consistently.
-var HUMAN_WORLD_RENDER_BOOST=1.295; // exactly 70% of the previous 1.85
+var HUMAN_WORLD_RENDER_BOOST=1.295; // shared approved base scale
+// Original human designs (IDs 0-23) contain larger bitmap silhouettes
+// than the new swim designs (24-34). Normalize ONLY live-world scale.
+// Codex/catch portraits are unaffected; no PNG bytes are changed.
+var ORIGINAL_HUMAN_WORLD_SCALE=.72;
+function humanDesignWorldScale(id){
+ var n=Number(id);
+ return Number.isInteger(n)&&n>=0&&n<24?ORIGINAL_HUMAN_WORLD_SCALE:1;
+}
 function poseGeometry(actor){
  var size=Math.max(.7,Math.min(1.8,Number(actor&&actor.size)||1));
- var scale=.36*size*(actor&&actor.id>=20&&actor.id<24?1.05:1)*HUMAN_WORLD_RENDER_BOOST;
+ var scale=.36*size*(actor&&actor.id>=20&&actor.id<24?1.05:1)*HUMAN_WORLD_RENDER_BOOST*
+  humanDesignWorldScale(actor&&actor.id);
  var facing=Number(actor&&(actor.vx||actor.dir)||1)<0?-1:1;
  var x=Number(actor&&actor.x)||0,y=Number(actor&&actor.y)||0;
  var width=362*scale,height=543*scale;
@@ -224,7 +233,8 @@ function render(ctx,actor,now,action){
  var size=Math.max(.7,Math.min(1.8,Number(actor.size)||1));
  // Display-only scale: humans are more prominent than even large fish.
  // Never change actor.size or fishing hitbox/weakspot physics.
- var scale=(mood==='hooked'?.33:.36)*size*(actor.id>=20&&actor.id<24?1.05:1)*HUMAN_WORLD_RENDER_BOOST;
+ var scale=(mood==='hooked'?.33:.36)*size*(actor.id>=20&&actor.id<24?1.05:1)*HUMAN_WORLD_RENDER_BOOST*
+  humanDesignWorldScale(actor.id);
  if(newSwim&&actor.id>=25)scale*=362/444;
  var facing=Number(actor.vx||actor.dir||1)<0?-1:1;
  ctx.save();
