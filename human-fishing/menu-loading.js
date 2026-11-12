@@ -8,7 +8,7 @@
  var overlay=document.getElementById('bootOverlay'),progress=document.getElementById('bootProgress');
  if(!canvas||!overlay||!progress)return;
  var ctx=canvas.getContext('2d',{alpha:false}),W=1672,H=941;
- var root='./assets/menu-loading/',version='?v=20261112-menu-album1';
+ var root='./assets/menu-loading/',version='?v=20261112-menu-album2';
  var backgrounds=[
   'menu_01_treasure.webp',
   'menu_02_raft_pursuit.webp',
