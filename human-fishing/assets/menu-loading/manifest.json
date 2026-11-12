@@ -11,9 +11,9 @@
   },
   {
     "path": "menu_02_raft_pursuit.webp",
-    "bytes": 564164,
-    "sha256": "2b0db18bb2a4a73a4c35e8c60b5c8090f214865198f327047c768e5ba09d2f92",
-    "git_sha1": "bfe10be8b7ab3be56840305799f422c02ac2a3ff",
+    "bytes": 576040,
+    "sha256": "9ccdd789231fd542adc9af7d0f9a832a5dc298a548d3d3d59242325b34dd52f5",
+    "git_sha1": "4140dcc26b348459b7e1b1eda5d5d1ac54a9205c",
     "resolution": [
       1672,
       941
@@ -21,9 +21,9 @@
   },
   {
     "path": "menu_03_pirate_crew.webp",
-    "bytes": 613734,
-    "sha256": "2afc87e503a091489e06fc84be558454f9ae72fa5138321b2e4d0e6e8b9e8123",
-    "git_sha1": "df844c6848994a1b4f15b4536b2b3323e397b924",
+    "bytes": 637024,
+    "sha256": "23019136c86914698455b0c773baac4c4b11c45b8c3b36790036263fb1528209",
+    "git_sha1": "a6c530f82527f49939cc7bfe1f71c4e8589c8214",
     "resolution": [
       1672,
       941
@@ -31,9 +31,9 @@
   },
   {
     "path": "menu_04_shark_encounter.webp",
-    "bytes": 529144,
-    "sha256": "64e0cfe7609429e60df478daf22879623b64706599f6c3926c343feafa4032ec",
-    "git_sha1": "00929e17534cef6020b1110dbeac97763e46c267",
+    "bytes": 574974,
+    "sha256": "8994d036133002a30f369b4b39b6a6435e2a2a512fb2d2971af2ae69888df8af",
+    "git_sha1": "194a95a577df0bdb6c7d567cce2f86aa8ac54490",
     "resolution": [
       1672,
       940
@@ -41,9 +41,9 @@
   },
   {
     "path": "menu_05_seaside_market.webp",
-    "bytes": 489752,
-    "sha256": "5a58ae3e2e63cfbed545f8e318bb0e74e8872bc27ecbe89cb6712a7dd56ff01d",
-    "git_sha1": "f759cbfb984c22fe368b1560d348db1651addec3",
+    "bytes": 504032,
+    "sha256": "7cef9b49a0819e8ec7f641d8daf609c819e98e2ef20fd14232024edc9b7466c0",
+    "git_sha1": "79aeefe3e3e22ca1e842e8f68fe07903d84244cd",
     "resolution": [
       1672,
       941

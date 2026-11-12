@@ -9,7 +9,7 @@
  var root=document.querySelector('.wrap'), overlay=document.getElementById('bootOverlay');
  var status=document.getElementById('bootStatus'), button=document.getElementById('bootStart');
  var progress=document.getElementById('bootProgress');
- var menuShownAt=0;
+ var menuShownAt=0,menuImageBaseline=null;
  function showLoading(){
   // A scene transition must never inherit the ready-to-start button artwork.
   overlay.classList.remove('title-ready');
@@ -21,9 +21,14 @@
   progress.value=0;
  }
  function updateImageProgress(active){
-  var total=active.length;
-  var downloaded=active.filter(function(im){return im.complete&&im.naturalWidth>0;}).length;
-  var decodedCount=active.filter(function(im){return im.complete&&im.naturalWidth>0&&decoded.get(im)===source(im);}).length;
+  // On a menu change, measure only new or replaced sources, not every
+  // already-decoded fish from past scenes. Startup still measures all assets.
+  var targets=started&&menuImageBaseline?active.filter(function(im){
+   return menuImageBaseline.get(im)!==source(im);
+  }):active;
+  var total=targets.length;
+  var downloaded=targets.filter(function(im){return im.complete&&im.naturalWidth>0;}).length;
+  var decodedCount=targets.filter(function(im){return im.complete&&im.naturalWidth>0&&decoded.get(im)===source(im);}).length;
   // Real image download+decode completion accounts for 90%; fonts/audio follow.
   var fraction=total?(downloaded+decodedCount)/(2*total):1;
   progress.value=Math.max(progress.value||0,Math.min(.90,.90*fraction));
@@ -191,17 +196,16 @@
    busy=false;
    // A brief viewing time lets each artwork register during fast cached menu
    // changes; unlike resource loading, the actual progress bar is not faked.
-   var hold=window.HumanFishingMenuLoading?Math.max(0,420-(Date.now()-menuShownAt)):0;
-   var reveal=function(){
+   var hold=window.HumanFishingMenuLoading?Math.max(0,550-(Date.now()-menuShownAt)):0;
+   setTimeout(function(){
     if(token!==generation||busy)return;
     requestAnimationFrame(function(){requestAnimationFrame(function(){
      if(token!==generation||busy)return;
      overlay.hidden=true;overlay.classList.remove('menu-loading');
+     menuImageBaseline=null;
      root.removeAttribute('aria-busy');
     });});
-   };
-   if(hold>0)setTimeout(reveal,hold);
-   else reveal();
+   },hold);
    return;
   }
   button.textContent='터치 · A / START로 시작';button.hidden=false;button.disabled=false;
@@ -216,6 +220,8 @@
   if(busy&&!depth)return;
   if(depth)return callback();
   busy=true;overlay.hidden=false;root.setAttribute('aria-busy','true');
+  menuImageBaseline=new WeakMap();
+  activeImages().forEach(function(im){menuImageBaseline.set(im,source(im));});
   showLoading();status.textContent='로딩 중 · 0%';
   menuShownAt=Date.now();
   if(window.HumanFishingMenuLoading)window.HumanFishingMenuLoading.next();

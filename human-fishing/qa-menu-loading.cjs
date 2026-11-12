@@ -12,7 +12,8 @@ assert.match(html,/#bootOverlay\.menu-loading #bootTitleCanvas\{display:none\}/)
 assert.match(html,/#bootOverlay\.menu-loading #menuLoadingCanvas\{display:block\}/);
 assert.match(boot,/if\(started\)overlay\.classList\.add\('menu-loading'\)/);
 assert.match(boot,/if\(window\.HumanFishingMenuLoading\)window\.HumanFishingMenuLoading\.next\(\)/);
-assert.match(boot,/Math\.max\(0,420-\(Date\.now\(\)-menuShownAt\)\)/);
+assert.match(boot,/Math\.max\(0,550-\(Date\.now\(\)-menuShownAt\)\)/);
+assert.match(boot,/menuImageBaseline\.get\(im\)!==source\(im\)/);
 const sources=['menu_01_treasure.webp','menu_02_raft_pursuit.webp','menu_03_pirate_crew.webp',
  'menu_04_shark_encounter.webp','menu_05_seaside_market.webp'];
 const extras=['menu_loading_label.webp','menu_loading_frame.webp','menu_loading_fill.webp'];
@@ -25,9 +26,9 @@ for(const name of sources.concat(extras)){
  assert.equal(data.length,entry.bytes);
  assert.equal(crypto.createHash('sha256').update(data).digest('hex'),entry.sha256);
 }
-const drawn=[],frames=[],images=[];
+const drawn=[],frames=[],images=[],clips=[];
 let loading=true, value=.4;
-const ctx={fillRect(){},beginPath(){},rect(){},clip(){},save(){},restore(){},
+const ctx={fillRect(){},beginPath(){},rect(...a){clips.push(a)},clip(){},save(){},restore(){},
  drawImage(...a){drawn.push(a)},set fillStyle(x){}};
 const overlay={get hidden(){return false},classList:{contains(x){return x==='menu-loading'&&loading}}};
 const nodes={menuLoadingCanvas:{getContext(){return ctx}},bootOverlay:overlay,
@@ -42,14 +43,23 @@ scope.Math=Object.create(Math);scope.Math.random=()=>0;
 vm.runInNewContext(menu,scope);
 const api=scope.window.HumanFishingMenuLoading;
 assert.equal(api.slideCount,5);
-assert.equal(images.length,8,'All menu art should be preloaded exactly once');
-for(let i=0;i<10;i++){assert.equal(api.next(),i%5);}
+assert.equal(images.length,0,'Menu images must NOT delay the original initial title');
+const firstRound=[],secondRound=[];
+for(let i=0;i<10;i++){
+ const selected=api.next();
+ if(i<5)firstRound.push(selected);else secondRound.push(selected);
+}
+assert.equal(new Set(firstRound).size,5,'The first shuffle-bag round repeated an illustration');
+assert.equal(new Set(secondRound).size,5,'The second round skipped an illustration');
+assert.notEqual(firstRound[4],secondRound[0],'Adjacent rounds may not repeat the same image');
+assert.equal(images.length,8,'Five scene images and three UI bitmaps should load only after navigation');
 frames.shift()(100);
 const sourcesDrawn=drawn.map(a=>a[0].src||'');
-assert(sourcesDrawn.some(x=>x.includes('menu_05_seaside_market.webp')),'Last sequential painting not drawn');
+assert(sourcesDrawn.some(x=>x.includes(sources[api.selected])),'Chosen shuffled painting was not drawn');
 const fillDraw=drawn.find(a=>a[0].src&&a[0].src.includes('menu_loading_fill.webp'));
 assert(fillDraw,'Water fill missing');
 assert.equal(fillDraw[3],762,'Filling uses a full-size bitmap, clipped by progress');
+assert(Math.abs(clips.at(-1)[2]-762*value)<1e-6,'Actual 40% progress must clip to 40% width');
 loading=false;drawn.length=0;frames.shift()(110);
 assert.equal(drawn.length,0,'Menu loader must not cover title when inactive');
-console.log('PASS: startup title unaffected; five rotating full-bleed illustrations, approved bitmap UI and actual cropped progress');
+console.log('PASS: initial title unaffected and no menu art preloaded; five lazy 16:9 scenes cycle without repeats, separate bitmap UI fills with real progress');
