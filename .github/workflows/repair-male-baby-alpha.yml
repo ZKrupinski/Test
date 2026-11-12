@@ -1,0 +1,41 @@
+name: Repair 17 male baby alpha holes from immutable originals
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/repair-male-baby-alpha.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: repair-17-male-baby-alpha
+  cancel-in-progress: false
+jobs:
+  restore-original-pixels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Install image processing QA dependencies
+        run: python3 -m pip install --quiet Pillow numpy scipy
+      - name: Restore all accidental *enclosed* alpha holes from original approved source art
+        run: python3 human-fishing/scripts/repair_male_alpha.py
+      - name: Validate original sprite mappings, unaffected sizes, and gameplay
+        run: |
+          node --check human-fishing/human-sprites.js
+          node human-fishing/qa-human-sprites.cjs
+          node human-fishing/qa-male-baby-scale.cjs
+          node human-fishing/qa-human-swim11.cjs
+          node human-fishing/qa-human-codex-encounter.cjs
+          node human-fishing/qa-human-test-unlock.cjs
+      - name: Commit only reviewed male art and related cache/QA manifests
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add human-fishing/assets/humans/male-concepts/ human-fishing/human-sprites.js human-fishing/index.html human-fishing/qa-human-sprites.cjs human-fishing/qa-male-baby-scale.cjs human-fishing/art-review/male-alpha-hole-repair.json
+          git diff --cached --check
+          git diff --cached --quiet && exit 0
+          git commit -m 'Restore original pixels lost to male baby alpha masking in all 8 frames'
+          git push origin HEAD:main
