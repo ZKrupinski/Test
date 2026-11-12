@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/repair-male-baby-alpha.yml'
+      - 'human-fishing/scripts/repair_male_alpha.py'
   workflow_dispatch:
 permissions:
   contents: write
