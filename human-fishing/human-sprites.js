@@ -213,7 +213,7 @@ function humanDesignWorldScale(id){
  return 1; // sister sizes stay unchanged
 }
 function sisterWorldScale(id){
- return Number(id)===35?1.66:Number(id)===36?1.58:Number(id)===37?1.44:1;
+ return Number(id)===35?1.60:Number(id)===36?1.58:Number(id)===37?1.40:1;
 }
 function poseGeometry(actor){
  var id=Number(actor&&actor.id),size=Math.max(.7,Math.min(1.8,Number(actor&&actor.size)||1));
