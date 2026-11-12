@@ -138,7 +138,7 @@ exhibit:()=>({active:aquariumFishingActive,preserve:aquariumPreserveReturn,
    document.documentElement.requestFullscreen=()=>Promise.reject(new Error('Portrait viewport QA'));
   });
   await page.setViewportSize({width:390,height:844});
-  await page.waitForFunction(()=>document.querySelector('.wrap').style.transform.includes('rotate(90deg)'));await page.click('#navBook');await ready();
+  await page.waitForFunction(()=>document.querySelector('.wrap').style.transform.includes('rotate(0deg)'));await page.click('#navBook');await ready();
   assert.equal(await page.locator('img[src]').evaluateAll(ims=>ims.every(im=>im.complete&&im.naturalWidth>0)),true);
   assert.deepEqual(errors,[]);
   console.log('PASS browser: delayed stage holds simulation/input, automatic 503 recovery with hidden button, all thumbnails ready, aquarium/gear, 12 habitats, portrait layout');

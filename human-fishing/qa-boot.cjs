@@ -1,13 +1,17 @@
 'use strict';
 const {readFileSync}=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const source=readFileSync(__dirname+'/boot.js','utf8');
-function fixture(width,height){
+function fixture(width,height,mobile=false){
  const nodes={};const events={};
  function el(id){return nodes[id]??={style:{},hidden:false,disabled:false,removeAttribute(){},addEventListener(k,fn){events[id+k]=fn;}};}
  class Image {constructor(){this.src='';this.complete=false;this.naturalWidth=0;}getAttribute(){return this.src;}decode(){return Promise.resolve();}}
  const timers=[],document={querySelector:()=>el('root'),getElementById:el,addEventListener(){},documentElement:{requestFullscreen:()=>Promise.reject(new Error('gesture required'))},fonts:{ready:Promise.resolve()}};
- const window={Image,innerWidth:width,innerHeight:height,addEventListener(){}};
- vm.runInNewContext(source,{window,document,screen:{orientation:{lock:()=>Promise.reject()}},location:{reload(){}},Date,WeakMap,clearTimeout(){},setTimeout:fn=>timers.push(fn)});
+ const navigator={
+  userAgent:mobile?'Mozilla/5.0 (Linux; Android 16; Pixel) Mobile':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/132',
+  userAgentData:{mobile},maxTouchPoints:mobile?5:0
+ };
+ const window={Image,innerWidth:width,innerHeight:height,navigator,addEventListener(){}};
+ vm.runInNewContext(source,{window,document,navigator,screen:{orientation:{lock:()=>Promise.reject()}},location:{reload(){}},Date,WeakMap,clearTimeout(){},setTimeout:fn=>timers.push(fn)});
  return {window,nodes,timers};
 }
 async function flush(){for(let i=0;i<36;i++)await Promise.resolve();}
@@ -35,7 +39,9 @@ async function flush(){for(let i=0;i<36;i++)await Promise.resolve();}
  assert.equal(audioGate.nodes.bootStart.hidden,false,'START appears after audio is decoded');
  audioGate.nodes.bootStart.onclick();await flush();
  assert.equal(readyStarts,1,'Audio-ready start must only run once');
- const b=fixture(390,844);assert.match(b.nodes.root.style.transform,/rotate\(90deg\)/);
+ const pcPortrait=fixture(390,844);
+ assert.match(pcPortrait.nodes.root.style.transform,/rotate\(0deg\)/,'Desktop portrait must not rotate');
+ const b=fixture(390,844,true);assert.match(b.nodes.root.style.transform,/rotate\(90deg\)/);
  const p=b.window.HumanFishingBoot.point({clientX:195,clientY:422},{getBoundingClientRect:()=>({top:0,right:390,width:390,height:844})},1280,720);
  assert.equal(p.x,640);assert.equal(p.y,360);
  const c=fixture(844,390);assert.match(c.nodes.root.style.transform,/rotate\(0deg\)/);
