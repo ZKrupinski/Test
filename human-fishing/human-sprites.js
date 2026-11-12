@@ -198,13 +198,17 @@ var HUMAN_WORLD_RENDER_BOOST=1.295; // shared approved base scale
 // than the new swim designs (24-34). Normalize ONLY live-world scale.
 // Codex/catch portraits are unaffected; no PNG bytes are changed.
 var ORIGINAL_HUMAN_WORLD_SCALE=.72;
-var BABY_HUMAN_WORLD_SCALE=.70; // relative to current world size
+// Restore the baby's face readability after the 0.70 reduction.
+// ID 0-23: original baby-boy design; ID 24-34: newer baby-girl designs.
+// Sister IDs 35-37 keep their current world scale and approved PNGs.
+var BABY_BOY_WORLD_SCALE=.90;  // 28.6% larger than the previous .70
+var BABY_GIRL_WORLD_SCALE=.84; // 20% larger than the previous .70
 function humanDesignWorldScale(id){
  var n=Number(id);
  if(!Number.isInteger(n)||n<0)return 1;
- if(n<24)return ORIGINAL_HUMAN_WORLD_SCALE*BABY_HUMAN_WORLD_SCALE;
- if(n<35)return BABY_HUMAN_WORLD_SCALE;
- return 1; // sisters retain their own size
+ if(n<24)return ORIGINAL_HUMAN_WORLD_SCALE*BABY_BOY_WORLD_SCALE;
+ if(n<35)return BABY_GIRL_WORLD_SCALE;
+ return 1; // sister sizes stay unchanged
 }
 function sisterWorldScale(id){
  return Number(id)===35?1.66:Number(id)===36?1.50:Number(id)===37?1.44:1;
