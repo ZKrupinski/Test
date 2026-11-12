@@ -19,6 +19,7 @@ const c={
  Math:math,W:1280,WATER_SURFACE_Y:293,clamp,rnd,time:12,
  view:'tank',zone:0,save:{humanPlaced:['8','21','3','24'],owned:Object.fromEntries(species.map(sp=>[sp.id,1]))},
  humans:Array.from({length:38},(_,i)=>'Human '+i),fish:[],hum:[],
+ isActiveHumanId(id){return typeof c.humans[Number(id)]==='string';},
  species,hook:null,feverFx:null,cast:{active:false},introEntrance:{active:true},
  aquariumFishActors:[],aquariumFishSignature:'',aquariumLastTime:0,
  aquariumHumanActors:[],aquariumHumanLastTime:0,aquariumExhibitTarget:10,
