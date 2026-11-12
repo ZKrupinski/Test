@@ -103,15 +103,20 @@ exhibit:()=>({active:aquariumFishingActive,preserve:aquariumPreserveReturn,
    },{},{timeout:10000});
    await page.waitForTimeout(150);
    const v=await page.evaluate(()=>window.__sceneQA.exhibit());
+   // The exhibit deliberately brings replacement fish in from just beyond
+   // a screen edge. Do not flag a brief offscreen entrance as broken movement.
    assert(v.fish.every(a=>Number.isFinite(a.x)&&Number.isFinite(a.y)&&
-    a.x>=80&&a.x<=1200&&a.y>=330&&a.y<=635),
-    label+' fish must be spread inside the water, not outside either edge');
+    a.x>=-200&&a.x<=1480&&a.y>=330&&a.y<=635),
+    label+' fish must stay in finite water lanes, including edge-entry paths');
+   const visibleFish=v.fish.filter(a=>a.x>=80&&a.x<=1200);
+   assert(visibleFish.length>=6,
+    label+' at least six fish must be visible while newcomers swim in');
    assert(v.humans.every(a=>Number.isFinite(a.x)&&Number.isFinite(a.y)&&
     a.x>=90&&a.x<=1190&&Number.isFinite(a.laneX)&&
     Number.isFinite(a.laneY)&&Number.isFinite(a.anim)),
     label+' human swim animation or exhibit lane must never become NaN');
-   assert(new Set(v.fish.map(a=>Math.floor(a.x/200))).size>=3,
-    label+' multiple fish may not all cluster on one side');
+   assert(new Set(visibleFish.map(a=>Math.floor(a.x/200))).size>=3,
+    label+' visible fish may not all cluster on one side');
   };
   for(const destination of ['navBook','navShop','navGear']){
    await page.click('#navTank');await ready();await assertTank('before '+destination);
