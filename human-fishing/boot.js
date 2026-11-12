@@ -9,10 +9,14 @@
  var root=document.querySelector('.wrap'), overlay=document.getElementById('bootOverlay');
  var status=document.getElementById('bootStatus'), button=document.getElementById('bootStart');
  var progress=document.getElementById('bootProgress');
+ var menuShownAt=0;
  function showLoading(){
   // A scene transition must never inherit the ready-to-start button artwork.
   overlay.classList.remove('title-ready');
   overlay.classList.add('title-loading');
+  // Startup title is separate; only game menu transitions use the painted album.
+  if(started)overlay.classList.add('menu-loading');
+  else overlay.classList.remove('menu-loading');
   button.hidden=true;button.disabled=true;
   progress.value=0;
  }
@@ -185,11 +189,17 @@
   progress.value=1;
   if(started){
    busy=false;
-   // Let the paused game render its destination before uncovering the canvas.
-   requestAnimationFrame(function(){requestAnimationFrame(function(){
+   // A brief viewing time lets each artwork register during fast cached menu
+   // changes; unlike resource loading, the actual progress bar is not faked.
+   var hold=window.HumanFishingMenuLoading?Math.max(0,420-(Date.now()-menuShownAt)):0;
+   setTimeout(function(){
     if(token!==generation||busy)return;
-    overlay.hidden=true;root.removeAttribute('aria-busy');
-   });});
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+     if(token!==generation||busy)return;
+     overlay.hidden=true;overlay.classList.remove('menu-loading');
+     root.removeAttribute('aria-busy');
+    });});
+   },hold);
    return;
   }
   button.textContent='터치 · A / START로 시작';button.hidden=false;button.disabled=false;
@@ -205,6 +215,8 @@
   if(depth)return callback();
   busy=true;overlay.hidden=false;root.setAttribute('aria-busy','true');
   showLoading();status.textContent='로딩 중 · 0%';
+  menuShownAt=Date.now();
+  if(window.HumanFishingMenuLoading)window.HumanFishingMenuLoading.next();
   depth++;
   try{return callback();}
   finally{
@@ -232,7 +244,9 @@
  },true);
  function start(){
   if(started)return;
-  started=true;fullscreen();overlay.hidden=true;overlay.classList.remove('title-ready');root.removeAttribute('inert');
+  started=true;fullscreen();overlay.hidden=true;
+  overlay.classList.remove('title-ready');overlay.classList.remove('menu-loading');
+  root.removeAttribute('inert');
   if(window.HumanFishingAmbient)window.HumanFishingAmbient.unlock();
   onStart();
  }

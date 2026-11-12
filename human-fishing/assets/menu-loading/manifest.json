@@ -1,0 +1,82 @@
+[
+  {
+    "path": "menu_01_treasure.webp",
+    "bytes": 748432,
+    "sha256": "209700f1204de571268f618641e7375550a59d2f09b9380bb35fe0f75aa7d4ed",
+    "git_sha1": "72767ea61ab11425d9f2c1dc0e1ff9a808b935ca",
+    "resolution": [
+      1672,
+      941
+    ]
+  },
+  {
+    "path": "menu_02_raft_pursuit.webp",
+    "bytes": 576040,
+    "sha256": "9ccdd789231fd542adc9af7d0f9a832a5dc298a548d3d3d59242325b34dd52f5",
+    "git_sha1": "4140dcc26b348459b7e1b1eda5d5d1ac54a9205c",
+    "resolution": [
+      1672,
+      941
+    ]
+  },
+  {
+    "path": "menu_03_pirate_crew.webp",
+    "bytes": 637024,
+    "sha256": "23019136c86914698455b0c773baac4c4b11c45b8c3b36790036263fb1528209",
+    "git_sha1": "a6c530f82527f49939cc7bfe1f71c4e8589c8214",
+    "resolution": [
+      1672,
+      941
+    ]
+  },
+  {
+    "path": "menu_04_shark_encounter.webp",
+    "bytes": 574974,
+    "sha256": "8994d036133002a30f369b4b39b6a6435e2a2a512fb2d2971af2ae69888df8af",
+    "git_sha1": "194a95a577df0bdb6c7d567cce2f86aa8ac54490",
+    "resolution": [
+      1672,
+      940
+    ]
+  },
+  {
+    "path": "menu_05_seaside_market.webp",
+    "bytes": 504032,
+    "sha256": "7cef9b49a0819e8ec7f641d8daf609c819e98e2ef20fd14232024edc9b7466c0",
+    "git_sha1": "79aeefe3e3e22ca1e842e8f68fe07903d84244cd",
+    "resolution": [
+      1672,
+      941
+    ]
+  },
+  {
+    "path": "menu_loading_fill.webp",
+    "bytes": 132566,
+    "sha256": "4d734660691caf230f9a9b4427aaef9ff0ce65cd3f9245114cd3b755550159aa",
+    "git_sha1": "d03971f1f3cf40b5878114bf0cec1ad0de293329",
+    "resolution": [
+      2133,
+      232
+    ]
+  },
+  {
+    "path": "menu_loading_frame.webp",
+    "bytes": 72692,
+    "sha256": "da1ad8412463ec5709b73dea7d7d230c1de033ab252d45472a3baf845ae338cd",
+    "git_sha1": "3af586f227a15db049aac97daab103528fcaa4c0",
+    "resolution": [
+      2025,
+      271
+    ]
+  },
+  {
+    "path": "menu_loading_label.webp",
+    "bytes": 193298,
+    "sha256": "73cf61d841e7bdf16ecd9784204587241e2053a462de4a71a082f012b9e30901",
+    "git_sha1": "6d8b352a6a07f8ff023bcc219cd1e65b75e32a08",
+    "resolution": [
+      1802,
+      237
+    ]
+  }
+]
