@@ -28,7 +28,7 @@ assert(index.indexOf('sisters-ready.js?v=20261112-sisters-v1')<
 assert(index.includes("humans.push('토끼 작은언니','상어 큰언니','고양이 큰언니')"),
  'The 3 sisters must appear only when ready');
 assert(renderer.includes("sisterWorldScale(id)"),'Sister world-size helper is required');
-assert(renderer.includes("Number(id)===36?'20261112-baby70-shark150-v7'"),'Shark art must have independent cache key');
+assert(renderer.includes("Number(id)===36?'20261112-shark-original-v6'"),'Shark art must keep its independent PNG cache key');
 assert(renderer.includes("Number(id)===36?1.50:Number(id)===37?1.44"),'Shark grows while cat stays unchanged');
 assert(renderer.includes("if(newSwim&&Number(actor.id)===36)scale*=1/.93;"),
  'Shark transparent guard must be display-compensated without modifying hitbox');
