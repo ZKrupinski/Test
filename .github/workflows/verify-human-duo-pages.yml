@@ -1,0 +1,47 @@
+name: Verify new diver and devil live Pages sprites
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-human-duo-pages.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-published-art:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compare public GitHub Pages PNG bytes with approved SHA-256
+        run: |
+          python3 - <<'PY'
+          import hashlib,urllib.request,time
+          root='https://zkrupinski.github.io/Test/human-fishing/'
+          artwork={
+            'assets/humans/baby_swim_diver_new_8f.png':'6cfca77522c9fc7eead46e4a332a9a3a8da7e715834b7d5331c9f2154a149417',
+            'assets/humans/baby_swim_devil_new_8f.png':'59c1cc06e6a65c432b19d35cc5029c3e22a8b840cebd60964540cb1881e8b2c8',
+          }
+          for attempt in range(16):
+            try:
+              for name,sha in artwork.items():
+                with urllib.request.urlopen(root+name+'?v=20261112-duo-diver-devil-v1',timeout=30) as response:
+                  raw=response.read()
+                got=hashlib.sha256(raw).hexdigest()
+                assert got==sha,(name,got,sha)
+                print('VERIFIED',name,len(raw),'bytes sha256=',got)
+              with urllib.request.urlopen(root+'assets/humans/extra-babies-ready.js?v=20261112-duo-diver-devil-v1',timeout=30) as response:
+                ready=response.read().decode('utf-8')
+              assert ready.strip()=='window.HumanFishingExtraBabiesReady=true;',ready
+              with urllib.request.urlopen(root+'human-sprites.js?v=20261112-duo-diver-devil-v1',timeout=30) as response:
+                js=response.read().decode('utf-8')
+              assert "swimVariantById['38']='diver_new'" in js
+              assert "swimVariantById['39']='devil_new'" in js
+              with urllib.request.urlopen(root+'index.html?v=20261112-duo-diver-devil-v1',timeout=30) as response:
+                html=response.read().decode('utf-8')
+              assert "humans.push('다이버','악마')" in html
+              print('PASS: live Pages sprites bit-identical, ready flag and game integration verified')
+              break
+            except Exception as e:
+              if attempt==15:raise
+              print('Waiting for Pages to publish the verified build:',str(e))
+              time.sleep(12)
+          PY
