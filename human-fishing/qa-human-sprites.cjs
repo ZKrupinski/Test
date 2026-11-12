@@ -8,7 +8,7 @@ const root=__dirname;
 const base=path.join(root,'assets','humans');
 const ready=fs.readFileSync(path.join(base,'ready.js'),'utf8');
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
-assert(index.includes('human-sprites.js?v=20261112-sleepy-96-v9'));
+assert(index.includes('human-sprites.js?v=20261112-shark158-v10'));
 assert(index.includes('assets/humans/ready.js?v=20261110-baby-v1'));
 const renderer=fs.readFileSync(path.join(root,'human-sprites.js'),'utf8');
 new Function(renderer);
@@ -23,13 +23,13 @@ assert(index.includes('pointer-events:none;touch-action:pan-y;user-select:none')
 assert(index.includes('overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y'),
  'Codex panel must support native vertical touch panning');
 assert(index.indexOf('sisters-ready.js?v=20261112-sisters-v1')<
- index.indexOf('human-sprites.js?v=20261112-sleepy-96-v9'),
+ index.indexOf('human-sprites.js?v=20261112-shark158-v10'),
  'Sister ready flag must load before sprite module');
 assert(index.includes("humans.push('토끼 작은언니','상어 큰언니','고양이 큰언니')"),
  'The 3 sisters must appear only when ready');
 assert(renderer.includes("sisterWorldScale(id)"),'Sister world-size helper is required');
 assert(renderer.includes("Number(id)===36?'20261112-shark-original-v6'"),'Shark art must keep its independent PNG cache key');
-assert(renderer.includes("Number(id)===36?1.50:Number(id)===37?1.44"),'Shark grows while cat stays unchanged');
+assert(renderer.includes("Number(id)===36?1.58:Number(id)===37?1.44"),'Shark size grows to 1.58 while rabbit and cat stay unchanged');
 assert(renderer.includes("if(newSwim&&Number(actor.id)===36)scale*=1/.93;"),
  'Shark transparent guard must be display-compensated without modifying hitbox');
 
@@ -167,7 +167,8 @@ for(const id of [0,8,23,24,25,29,34]){
   'Baby '+id+' world collision and render geometry must scale with the bitmap');
 }
 assert(Math.abs(art.geometry({id:35,size:1}).width-362*.36*1.295*1.66)<1e-6);
-assert(Math.abs(art.geometry({id:36,size:1}).width-362*.36*1.295*1.50)<1e-6);
+assert(Math.abs(art.geometry({id:36,size:1}).width-362*.36*1.295*1.58)<1e-6);
+assert(Math.abs(art.geometry({id:36,size:1}).width / art.geometry({id:35,size:1}).width-1.58/1.66)<1e-6,'Shark growth must not alter sister scale relationships');
 assert(Math.abs(art.geometry({id:37,size:1}).width-362*.36*1.295*1.44)<1e-6);
 assert.equal(art.geometry({id:22,x:500,y:420,vx:40,size:1}).mouth.rx,8,
  'Boss human weakspot must be smaller');
