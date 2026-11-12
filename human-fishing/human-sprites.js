@@ -203,10 +203,12 @@ var ORIGINAL_HUMAN_WORLD_SCALE=.72;
 // Sister IDs 35-37 keep their current world scale and approved PNGs.
 var BABY_BOY_WORLD_SCALE=.90;  // 28.6% larger than the previous .70
 var BABY_GIRL_WORLD_SCALE=.84; // 20% larger than the previous .70
+var SLEEPY_GIRL_WORLD_SCALE=.96; // ID 24 only: reduce apparent size by 4%
 function humanDesignWorldScale(id){
  var n=Number(id);
  if(!Number.isInteger(n)||n<0)return 1;
  if(n<24)return ORIGINAL_HUMAN_WORLD_SCALE*BABY_BOY_WORLD_SCALE;
+ if(n===24)return BABY_GIRL_WORLD_SCALE*SLEEPY_GIRL_WORLD_SCALE;
  if(n<35)return BABY_GIRL_WORLD_SCALE;
  return 1; // sister sizes stay unchanged
 }

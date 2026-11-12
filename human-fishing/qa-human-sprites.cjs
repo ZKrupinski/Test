@@ -8,7 +8,7 @@ const root=__dirname;
 const base=path.join(root,'assets','humans');
 const ready=fs.readFileSync(path.join(base,'ready.js'),'utf8');
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
-assert(index.includes('human-sprites.js?v=20261112-babyface-b90-g84-v8'));
+assert(index.includes('human-sprites.js?v=20261112-sleepy-96-v9'));
 assert(index.includes('assets/humans/ready.js?v=20261110-baby-v1'));
 const renderer=fs.readFileSync(path.join(root,'human-sprites.js'),'utf8');
 new Function(renderer);
@@ -23,7 +23,7 @@ assert(index.includes('pointer-events:none;touch-action:pan-y;user-select:none')
 assert(index.includes('overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y'),
  'Codex panel must support native vertical touch panning');
 assert(index.indexOf('sisters-ready.js?v=20261112-sisters-v1')<
- index.indexOf('human-sprites.js?v=20261112-babyface-b90-g84-v8'),
+ index.indexOf('human-sprites.js?v=20261112-sleepy-96-v9'),
  'Sister ready flag must load before sprite module');
 assert(index.includes("humans.push('토끼 작은언니','상어 큰언니','고양이 큰언니')"),
  'The 3 sisters must appear only when ready');
@@ -47,6 +47,8 @@ assert(index.includes("var sisterRabbit=Number(id)===35&&!sourceIsOriginal"),
 
 assert(renderer.includes('var BABY_BOY_WORLD_SCALE=.90'),'Baby boys restored to 90% of prior original scale');
 assert(renderer.includes('var BABY_GIRL_WORLD_SCALE=.84'),'Baby girls restored to 84% of prior original scale');
+assert(renderer.includes('var SLEEPY_GIRL_WORLD_SCALE=.96'),'ID 24 sleepy only gets a four percent trim');
+assert(renderer.includes('if(n===24)return BABY_GIRL_WORLD_SCALE*SLEEPY_GIRL_WORLD_SCALE;'),'Sleepy size must not affect other female humans');
 assert(renderer.includes('var ORIGINAL_HUMAN_WORLD_SCALE=.72'),
  'Legacy design size normalization must be enabled');
 assert(renderer.includes('humanDesignWorldScale(id)*sisterWorldScale(id)'),
@@ -145,6 +147,9 @@ assert.doesNotMatch(index,/ctx\.ellipse\(sx,sy\+24,84,108/,'aquarium human ellip
 const pos=art.geometry({id:8,x:500,y:420,vx:40,size:1});
 const mirrored=art.geometry({id:8,x:500,y:420,vx:-40,size:1});
 const female=art.geometry({id:25,x:500,y:420,vx:40,size:1});
+const sleepy=art.geometry({id:24,x:500,y:420,vx:40,size:1});
+assert(Math.abs(sleepy.width/female.width-.96)<1e-6,
+ 'Sleepy world sprite and collision size must be exactly 96% of other baby girls');
 assert(Math.abs(female.width-362*.36*1.295*.84)<1e-6,
  'Baby girls should render at 84% of their pre-shrink world scale');
 assert(Math.abs(female.width/pos.width-.84/(.72*.90))<1e-6,
@@ -158,7 +163,7 @@ assert(pos.mouth.x>500&&pos.mouth.rx<=12&&pos.mouth.ry<=9,
 for(const id of [0,8,23,24,25,29,34]){
  const legacy=id<24?.72:1, boss=id>=20&&id<24?1.05:1;
  const g=art.geometry({id,size:1,x:500,y:420,vx:40});
- assert(Math.abs(g.width-362*.36*1.295*legacy*boss*(id<24?.90:.84))<1e-6,
+ assert(Math.abs(g.width-362*.36*1.295*legacy*boss*(id<24?.90:id===24?.84*.96:.84))<1e-6,
   'Baby '+id+' world collision and render geometry must scale with the bitmap');
 }
 assert(Math.abs(art.geometry({id:35,size:1}).width-362*.36*1.295*1.66)<1e-6);
@@ -166,7 +171,7 @@ assert(Math.abs(art.geometry({id:36,size:1}).width-362*.36*1.295*1.50)<1e-6);
 assert(Math.abs(art.geometry({id:37,size:1}).width-362*.36*1.295*1.44)<1e-6);
 assert.equal(art.geometry({id:22,x:500,y:420,vx:40,size:1}).mouth.rx,8,
  'Boss human weakspot must be smaller');
-console.log('PASS: baby boys enlarged by 28.6%, girls by 20% from prior; sisters and UI unchanged');
+console.log('PASS: sleepy girl alone 4% smaller, other baby girls and sister/UI sizes unchanged');
 
 assert.match(renderer,/var HUMAN_ANIMATION_SPEED=\.85/,'All human animations should play at 85% of their previous frame rate');
 assert.match(renderer,/\*HUMAN_ANIMATION_SPEED/,'Shared slowdown must affect all four actions');
