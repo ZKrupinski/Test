@@ -15,7 +15,9 @@ for(let i=0;i<11;i++){
  assert.equal(b.readUInt32BE(16),i?((original||digest===cleanHashes[keys[i]])?1774:1776):1448);assert.equal(b.readUInt32BE(20),i?((original||digest===cleanHashes[keys[i]])?887:888):1086);assert.equal(b[25],6);
 }
 assert(html.includes('humanExhibitIds()'));
-assert(html.includes("human-sprites.js?v=20261112-baby70-shark150-v7"));
+// Ensure an explicitly versioned human renderer is loaded; don't lock
+// this art QA to a dated script URL whenever world display size changes.
+assert.match(html,/<script src="\.\/human-sprites\.js\?v=[\w-]+"><\/script>/);
 assert(html.includes("function paintHumanUiThumb(canvas,crop,locked)"));
 assert(html.includes("randomNewHumanId()"));
 assert(html.includes("return 24+Math.floor(rnd(0,11));"),
