@@ -9,7 +9,10 @@
  var root=document.querySelector('.wrap'), overlay=document.getElementById('bootOverlay');
  var status=document.getElementById('bootStatus'), button=document.getElementById('bootStart');
  var progress=document.getElementById('bootProgress');
- var menuShownAt=0,menuImageBaseline=null;
+ var menuShownAt=0,menuImageBaseline=null,menuMinimumVisibleMs=550;
+ // Stage entries get a 2.5-second minimum illustration viewing time.
+ // Other menu changes retain the existing short hold. Startup is unchanged.
+ var STAGE_LOADING_MIN_MS=2500;
  function showMenuComposed(){
   var album=window.HumanFishingMenuLoading;
   if(!started||!album||!overlay.hidden||
@@ -213,7 +216,8 @@
    busy=false;
    // A brief viewing time lets each artwork register during fast cached menu
    // changes; unlike resource loading, the actual progress bar is not faked.
-   var hold=window.HumanFishingMenuLoading?Math.max(0,550-(Date.now()-menuShownAt)):0;
+   var hold=window.HumanFishingMenuLoading?
+    Math.max(0,menuMinimumVisibleMs-(Date.now()-menuShownAt)):0;
    var reveal=function(){
     if(token!==generation||busy)return;
     requestAnimationFrame(function(){requestAnimationFrame(function(){
@@ -235,12 +239,15 @@
   overlay.classList.add('title-ready');
   // Fullscreen/orientation lock are only requested after an explicit user gesture.
  }
- function guard(callback){
+ function guard(callback,loadingKind){
   if(!started)return callback();
   // Nested mode/panel changes belong to one transition. Ignore repeated input.
   if(busy&&!depth)return;
   if(depth)return callback();
   busy=true;
+  // Only selecting a habitat is a stage entry. Opening stage selection,
+  // the aquarium, book, gear, shop, etc. all keep the 550 ms menu minimum.
+  menuMinimumVisibleMs=loadingKind==='stage'?STAGE_LOADING_MIN_MS:550;
   // Until the selected background AND UI bitmaps are all drawable, keep
   // the previous scene frozen rather than showing blue/blank partial art.
   overlay.hidden=!!window.HumanFishingMenuLoading;

@@ -12,7 +12,8 @@ assert.match(html,/#bootOverlay\.menu-loading #bootTitleCanvas\{display:none\}/)
 assert.match(html,/#bootOverlay\.menu-loading #menuLoadingCanvas\{display:block\}/);
 assert.match(boot,/if\(started\)overlay\.classList\.add\('menu-loading'\)/);
 assert.match(boot,/window\.HumanFishingMenuLoading\.next\(\)/);
-assert.match(boot,/Math\.max\(0,550-\(Date\.now\(\)-menuShownAt\)\)/);
+assert.match(boot,/Math\.max\(0,menuMinimumVisibleMs-\(Date\.now\(\)-menuShownAt\)\)/);
+assert.match(boot,/menuMinimumVisibleMs=loadingKind==='stage'\?STAGE_LOADING_MIN_MS:550/);
 assert.match(boot,/menuImageBaseline\.get\(im\)!==source\(im\)/);
 assert.match(boot,/overlay\.hidden=!!window\.HumanFishingMenuLoading/);
 assert.match(boot,/album\.drawNow\(\);\s*menuShownAt=Date\.now\(\);\s*overlay\.hidden=false/);
