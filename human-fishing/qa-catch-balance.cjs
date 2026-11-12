@@ -39,6 +39,8 @@ for(const strength of [0,10,24]){
  const sister=sandbox.catchProbability({id:36},true,false);
  const boss=sandbox.catchProbability({id:22},true,false);
  assert(elite>sister&&sister>boss,'Human boss / sister / elite capture difficulty reversed');
+ assert(boss<catches[5],
+  'Boss human must remain harder than Mythic at the same equipment strength');
  sample[strength]={catches,elite,sister,boss};
 }
 for(const tier of [0,1,2,3,4,5]){

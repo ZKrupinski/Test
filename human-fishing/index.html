@@ -4265,11 +4265,11 @@ function catchProbability(target,isHuman,fever){
   // Apply a smoothly rising cap instead of a hard near-impossible gate.
   var focus=clamp((rod+bait)/48,0,1);
   lev=boss?65+(target.id-20)*2:22+Math.floor(target.id*1.4);
-  chance=boss?.06:sister?.08:.11;
+  chance=boss?.023:sister?.08:.11;
   cap=boss?.11+.23*focus:sister?.18+.34*focus:.26+.36*focus;
   penalty=boss?.00025:sister?.00029:.00026;
-  floor=boss?.02:sister?.035:.055;
-  boost*=boss?.60:sister?.73:.80;
+  floor=boss?.008:sister?.035:.055;
+  boost*=boss?.72:sister?.73:.80;
  }else{
   lev=Number(target.level)||1;
   var bases={COMMON:.93,NORMAL:.93,UNCOMMON:.72,RARE:.45,EPIC:.28,LEGEND:.17,MYTHIC:.09};
