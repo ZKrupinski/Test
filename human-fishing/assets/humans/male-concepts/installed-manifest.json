@@ -327,9 +327,9 @@
         2
       ],
       "sourceSha256": "861ce54d9c7a53b704e3fd8579aae19f8fe8eb6d5b2387ae0696ae9cfb24b2b9",
-      "sha256": "a434f4c79200360463c6e6c17325a5f5d5efe0585db708b866a5bc63e77bd4d8",
-      "pixelSha256": "2c24d537276c11725c9c029d41876473c25c7b3067483606a5f70f7918df229a",
-      "gitBlob": "590e1a2e194ba7af276afe46e0d6651cc0f8b1b1"
+      "sha256": "c57d77521bdbc4fcebd73a703a83003fe412f80d0b01a58771367268d98dd05e",
+      "pixelSha256": "f5d67df6e093a217c889633bd0017302825479faab9e008d33c63a534f9c9b7a",
+      "gitBlob": "da1ed2a4e194517466abc56d9fd56102bb54b95a"
     }
   ],
   "protectedIds": [
@@ -341,5 +341,13 @@
     18,
     22
   ],
-  "notes": "All 17 8-frame PNGs match approved decoded RGBA SHA-256 byte-for-byte; source images preserved until installation commit."
+  "notes": "All 17 8-frame PNGs match approved decoded RGBA SHA-256 byte-for-byte; source images preserved until installation commit.",
+  "patchHistory": [
+    {
+      "date": "2026-11-12",
+      "humanId": 23,
+      "operation": "Restore original opaque helmet, crest, cape and facial pixels lost in alpha cleanup across 8 frames; preserve transparent exterior; other 16 PNGs unchanged",
+      "repairedSha256": "c57d77521bdbc4fcebd73a703a83003fe412f80d0b01a58771367268d98dd05e"
+    }
+  ]
 }

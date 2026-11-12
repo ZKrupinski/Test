@@ -52,7 +52,8 @@ if(enabled){
   var variant=swimVariantById[id],img=new Image(); // Boot preloads this resource.
   img.decoding='async';
   img.src=maleSwimBoyById[id]?
-   './assets/humans/male-concepts/baby_swim_boy_'+maleSwimBoyById[id]+'_8f.png?v=20261112-male17-swim-v1':
+   './assets/humans/male-concepts/baby_swim_boy_'+maleSwimBoyById[id]+'_8f.png?v='+
+   (maleSwimBoyById[id]==='dragon_knight'?'20261112-dragon-alpha-repair-v2':'20261112-male17-swim-v1'):
    './assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)===36?'20261112-shark-original-v6':Number(id)>=35?'20261112-sisters-boundary-v4':Number(id)>=24?'20261111-human-swim11-alpha-v4':'20261111-human-swim4-v1');
   swimVariants[id]=img;
  });
@@ -240,9 +241,13 @@ function sisterWorldScale(id){
 // Only the 17 newly installed male swimming designs receive this world-space
 // readability adjustment. Preserve their original PNG bytes and 8-frame atlas.
 // IDs 0, 1, 5, 8, 17, 18, 22 and all girls/sisters remain unchanged.
-var NEW_MALE_SWIM_WORLD_SCALE=1.12;
+var NEW_MALE_SWIM_WORLD_SCALE=1.25;
+var NEW_MALE_FIXED_WORLD_SCALE=1.12;
 function maleBabyNewScale(id){
- return maleSwimBoyById[String(Number(id))]?NEW_MALE_SWIM_WORLD_SCALE:1;
+ var concept=maleSwimBoyById[String(Number(id))];
+ if(!concept)return 1;
+ // The engineer and astronaut already match the older baby's face scale.
+ return concept==='engineer'||concept==='astronaut'?NEW_MALE_FIXED_WORLD_SCALE:NEW_MALE_SWIM_WORLD_SCALE;
 }
 function poseGeometry(actor){
  var id=Number(actor&&actor.id),size=Math.max(.7,Math.min(1.8,Number(actor&&actor.size)||1));
