@@ -1,0 +1,51 @@
+name: Audit 17 male baby sprite alpha masks
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/audit-male-baby-alpha.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install image QA libraries
+        run: python3 -m pip install --quiet Pillow numpy scipy
+      - name: Compare every pixel against unmodified stage originals
+        run: |
+          python3 - <<'PY'
+          import json, subprocess, io
+          from pathlib import Path
+          from PIL import Image
+          import numpy as np
+          from scipy import ndimage as ndi
+          root=Path('human-fishing/assets/humans/male-concepts')
+          manifest=json.loads((root/'installed-manifest.json').read_text())
+          baseline='b29b280f570d0f1fdf8b258f122c7149b9c7f9e6'
+          for entry in manifest['actors']:
+            key=entry['key']; clean=np.asarray(Image.open(root/('baby_swim_boy_'+key+'_8f.png')).convert('RGBA'))
+            source=subprocess.check_output(['git','show',f'{baseline}:human-fishing/assets/humans/male-staging/{key}.png'])
+            original=np.asarray(Image.open(io.BytesIO(source)).convert('RGBA'))
+            assert clean.shape==original.shape==(887,1774,4)
+            frame_results=[]
+            for f in range(8):
+              x0=round(f%4*1774/4);x1=round((f%4+1)*1774/4)
+              y0=round(f//4*887/2);y1=round((f//4+1)*887/2)
+              c=clean[y0:y1,x0:x1];o=original[y0:y1,x0:x1]
+              fg=c[:,:,3]>50; holes=ndi.binary_fill_holes(fg)&~fg
+              comps,n=ndi.label(holes)
+              areas=np.bincount(comps.ravel())[1:]
+              small=int(areas[areas<=2000].sum())
+              medium=int(areas[(areas>2000)&(areas<=20000)].sum())
+              large=int(areas[areas>20000].sum())
+              erased=(o[:,:,3]>32)&(c[:,:,3]<4)
+              inside_rgb=o[:,:,:3][holes]
+              gap=ndi.binary_fill_holes(ndi.binary_closing(fg,iterations=3))&~fg
+              frame_results.append(dict(f=f,erased=int(erased.sum()),holePixels=int(holes.sum()),holeCount=n,small=small,medium=medium,large=large,nearHole=int(gap.sum()),sourceWhite=float(np.mean(np.min(inside_rgb,axis=1)>210)) if len(inside_rgb) else None,sourceOpaque=int(np.count_nonzero(o[:,:,3][holes]>200)),topAreas=sorted(areas.tolist(),reverse=True)[:5]))
+            print(json.dumps(dict(id=entry['id'],key=key,frames=frame_results),separators=(',',':')))
+          PY
