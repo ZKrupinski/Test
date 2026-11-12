@@ -1397,6 +1397,15 @@ function paintHumanCodexThumbs(){
  });
 }
 // HUMAN_UI_THUMBS_END
+// Codex-only display ordering; character IDs, unlocks, art and aquarium
+// placement remain unchanged. Shark sister (샤린, ID 36) is the final human.
+function humanCodexDisplayOrder(){
+ return humans.map(function(n,id){return{id:id,name:n}}).sort(function(a,b){
+  if(a.id===36)return 1;
+  if(b.id===36)return -1;
+  return a.id-b.id;
+ });
+}
 function renderBook(filter,query){
  filter=filter===undefined?-3:Number(filter);query=query||'';
  var catalogueSpecies=species.filter(function(sp){return !sp.archivedVisualDuplicate});
@@ -1409,7 +1418,7 @@ function renderBook(filter,query){
  '<option value="-5" '+(filter===-5?'selected':'')+'>✨ 특수 생물 · '+catalogueSpecies.filter(function(sp){return sp.specialCreature}).length+'종</option>'+
  habitats.map(function(n,i){return '<option value="'+i+'" '+(filter===i?'selected':'')+'>'+escapeHtml(n)+'</option>'}).join('')+'</select></div>';
  var visibleFish=sortFishForCodexByRegion(filter===-3||filter===-1||filter===-4||filter===-5||filter>=0?catalogueSpecies.filter(function(x){return filter===-5?!!x.specialCreature:filter===-4?!!(x.artVariant||x.expansionSpecies):filter===-1?!x.specialCreature:filter<0||x.habitat===filter}):[]);
- var visibleHuman=filter===-3||filter===-2?humans.map(function(n,id){return{id:id,name:n}}):[];
+ var visibleHuman=filter===-3||filter===-2?humanCodexDisplayOrder():[];
  var cards='<div class="cards book-cards">'+visibleHuman.map(function(a){
   var id=String(a.id),n=humanOwnedForDisplay(id),tier=humanTier(a.id);
   var name=n?escapeHtml(a.name):'???',detail=n?tier+' · 보유 '+n:'H'+String(a.id+1).padStart(3,'0')+' · 미발견';

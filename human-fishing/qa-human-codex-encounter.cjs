@@ -28,5 +28,26 @@ for(const [re,description] of [
  [/eliteChance=\.018\+p\*\.00040/,'slightly boosted normal spawn chance']
  ])assert.match(html,re,description);
 assert.doesNotMatch(html,/'<div class="face"'\+\(n\?/,'legacy emoji thumbnails');
+// The shark sister has stable save ID 36, but must be displayed LAST
+// after the cat sister ID 37 in both human-only and all-species codex.
+assert.match(html,/function humanCodexDisplayOrder\(\)/,
+ 'Dedicated, codex-only order must exist');
+assert.match(html,/filter===-3\|\|filter===-2\?humanCodexDisplayOrder\(\):\[\]/,
+ 'Human and combined codex filters must share the explicit order');
+const codexStart=script[1].indexOf('function humanCodexDisplayOrder(){');
+const codexEnd=script[1].indexOf('function renderBook(',codexStart);
+assert(codexStart>0&&codexEnd>codexStart,'Cannot extract codex ordering');
+const orderContext={humans:Array.from({length:38},(_,id)=>'human '+id)};
+orderContext.humans[35]='라비';
+orderContext.humans[36]='샤린';
+orderContext.humans[37]='미유';
+vm.createContext(orderContext);
+vm.runInContext(script[1].slice(codexStart,codexEnd),orderContext);
+const displayed=Array.from(orderContext.humanCodexDisplayOrder(),item=>item.id);
+assert.equal(displayed.length,38);
+assert.deepEqual(displayed,Array.from({length:36},(_,id)=>id).concat([37,36]),
+ 'Human codex must display original order, then 미유, then 샤린');
+assert.equal(orderContext.humanCodexDisplayOrder().at(-1).name,'샤린');
+assert.equal(orderContext.humans[36],'샤린','Shark save ID must not change');
 assert(fs.existsSync(path.join(root,'assets/humans/baby_swim_8f.png')),'original baby PNG missing');
 console.log('PASS: human thumbnail color/silhouette and flawless full-fever guaranteed arrival conditions');
