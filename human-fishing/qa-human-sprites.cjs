@@ -48,8 +48,8 @@ assert(index.includes("var sisterRabbit=Number(id)===35&&!sourceIsOriginal"),
 assert(renderer.includes('var BABY_HUMAN_WORLD_SCALE=.70'),'Baby world size must be 70%');
 assert(renderer.includes('var ORIGINAL_HUMAN_WORLD_SCALE=.72'),
  'Legacy design size normalization must be enabled');
-assert(renderer.includes('humanDesignWorldScale(actor&&actor.id)'),
- 'Hitbox and weakspot geometry must match resized visible actors');
+assert(renderer.includes('humanDesignWorldScale(id)*sisterWorldScale(id)'),
+ 'Hitbox and weakspot geometry must use the same world size factors as drawing');
 assert(renderer.includes('humanDesignWorldScale(actor.id)'),
  'Both live and aquarium drawing must use normalized size');
 assert(renderer.includes("function diverFrameAt(frame)"),'Diver RGBA halo cleanup must exist');
