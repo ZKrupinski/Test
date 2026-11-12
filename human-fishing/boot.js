@@ -192,14 +192,16 @@
    // A brief viewing time lets each artwork register during fast cached menu
    // changes; unlike resource loading, the actual progress bar is not faked.
    var hold=window.HumanFishingMenuLoading?Math.max(0,420-(Date.now()-menuShownAt)):0;
-   setTimeout(function(){
+   var reveal=function(){
     if(token!==generation||busy)return;
     requestAnimationFrame(function(){requestAnimationFrame(function(){
      if(token!==generation||busy)return;
      overlay.hidden=true;overlay.classList.remove('menu-loading');
      root.removeAttribute('aria-busy');
     });});
-   },hold);
+   };
+   if(hold>0)setTimeout(reveal,hold);
+   else reveal();
    return;
   }
   button.textContent='터치 · A / START로 시작';button.hidden=false;button.disabled=false;
