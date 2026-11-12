@@ -8,9 +8,16 @@
  window.Image=TrackedImage;
  var root=document.querySelector('.wrap'), overlay=document.getElementById('bootOverlay');
  var status=document.getElementById('bootStatus'), button=document.getElementById('bootStart');
+ function isActualMobile(){
+  var ua=(navigator.userAgent||'');
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) ||
+   (!!navigator.maxTouchPoints&&navigator.maxTouchPoints>1&&
+    !!window.matchMedia&&window.matchMedia('(pointer:coarse)').matches&&
+    Math.min(screen.width,screen.height)<=900);
+ }
  function fit(){
   var w=window.innerWidth,h=window.innerHeight;
-  rotated=h>w;
+  rotated=h>w&&isActualMobile();
   var scale=Math.min((rotated?h:w)/1536,(rotated?w:h)/864);
   root.style.transform='translate(-50%,-50%) rotate('+(rotated?90:0)+'deg) scale('+scale+')';
  }
@@ -22,7 +29,7 @@
    var el=document.documentElement,request=el.requestFullscreen||el.webkitRequestFullscreen;
    if(!document.fullscreenElement&&!document.webkitFullscreenElement&&request)await request.call(el);
   }catch(e){}
-  try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');}catch(e){}
+  try{if(isActualMobile()&&screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');}catch(e){}
   fit();
  }
  // Allow first START/A press to launch once preload is complete.
@@ -44,7 +51,7 @@
     }
    }catch(e){}
   }
-  if(pressed&&!startPadWasPressed&&!button.hidden&&!button.disabled){start();return;}
+  if(pressed&&!startPadWasPressed&&!button.hidden&&!button.disabled){requestStart();return;}
   startPadWasPressed=pressed;
   if(typeof requestAnimationFrame==='function')requestAnimationFrame(prestartGamepadFrame);
   else startPadPolling=false;
@@ -162,9 +169,9 @@
    return;
   }
   button.textContent='터치 · A / START로 시작';button.hidden=false;button.disabled=false;
-  button.onclick=start;enablePrestartGamepad();
-  await fullscreen();
-  if(document.fullscreenElement||document.webkitFullscreenElement)start();
+  button.onclick=requestStart;enablePrestartGamepad();
+  overlay.classList.add('title-ready');
+  // Fullscreen/orientation lock are only requested after an explicit user gesture.
  }
  function guard(callback){
   if(!started)return callback();
@@ -181,7 +188,23 @@
    Promise.resolve().then(ready);
   }
  }
- var onStart;
+ var onStart,startPending=false;
+ function requestStart(){
+  if(started||startPending||button.hidden||button.disabled)return;
+  startPending=true;button.disabled=true;
+  var finish=function(){if(started)return;startPending=false;start();};
+  if(window.HumanFishingTitle&&typeof window.HumanFishingTitle.press==='function')
+   window.HumanFishingTitle.press(finish);
+  else finish();
+ }
+ // Explicit first input starts the loaded game once; never eat START/A/ENTER.
+ document.addEventListener('keydown',function(e){
+  if(started||startPending||button.hidden||button.disabled||e.repeat||e.isComposing||
+     e.ctrlKey||e.metaKey||e.altKey)return;
+  if(['Enter',' ','ArrowDown','a','A'].includes(e.key)){
+   e.preventDefault();requestStart();
+  }
+ },true);
  function start(){
   if(started)return;
   started=true;fullscreen();overlay.hidden=true;root.removeAttribute('inert');
@@ -189,7 +212,7 @@
   onStart();
  }
  // Re-enter fullscreen on a later real gesture if the user has left it.
- root.addEventListener('pointerdown',function(){if(started)fullscreen();},{passive:true});
+ root.addEventListener('pointerdown',function(){if(started&&isActualMobile()&&!document.fullscreenElement)fullscreen();},{passive:true});
  // Cover mouse, touch and keyboard activation while assets are pending.
  ['click','pointerdown','pointerup','keydown'].forEach(function(type){
   document.addEventListener(type,function(event){
