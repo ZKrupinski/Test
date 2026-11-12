@@ -1,0 +1,345 @@
+{
+  "schema": "human-swim17-direct-installed-v1",
+  "version": "20261112-male17-swim-v1",
+  "maleOnly": true,
+  "count": 17,
+  "grid": [
+    4,
+    2
+  ],
+  "actors": [
+    {
+      "id": 2,
+      "name": "꼬마 보안관",
+      "key": "cowboy",
+      "file": "male-concepts/baby_swim_boy_cowboy_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "frames": 8,
+      "grid": [
+        4,
+        2
+      ],
+      "sourceSha256": "1ec0e99cd12a7c8a5b12daca562c4c9b18de9e5b8b947d7246122d99d589f032",
+      "sha256": "ad54b1b74194b3b493c9e5a061be9790feef4c1e863652f49ff02798d7a9ee30",
+      "pixelSha256": "cb664b008674385113c5b9a220d2ad65a3d402db9b18a71bfff53fc0cad2d56c",
+      "gitBlob": "b08f7c0ba61ded8e5ee680b4eb463e43833f98ef"
+    },
+    {
+      "id": 3,
+      "name": "꼬마 해적 선장",
+      "key": "pirate",
+      "file": "male-concepts/baby_swim_boy_pirate_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "frames": 8,
+      "grid": [
+        4,
+        2
+      ],
+      "sourceSha256": "98ee10c9981b3a6decb080a2919c81a5f039aa4df858edbda5278d59516d4057",
+      "sha256": "1a3690a341f9059ffcc5f87e6d3d07d73cc387a0656e9811fec19dd1a3ade801",
+      "pixelSha256": "0cdffdabc6f19c239551693f303c93e7d82f8f367818b226db09616b8c1bbb29",
+      "gitBlob": "3f56e133dacc5d37ce6e818a229586016f96ac7f"
+    },
+    {
+      "id": 4,
+      "name": "과학자",
+      "key": "scientist",
+      "file": "male-concepts/baby_swim_boy_scientist_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "frames": 8,
+      "grid": [
+        4,
+        2
+      ],
+      "sourceSha256": "9b077ad25bd59fd21b4add6114cf75c4a3910166522eec98a76af160d0653d06",
+      "sha256": "f411b4673784d35f6656303da91621216421906b0c57868e4ca2d3bb7d29d116",
+      "pixelSha256": "c88e62076028a16e6567c6ec7363b95f38d9ea02696b2e1caf1865adb08546c1",
+      "gitBlob": "01191f744341769634369262b45f9a4c25599903"
+    },
+    {
+      "id": 6,
+      "name": "황금 왕자",
+      "key": "prince",
+      "file": "male-concepts/baby_swim_boy_prince_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "frames": 8,
+      "grid": [
+        4,
+        2
+      ],
+      "sourceSha256": "f293dc3cede1542241f720f6433b02cf4cfb7059ec3b8d395791ae6529d3ec35",
+      "sha256": "f19a3161b211f4bf5c03059c0188ead7132b0791f13801a898f99a96b6a3a13a",
+      "pixelSha256": "2539b0d44b3c95743f96c62e32940efaacd62f21977b3b8f39535c29e8bc86d8",
+      "gitBlob": "3bd7b96deb1faafee331cc0945f99bf54a80f9d8"
+    },
+    {
+      "id": 7,
+      "name": "설원 탐험가",
+      "key": "winter",
+      "file": "male-concepts/baby_swim_boy_winter_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "frames": 8,
+      "grid": [
+        4,
+        2
+      ],
+      "sourceSha256": "4797153bf5bb30d1b55aa0566e666a7887fedb03cb7f47523b5a8d10babe3e53",
+      "sha256": "64a49699ddac7a72e948d5589e7072dc1213462f04bc4ba30118598a744adca6",
+      "pixelSha256": "ad089afdbcbac23a0839a186c1531365facb38b517755fe353678daa43cfd5c1",
+      "gitBlob": "bce425e017d7a03429e97742b85047e25bfe3db1"
+    },
+    {
+      "id": 9,
+      "name": "꼬마 탐정",
+      "key": "detective",
+      "file": "male-concepts/baby_swim_boy_detective_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "frames": 8,
+      "grid": [
+        4,
+        2
+      ],
+      "sourceSha256": "46d8fff9a5f902f66fc3253929b9fe5588ee72cab29eb23f75ded05d12138a95",
+      "sha256": "35fb469732c49ef46ae066517f1953927e0d7dc4853ae5a0d14cc2a67b19d547",
+      "pixelSha256": "8857f8b8a2a73f2da6ba514cdf423c7254413927a211696f61ca6716eecf27af",
+      "gitBlob": "4ebaba6b566c7e83b5a1a7abb8ec647b58b78e49"
+    },
+    {
+      "id": 10,
+      "name": "비행사",
+      "key": "aviator",
+      "file": "male-concepts/baby_swim_boy_aviator_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "frames": 8,
+      "grid": [
+        4,
+        2
+      ],
+      "sourceSha256": "3ad0ade6ac2fae01cc999cfa59a39413098bd76c99ba2f612f437b2ee19bb7b2",
+      "sha256": "b3e28a6efdb383ff75c47bca286217bba7f13a8bf75e49d4a719bdb8603abe1d",
+      "pixelSha256": "9887b123400bcea154408353ce3e66b747bca403df0f9f38013ce9e22c36551e",
+      "gitBlob": "675dc323d0f651a218fed90dc62bf95901c4b5a7"
+    },
+    {
+      "id": 11,
+      "name": "낚시왕",
+      "key": "fisherman",
+      "file": "male-concepts/baby_swim_boy_fisherman_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "frames": 8,
+      "grid": [
+        4,
+        2
+      ],
+      "sourceSha256": "15275ffc3cf468aa8278f93d5bf473088c0c77f1021cebe588379cff12a33f4a",
+      "sha256": "3e617597a6867c3fdc9809162e5c722bfc4cedf54df1bf49971d1fd497919c67",
+      "pixelSha256": "7786796dc92f2d52c9533f9cf01180ba08f80f9a7591f8d37482d8832c2a7732",
+      "gitBlob": "9383ddaea65e7f3304af0208b81b4b0e43c49e7a"
+    },
+    {
+      "id": 12,
+      "name": "마술사",
+      "key": "wizard",
+      "file": "male-concepts/baby_swim_boy_wizard_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "frames": 8,
+      "grid": [
+        4,
+        2
+      ],
+      "sourceSha256": "b6ab92582b8824db9c0bbc31985f06f5c79e090b6c320783c05f10a9d2886f89",
+      "sha256": "cb67ca0fe22ded9909e17462d9e880d7e3082c8530a5a1671a00662d5ee7ecd6",
+      "pixelSha256": "62ee7f1b8c97260cd008fff2b1fd5eda54f5f78fabf6d47ab406c10c0d19a5c5",
+      "gitBlob": "81f8bbbdcea831c2a231503429e47b0af8c12b7f"
+    },
+    {
+      "id": 13,
+      "name": "천사",
+      "key": "angel",
+      "file": "male-concepts/baby_swim_boy_angel_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "frames": 8,
+      "grid": [
+        4,
+        2
+      ],
+      "sourceSha256": "a3715ccdfa00d379d91a4ac7cd0cb448ca0953e04d96b9005192f7a4ce5f01a8",
+      "sha256": "1c3319ef0234682f0bf57e87dd9c6641ba196563a0fc74d62463d090319e1a0f",
+      "pixelSha256": "1b6f14f332acf1effb594f1162d2799a9ffa050c4183dd05dca80fbe64845a2d",
+      "gitBlob": "0768ae24cc202e3d692bc7a11e93799b54c1e9b0"
+    },
+    {
+      "id": 14,
+      "name": "학자",
+      "key": "scholar",
+      "file": "male-concepts/baby_swim_boy_scholar_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "frames": 8,
+      "grid": [
+        4,
+        2
+      ],
+      "sourceSha256": "78d4ed3c16dc39ea1aebdd8f17e3c982bafaa9227c868016ee16736a0413905d",
+      "sha256": "b3437a2c846df5144069a587f40911476cd03f865a8960141927f5ae7c81aec1",
+      "pixelSha256": "c57191b7cee962e07ee984272fe9b07ab6679dcbc9cc851bc85071617e301445",
+      "gitBlob": "3ab3ac1fc66d5b49bc82237a5b2c5ee6c4b016d0"
+    },
+    {
+      "id": 15,
+      "name": "무사",
+      "key": "samurai",
+      "file": "male-concepts/baby_swim_boy_samurai_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "frames": 8,
+      "grid": [
+        4,
+        2
+      ],
+      "sourceSha256": "43a907091b6d0bec0b93db3d8bba0954d2b5854769893178748770ef458871b7",
+      "sha256": "321a81cb56faa6271604b4cdb8cac5383836ae17c0057f66e5093c7cb59ecd16",
+      "pixelSha256": "0b6fff7b937724502a8d9425b157df50b6b75e5032b20af5b25aa4daf1d64b02",
+      "gitBlob": "00053d081b75659cd70df59586c484d88f8f7039"
+    },
+    {
+      "id": 16,
+      "name": "닌자",
+      "key": "ninja",
+      "file": "male-concepts/baby_swim_boy_ninja_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "frames": 8,
+      "grid": [
+        4,
+        2
+      ],
+      "sourceSha256": "90bfc82760bae45b92fba4847082bcdc5f51e599513ef390c198acccc3e4ca25",
+      "sha256": "fab52d3a4847ef4df0cc2a8f56a4b9e0b00c4b465a3f878f41d215aa12cb6b0c",
+      "pixelSha256": "a4ccd86aac0dca69f71d33ed0a75ff7bf2cfc056229f4396ecabead75e3d8ccd",
+      "gitBlob": "ed57c6196a15b06afdf348738586765b1b2d248f"
+    },
+    {
+      "id": 19,
+      "name": "부족 전사",
+      "key": "tribal",
+      "file": "male-concepts/baby_swim_boy_tribal_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "frames": 8,
+      "grid": [
+        4,
+        2
+      ],
+      "sourceSha256": "b33e9c9738a6d63e6d8c66231af74594a5c2e8f7b034c5c7d29e3d582f7f3228",
+      "sha256": "497f747574273fee6499bf73cffe754143421b587f53597eb2d6b40de096079f",
+      "pixelSha256": "c29ee15482b50937994022578a7defbd42e9927fcfb9d8b0e5309f1b7fd3ac4a",
+      "gitBlob": "66ba5a49dd50f59e560236e5ea5c9b56ee6346a3"
+    },
+    {
+      "id": 20,
+      "name": "기계공",
+      "key": "engineer",
+      "file": "male-concepts/baby_swim_boy_engineer_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "frames": 8,
+      "grid": [
+        4,
+        2
+      ],
+      "sourceSha256": "d6a4516002c4262350011fe8eb0695f294e77a02b9f611886c08c1bd1e92e4ce",
+      "sha256": "7c74eb12edbac1a1dd8d897a3c0e1cbb2498c9fb7bd8b149a7442cad3c69e2c4",
+      "pixelSha256": "6d9562d65cf268c73ea26d76c2a2b8b88fc3fe88f56e54d278dc6de28ca7324a",
+      "gitBlob": "6215756babb9542a6cb457416993b006e332cce3"
+    },
+    {
+      "id": 21,
+      "name": "우주 여행자",
+      "key": "astronaut",
+      "file": "male-concepts/baby_swim_boy_astronaut_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "frames": 8,
+      "grid": [
+        4,
+        2
+      ],
+      "sourceSha256": "1f8bfae581f7920bd5c2e41a06ae265b92473c2564bfcb0ce5186de6e2f88bb1",
+      "sha256": "30501cd892e329129aba29bb7273ef25826c671a2386655495a34f56c8516167",
+      "pixelSha256": "5f76dc7461abb379bc3180d6a4347a8fd61dae987a305fcfb14cf5f315494b03",
+      "gitBlob": "8829bb7f0bab51902c4233d0062532766924dfac"
+    },
+    {
+      "id": 23,
+      "name": "용기사",
+      "key": "dragon_knight",
+      "file": "male-concepts/baby_swim_boy_dragon_knight_8f.png",
+      "size": [
+        1774,
+        887
+      ],
+      "frames": 8,
+      "grid": [
+        4,
+        2
+      ],
+      "sourceSha256": "861ce54d9c7a53b704e3fd8579aae19f8fe8eb6d5b2387ae0696ae9cfb24b2b9",
+      "sha256": "a434f4c79200360463c6e6c17325a5f5d5efe0585db708b866a5bc63e77bd4d8",
+      "pixelSha256": "2c24d537276c11725c9c029d41876473c25c7b3067483606a5f70f7918df229a",
+      "gitBlob": "590e1a2e194ba7af276afe46e0d6651cc0f8b1b1"
+    }
+  ],
+  "protectedIds": [
+    0,
+    1,
+    5,
+    8,
+    17,
+    18,
+    22
+  ],
+  "notes": "All 17 8-frame PNGs match approved decoded RGBA SHA-256 byte-for-byte; source images preserved until installation commit."
+}

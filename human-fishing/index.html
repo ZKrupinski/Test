@@ -450,7 +450,8 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 <script src="./assets/octopus/octopus-sidekicks.js?v=9-clean-sprite-frames"></script>
 <script src="./assets/humans/ready.js?v=20261110-baby-v1"></script>
 <script src="./assets/humans/sisters-ready.js?v=20261112-sisters-v1"></script>
-<script src="./human-sprites.js?v=20261112-rabbit160-cat140-v11"></script>
+<script src="./assets/humans/male-concepts/ready.js?v=20261112-male17-swim-v1"></script>
+<script src="./human-sprites.js?v=20261112-male17-swim-v1"></script>
 <script src="./gamepad.js?v=20261110-g8plus-haptics-v2"></script>
 <script src="./foley.js?v=20261111-capture-gun-recordings-v1"></script>
 <script src="./ambient.js?v=20261110-ambient-preload-v3"></script>
@@ -473,7 +474,7 @@ var raw=[
 ];
 var habitats=[],species=[];
 raw.forEach(function(s,h){var z=s.split('|');habitats.push(z[0]);z[1].split(',').forEach(function(n,k){species.push({id:'F'+String(species.length+1).padStart(3,'0'),name:n,habitat:h,rarity:k>=18?'LEGEND':k>=14?'RARE':'NORMAL',index:k})})});
-var humans=['졸린 어부','수다쟁이 관광객','과자 부자','꼬마 해적 선장','과학자','용감한 탐험가','황금 상인','진주 사냥꾼','잠수부','보물 수집가','망원경 선장','낚시왕','마술사','음악가','화가','장군','모험가','공주','왕','심해 교수','기계공','우주 여행자','고고학자','전설의 낚시왕','졸린이','탐험가','과학자','해적','간호사','운동선수','아이돌','요리사','탐정','마법사','천사'];
+var humans=['기저귀 아기','수다쟁이 관광객','꼬마 보안관','꼬마 해적 선장','과학자','용감한 탐험가','황금 왕자','설원 탐험가','잠수부','꼬마 탐정','비행사','낚시왕','마술사','천사','학자','무사','닌자','공주','왕','부족 전사','기계공','우주 여행자','고고학자','용기사','졸린이','탐험가','과학자','해적','간호사','운동선수','아이돌','요리사','탐정','마법사','천사'];
 // Sisters exist only after all three reviewed transparent PNGs are installed.
 if(window.HumanFishingSisterSpritesReady===true)
  humans.push('라비','샤린','미유');
@@ -1336,11 +1337,12 @@ function humanUiThumbFrame(id){
  var img=art&&(typeof art.imageFor==='function'?art.imageFor(id,'swim'):art.images&&art.images.swim);
  if(!img)return null;
  var newer=Number(id)>=24;
+ var maleBoy=Number(id)<24&&img.naturalWidth===1774&&img.naturalHeight===887;
  // Revised sister source sheets 1774x887; use 444x444 UI frame crop.
- var sourceIsOriginal=newer&&Number(id)!==24&&img.naturalWidth===1774&&img.naturalHeight===887;
+ var sourceIsOriginal=(newer&&Number(id)!==24||maleBoy)&&img.naturalWidth===1774&&img.naturalHeight===887;
  var sisterRabbit=Number(id)===35&&!sourceIsOriginal;
- var fw=sisterRabbit?543:newer&&Number(id)!==24?444:362;
- var fh=sisterRabbit?362:newer&&Number(id)!==24?444:543;
+ var fw=maleBoy?444:sisterRabbit?543:newer&&Number(id)!==24?444:362;
+ var fh=maleBoy?444:sisterRabbit?362:newer&&Number(id)!==24?444:543;
  if(!img.complete||(!sourceIsOriginal&&(img.naturalWidth!==fw*4||img.naturalHeight!==fh*2))){
   if(!img.complete&&!img._humanUiThumbWaiting&&typeof img.addEventListener==='function'){
    img._humanUiThumbWaiting=true;
@@ -1378,7 +1380,7 @@ function humanUiThumbFrame(id){
  var pad=pirateUi?7:4;
  left=Math.max(0,left-pad);top=Math.max(0,top-pad);
  right=Math.min(fw-1,right+pad);bottom=Math.min(fh-1,bottom+pad);
- var crop={image:img,frame:frame,x:left,y:top,w:right-left+1,h:bottom-top+1,mirror:!newer};
+ var crop={image:img,frame:frame,x:left,y:top,w:right-left+1,h:bottom-top+1,mirror:!newer&&!maleBoy};
  humanUiThumbCache.set(img,crop);return crop;
 }
 function paintHumanUiThumb(canvas,crop,locked){

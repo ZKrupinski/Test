@@ -13,6 +13,26 @@ var images=Object.create(null);
 // Approved swim-only designs. Do not substitute base baby's other action art
 // until matching resist/taunt/hooked sprite sheets exist for each character.
 var swimVariantById={'1':'street','5':'explorer','8':'sporty','18':'vip','24':'sleepy','25':'explorer_new','26':'scientist','27':'pirate','28':'nurse','29':'athlete','30':'idol','31':'chef','32':'detective','33':'wizard','34':'angel'};
+var maleSwimBoyById=global.HumanFishingMaleBoysReady===true?{
+ '2':'cowboy',
+ '3':'pirate',
+ '4':'scientist',
+ '6':'prince',
+ '7':'winter',
+ '9':'detective',
+ '10':'aviator',
+ '11':'fisherman',
+ '12':'wizard',
+ '13':'angel',
+ '14':'scholar',
+ '15':'samurai',
+ '16':'ninja',
+ '19':'tribal',
+ '20':'engineer',
+ '21':'astronaut',
+ '23':'dragon_knight'
+}:Object.create(null);
+Object.keys(maleSwimBoyById).forEach(function(id){swimVariantById[id]='boy_'+maleSwimBoyById[id]});
 var sisterSpritesEnabled=global.HumanFishingSisterSpritesReady===true;
 // Asset-ready gate: never fetch absent sheets or show a different baby's art.
 if(sisterSpritesEnabled){
@@ -31,7 +51,9 @@ if(enabled){
  Object.keys(swimVariantById).forEach(function(id){
   var variant=swimVariantById[id],img=new Image(); // Boot preloads this resource.
   img.decoding='async';
-  img.src='./assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)===36?'20261112-shark-original-v6':Number(id)>=35?'20261112-sisters-boundary-v4':Number(id)>=24?'20261111-human-swim11-alpha-v4':'20261111-human-swim4-v1');
+  img.src=maleSwimBoyById[id]?
+   './assets/humans/male-concepts/baby_swim_boy_'+maleSwimBoyById[id]+'_8f.png?v=20261112-male17-swim-v1':
+   './assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)===36?'20261112-shark-original-v6':Number(id)>=35?'20261112-sisters-boundary-v4':Number(id)>=24?'20261111-human-swim11-alpha-v4':'20261111-human-swim4-v1');
   swimVariants[id]=img;
  });
 }
@@ -222,7 +244,7 @@ function poseGeometry(actor){
   humanDesignWorldScale(id)*sisterWorldScale(id);
  var facing=Number(actor&&(actor.vx||actor.dir)||1)<0?-1:1;
  var x=Number(actor&&actor.x)||0,y=Number(actor&&actor.y)||0;
- var width=362*scale,height=sister?width*(id===35?362/543:1):543*scale;
+ var width=362*scale,height=maleSwimBoyById[String(id)]?width:sister?width*(id===35?362/543:1):543*scale;
  // Each sister has a separate bitmap aspect ratio. The head leads left
  // in the approved sprites and mirrors to the right when vx is positive.
  // Fishing weakspot/contact geometry follows the actual displayed artwork.
@@ -238,9 +260,11 @@ function render(ctx,actor,now,action){
  // These four new variants ONLY have swim art. Keep their appearance
  // consistent in capture, resistance, escape and other animation states.
  var newSwim=swimVariants[String(Number(actor.id))]||null;
+ var maleBoy=!!maleSwimBoyById[String(Number(actor.id))];
  var mood=newSwim?'swim':paths[action]?action:'swim',img=newSwim||images[mood];
  var sheet=mood==='hooked'?{w:1776,h:888,fw:444,fh:444}:{w:1448,h:1086,fw:362,fh:543};
  if(newSwim&&actor.id>=25)sheet={w:1776,h:888,fw:444,fh:444};
+ if(maleBoy)sheet={w:1774,h:887,fw:443.5,fh:443.5};
  if(newSwim&&Number(actor.id)===35)sheet={w:2172,h:724,fw:543,fh:362};
  // Preserve user-provided source PNG bytes; original grids may be 1774x887.
  if(newSwim&&actor.id>=25&&img&&img.naturalWidth===1774&&img.naturalHeight===887)
@@ -259,7 +283,8 @@ function render(ctx,actor,now,action){
  // Never change actor.size or fishing hitbox/weakspot physics.
  var scale=(mood==='hooked'?.33:.36)*size*(actor.id>=20&&actor.id<24?1.05:1)*HUMAN_WORLD_RENDER_BOOST*
   humanDesignWorldScale(actor.id);
- if(newSwim&&actor.id>=25)scale*=362/fw; // match live image cell width, including updated rabbit
+ if(newSwim&&actor.id>=25)scale*=362/fw;
+ if(maleBoy)scale*=362/fw; // match live image cell width, including updated rabbit
  if(newSwim&&actor.id>=35)scale*=sisterWorldScale(actor.id);
  // Shark source was repacked to add a 3.5% transparent guard on all sides.
  // Counter-scale that guard only in rendering, preserving its prior visible
@@ -268,7 +293,7 @@ function render(ctx,actor,now,action){
  var facing=Number(actor.vx||actor.dir||1)<0?-1:1;
  ctx.save();
  ctx.translate(Number(actor.x)||0,Number(actor.y)||0);
- ctx.scale(newSwim&&actor.id>=24?-facing:facing,1);
+ ctx.scale(newSwim&&(actor.id>=24||maleBoy)?-facing:facing,1);
  var sx=Math.round(col*sheet.w/4),sy=Math.round(row*sheet.h/2);
  var sourceW=Math.round((col+1)*sheet.w/4)-sx,sourceH=Math.round((row+1)*sheet.h/2)-sy;
  var actorId=Number(actor.id);

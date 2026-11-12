@@ -8,7 +8,7 @@ const root=__dirname;
 const base=path.join(root,'assets','humans');
 const ready=fs.readFileSync(path.join(base,'ready.js'),'utf8');
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
-assert(index.includes('human-sprites.js?v=20261112-rabbit160-cat140-v11'));
+assert(index.includes('human-sprites.js?v=20261112-male17-swim-v1'));
 assert(index.includes('assets/humans/ready.js?v=20261110-baby-v1'));
 const renderer=fs.readFileSync(path.join(root,'human-sprites.js'),'utf8');
 new Function(renderer);
@@ -23,7 +23,7 @@ assert(index.includes('pointer-events:none;touch-action:pan-y;user-select:none')
 assert(index.includes('overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y'),
  'Codex panel must support native vertical touch panning');
 assert(index.indexOf('sisters-ready.js?v=20261112-sisters-v1')<
- index.indexOf('human-sprites.js?v=20261112-rabbit160-cat140-v11'),
+ index.indexOf('human-sprites.js?v=20261112-male17-swim-v1'),
  'Sister ready flag must load before sprite module');
 assert(index.includes("humans.push('라비','샤린','미유')"),
  'Named characters 라비 (rabbit 35), 샤린 (shark 36), 미유 (cat 37) must only appear when ready');
@@ -141,7 +141,7 @@ for(const [id,{name}] of Object.entries(variants)){
  assert(art.imageFor(Number(id),'hooked').src.includes('baby_swim_'+name+'_8f.png'),
   'Unfinished action sprite must not change the human appearance');
 }
-assert(art.imageFor(2,'hooked').src.includes('baby_hooked_8f.png'),
+assert(art.imageFor(0,'hooked').src.includes('baby_hooked_8f.png'),
  'Other humans must keep existing original action sheets');
 const captures=[],context={
  save(){},restore(){},translate(){},scale(){},
