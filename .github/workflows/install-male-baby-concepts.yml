@@ -1,0 +1,207 @@
+name: Install 18 male baby keyframe concepts (preserve approved originals)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'human-fishing/male-baby-concepts-18-import.zip'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: human-fishing-male-concepts-install
+  cancel-in-progress: false
+
+jobs:
+  install-male-concepts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Verify transparent originals and install male-only keyframes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, json, io, hashlib, zipfile, struct, os
+          root=Path('human-fishing')
+          zp=root/'male-baby-concepts-18-import.zip'
+          assert zp.exists(), 'Upload ZIP through the project uploader first'
+          expected_zip='d7327dd885ba3e0731d5ce8984cb116365314b19408da7c479315bf0490b988d'
+          assert hashlib.sha256(zp.read_bytes()).hexdigest()==expected_zip, 'Wrong ZIP/version'
+          expected_ids=[2,3,4,6,7,9,10,11,12,13,14,15,16,19,20,21,22,23]
+          preserved=[1,5,8,17,18]
+          with zipfile.ZipFile(zp) as z:
+            assert z.testzip() is None, 'Corrupt archive'
+            assert 'manifest.json' in z.namelist()
+            manifest=json.loads(z.read('manifest.json'))
+            rows=manifest['newConcepts']
+            assert manifest['maleOnly'] is True and manifest['count']==18
+            assert [int(r['id']) for r in rows]==expected_ids
+            assert len({r['name'] for r in rows})==18
+            expected_files={'manifest.json'} | {r['file'] for r in rows}
+            assert set(z.namelist())==expected_files, 'Unexpected/missing PNG'
+            for row in rows:
+              path=row['file']
+              assert path.startswith('male-concepts/male_') and '..' not in path and '\\' not in path
+              png=z.read(path)
+              assert len(png)==row['bytes']
+              assert hashlib.sha256(png).hexdigest()==row['sha256']
+              assert png[:8]==b'\x89PNG\r\n\x1a\n'
+              assert struct.unpack('>II',png[16:24])==(444,444)
+              assert png[25]==6, 'RGBA PNG required'
+              assert len(png)>10000, 'Missing art'
+              dest=root/'assets/humans'/path
+              assert not dest.exists(), 'Never silently overwrite an approved bitmap '+str(dest)
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              dest.write_bytes(png)
+          (root/'assets/humans/male-concepts/ready.js').write_text(
+              'window.HumanFishingMaleConceptsReady=true;\n',encoding='utf-8')
+          def patch_once(text,old,new,label):
+            num=text.count(old)
+            assert num==1, 'Source drift at '+label+': found '+str(num)
+            return text.replace(old,new,1)
+          html_path=root/'index.html'
+          sprite_path=root/'human-sprites.js'
+          qa_path=root/'qa-human-sprites.cjs'
+          html=html_path.read_text('utf-8')
+          sprite=sprite_path.read_text('utf-8')
+          qa=qa_path.read_text('utf-8')
+          # Replace ONLY the original male diaper placeholders: never touch
+          # the single base diaper (0), approved boys (1,5,8,18), princess
+          # slot 17, or any of the 24-37 female/sister characters.
+          m=re.search(r'var humans=\[([^\]]*)\];',html)
+          assert m, 'Human list missing'
+          names=re.findall(r"'([^']+)'",m.group(1))
+          assert len(names)==35, 'Human base ID count changed'
+          original_names=names.copy()
+          for row in rows:
+            names[row['id']]=row['name']
+          names[0]='기저귀 아기' # keep the one approved diaper image, give it a matching label
+          for id in preserved:
+            assert names[id]==original_names[id]
+          assert names[24:]==original_names[24:]
+          html=patch_once(html,m.group(0),'var humans=['+
+                ','.join("'"+n+"'" for n in names)+'];','human names by ID')
+          old_script='<script src="./human-sprites.js?v=20261112-rabbit160-cat140-v11"></script>'
+          new_script=('<script src="./assets/humans/male-concepts/ready.js?v=20261112-male18-still-v1"></script>\n'
+             '<script src="./human-sprites.js?v=20261112-male18-still-v1"></script>')
+          html=patch_once(html,old_script,new_script,'male asset preload order')
+          variants=',\n '.join("'"+str(row['id'])+"':'"+Path(row['file']).stem+"'" for row in rows)
+          ready_map=("var maleStillById=global.HumanFishingMaleConceptsReady===true?{\n "+
+                     variants+"\n}:Object.create(null);\n"
+                     "Object.keys(maleStillById).forEach(function(id){swimVariantById[id]=maleStillById[id]});\n")
+          sprite=patch_once(sprite,
+            "var sisterSpritesEnabled=global.HumanFishingSisterSpritesReady===true;",
+            ready_map+"var sisterSpritesEnabled=global.HumanFishingSisterSpritesReady===true;",
+            'male-only still mapping')
+          old_image=("img.src='./assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)===36?"
+                     "'20261112-shark-original-v6':Number(id)>=35?"
+                     "'20261112-sisters-boundary-v4':Number(id)>=24?"
+                     "'20261111-human-swim11-alpha-v4':'20261111-human-swim4-v1');")
+          new_image=("img.src=maleStillById[id]?\n"
+                     "   './assets/humans/male-concepts/'+maleStillById[id]+'.png?v=20261112-male18-still-v1':\n"
+                     "   './assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)===36?"
+                     "'20261112-shark-original-v6':Number(id)>=35?"
+                     "'20261112-sisters-boundary-v4':Number(id)>=24?"
+                     "'20261111-human-swim11-alpha-v4':'20261111-human-swim4-v1');")
+          sprite=patch_once(sprite,old_image,new_image,'load source PNG')
+          sprite=patch_once(sprite,
+            "var width=362*scale,height=sister?width*(id===35?362/543:1):543*scale;",
+            "var width=362*scale,height=maleStillById[String(id)]?width:sister?width*(id===35?362/543:1):543*scale;",
+            'male still bitmap bounds')
+          sprite=patch_once(sprite,
+            "var newSwim=swimVariants[String(Number(actor.id))]||null;",
+            "var newSwim=swimVariants[String(Number(actor.id))]||null;\n var maleStill=!!maleStillById[String(Number(actor.id))];",
+            'male still renderer detection')
+          sprite=patch_once(sprite,
+            "if(newSwim&&actor.id>=25)sheet={w:1776,h:888,fw:444,fh:444};",
+            "if(newSwim&&actor.id>=25)sheet={w:1776,h:888,fw:444,fh:444};\n if(maleStill)sheet={w:444,h:444,fw:444,fh:444};",
+            'single-frame dimensions')
+          sprite=patch_once(sprite,
+            "var frame=(Math.floor(motionTime*fps+phase*1.5)%8+8)%8;",
+            "var frame=maleStill?0:(Math.floor(motionTime*fps+phase*1.5)%8+8)%8;",
+            'do not invent 8 frames')
+          sprite=patch_once(sprite,
+            "if(newSwim&&actor.id>=25)scale*=362/fw;",
+            "if(newSwim&&(actor.id>=25||maleStill))scale*=362/fw;",
+            'consistent original male width')
+          sprite=patch_once(sprite,
+            "ctx.scale(newSwim&&actor.id>=24?-facing:facing,1);",
+            "ctx.scale(newSwim&&(actor.id>=24||maleStill)?-facing:facing,1);",
+            'new keyframe faces left')
+          sprite=patch_once(sprite,
+            "var sx=Math.round(col*sheet.w/4),sy=Math.round(row*sheet.h/2);\n var sourceW=Math.round((col+1)*sheet.w/4)-sx,sourceH=Math.round((row+1)*sheet.h/2)-sy;",
+            "var sx=maleStill?0:Math.round(col*sheet.w/4),sy=maleStill?0:Math.round(row*sheet.h/2);\n var sourceW=maleStill?444:Math.round((col+1)*sheet.w/4)-sx,\n  sourceH=maleStill?444:Math.round((row+1)*sheet.h/2)-sy;",
+            'static keyframe crop')
+          # Existing codex and catch preview must load the same separate
+          # static keyframe, without deriving eight imaginary atlas cells.
+          html=patch_once(html,
+            "var newer=Number(id)>=24;",
+            "var newer=Number(id)>=24;\n var maleStill=Number(id)<24&&img.naturalWidth===444&&img.naturalHeight===444;",
+            'UI still detection')
+          html=patch_once(html,
+            "var fw=sisterRabbit?543:newer&&Number(id)!==24?444:362;",
+            "var fw=maleStill?444:sisterRabbit?543:newer&&Number(id)!==24?444:362;",
+            'UI still width')
+          html=patch_once(html,
+            "var fh=sisterRabbit?362:newer&&Number(id)!==24?444:543;",
+            "var fh=maleStill?444:sisterRabbit?362:newer&&Number(id)!==24?444:543;",
+            'UI still height')
+          html=patch_once(html,
+            "img.naturalWidth!==fw*4||img.naturalHeight!==fh*2",
+            "img.naturalWidth!==(maleStill?444:fw*4)||img.naturalHeight!==(maleStill?444:fh*2)",
+            'UI single-frame source validation')
+          html=patch_once(html,
+            "mirror:!newer};",
+            "mirror:!newer&&!maleStill};",
+            'codex head direction')
+          qa=qa.replace('20261112-rabbit160-cat140-v11','20261112-male18-still-v1')
+          qa=patch_once(qa,
+            "art.imageFor(2,'hooked').src.includes('baby_hooked_8f.png')",
+            "art.imageFor(0,'hooked').src.includes('baby_hooked_8f.png')",
+            'original diaper action remains unchanged')
+          html_path.write_text(html,'utf-8')
+          sprite_path.write_text(sprite,'utf-8')
+          qa_path.write_text(qa,'utf-8')
+          (root/'assets/humans/male-concepts/installed-manifest.json').write_text(
+             json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print('PASS: installed 18 approved male-only static keyframe sprites and kept base diaper, 4 approved boys, princess and all girls/sisters')
+          PY
+      - name: Validate script syntax and approved old/new sprite mappings
+        run: |
+          node --check human-fishing/human-sprites.js
+          node human-fishing/qa-human-sprites.cjs
+          node human-fishing/qa-human-codex-encounter.cjs
+          node - <<'JS'
+          const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+          const root='human-fishing/',html=fs.readFileSync(root+'index.html','utf8');
+          const code=fs.readFileSync(root+'human-sprites.js','utf8');
+          const names=html.match(/var humans=\[([^\]]+)\];/)[1].match(/'[^']+'/g).map(x=>x.slice(1,-1));
+          assert.equal(names.length,35);
+          assert.equal(names[0],'기저귀 아기');assert.equal(names[17],'공주');
+          const m=JSON.parse(fs.readFileSync(root+'assets/humans/male-concepts/installed-manifest.json'));
+          const variants={};
+          for(const row of m.newConcepts){
+            assert.equal(names[row.id],row.name);
+            variants[row.id]=row.file;
+            assert(fs.existsSync(root+'assets/humans/'+row.file));
+          }
+          assert.equal(Object.keys(variants).length,18);
+          assert(code.includes('var maleStillById=global.HumanFishingMaleConceptsReady===true'));
+          assert(html.includes('male-concepts/ready.js?v=20261112-male18-still-v1'));
+          assert(html.indexOf('male-concepts/ready.js')<html.indexOf('human-sprites.js?v=20261112-male18-still-v1'));
+          new vm.Script(html.match(/<script>([\s\S]*?)<\/script>/)[1]);
+          console.log('PASS: human keyframe registration and ID/name consistency');
+          JS
+      - name: Commit source images and code without replacing other characters
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add human-fishing/index.html human-fishing/human-sprites.js human-fishing/qa-human-sprites.cjs human-fishing/assets/humans/male-concepts
+          git rm -f -- human-fishing/male-baby-concepts-18-import.zip
+          git diff --cached --quiet && exit 0
+          git commit -m 'Install 18 male baby concept keyframes, preserve approved art and save IDs'
+          git push origin HEAD:main
