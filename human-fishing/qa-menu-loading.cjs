@@ -11,9 +11,12 @@ assert.match(html,/<canvas id="menuLoadingCanvas" width="1672" height="941"/);
 assert.match(html,/#bootOverlay\.menu-loading #bootTitleCanvas\{display:none\}/);
 assert.match(html,/#bootOverlay\.menu-loading #menuLoadingCanvas\{display:block\}/);
 assert.match(boot,/if\(started\)overlay\.classList\.add\('menu-loading'\)/);
-assert.match(boot,/if\(window\.HumanFishingMenuLoading\)window\.HumanFishingMenuLoading\.next\(\)/);
+assert.match(boot,/window\.HumanFishingMenuLoading\.next\(\)/);
 assert.match(boot,/Math\.max\(0,550-\(Date\.now\(\)-menuShownAt\)\)/);
 assert.match(boot,/menuImageBaseline\.get\(im\)!==source\(im\)/);
+assert.match(boot,/overlay\.hidden=!!window\.HumanFishingMenuLoading/);
+assert.match(boot,/album\.drawNow\(\);\s*menuShownAt=Date\.now\(\);\s*overlay\.hidden=false/);
+assert.match(boot,/window\.HumanFishingMenuLoading\.prewarmNext\(\)/);
 const sources=['menu_01_treasure.webp','menu_02_raft_pursuit.webp','menu_03_pirate_crew.webp',
  'menu_04_shark_encounter.webp','menu_05_seaside_market.webp'];
 const extras=['menu_loading_label.webp','menu_loading_frame.webp','menu_loading_fill.webp'];
@@ -44,17 +47,35 @@ vm.runInNewContext(menu,scope);
 const api=scope.window.HumanFishingMenuLoading;
 assert.equal(api.slideCount,5);
 assert.equal(images.length,0,'Menu images must NOT delay the original initial title');
-const firstRound=[],secondRound=[];
-for(let i=0;i<10;i++){
+const queued=api.prewarmNext();
+assert.equal(api.selected,-1,'Warming artwork must not switch the active scene');
+assert.equal(images.length,4,'Warm exactly one scene plus shared bitmap UI after start');
+assert.equal(api.next(),queued,'First menu should use the warmed artwork');
+const firstRound=[api.selected],secondRound=[];
+for(let i=1;i<10;i++){
  const selected=api.next();
  if(i<5)firstRound.push(selected);else secondRound.push(selected);
 }
 assert.equal(new Set(firstRound).size,5,'The first shuffle-bag round repeated an illustration');
 assert.equal(new Set(secondRound).size,5,'The second round skipped an illustration');
 assert.notEqual(firstRound[4],secondRound[0],'Adjacent rounds may not repeat the same image');
-assert.equal(images.length,8,'Five scene images and three UI bitmaps should load only after navigation');
+assert.equal(images.length,8,'Only five scene images and three UI bitmaps exist after a full gallery cycle');
+const activeImg=images.find(im=>im.src.includes(sources[api.selected]));
+assert(activeImg,'Selected illustration must be loaded');
+activeImg.complete=false;
+assert.equal(api.canDraw(),false,'Cannot expose a partial painted scene');
+assert.equal(api.drawNow(),false,'A missing scene must not paint the label or bar alone');
 frames.shift()(100);
+assert.equal(drawn.length,0,'First visible frame must not contain only some sprites');
+activeImg.complete=true;
+assert.equal(api.canDraw(),true);
+assert.equal(api.drawNow(),true);
 const sourcesDrawn=drawn.map(a=>a[0].src||'');
+assert.equal(sourcesDrawn.length,4,'One atomic frame has background, label, frame and water-fill in order');
+assert(sourcesDrawn[0].includes(sources[api.selected]));
+assert(sourcesDrawn[1].includes('menu_loading_label'));
+assert(sourcesDrawn[2].includes('menu_loading_frame'));
+assert(sourcesDrawn[3].includes('menu_loading_fill'));
 assert(sourcesDrawn.some(x=>x.includes(sources[api.selected])),'Chosen shuffled painting was not drawn');
 const fillDraw=drawn.find(a=>a[0].src&&a[0].src.includes('menu_loading_fill.webp'));
 assert(fillDraw,'Water fill missing');
@@ -62,4 +83,4 @@ assert.equal(fillDraw[3],762,'Filling uses a full-size bitmap, clipped by progre
 assert(Math.abs(clips.at(-1)[2]-762*value)<1e-6,'Actual 40% progress must clip to 40% width');
 loading=false;drawn.length=0;frames.shift()(110);
 assert.equal(drawn.length,0,'Menu loader must not cover title when inactive');
-console.log('PASS: initial title unaffected and no menu art preloaded; five lazy 16:9 scenes cycle without repeats, separate bitmap UI fills with real progress');
+console.log('PASS: original title untouched; first slide warmed after START; gallery without repeats; no partial menu frames; 4 bitmap layers appear atomically and progress clips correctly');

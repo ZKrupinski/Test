@@ -10,6 +10,17 @@
  var status=document.getElementById('bootStatus'), button=document.getElementById('bootStart');
  var progress=document.getElementById('bootProgress');
  var menuShownAt=0,menuImageBaseline=null;
+ function showMenuComposed(){
+  var album=window.HumanFishingMenuLoading;
+  if(!started||!album||!overlay.hidden||
+     !overlay.classList.contains('menu-loading')||!album.canDraw())return false;
+  // Paint the complete background, lettering and empty/full progress frame
+  // BEFORE exposing the overlay. No staggered browser image paints.
+  album.drawNow();
+  menuShownAt=Date.now();
+  overlay.hidden=false;
+  return true;
+ }
  function showLoading(){
   // A scene transition must never inherit the ready-to-start button artwork.
   overlay.classList.remove('title-ready');
@@ -33,6 +44,7 @@
   var fraction=total?(downloaded+decodedCount)/(2*total):1;
   progress.value=Math.max(progress.value||0,Math.min(.90,.90*fraction));
   status.textContent='로딩 중 · '+Math.round(progress.value*100)+'%';
+  showMenuComposed();
  }
  function isActualMobile(){
   var ua=(navigator.userAgent||'');
@@ -193,6 +205,11 @@
   status.textContent='모든 리소스 준비 완료';
   progress.value=1;
   if(started){
+   // Assets may finish between two polls. Never expose an incomplete frame.
+   if(window.HumanFishingMenuLoading){
+    while(token===generation&&!showMenuComposed()&&overlay.hidden)await delay(60);
+    if(token!==generation)return;
+   }
    busy=false;
    // A brief viewing time lets each artwork register during fast cached menu
    // changes; unlike resource loading, the actual progress bar is not faked.
@@ -203,6 +220,8 @@
      if(token!==generation||busy)return;
      overlay.hidden=true;overlay.classList.remove('menu-loading');
      menuImageBaseline=null;
+     if(window.HumanFishingMenuLoading&&window.HumanFishingMenuLoading.prewarmNext)
+      window.HumanFishingMenuLoading.prewarmNext();
      root.removeAttribute('aria-busy');
     });});
    };
@@ -221,12 +240,19 @@
   // Nested mode/panel changes belong to one transition. Ignore repeated input.
   if(busy&&!depth)return;
   if(depth)return callback();
-  busy=true;overlay.hidden=false;root.setAttribute('aria-busy','true');
+  busy=true;
+  // Until the selected background AND UI bitmaps are all drawable, keep
+  // the previous scene frozen rather than showing blue/blank partial art.
+  overlay.hidden=!!window.HumanFishingMenuLoading;
+  root.setAttribute('aria-busy','true');
   menuImageBaseline=new WeakMap();
   activeImages().forEach(function(im){menuImageBaseline.set(im,source(im));});
   showLoading();status.textContent='로딩 중 · 0%';
   menuShownAt=Date.now();
-  if(window.HumanFishingMenuLoading)window.HumanFishingMenuLoading.next();
+  if(window.HumanFishingMenuLoading){
+   window.HumanFishingMenuLoading.next();
+   showMenuComposed();
+  }
   depth++;
   try{return callback();}
   finally{
@@ -259,6 +285,9 @@
   root.removeAttribute('inert');
   if(window.HumanFishingAmbient)window.HumanFishingAmbient.unlock();
   onStart();
+  // Opportunistic post-start warm-up. Never delays the initial title preload.
+  if(window.HumanFishingMenuLoading&&window.HumanFishingMenuLoading.prewarmNext)
+   window.HumanFishingMenuLoading.prewarmNext();
  }
  // Re-enter fullscreen on a later real gesture if the user has left it.
  root.addEventListener('pointerdown',function(){if(started&&isActualMobile()&&!document.fullscreenElement)fullscreen();},{passive:true});
