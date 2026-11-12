@@ -10,9 +10,12 @@ assert.equal(ready.trim(),'window.HumanFishingExtraBabiesReady=true;');
 assert(html.includes("humans.push('다이버','악마')"),'Append-only names missing');
 assert(html.includes('extra-babies-ready.js?v=20261112-duo-diver-devil-v1'));
 assert(html.indexOf('extra-babies-ready.js')<html.indexOf('human-sprites.js?v=20261112-duo-diver-devil-v1'));
-const original=html.match(/var humans=\[([^\]]+)\];/)[1].match(/'[^']+'/g).map(s=>s.slice(1,-1));
-assert.equal(original.length,35,'Original human IDs must be preserved');
-assert.equal(original[8],'잠수부');assert.equal(original[17],'공주');assert.equal(original[22],'고고학자');
+const original=Array.from(vm.runInNewContext('['+html.match(/var humans=\[([^\]]+)\];/)[1]+']'));
+assert.equal(original.length,35,'Original human save ID slots must remain stable');
+assert.equal(original[8],'잠수부');assert.equal(original[17],null);assert.equal(original[22],null);
+assert(!html.includes("'공주'")&&!html.includes("'고고학자'"),'Removed characters must be absent from live roster');
+assert(html.includes("if(i===22&&isActiveHumanId(38))ids.push(38)"),'New diver must occupy former archaeologist display position');
+assert(html.includes("if(isActiveHumanId(34))ids.push(34);")&&html.includes("if(isActiveHumanId(39))ids.push(39);"),'Devil must be last, directly after Angel');
 assert.deepEqual(manifest.actors.map(x=>x.id),[38,39]);
 for(const item of manifest.actors){
  const file=fs.readFileSync(path.join(base,item.file));
@@ -47,4 +50,4 @@ for(const id of [0,8,17,22,35,36,37]){
  assert(image&&!image.src.includes('diver_new')&&!image.src.includes('devil_new'),'Protected sprite changed '+id);
 }
 assert(html.includes('return 38+Math.floor(rnd(0,2))'),'New babies must be obtainable as swimming encounters');
-console.log('PASS: new 8-frame diver/devil RGBA PNGs, 40 human save IDs, world sizing and codex integration');
+console.log('PASS: new diver/devil sprites, saved 40 ID slots, retired characters, new 38-character codex');

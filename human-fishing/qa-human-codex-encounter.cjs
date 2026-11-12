@@ -28,8 +28,8 @@ for(const [re,description] of [
  [/eliteChance=\.018\+p\*\.00040/,'slightly boosted normal spawn chance']
  ])assert.match(html,re,description);
 assert.doesNotMatch(html,/'<div class="face"'\+\(n\?/,'legacy emoji thumbnails');
-// The shark sister has stable save ID 36, but must be displayed LAST
-// after the cat sister ID 37 in both human-only and all-species codex.
+// Retired #17/#22 must be hidden. Diver #38 takes the old #22 slot;
+// Angel #34 and Devil #39 must be the final two displayed humans.
 assert.match(html,/function humanCodexDisplayOrder\(\)/,
  'Dedicated, codex-only order must exist');
 assert.match(html,/filter===-3\|\|filter===-2\?humanCodexDisplayOrder\(\):\[\]/,
@@ -38,16 +38,19 @@ const codexStart=script[1].indexOf('function humanCodexDisplayOrder(){');
 const codexEnd=script[1].indexOf('function renderBook(',codexStart);
 assert(codexStart>0&&codexEnd>codexStart,'Cannot extract codex ordering');
 const orderContext={humans:Array.from({length:40},(_,id)=>'human '+id)};
-orderContext.humans[35]='라비';
-orderContext.humans[36]='샤린';
-orderContext.humans[37]='미유';
+orderContext.humans[17]=null;orderContext.humans[22]=null;
+orderContext.humans[35]='라비';orderContext.humans[36]='샤린';orderContext.humans[37]='미유';
+orderContext.humans[34]='천사';orderContext.humans[38]='다이버';orderContext.humans[39]='악마';
+orderContext.isActiveHumanId=id=>typeof orderContext.humans[Number(id)]==='string';
 vm.createContext(orderContext);
 vm.runInContext(script[1].slice(codexStart,codexEnd),orderContext);
 const displayed=Array.from(orderContext.humanCodexDisplayOrder(),item=>item.id);
-assert.equal(displayed.length,40);
-assert.deepEqual(displayed,Array.from({length:36},(_,id)=>id).concat([37,38,39,36]),
- 'Human codex must show original order plus 다이버 and 악마 before final 샤린');
-assert.equal(orderContext.humanCodexDisplayOrder().at(-1).name,'샤린');
+assert.equal(displayed.length,38);
+assert(!displayed.includes(17)&&!displayed.includes(22));
+assert.equal(displayed.indexOf(38),displayed.indexOf(21)+1);
+assert.equal(displayed.indexOf(23),displayed.indexOf(38)+1);
+assert.deepEqual(displayed.slice(-2),[34,39],'Devil follows Angel and is the final female');
+assert.equal(orderContext.humanCodexDisplayOrder().at(-1).name,'악마');
 assert.equal(orderContext.humans[36],'샤린','Shark save ID must not change');
 assert(fs.existsSync(path.join(root,'assets/humans/baby_swim_8f.png')),'original baby PNG missing');
 console.log('PASS: human thumbnail color/silhouette and flawless full-fever guaranteed arrival conditions');

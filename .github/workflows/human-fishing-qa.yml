@@ -41,6 +41,8 @@ jobs:
         run: node human-fishing/qa-male-baby-scale.cjs
       - name: Validate two new human swimmers (diver/devil), atlas assets and game scale
         run: node human-fishing/qa-human-new-duo.cjs
+      - name: Verify retired babies and stable display order without shifting save IDs
+        run: node human-fishing/qa-human-roster.cjs
       - name: Validate standard gamepad mapping and controller vibration
         run: node human-fishing/qa-gamepad.cjs
       - name: Verify Fever multi-catch display and ambient audio preload
