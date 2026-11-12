@@ -3,7 +3,7 @@ const {readFileSync}=require('node:fs'),vm=require('node:vm'),assert=require('no
 const source=readFileSync(__dirname+'/boot.js','utf8');
 function fixture(width,height,mobile=false){
  const nodes={};const events={};
- function el(id){return nodes[id]??={style:{},hidden:false,disabled:false,removeAttribute(){},addEventListener(k,fn){events[id+k]=fn;}};}
+ function el(id){return nodes[id]??={style:{},classList:{add(){},remove(){},toggle(){}},hidden:false,disabled:false,removeAttribute(){},addEventListener(k,fn){events[id+k]=fn;}};}
  class Image {constructor(){this.src='';this.complete=false;this.naturalWidth=0;}getAttribute(){return this.src;}decode(){return Promise.resolve();}}
  const timers=[],document={querySelector:()=>el('root'),getElementById:el,addEventListener(){},documentElement:{requestFullscreen:()=>Promise.reject(new Error('gesture required'))},fonts:{ready:Promise.resolve()}};
  const navigator={
