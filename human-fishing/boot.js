@@ -10,10 +10,16 @@
  var status=document.getElementById('bootStatus'), button=document.getElementById('bootStart');
  function isActualMobile(){
   var ua=(navigator.userAgent||'');
-  return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) ||
-   (!!navigator.maxTouchPoints&&navigator.maxTouchPoints>1&&
-    !!window.matchMedia&&window.matchMedia('(pointer:coarse)').matches&&
-    Math.min(screen.width,screen.height)<=900);
+  var data=navigator.userAgentData;
+  // Never rotate a desktop window, including touch laptops.
+  if(data&&typeof data.mobile==='boolean'){
+   if(data.mobile)return true;
+   if(!/iPad/i.test(ua)&&!/Macintosh/i.test(ua))return false;
+  }
+  if(/Windows NT|CrOS|X11|Linux x86_64/i.test(ua))return false;
+  if(/Android|iPhone|iPad|iPod/i.test(ua))return true;
+  return /Macintosh/i.test(ua)&&navigator.maxTouchPoints>1&&
+   !!window.matchMedia&&window.matchMedia('(pointer:coarse)').matches;
  }
  function fit(){
   var w=window.innerWidth,h=window.innerHeight;

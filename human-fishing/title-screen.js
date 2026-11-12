@@ -1,15 +1,15 @@
-/* Human Fishing bitmap-only 16:9 title (2026-11-12). */
+/* Human Fishing approved bright 16:9 bitmap title, 2026-11-12. */
 (function(){
  'use strict';
  var canvas=document.getElementById('bootTitleCanvas'),overlay=document.getElementById('bootOverlay');
  if(!canvas||!overlay)return;
  var ctx=canvas.getContext('2d',{alpha:false}),W=1920,H=1080;
  var sources={
-  background:'./assets/title/title_background_no_box.webp?v=20261112-title3',
-  prompt:'./assets/title/prompt_animation_16f.png?v=20261112-title3',
-  noise:'./assets/title/display_noise.png?v=20261112-title3',
-  burst:'./assets/title/fx_burst.png?v=20261112-title3',
-  splash:'./assets/title/fx_splash.png?v=20261112-title3'
+  background:'./assets/title/bright_title_clean.png?v=20261112-bright-title4',
+  prompt:'./assets/title/prompt_animation_16f.png?v=20261112-bright-title4',
+  noise:'./assets/title/display_noise.png?v=20261112-bright-title4',
+  burst:'./assets/title/fx_burst.png?v=20261112-bright-title4',
+  splash:'./assets/title/fx_splash.png?v=20261112-bright-title4'
  };
  var art={},ready=false,failed=false,pressAt=-1,pressDone=null,noisePattern=null;
  Object.keys(sources).forEach(function(k){
@@ -54,7 +54,7 @@
    ctx.restore();
   }
   if(noisePattern){
-   ctx.save();ctx.globalAlpha=.25;ctx.fillStyle=noisePattern;
+   ctx.save();ctx.globalAlpha=.14;ctx.fillStyle=noisePattern;
    ctx.fillRect(0,0,W,H);ctx.restore();
   }
  }
