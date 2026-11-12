@@ -37,16 +37,16 @@ assert.match(html,/filter===-3\|\|filter===-2\?humanCodexDisplayOrder\(\):\[\]/,
 const codexStart=script[1].indexOf('function humanCodexDisplayOrder(){');
 const codexEnd=script[1].indexOf('function renderBook(',codexStart);
 assert(codexStart>0&&codexEnd>codexStart,'Cannot extract codex ordering');
-const orderContext={humans:Array.from({length:38},(_,id)=>'human '+id)};
+const orderContext={humans:Array.from({length:40},(_,id)=>'human '+id)};
 orderContext.humans[35]='라비';
 orderContext.humans[36]='샤린';
 orderContext.humans[37]='미유';
 vm.createContext(orderContext);
 vm.runInContext(script[1].slice(codexStart,codexEnd),orderContext);
 const displayed=Array.from(orderContext.humanCodexDisplayOrder(),item=>item.id);
-assert.equal(displayed.length,38);
-assert.deepEqual(displayed,Array.from({length:36},(_,id)=>id).concat([37,36]),
- 'Human codex must display original order, then 미유, then 샤린');
+assert.equal(displayed.length,40);
+assert.deepEqual(displayed,Array.from({length:36},(_,id)=>id).concat([37,38,39,36]),
+ 'Human codex must show original order plus 다이버 and 악마 before final 샤린');
 assert.equal(orderContext.humanCodexDisplayOrder().at(-1).name,'샤린');
 assert.equal(orderContext.humans[36],'샤린','Shark save ID must not change');
 assert(fs.existsSync(path.join(root,'assets/humans/baby_swim_8f.png')),'original baby PNG missing');

@@ -1,0 +1,1 @@
+window.HumanFishingExtraBabiesReady=true;

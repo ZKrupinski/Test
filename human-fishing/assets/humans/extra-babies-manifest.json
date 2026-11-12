@@ -1,0 +1,38 @@
+{
+  "schema": "human-swim-duo-direct-installed-v1",
+  "version": "20261112-duo-diver-devil-v1",
+  "size": [
+    1774,
+    887
+  ],
+  "frames": 8,
+  "grid": [
+    4,
+    2
+  ],
+  "source": "2026-11-12 user-approved character swimming sheets",
+  "registration": "New save IDs 38 and 39; do not touch existing 0-37, including princess #17 and archaeologist #22; retain old ID #8 잠수부",
+  "actors": [
+    {
+      "id": 38,
+      "name": "다이버",
+      "key": "diver_new",
+      "file": "baby_swim_diver_new_8f.png",
+      "gender": "male",
+      "scale": 0.81,
+      "sha256": "6cfca77522c9fc7eead46e4a332a9a3a8da7e715834b7d5331c9f2154a149417",
+      "gitBlob": "f1543514eafd1ad05589f5d9aec1098f6781500c"
+    },
+    {
+      "id": 39,
+      "name": "악마",
+      "key": "devil_new",
+      "file": "baby_swim_devil_new_8f.png",
+      "gender": "female",
+      "scale": 0.84,
+      "sha256": "59c1cc06e6a65c432b19d35cc5029c3e22a8b840cebd60964540cb1881e8b2c8",
+      "gitBlob": "b745bfe57d32e6e72052967eaf9ddd2f86e35e23"
+    }
+  ],
+  "processing": "Only barely visible background alpha values 0-7 reset to fully transparent; all painted body, face, costume, and accessories retained"
+}

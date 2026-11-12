@@ -13,7 +13,7 @@ const stableIds=[0,1,5,8,17,18,22,24,25,26,29,34,35,36,37];
 const fixedIds=[20,21]; // engineer and astronaut keep their already-approved 112% size
 const increaseFor=id=>fixedIds.includes(id)?1.12:1.25;
 assert.deepEqual(manifest.actors.map(row=>row.id),ids);
-assert(html.includes('human-sprites.js?v=20261112-male17-alpha-holes-v4'), 'New renderer cache version');
+assert(html.includes('human-sprites.js?v=20261112-duo-diver-devil-v1'), 'New renderer cache version');
 assert(html.includes('male-concepts/ready.js?v=20261112-male17-swim-v1'), 'Male art ready gate unchanged');
 assert(code.includes('var NEW_MALE_SWIM_WORLD_SCALE=1.25'), '15 newly installed boys grow to 125%');
 assert(code.includes('var NEW_MALE_FIXED_WORLD_SCALE=1.12'), 'Engineer and astronaut stay at 112%');

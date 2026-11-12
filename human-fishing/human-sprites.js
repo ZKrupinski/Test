@@ -40,6 +40,11 @@ if(sisterSpritesEnabled){
  swimVariantById['36']='sister_shark';  // bigger older sister
  swimVariantById['37']='sister_cat';    // bigger older sister
 }
+// Preserve existing sprites and save IDs. Both new swimmers occupy free #38/#39.
+if(sisterSpritesEnabled&&global.HumanFishingExtraBabiesReady===true){
+ swimVariantById['38']='diver_new';
+ swimVariantById['39']='devil_new';
+}
 var swimVariants=Object.create(null);
 if(enabled){
  Object.keys(paths).forEach(function(state){
@@ -53,7 +58,7 @@ if(enabled){
   img.decoding='async';
   img.src=maleSwimBoyById[id]?
    './assets/humans/male-concepts/baby_swim_boy_'+maleSwimBoyById[id]+'_8f.png?v=20261112-male17-alpha-holes-v3':
-   './assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)===36?'20261112-shark-original-v6':Number(id)>=35?'20261112-sisters-boundary-v4':Number(id)>=24?'20261111-human-swim11-alpha-v4':'20261111-human-swim4-v1');
+   './assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)>=38?'20261112-duo-diver-devil-v1':Number(id)===36?'20261112-shark-original-v6':Number(id)>=35?'20261112-sisters-boundary-v4':Number(id)>=24?'20261111-human-swim11-alpha-v4':'20261111-human-swim4-v1');
   swimVariants[id]=img;
  });
 }
@@ -230,6 +235,9 @@ function humanDesignWorldScale(id){
  var n=Number(id);
  if(!Number.isInteger(n)||n<0)return 1;
  if(n<24)return ORIGINAL_HUMAN_WORLD_SCALE*BABY_BOY_WORLD_SCALE;
+ // #38 matches new male swimmers (0.72*0.90*1.25=0.81); #39 matches girls (0.84).
+ if(n===38)return .81;
+ if(n===39)return BABY_GIRL_WORLD_SCALE;
  if(n===24)return BABY_GIRL_WORLD_SCALE*SLEEPY_GIRL_WORLD_SCALE;
  if(n<35)return BABY_GIRL_WORLD_SCALE;
  return 1; // sister sizes stay unchanged
@@ -255,7 +263,7 @@ function poseGeometry(actor){
   humanDesignWorldScale(id)*sisterWorldScale(id)*maleBabyNewScale(id);
  var facing=Number(actor&&(actor.vx||actor.dir)||1)<0?-1:1;
  var x=Number(actor&&actor.x)||0,y=Number(actor&&actor.y)||0;
- var width=362*scale,height=maleSwimBoyById[String(id)]?width:sister?width*(id===35?362/543:1):543*scale;
+ var width=362*scale,height=(maleSwimBoyById[String(id)]||id===38||id===39)?width:sister?width*(id===35?362/543:1):543*scale;
  // Each sister has a separate bitmap aspect ratio. The head leads left
  // in the approved sprites and mirrors to the right when vx is positive.
  // Fishing weakspot/contact geometry follows the actual displayed artwork.

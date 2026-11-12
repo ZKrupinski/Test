@@ -451,7 +451,8 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 <script src="./assets/humans/ready.js?v=20261110-baby-v1"></script>
 <script src="./assets/humans/sisters-ready.js?v=20261112-sisters-v1"></script>
 <script src="./assets/humans/male-concepts/ready.js?v=20261112-male17-swim-v1"></script>
-<script src="./human-sprites.js?v=20261112-male17-alpha-holes-v4"></script>
+<script src="./assets/humans/extra-babies-ready.js?v=20261112-duo-diver-devil-v1"></script>
+<script src="./human-sprites.js?v=20261112-duo-diver-devil-v1"></script>
 <script src="./gamepad.js?v=20261110-g8plus-haptics-v2"></script>
 <script src="./foley.js?v=20261111-capture-gun-recordings-v1"></script>
 <script src="./ambient.js?v=20261110-ambient-preload-v3"></script>
@@ -478,6 +479,9 @@ var humans=['기저귀 아기','수다쟁이 관광객','꼬마 보안관','꼬�
 // Sisters exist only after all three reviewed transparent PNGs are installed.
 if(window.HumanFishingSisterSpritesReady===true)
  humans.push('라비','샤린','미유');
+// Append-only new 8-frame swimmers. Preserve existing #8 diver, #17 princess and #22 archaeologist.
+if(window.HumanFishingSisterSpritesReady===true&&window.HumanFishingExtraBabiesReady===true)
+ humans.push('다이버','악마');
 var key='humanFishingAlpha01',save={coins:80,owned:{},placed:[],human:{},humanPlaced:[],up:[0,0,0],catches:0,zone:0,decor:0};
 try{var old=JSON.parse(localStorage.getItem(key)||'null');if(old){save=Object.assign(save,old)}}catch(e){}
 function persist(){try{localStorage.setItem(key,JSON.stringify(save))}catch(e){}}
@@ -1229,7 +1233,9 @@ function humanTier(id){
   isBossHumanId(id)?'BOSS':'ELITE';
 }
 function randomNewHumanId(){
- if(window.HumanFishingSisterSpritesReady===true&&humans.length>=38&&Math.random()<.28)
+ if(window.HumanFishingExtraBabiesReady===true&&humans.length>=40&&Math.random()<.20)
+   return 38+Math.floor(rnd(0,2));
+  if(window.HumanFishingSisterSpritesReady===true&&humans.length>=38&&Math.random()<.28)
   return 35+Math.floor(rnd(0,3));
  return 24+Math.floor(rnd(0,11));
 }
