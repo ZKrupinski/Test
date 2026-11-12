@@ -1440,18 +1440,19 @@ function paintHumanCodexThumbs(){
  });
 }
 // HUMAN_UI_THUMBS_END
-// Stable save IDs: Diver #38 takes the former #22 catalog position.
-// Female sisters precede Angel #34; Devil #39 appears directly after Angel.
+// Display-only ordering; preserve saved IDs and approved PNG art.
+// Diver #38 occupies retired archaeologist #22's display slot.
+// Female babies end Angel #34 → Devil #39, then three sisters:
+// Cat Miyu #37 → Rabbit Rabi #35 → Shark Sharin #36.
 function humanCodexDisplayOrder(){
  var ids=[];
  for(var i=0;i<24;i++){
   if(i===22&&isActiveHumanId(38))ids.push(38);
   if(isActiveHumanId(i))ids.push(i);
  }
- for(var j=24;j<=33;j++)if(isActiveHumanId(j))ids.push(j);
- for(var k=35;k<=37;k++)if(isActiveHumanId(k))ids.push(k);
- if(isActiveHumanId(34))ids.push(34);
+ for(var j=24;j<=34;j++)if(isActiveHumanId(j))ids.push(j);
  if(isActiveHumanId(39))ids.push(39);
+ [37,35,36].forEach(function(id){if(isActiveHumanId(id))ids.push(id)});
  return ids.map(function(id){return{id:id,name:humans[id]}});
 }
 function renderBook(filter,query){

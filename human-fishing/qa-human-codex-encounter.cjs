@@ -28,8 +28,8 @@ for(const [re,description] of [
  [/eliteChance=\.018\+p\*\.00040/,'slightly boosted normal spawn chance']
  ])assert.match(html,re,description);
 assert.doesNotMatch(html,/'<div class="face"'\+\(n\?/,'legacy emoji thumbnails');
-// Retired #17/#22 must be hidden. Diver #38 takes the old #22 slot;
-// Angel #34 and Devil #39 must be the final two displayed humans.
+// Retired #17/#22 remain hidden, Diver #38 takes old #22's position.
+// After all female babies (Angel then Devil), sisters follow Cat, Rabbit, Shark.
 assert.match(html,/function humanCodexDisplayOrder\(\)/,
  'Dedicated, codex-only order must exist');
 assert.match(html,/filter===-3\|\|filter===-2\?humanCodexDisplayOrder\(\):\[\]/,
@@ -49,8 +49,9 @@ assert.equal(displayed.length,38);
 assert(!displayed.includes(17)&&!displayed.includes(22));
 assert.equal(displayed.indexOf(38),displayed.indexOf(21)+1);
 assert.equal(displayed.indexOf(23),displayed.indexOf(38)+1);
-assert.deepEqual(displayed.slice(-2),[34,39],'Devil follows Angel and is the final female');
-assert.equal(orderContext.humanCodexDisplayOrder().at(-1).name,'악마');
+assert.deepEqual(displayed.slice(-5),[34,39,37,35,36],
+ 'Sisters must appear after all female babies in Cat, Rabbit, Shark order');
+assert.deepEqual(Array.from(orderContext.humanCodexDisplayOrder().slice(-3),x=>x.name),['미유','라비','샤린']);
 assert.equal(orderContext.humans[36],'샤린','Shark save ID must not change');
 assert(fs.existsSync(path.join(root,'assets/humans/baby_swim_8f.png')),'original baby PNG missing');
 console.log('PASS: human thumbnail color/silhouette and flawless full-fever guaranteed arrival conditions');
