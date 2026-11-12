@@ -4,7 +4,7 @@ const boot=fs.readFileSync(__dirname+'/boot.js','utf8');
 const html=fs.readFileSync(__dirname+'/index.html','utf8');
 function fixture(){
  let now=0,next=0;const timers=new Map(),frames=[],dom=[],nodes={},events={};
- function el(id){return nodes[id]??={hidden:false,style:{},disabled:false,
+ function el(id){return nodes[id]??={hidden:false,style:{},classList:{add(){},remove(){},toggle(){}},disabled:false,
   setAttribute(){},removeAttribute(){},addEventListener(){},contains(target){return target===this;}};}
  class Image{
   constructor(){this._src='';this.complete=false;this.naturalWidth=0;this.listeners={};this.decodes=0;}
