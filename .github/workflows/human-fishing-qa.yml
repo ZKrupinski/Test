@@ -55,6 +55,8 @@ jobs:
         run: node human-fishing/qa-human-swim-ai.cjs
       - name: Verify human mouth weakspot and fish human collision panic
         run: node human-fishing/qa-human-mouth-collision.cjs
+      - name: Verify high-rarity catch rates, gear progression, weakspots and timing
+        run: node human-fishing/qa-catch-balance.cjs
       - name: Verify resource gate and fixed landscape coordinates
         run: node human-fishing/qa-boot.cjs
       - name: Verify scene image loading, retries and frozen input

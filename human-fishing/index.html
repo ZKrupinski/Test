@@ -511,7 +511,7 @@ function playFoley(kind,intensity,pitch){
 function beep(kind){return playFoley(kind==='catch'?'catch':kind==='hit'?'miss':'menuTap');}
 // Normal fishing only: a hidden, per-fish mouth weak point must overlap
 // the equipped bait's hidden center area. This never alters OCTO FEVER AOE.
-var FISH_MOUTH_RADIUS={COMMON:14,UNCOMMON:11.5,RARE:8.8,EPIC:6.7,LEGEND:4.7,MYTHIC:3.1};
+var FISH_MOUTH_RADIUS={COMMON:14,NORMAL:14,UNCOMMON:11.8,RARE:9.5,EPIC:7.7,LEGEND:5.9,MYTHIC:4.6};
 // The red octopus is the carrier; its dangling BAIT is the ordinary hook
 // center and fish-mouth pivot. OCTO FEVER instead targets octopus body center.
 function baitSwingStats(gear,level){
@@ -521,7 +521,7 @@ function baitSwingStats(gear,level){
  return{quality:quality,
   // High-grade bait is steadier but has a smaller precision contact circle.
   angle:.52*(1-.86*quality),
-  contactRadius:clamp(5.8-g.tier*.26-lv*.045,2.9,5.8)};
+  contactRadius:clamp(5.8-g.tier*.16-lv*.025,4.0,5.8)};
 }
 function baitCenterRadius(){return baitSwingStats().contactRadius}
 function danglingBaitPosition(now){
@@ -566,7 +566,7 @@ function fishMouthWeakspot(f,now){
  // Large bitmaps must have a SMALLER mouth weak point, not an enlarged
  // target. The image's actual rendered height (after sprite scale) is used,
  // so a giant fish is meaningfully harder to hit than a tiny one.
- var sizeFactor=clamp(Math.sqrt(60/Math.max(18,h)),.48,1.30);
+ var sizeFactor=clamp(Math.sqrt(60/Math.max(18,h)),.52,1.30);
  return{x:f.x+facing*w*headFraction*Math.abs(pose.sx),
   y:f.y+Math.sin(now*2+(f.phase||0))*Math.min(3,1.8+size)+h*offsetY,
   rx:radius*sizeFactor,ry:radius*.78*sizeFactor,
@@ -598,7 +598,13 @@ function humanPoseGeometry(h){
 function humanMouthWeakspot(h,now){
  if(!h||h.feverCaptured)return null;
  var geometry=humanPoseGeometry(h);
- return geometry?geometry.mouth:null;
+ if(!geometry)return null;
+ // Expand the HIDDEN mouth zone slightly without altering approved art,
+ // avatar size, codex thumbnail, or body-hitbox behavior.
+ var mouth=geometry.mouth,boss=isBossHumanId(h.id),sister=Number(h.id)>=35;
+ var factor=boss?1.15:sister?1.11:1.05;
+ return{x:mouth.x,y:mouth.y,rx:mouth.rx*factor,ry:mouth.ry*factor,
+  facing:mouth.facing};
 }
 function humanBodyContact(h,point){
  var geometry=humanPoseGeometry(h);if(!geometry||!point)return false;
@@ -3349,8 +3355,16 @@ function checkBaitBrush(){
 // Contact windows use game time so pausing/loading never consumes input time.
 var captureCue=null;
 function captureWindowSeconds(a,kind){
- if(kind==='human')return isBossHumanId(a.id)?.16:a.id>=12?.20:.25;
- return {COMMON:.62,NORMAL:.62,UNCOMMON:.49,RARE:.36,EPIC:.28,LEGEND:.21,MYTHIC:.15}[a.sp.rarity]||.36;
+ // A high-grade rod and bait reward skill with a modest, capped extra
+ // response window. Timing remains shorter for more valuable catches.
+ var bonus=Math.min(.035,(gearPower('rod')+gearPower('bait'))*.00075);
+ if(kind==='human'){
+  var base=isBossHumanId(a.id)?.25:Number(a.id)>=35?.28:Number(a.id)>=12?.30:.35;
+  return base+bonus;
+ }
+ var tier=a.sp.rarity;
+ var base={COMMON:.62,NORMAL:.62,UNCOMMON:.51,RARE:.40,EPIC:.33,LEGEND:.275,MYTHIC:.225}[tier]||.40;
+ return base+(['RARE','EPIC','LEGEND','MYTHIC'].indexOf(tier)>=0?bonus:0);
 }
 function captureCueActive(){
  return !!(captureCue&&time<captureCue.until&&view==='fish'&&!hook&&!cast.active&&
@@ -4240,23 +4254,35 @@ function recordFeverCapture(qty){
  updateFeverHud();
 }
 function catchProbability(target,isHuman,fever){
- var rod=gearPower('rod'),bait=gearPower('bait'),net=gearPower('net'),oct=gearPower('octopus'),helper=gearPower('helper');
+ var rod=gearPower('rod'),bait=gearPower('bait'),net=gearPower('net'),
+     oct=gearPower('octopus'),helper=gearPower('helper');
  var boost=rod*.007+bait*.004+net*.0018+oct*.003+helper*.0008;
- var chance,cap,lev;
+ var chance,cap,lev,penalty,floor;
  if(isHuman){
-  var boss=isBossHumanId(target.id);
+  var boss=isBossHumanId(target.id),sister=Number(target.id)>=35;
+  // Old boss formula multiplied the entire equipment bonus by .075,
+  // leaving some bosses below 0.1% even with fully upgraded equipment.
+  // Apply a smoothly rising cap instead of a hard near-impossible gate.
+  var focus=clamp((rod+bait)/48,0,1);
   lev=boss?65+(target.id-20)*2:22+Math.floor(target.id*1.4);
-  chance=boss?.0012:.043;
-  cap=boss?.025:.19;
-  boost*=boss?.075:.24;
+  chance=boss?.06:sister?.08:.11;
+  cap=boss?.11+.23*focus:sister?.18+.34*focus:.26+.36*focus;
+  penalty=boss?.00025:sister?.00029:.00026;
+  floor=boss?.02:sister?.035:.055;
+  boost*=boss?.60:sister?.73:.80;
  }else{
-  lev=target.level;
-  var bases={COMMON:.93,UNCOMMON:.68,RARE:.29,EPIC:.105,LEGEND:.026,MYTHIC:.006};
-  var caps={COMMON:.995,UNCOMMON:.96,RARE:.77,EPIC:.51,LEGEND:.28,MYTHIC:.11};
-  chance=bases[target.rarity]??.55;cap=caps[target.rarity]??.75;
+  lev=Number(target.level)||1;
+  var bases={COMMON:.93,NORMAL:.93,UNCOMMON:.72,RARE:.45,EPIC:.28,LEGEND:.17,MYTHIC:.09};
+  var caps={COMMON:.995,NORMAL:.995,UNCOMMON:.97,RARE:.87,EPIC:.74,LEGEND:.58,MYTHIC:.43};
+  var floors={COMMON:.20,NORMAL:.20,UNCOMMON:.12,RARE:.09,EPIC:.055,LEGEND:.03,MYTHIC:.015};
+  chance=bases[target.rarity]??.55;
+  cap=caps[target.rarity]??.75;
+  floor=floors[target.rarity]??.055;
+  penalty=.00165;
  }
- chance=chance-Math.max(0,lev-1)*(isHuman?.00045:.0019)+boost;
- // Distinct specialties obey the original rarity caps and boss restrictions.
+ chance-=Math.max(0,lev-1)*penalty;
+ chance+=boost;
+ // Existing lure specialties stay useful without bypassing tier caps.
  var baitSpecial=baitTrait();
  if(!fever&&!isHuman){
   if(baitSpecial.type==='commonCatch'&&
@@ -4273,11 +4299,8 @@ function catchProbability(target,isHuman,fever){
   chance+=v.bonus;
   cap=Math.min(.995,cap+(target.rarity==='MYTHIC'?.035:target.rarity==='LEGEND'?.055:.07));
  }
- // Best catches remain exceptionally rare until advanced gear is equipped.
- if(!isHuman&&target.rarity==='MYTHIC'&&rod+bait<22)cap=.004;
- if(!isHuman&&target.rarity==='LEGEND'&&rod+bait<10)cap=.018;
- if(isHuman&&isBossHumanId(target.id)&&rod+bait<35)cap=.0008;
- var floor=isHuman?(isBossHumanId(target.id)?.00005:.003):target.rarity==='MYTHIC'?.00065:.001;
+ // Every tier retains a positive chance; stronger gear helps continuously
+ // instead of abruptly unlocking an otherwise near-zero catch chance.
  return clamp(chance,floor,cap);
 }
 // Raster-only rarity FX: four transparent bitmap sprite frames per tier.
@@ -4436,13 +4459,13 @@ var FISH_RARITY_MOVEMENT={
  UNCOMMON:{cruise:1.16,minimum:0,cap:95,steer:2.10,turnMin:5,turnMax:10,turnChance:.34,
   dashMin:6,dashMax:11,dashLength:.32,dashPower:1.50,lureSense:45,lureAvoid:16,prep:.03},
  RARE:{cruise:1.48,minimum:31,cap:130,steer:2.9,turnMin:2.9,turnMax:6.1,turnChance:.58,
-  dashMin:2.9,dashMax:5.9,dashLength:.48,dashPower:2.30,lureSense:91,lureAvoid:70,prep:.06},
+  dashMin:2.9,dashMax:5.9,dashLength:.48,dashPower:2.30,lureSense:88,lureAvoid:64,prep:.06},
  EPIC:{cruise:1.78,minimum:40,cap:163,steer:3.6,turnMin:1.9,turnMax:4.3,turnChance:.73,
-  dashMin:1.8,dashMax:3.7,dashLength:.58,dashPower:2.70,lureSense:119,lureAvoid:103,prep:.09},
- LEGEND:{cruise:2.15,minimum:48,cap:203,steer:4.3,turnMin:1.25,turnMax:2.9,turnChance:.86,
-  dashMin:1.25,dashMax:2.7,dashLength:.67,dashPower:3.14,lureSense:143,lureAvoid:133,prep:.10},
- MYTHIC:{cruise:2.48,minimum:59,cap:235,steer:4.9,turnMin:.92,turnMax:2.15,turnChance:.90,
-  dashMin:.88,dashMax:1.95,dashLength:.77,dashPower:3.65,lureSense:167,lureAvoid:163,prep:.12}
+  dashMin:1.8,dashMax:3.7,dashLength:.58,dashPower:2.70,lureSense:114,lureAvoid:94,prep:.09},
+ LEGEND:{cruise:2.08,minimum:48,cap:193,steer:4.3,turnMin:1.25,turnMax:2.9,turnChance:.86,
+  dashMin:1.25,dashMax:2.7,dashLength:.67,dashPower:3.14,lureSense:136,lureAvoid:118,prep:.10},
+ MYTHIC:{cruise:2.32,minimum:59,cap:222,steer:4.9,turnMin:.92,turnMax:2.15,turnChance:.90,
+  dashMin:.88,dashMax:1.95,dashLength:.77,dashPower:3.65,lureSense:155,lureAvoid:143,prep:.12}
 };
 function fishRarityMovement(sp){
  return FISH_RARITY_MOVEMENT[sp&&sp.rarity]||FISH_RARITY_MOVEMENT.COMMON;
