@@ -57,6 +57,12 @@ def patch_code():
   content=path.read_text('utf8')
   assert '20261112-male17-world125-v3' in content,'Missing cache key '+relative
   path.write_text(content.replace('20261112-male17-world125-v3','20261112-male17-alpha-holes-v4'),encoding='utf8')
+ qa=ROOT/'qa-male-baby-scale.cjs'
+ tests=qa.read_text('utf8')
+ old_test="assert(actual.imageFor(23,'swim').src.includes('20261112-dragon-alpha-repair-v2'),'Dragon-only fresh cache URL');"
+ new_test="for(const id of ids)assert(actual.imageFor(id,'swim').src.includes('20261112-male17-alpha-holes-v3'),'New male repaired alpha cache URL: '+id);"
+ assert tests.count(old_test)==1,'Missing original dragon-only QA assertion'
+ qa.write_text(tests.replace(old_test,new_test),encoding='utf8')
 
 def main():
  manifest=json.loads(MANIFEST.read_text('utf8'))
