@@ -8,6 +8,23 @@
  window.Image=TrackedImage;
  var root=document.querySelector('.wrap'), overlay=document.getElementById('bootOverlay');
  var status=document.getElementById('bootStatus'), button=document.getElementById('bootStart');
+ var progress=document.getElementById('bootProgress');
+ function showLoading(){
+  // A scene transition must never inherit the ready-to-start button artwork.
+  overlay.classList.remove('title-ready');
+  overlay.classList.add('title-loading');
+  button.hidden=true;button.disabled=true;
+  progress.value=0;
+ }
+ function updateImageProgress(active){
+  var total=active.length;
+  var downloaded=active.filter(function(im){return im.complete&&im.naturalWidth>0;}).length;
+  var decodedCount=active.filter(function(im){return im.complete&&im.naturalWidth>0&&decoded.get(im)===source(im);}).length;
+  // Real image download+decode completion accounts for 90%; fonts/audio follow.
+  var fraction=total?(downloaded+decodedCount)/(2*total):1;
+  progress.value=Math.max(progress.value||0,Math.min(.90,.90*fraction));
+  status.textContent='로딩 중 · '+Math.round(progress.value*100)+'%';
+ }
  function isActualMobile(){
   var ua=(navigator.userAgent||'');
   var data=navigator.userAgentData;
@@ -114,6 +131,7 @@
  }
  async function ready(){
   var token=++generation,startedAt=Date.now();
+  showLoading();
   // Start sound decoding in parallel with image download/decode. AudioContext
   // can decode before gesture; its actual playback is unlocked by START.
   var soundReady=Promise.resolve();
@@ -121,12 +139,10 @@
    try{soundReady=boundedAudioLoad(extraPreload())}
    catch(e){soundReady=Promise.resolve()}
   }
-  button.hidden=true;button.disabled=true;
   while(token===generation){
    var active=activeImages(),failed=active.filter(function(im){return im.complete&&!im.naturalWidth;});
    var done=active.filter(function(im){return im.complete&&im.naturalWidth;});
-   status.textContent='리소스 로딩 중 · '+done.length+' / '+active.length;
-   document.getElementById('bootProgress').value=active.length?done.length/active.length:0;
+   updateImageProgress(active);
    if(failed.length){failure(failed,token);return;}
    if(Date.now()-startedAt>30000){failure(active.filter(function(im){return decoded.get(im)!==source(im);}),token);return;}
    if(done.length===active.length){
@@ -147,6 +163,7 @@
      }catch(e){decodeFailed.push(im);}
     }));
      if(token!==generation)return;
+     updateImageProgress(active);
     }
     if(token!==generation)return;
     if(decodeFailed.length){failure(decodeFailed,token);return;}
@@ -158,13 +175,14 @@
   if(token!==generation)return;
   if(document.fonts)await document.fonts.ready;
   if(token!==generation)return;
-  status.textContent='환경음 준비 중';
+  progress.value=Math.max(progress.value||0,.94);
+  status.textContent='사운드 준비 중 · 94%';
   await soundReady;
   if(token!==generation)return;
   retryImages=[];retryAttempts=0;
   if(retryTimer!==null){clearTimeout(retryTimer);retryTimer=null}
   status.textContent='모든 리소스 준비 완료';
-  document.getElementById('bootProgress').value=1;
+  progress.value=1;
   if(started){
    busy=false;
    // Let the paused game render its destination before uncovering the canvas.
@@ -176,6 +194,7 @@
   }
   button.textContent='터치 · A / START로 시작';button.hidden=false;button.disabled=false;
   button.onclick=requestStart;enablePrestartGamepad();
+  overlay.classList.remove('title-loading');
   overlay.classList.add('title-ready');
   // Fullscreen/orientation lock are only requested after an explicit user gesture.
  }
@@ -185,7 +204,7 @@
   if(busy&&!depth)return;
   if(depth)return callback();
   busy=true;overlay.hidden=false;root.setAttribute('aria-busy','true');
-  button.hidden=true;button.disabled=true;status.textContent='리소스 로딩 중';
+  showLoading();status.textContent='로딩 중 · 0%';
   depth++;
   try{return callback();}
   finally{
@@ -213,7 +232,7 @@
  },true);
  function start(){
   if(started)return;
-  started=true;fullscreen();overlay.hidden=true;root.removeAttribute('inert');
+  started=true;fullscreen();overlay.hidden=true;overlay.classList.remove('title-ready');root.removeAttribute('inert');
   if(window.HumanFishingAmbient)window.HumanFishingAmbient.unlock();
   onStart();
  }

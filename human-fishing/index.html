@@ -363,8 +363,11 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 #bootOverlay{display:block;overflow:hidden;gap:0;background:#06243c;text-align:center}
 #bootTitleCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;image-rendering:auto}
 #bootOverlay h2{display:none}
-#bootStatus{position:absolute;z-index:3;left:0;right:0;bottom:6%;font:800 15px/1.2 system-ui,sans-serif;color:#e7ffff;text-shadow:0 2px 6px #001725;pointer-events:none}
-#bootProgress{position:absolute;z-index:3;left:50%;bottom:3%;width:32%;height:6px;transform:translateX(-50%);pointer-events:none}
+#bootStatus{position:absolute;z-index:3;left:0;right:0;bottom:8%;font:900 17px/1.2 system-ui,sans-serif;color:#efffff;text-shadow:0 2px 6px #001725;pointer-events:none}
+#bootProgress{position:absolute;z-index:3;left:50%;bottom:4.6%;width:42%;height:13px;transform:translateX(-50%);pointer-events:none;appearance:none;-webkit-appearance:none;border:2px solid #f4dd8c;border-radius:99px;background:#063a5e;overflow:hidden;box-shadow:0 0 14px #48dfff88,0 3px 9px #022238}
+#bootProgress::-webkit-progress-bar{background:#063a5e;border-radius:99px}
+#bootProgress::-webkit-progress-value{background:linear-gradient(90deg,#23c7ea,#8ce9e9 53%,#fff6b0);border-radius:99px;box-shadow:0 0 12px #c7ffff}
+#bootProgress::-moz-progress-bar{background:linear-gradient(90deg,#23c7ea,#8ce9e9 53%,#fff6b0);border-radius:99px}
 #bootOverlay.title-ready #bootStatus,#bootOverlay.title-ready #bootProgress{display:none}
 #bootStart{position:absolute;z-index:4;inset:0;width:100%;height:100%;min-width:0;min-height:0;padding:0;margin:0;opacity:0;color:transparent;background:transparent;border:0;box-shadow:none;border-radius:0;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 #bootStart:focus-visible{outline:3px solid #9cecff;outline-offset:-4px}
@@ -434,8 +437,8 @@ font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.4px}
 
 <div id="bootOverlay" role="dialog" aria-modal="true" aria-label="인간낚시 타이틀"><canvas id="bootTitleCanvas" width="1920" height="1080" aria-hidden="true"></canvas><h2>인간낚시</h2><p id="bootStatus" role="status">리소스 로딩 중</p><progress id="bootProgress" max="1" value="0"></progress><button id="bootStart" type="button" aria-label="GAME START. 터치 또는 Enter, A, START로 시작" hidden disabled>터치하여 시작</button></div>
 </div>
-<script src="./boot.js?v=20261112-desktop-orient4"></script>
-<script src="./title-screen.js?v=20261112-arcade-buttons1"></script>
+<script src="./boot.js?v=20261112-now-loading1"></script>
+<script src="./title-screen.js?v=20261112-now-loading1"></script>
 <script src="./water-fx.js?v=20261111-waterfx-current-waterline-opacity-v8"></script>
 <script src="./fx-shader.js?v=20261110-fxgl-v1"></script>
 <script src="./assets/fish/ready.js?v=20261106-fish304"></script>

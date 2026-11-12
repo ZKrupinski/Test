@@ -31,15 +31,46 @@
   ctx.drawImage(art.prompt,state*cw,0,cw,ch,x-w/2,y-h/2,w,h);
   ctx.restore();
  }
+ // A luminous typographic sign, not a clickable plaque or framed button.
+ function drawLoading(t){
+  ctx.save();
+  ctx.translate(W/2,910);
+  ctx.globalAlpha=.92+.08*Math.sin(t/360);
+  ctx.font='900 74px "Arial Black","Trebuchet MS",system-ui,sans-serif';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.lineJoin='round';ctx.lineWidth=7;
+  ctx.shadowColor='rgba(29,202,255,.7)';ctx.shadowBlur=22;
+  ctx.strokeStyle='#16445f';
+  ctx.strokeText('NOW LOADING',0,0);
+  var fill=ctx.createLinearGradient(0,-42,0,44);
+  fill.addColorStop(0,'#ffffff');
+  fill.addColorStop(.48,'#ffeaa3');
+  fill.addColorStop(1,'#ffc24b');
+  ctx.fillStyle=fill;
+  ctx.fillText('NOW LOADING',0,0);
+  ctx.restore();
+ }
  function paint(t){
   requestAnimationFrame(paint);
   if(overlay.hidden||document.visibilityState==='hidden')return;
-  if(!ready){
-   if(!loaded())return;
+  // Show the bright background as soon as it is decoded; the button assets
+  // may still be loading. Never show START or INSERT COIN during loading.
+  if(!art.background.complete||!art.background.naturalWidth){
+   ctx.fillStyle='#073a60';
+   ctx.fillRect(0,0,W,H);
+   drawLoading(t);
+   return;
+  }
+  if(!ready&&loaded()){
    ready=true;noisePattern=ctx.createPattern(art.noise,'repeat');
   }
+  var titleReady=ready&&overlay.classList.contains('title-ready');
   var age=pressAt<0?Infinity:t-pressAt,pressed=age<270;
   ctx.drawImage(art.background,0,0,W,H);
+  if(!titleReady){
+   drawLoading(t);
+   return;
+  }
   var phase=(t%2400)/2400,frame=phase<.48?0:phase<.52?-1:phase<.98?1:-1;
   if(pressed)frame=0;
   if(frame>=0){

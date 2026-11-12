@@ -65,6 +65,8 @@ jobs:
         run: node human-fishing/qa-catch-balance.cjs
       - name: Verify resource gate and fixed landscape coordinates
         run: node human-fishing/qa-boot.cjs
+      - name: Verify NOW LOADING title and real resource progress
+        run: node human-fishing/qa-title-loading.cjs
       - name: Verify scene image loading, retries and frozen input
         run: node human-fishing/qa-scene-loading.cjs
       - name: Run game startup, input and shop smoke test
