@@ -17,7 +17,7 @@ const fishHit=game.slice(game.indexOf('function ordinaryFishingTarget()'),
 assert.match(fishHit,/humanMouthWeakspot\(a,time\)/);
 assert.doesNotMatch(fishHit,/107\+save\.up\[1\]/,'Human cannot be caught by large center-radius');
 assert.match(fishHit,/d2<=1&&d2<lowest/);
-const state={window:env.window,baitCenterRadius:()=>8};
+const state={window:env.window,baitCenterRadius:()=>8,isBossHumanId:(id)=>Number(id)>=20&&Number(id)<24};
 vm.createContext(state);
 vm.runInContext(mouthBlock,state);
 const person={id:3,x:500,y:430,vx:31,size:1,phase:0};
