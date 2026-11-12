@@ -198,12 +198,16 @@ var HUMAN_WORLD_RENDER_BOOST=1.295; // shared approved base scale
 // than the new swim designs (24-34). Normalize ONLY live-world scale.
 // Codex/catch portraits are unaffected; no PNG bytes are changed.
 var ORIGINAL_HUMAN_WORLD_SCALE=.72;
+var BABY_HUMAN_WORLD_SCALE=.70; // relative to current world size
 function humanDesignWorldScale(id){
  var n=Number(id);
- return Number.isInteger(n)&&n>=0&&n<24?ORIGINAL_HUMAN_WORLD_SCALE:1;
+ if(!Number.isInteger(n)||n<0)return 1;
+ if(n<24)return ORIGINAL_HUMAN_WORLD_SCALE*BABY_HUMAN_WORLD_SCALE;
+ if(n<35)return BABY_HUMAN_WORLD_SCALE;
+ return 1; // sisters retain their own size
 }
 function sisterWorldScale(id){
- return Number(id)===35?1.66:Number(id)===36?1.38:Number(id)===37?1.44:1;
+ return Number(id)===35?1.66:Number(id)===36?1.50:Number(id)===37?1.44:1;
 }
 function poseGeometry(actor){
  var id=Number(actor&&actor.id),size=Math.max(.7,Math.min(1.8,Number(actor&&actor.size)||1));

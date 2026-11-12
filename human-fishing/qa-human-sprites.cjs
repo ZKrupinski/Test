@@ -8,7 +8,7 @@ const root=__dirname;
 const base=path.join(root,'assets','humans');
 const ready=fs.readFileSync(path.join(base,'ready.js'),'utf8');
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
-assert(index.includes('human-sprites.js?v=20261112-shark-original-v6'));
+assert(index.includes('human-sprites.js?v=20261112-baby70-shark150-v7'));
 assert(index.includes('assets/humans/ready.js?v=20261110-baby-v1'));
 const renderer=fs.readFileSync(path.join(root,'human-sprites.js'),'utf8');
 new Function(renderer);
@@ -23,13 +23,13 @@ assert(index.includes('pointer-events:none;touch-action:pan-y;user-select:none')
 assert(index.includes('overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y'),
  'Codex panel must support native vertical touch panning');
 assert(index.indexOf('sisters-ready.js?v=20261112-sisters-v1')<
- index.indexOf('human-sprites.js?v=20261112-shark-original-v6'),
+ index.indexOf('human-sprites.js?v=20261112-baby70-shark150-v7'),
  'Sister ready flag must load before sprite module');
 assert(index.includes("humans.push('토끼 작은언니','상어 큰언니','고양이 큰언니')"),
  'The 3 sisters must appear only when ready');
 assert(renderer.includes("sisterWorldScale(id)"),'Sister world-size helper is required');
-assert(renderer.includes("Number(id)===36?'20261112-shark-original-v6'"),'Shark art must have independent cache key');
-assert(renderer.includes("Number(id)===36?1.38:Number(id)===37?1.44"),'Shark stays stable and cat grows slightly');
+assert(renderer.includes("Number(id)===36?'20261112-baby70-shark150-v7'"),'Shark art must have independent cache key');
+assert(renderer.includes("Number(id)===36?1.50:Number(id)===37?1.44"),'Shark grows while cat stays unchanged');
 assert(renderer.includes("if(newSwim&&Number(actor.id)===36)scale*=1/.93;"),
  'Shark transparent guard must be display-compensated without modifying hitbox');
 
@@ -45,6 +45,7 @@ assert(renderer.includes("if(newSwim&&actor.id>=25)scale*=362/fw;"),
 assert(index.includes("var sisterRabbit=Number(id)===35&&!sourceIsOriginal"),
  'Codex must crop first rabbit frame according to revised 1774x887 source');
 
+assert(renderer.includes('var BABY_HUMAN_WORLD_SCALE=.70'),'Baby world size must be 70%');
 assert(renderer.includes('var ORIGINAL_HUMAN_WORLD_SCALE=.72'),
  'Legacy design size normalization must be enabled');
 assert(renderer.includes('humanDesignWorldScale(actor&&actor.id)'),
@@ -133,7 +134,7 @@ for(const mood of ['swim','resist','taunt','hooked']){
  assert(art.render(context,{id:8,x:0,y:445,vx:1,size:1.02,phase:0},0,mood),
   mood+' should use the approved existing bitmap');
  const call=captures[captures.length-1];
- assert(call[7]>118&&call[7]<132,mood+' old human sprite must be 72% of its previously displayed width');
+ assert(call[7]>82&&call[7]<93,mood+' original baby must render at 70% of previous size');
 }
 assert.match(index,/aquariumHumanActors\.forEach\(function\(h\)\{/,'Exhibition humans must render from persistent swimming actors');
 assert.match(index,/humanSwimStep\(h,humanDt,now,null,true\)/,'Exhibition humans must swim with shared AI');
@@ -143,18 +144,28 @@ assert.doesNotMatch(index,/ctx\.ellipse\(sx,sy\+24,84,108/,'aquarium human ellip
 const pos=art.geometry({id:8,x:500,y:420,vx:40,size:1});
 const mirrored=art.geometry({id:8,x:500,y:420,vx:-40,size:1});
 const female=art.geometry({id:25,x:500,y:420,vx:40,size:1});
-assert(Math.abs(female.width-362*.36*1.295)<1e-6,
- 'New female designs must keep their world display scale');
+assert(Math.abs(female.width-362*.36*1.295*.70)<1e-6,
+ 'All original new girls must shrink relative to previous world scale');
 assert(Math.abs(female.width/pos.width-1/.72)<1e-6,
  'World scale comparison should differ only by legacy male correction');
 
-assert(Math.abs(pos.width-362*.36*1.295*.72)<1e-6);
+assert(Math.abs(pos.width-362*.36*1.295*.72*.70)<1e-6);
 assert.equal(pos.mouth.x-500,500-mirrored.mouth.x,'mouth must mirror with sprite facing');
 assert(pos.mouth.x>500&&pos.mouth.rx<=12&&pos.mouth.ry<=9,
  'human mouth must be a hidden small ellipse, not the old 100px body radius');
+
+for(const id of [0,8,23,24,25,29,34]){
+ const legacy=id<24?.72:1, boss=id>=20&&id<24?1.05:1;
+ const g=art.geometry({id,size:1,x:500,y:420,vx:40});
+ assert(Math.abs(g.width-362*.36*1.295*legacy*boss*.70)<1e-6,
+  'Baby '+id+' world collision and render geometry must scale with the bitmap');
+}
+assert(Math.abs(art.geometry({id:35,size:1}).width-362*.36*1.295*1.66)<1e-6);
+assert(Math.abs(art.geometry({id:36,size:1}).width-362*.36*1.295*1.50)<1e-6);
+assert(Math.abs(art.geometry({id:37,size:1}).width-362*.36*1.295*1.44)<1e-6);
 assert.equal(art.geometry({id:22,x:500,y:420,vx:40,size:1}).mouth.rx,8,
  'Boss human weakspot must be smaller');
-console.log('PASS: legacy male world sprites/weakspots scaled by 72%; female and UI assets unchanged');
+console.log('PASS: babies (male and female) 70% of prior size; sister and UI scales preserved');
 
 assert.match(renderer,/var HUMAN_ANIMATION_SPEED=\.85/,'All human animations should play at 85% of their previous frame rate');
 assert.match(renderer,/\*HUMAN_ANIMATION_SPEED/,'Shared slowdown must affect all four actions');
