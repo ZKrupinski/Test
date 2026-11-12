@@ -6,7 +6,7 @@
  var ctx=canvas.getContext('2d',{alpha:false}),W=1920,H=1080;
  var sources={
   background:'./assets/title/bright_title_clean.png?v=20261112-bright-title4',
-  prompt:'./assets/title/prompt_animation_16f.png?v=20261112-bright-title4',
+  prompt:'./assets/title/title_buttons_atlas.png?v=20261112-arcade-buttons1',
   noise:'./assets/title/display_noise.png?v=20261112-bright-title4',
   burst:'./assets/title/fx_burst.png?v=20261112-bright-title4',
   splash:'./assets/title/fx_splash.png?v=20261112-bright-title4'
@@ -21,9 +21,15 @@
   if(failed)return false;
   return Object.keys(art).every(function(k){return art[k].complete&&art[k].naturalWidth>0});
  }
- function drawPrompt(frame,x,y,scale){
-  var cw=850,ch=142,w=cw*scale,h=ch*scale;
-  ctx.drawImage(art.prompt,frame%4*cw,Math.floor(frame/4)*ch,cw,ch,x-w/2,y-h/2,w,h);
+ // Two tightly cropped, alpha-clean bitmap states: GAME START and INSERT COIN.
+ // Keep button aspect and 100px+ bottom padding inside the 1920x1080 stage.
+ function drawPrompt(state,x,y,scale){
+  var cw=600,ch=98,w=838*scale,h=137*scale;
+  ctx.save();
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality='high';
+  ctx.drawImage(art.prompt,state*cw,0,cw,ch,x-w/2,y-h/2,w,h);
+  ctx.restore();
  }
  function paint(t){
   requestAnimationFrame(paint);
@@ -34,13 +40,12 @@
   }
   var age=pressAt<0?Infinity:t-pressAt,pressed=age<270;
   ctx.drawImage(art.background,0,0,W,H);
-  var phase=(t%2400)/2400,frame=-1;
-  if(phase<.44)frame=Math.floor(t/130)%8;
-  if(phase>=.51&&phase<.95)frame=8+Math.floor(t/130)%8;
-  if(pressed)frame=3;
+  var phase=(t%2400)/2400,frame=phase<.48?0:phase<.52?-1:phase<.98?1:-1;
+  if(pressed)frame=0;
   if(frame>=0){
-   var scale=pressed?(age<85?.97:1+.035*Math.sin(Math.min(1,(age-85)/185)*Math.PI)):1;
-   drawPrompt(frame,W/2,915,scale);
+   var breathing=1+.012*Math.sin(t/210);
+   var scale=pressed?(age<85?.97:1+.035*Math.sin(Math.min(1,(age-85)/185)*Math.PI)):breathing;
+   drawPrompt(frame,W/2,910,scale);
   }
   if(pressed){
    // 270 ms small localized response; remove the old oversized ring/flash.
@@ -53,10 +58,7 @@
    ctx.drawImage(art.splash,196,885,164,101);
    ctx.restore();
   }
-  if(noisePattern){
-   ctx.save();ctx.globalAlpha=.14;ctx.fillStyle=noisePattern;
-   ctx.fillRect(0,0,W,H);ctx.restore();
-  }
+  // Keep the UI prompt free of noise overlays to protect clean alpha edges.
  }
  requestAnimationFrame(paint);
  window.HumanFishingTitle={
