@@ -1419,10 +1419,10 @@ assert.match(script,/ctx\.translate\([^\n]*cameraVibration\.x[^\n]*cameraVibrati
  const baseRadius=game.baitCenterRadius();
  save.gearEquipped.bait='void';
  const superiorRadius=game.baitCenterRadius();
- assert.ok(superiorRadius<baseRadius-2,
-  'Higher-grade bait is steadier but has a smaller hidden catch point');
- assert.ok(baseRadius<=5.8&&superiorRadius>=2.9,
-  'The hook-bait hit radius stays inside the illustrated bait');
+ assert.ok(superiorRadius<baseRadius-.8,
+  'Higher-grade bait remains steadier without losing too much capture reach');
+ assert.ok(baseRadius<=5.8&&superiorRadius>=4.0,
+  'High-tier bait keeps a playable hidden capture radius');
  save.gearEquipped.bait='worm';
  const commonFish=game.makeFish(common,580,440,1,false,0);
  commonFish.behavior='cruise';commonFish.panicUntil=0;
