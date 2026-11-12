@@ -52,8 +52,7 @@ if(enabled){
   var variant=swimVariantById[id],img=new Image(); // Boot preloads this resource.
   img.decoding='async';
   img.src=maleSwimBoyById[id]?
-   './assets/humans/male-concepts/baby_swim_boy_'+maleSwimBoyById[id]+'_8f.png?v='+
-   (maleSwimBoyById[id]==='dragon_knight'?'20261112-dragon-alpha-repair-v2':'20261112-male17-swim-v1'):
+   './assets/humans/male-concepts/baby_swim_boy_'+maleSwimBoyById[id]+'_8f.png?v=20261112-male17-alpha-holes-v3':
    './assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)===36?'20261112-shark-original-v6':Number(id)>=35?'20261112-sisters-boundary-v4':Number(id)>=24?'20261111-human-swim11-alpha-v4':'20261111-human-swim4-v1');
   swimVariants[id]=img;
  });
