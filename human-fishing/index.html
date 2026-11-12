@@ -476,7 +476,7 @@ raw.forEach(function(s,h){var z=s.split('|');habitats.push(z[0]);z[1].split(',')
 var humans=['졸린 어부','수다쟁이 관광객','과자 부자','꼬마 해적 선장','과학자','용감한 탐험가','황금 상인','진주 사냥꾼','잠수부','보물 수집가','망원경 선장','낚시왕','마술사','음악가','화가','장군','모험가','공주','왕','심해 교수','기계공','우주 여행자','고고학자','전설의 낚시왕','졸린이','탐험가','과학자','해적','간호사','운동선수','아이돌','요리사','탐정','마법사','천사'];
 // Sisters exist only after all three reviewed transparent PNGs are installed.
 if(window.HumanFishingSisterSpritesReady===true)
- humans.push('토끼 작은언니','상어 큰언니','고양이 큰언니');
+ humans.push('라비','샤린','미유');
 var key='humanFishingAlpha01',save={coins:80,owned:{},placed:[],human:{},humanPlaced:[],up:[0,0,0],catches:0,zone:0,decor:0};
 try{var old=JSON.parse(localStorage.getItem(key)||'null');if(old){save=Object.assign(save,old)}}catch(e){}
 function persist(){try{localStorage.setItem(key,JSON.stringify(save))}catch(e){}}

@@ -25,8 +25,22 @@ assert(index.includes('overflow-y:auto;overscroll-behavior-y:contain;touch-actio
 assert(index.indexOf('sisters-ready.js?v=20261112-sisters-v1')<
  index.indexOf('human-sprites.js?v=20261112-rabbit160-cat140-v11'),
  'Sister ready flag must load before sprite module');
-assert(index.includes("humans.push('토끼 작은언니','상어 큰언니','고양이 큰언니')"),
- 'The 3 sisters must appear only when ready');
+assert(index.includes("humans.push('라비','샤린','미유')"),
+ 'Named characters 라비 (rabbit 35), 샤린 (shark 36), 미유 (cat 37) must only appear when ready');
+assert(!index.includes("humans.push('토끼 작은언니','상어 큰언니','고양이 큰언니')"),
+ 'Old sister descriptors must no longer be character names');
+// All displays resolve names by their stable numeric ID; collection/save
+// records must not be migrated when changing human display names.
+const registeredNames=['라비','샤린','미유'];
+const registryMatch=index.match(/humans\.push\('([^']+)','([^']+)','([^']+)'\)/);
+assert(registryMatch,'Sister name registry missing');
+assert.deepEqual(registryMatch.slice(1),registeredNames,'Sister IDs 35-37 name order changed');
+assert(index.includes("name:humans[id]||'인간'"),
+ 'Catch showcase must read the name from the human registry');
+assert(index.includes("human?humans[o.id]:o.sp.name"),
+ 'Successful catches must read the same human name from the registry');
+assert(index.includes("humans[Number(id)]||'인간'"),
+ 'Aquarium exhibits must read the same human name from the registry');
 assert(renderer.includes("sisterWorldScale(id)"),'Sister world-size helper is required');
 assert(renderer.includes("Number(id)===36?'20261112-shark-original-v6'"),'Shark art must keep its independent PNG cache key');
 assert(renderer.includes("Number(id)===36?1.58:Number(id)===37?1.40"),'Shark remains 1.58 while cat world scale drops to 1.40');
