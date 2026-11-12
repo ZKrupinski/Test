@@ -4,6 +4,10 @@ on:
     branches: [main]
     paths:
       - 'human-fishing/male-baby-swim17-import.zip'
+      - 'human-fishing/male-baby-swim17-part01.zip'
+      - 'human-fishing/male-baby-swim17-part02.zip'
+      - 'human-fishing/male-baby-swim17-part03.zip'
+      - 'human-fishing/male-baby-swim17-part04.zip'
   workflow_dispatch:
 
 permissions:
@@ -21,7 +25,49 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: true
+      - name: Reassemble original losslessly from four small upload archives
+        id: package
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json,zipfile,os
+          root=Path('human-fishing')
+          whole=root/'male-baby-swim17-import.zip'
+          expected='7c5c2e3b1762073b455b00f7b1f11f1993cd7f918e92eba9319d6af45f42aecb'
+          files=[root/f'male-baby-swim17-part{i:02d}.zip' for i in range(1,5)]
+          def sha(data):return hashlib.sha256(data).hexdigest()
+          if whole.exists():
+            assert sha(whole.read_bytes())==expected,'Full package checksum mismatch'
+            ready=True
+          elif not all(f.is_file() for f in files):
+            print('Waiting for remaining split ZIP files: '+', '.join(str(f) for f in files if not f.is_file()))
+            ready=False
+          else:
+            chunks=[]
+            for i,f in enumerate(files,1):
+              with zipfile.ZipFile(f) as z:
+                assert z.testzip() is None,'Split ZIP corrupt: '+str(f)
+                metadata=json.loads(z.read('part.json'))
+                assert metadata['schema']=='human-swim17-binary-split-v1'
+                assert metadata['source']=='male-baby-swim17-import.zip'
+                assert metadata['sha256']==expected and metadata['count']==4 and metadata['index']==i
+                payload=f'part{i:02d}.bin'
+                assert metadata['payload_name']==payload
+                assert set(z.namelist())=={'part.json',payload},'Unexpected files in '+str(f)
+                data=z.read(payload)
+                assert len(data)==metadata['payload_size']
+                assert sha(data)==metadata['payload_sha256'],'Part payload checksum mismatch'
+                chunks.append(data)
+            original=b''.join(chunks)
+            assert sha(original)==expected,'Reconstructed original ZIP differs from approved archive'
+            whole.write_bytes(original)
+            ready=True
+            print('PASS: reconstructed the exact original 17-sheet ZIP from four smaller ZIPs')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+            f.write('ready='+('true' if ready else 'false')+'\n')
+          PY
       - name: Verify exact 17 approved 8-frame sprite sheets and preserve ID/save compatibility
+        if: steps.package.outputs.ready == 'true'
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -152,6 +198,7 @@ jobs:
           print('PASS: 17 4x2 swimming animations installed (136 frames); protected ID 22 remains pending')
           PY
       - name: Verify JavaScript syntax, human registry, approved originals, codex and encounter QA
+        if: steps.package.outputs.ready == 'true'
         run: |
           node --check human-fishing/human-sprites.js
           node human-fishing/qa-human-sprites.cjs
@@ -189,11 +236,14 @@ jobs:
           console.log('PASS: 17 animations, ID/name registration, portrait direction, preserved base/sisters');
           JS
       - name: Commit only after all verification passes
+        if: steps.package.outputs.ready == 'true'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add human-fishing/index.html human-fishing/human-sprites.js human-fishing/qa-human-sprites.cjs human-fishing/assets/humans/male-concepts
-          git rm -f -- human-fishing/male-baby-swim17-import.zip
+          git rm -f -- human-fishing/male-baby-swim17-import.zip 2>/dev/null || true
+          git rm -f -- human-fishing/male-baby-swim17-part01.zip human-fishing/male-baby-swim17-part02.zip human-fishing/male-baby-swim17-part03.zip human-fishing/male-baby-swim17-part04.zip
+          rm -f human-fishing/male-baby-swim17-import.zip
           git diff --cached --quiet && exit 0
           git commit -m 'Install 17 male baby 8-frame swimming sprites with stable character IDs'
           git push origin HEAD:main
