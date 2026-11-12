@@ -1,0 +1,199 @@
+name: Install 17 male baby swimming sprite sheets
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'human-fishing/male-baby-swim17-import.zip'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: human-fishing-male-swim17-install
+  cancel-in-progress: false
+
+jobs:
+  install-male-swim17:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Verify exact 17 approved 8-frame sprite sheets and preserve ID/save compatibility
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, json, hashlib, zipfile, struct
+          root=Path('human-fishing')
+          zp=root/'male-baby-swim17-import.zip'
+          assert zp.is_file(), 'Upload the matching ZIP through the project uploader'
+          assert hashlib.sha256(zp.read_bytes()).hexdigest()=='7c5c2e3b1762073b455b00f7b1f11f1993cd7f918e92eba9319d6af45f42aecb', 'Wrong ZIP/version'
+          ids=[2,3,4,6,7,9,10,11,12,13,14,15,16,19,20,21,23]
+          preserved=[1,5,8,17,18,22]
+          with zipfile.ZipFile(zp) as z:
+            assert z.testzip() is None, 'Corrupt archive'
+            manifest=json.loads(z.read('manifest.json'))
+            rows=manifest['newConcepts']
+            assert manifest['maleOnly'] is True and manifest['count']==17 and manifest['grid']==[4,2]
+            assert [int(row['id']) for row in rows]==ids, 'Character ID list changed'
+            assert len({row['name'] for row in rows})==17
+            assert len({row['key'] for row in rows})==17
+            assert set(z.namelist())=={'manifest.json'}|{row['file'] for row in rows}, 'Missing/unexpected file'
+            for row in rows:
+              file=row['file']
+              assert re.fullmatch(r'male-concepts/baby_swim_boy_[a-z_]+_8f\.png',file),file
+              assert file==('male-concepts/baby_swim_boy_'+row['key']+'_8f.png')
+              png=z.read(file)
+              assert len(png)==row['bytes']
+              assert hashlib.sha256(png).hexdigest()==row['sha256']
+              assert png[:8]==b'\x89PNG\r\n\x1a\n'
+              assert struct.unpack('>II',png[16:24])==(1774,887),file
+              assert png[25]==6, 'RGBA PNG required'
+              assert len(png)>100000
+              dest=root/'assets/humans'/file
+              assert not dest.exists(), 'Never overwrite an approved image: '+str(dest)
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              dest.write_bytes(png)
+          ready=root/'assets/humans/male-concepts/ready.js'
+          ready.write_text('window.HumanFishingMaleBoysReady=true;\n',encoding='utf8')
+          def patch(text,old,new,label):
+            assert text.count(old)==1, 'Source drift: '+label+': count='+str(text.count(old))
+            return text.replace(old,new,1)
+          htmlpath=root/'index.html'
+          spritepath=root/'human-sprites.js'
+          qapath=root/'qa-human-sprites.cjs'
+          html=htmlpath.read_text('utf8')
+          sprite=spritepath.read_text('utf8')
+          qa=qapath.read_text('utf8')
+          match=re.search(r'var humans=\[([^\]]*)\];',html)
+          assert match,'Missing human catalogue'
+          names=re.findall(r"'([^']+)'",match.group(1))
+          assert len(names)==35
+          original=names[:]
+          for row in rows:names[row['id']]=row['name']
+          names[0]='기저귀 아기'
+          for id in preserved:assert names[id]==original[id], 'Protected ID changed '+str(id)
+          assert names[24:]==original[24:], 'Female character changed'
+          html=patch(html,match.group(0),"var humans=["+','.join("'"+s+"'" for s in names)+"];",'replace names without shifting IDs')
+          v='20261112-male17-swim-v1'
+          html=patch(html,
+            '<script src="./human-sprites.js?v=20261112-rabbit160-cat140-v11"></script>',
+            '<script src="./assets/humans/male-concepts/ready.js?v='+v+'"></script>\n<script src="./human-sprites.js?v='+v+'"></script>',
+            'resource preload order')
+          boy_map=',\n '.join("'"+str(row['id'])+"':'"+row['key']+"'" for row in rows)
+          pre=("var maleSwimBoyById=global.HumanFishingMaleBoysReady===true?{\n "+
+               boy_map+"\n}:Object.create(null);\n"+
+               "Object.keys(maleSwimBoyById).forEach(function(id){swimVariantById[id]='boy_'+maleSwimBoyById[id]});\n")
+          sprite=patch(sprite,
+            "var sisterSpritesEnabled=global.HumanFishingSisterSpritesReady===true;",
+            pre+"var sisterSpritesEnabled=global.HumanFishingSisterSpritesReady===true;",
+            'male-only registration')
+          source_old=("img.src='./assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)===36?"
+            "'20261112-shark-original-v6':Number(id)>=35?'20261112-sisters-boundary-v4':Number(id)>=24?"
+            "'20261111-human-swim11-alpha-v4':'20261111-human-swim4-v1');")
+          source_new=("img.src=maleSwimBoyById[id]?\n"+
+            "   './assets/humans/male-concepts/baby_swim_boy_'+maleSwimBoyById[id]+'_8f.png?v="+v+"':\n"+
+            "   './assets/humans/baby_swim_'+variant+'_8f.png?v='+(Number(id)===36?"+
+            "'20261112-shark-original-v6':Number(id)>=35?'20261112-sisters-boundary-v4':Number(id)>=24?"+
+            "'20261111-human-swim11-alpha-v4':'20261111-human-swim4-v1');")
+          sprite=patch(sprite,source_old,source_new,'boy resource filenames')
+          sprite=patch(sprite,
+            "var width=362*scale,height=sister?width*(id===35?362/543:1):543*scale;",
+            "var width=362*scale,height=maleSwimBoyById[String(id)]?width:sister?width*(id===35?362/543:1):543*scale;",
+            'male world geometry')
+          sprite=patch(sprite,
+            "var newSwim=swimVariants[String(Number(actor.id))]||null;",
+            "var newSwim=swimVariants[String(Number(actor.id))]||null;\n var maleBoy=!!maleSwimBoyById[String(Number(actor.id))];",
+            'male detection')
+          sprite=patch(sprite,
+            "if(newSwim&&actor.id>=25)sheet={w:1776,h:888,fw:444,fh:444};",
+            "if(newSwim&&actor.id>=25)sheet={w:1776,h:888,fw:444,fh:444};\n if(maleBoy)sheet={w:1774,h:887,fw:443.5,fh:443.5};",
+            '1774x887 atlas for boys')
+          sprite=patch(sprite,
+            "if(newSwim&&actor.id>=25)scale*=362/fw;",
+            "if(newSwim&&actor.id>=25)scale*=362/fw;\n if(maleBoy)scale*=362/fw;",
+            'male scale and weakspot alignment')
+          sprite=patch(sprite,
+            "ctx.scale(newSwim&&actor.id>=24?-facing:facing,1);",
+            "ctx.scale(newSwim&&(actor.id>=24||maleBoy)?-facing:facing,1);",
+            'native art faces left')
+          html=patch(html,
+            "var newer=Number(id)>=24;",
+            "var newer=Number(id)>=24;\n var maleBoy=Number(id)<24&&img.naturalWidth===1774&&img.naturalHeight===887;",
+            'codex boy sprite detection')
+          html=patch(html,
+            "var sourceIsOriginal=newer&&Number(id)!==24&&img.naturalWidth===1774&&img.naturalHeight===887;",
+            "var sourceIsOriginal=(newer&&Number(id)!==24||maleBoy)&&img.naturalWidth===1774&&img.naturalHeight===887;",
+            'accept approved original layout')
+          html=patch(html,
+            "var fw=sisterRabbit?543:newer&&Number(id)!==24?444:362;",
+            "var fw=maleBoy?444:sisterRabbit?543:newer&&Number(id)!==24?444:362;",
+            'codex frame width')
+          html=patch(html,
+            "var fh=sisterRabbit?362:newer&&Number(id)!==24?444:543;",
+            "var fh=maleBoy?444:sisterRabbit?362:newer&&Number(id)!==24?444:543;",
+            'codex frame height')
+          html=patch(html,
+            "mirror:!newer};",
+            "mirror:!newer&&!maleBoy};",
+            'left-facing codex and catch thumbnails')
+          qa=qa.replace('20261112-rabbit160-cat140-v11',v)
+          qa=patch(qa,
+            "art.imageFor(2,'hooked').src.includes('baby_hooked_8f.png')",
+            "art.imageFor(0,'hooked').src.includes('baby_hooked_8f.png')",
+            'original diaper action art')
+          htmlpath.write_text(html,encoding='utf8')
+          spritepath.write_text(sprite,encoding='utf8')
+          qapath.write_text(qa,encoding='utf8')
+          (root/'assets/humans/male-concepts/installed-manifest.json').write_text(
+            json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+          print('PASS: 17 4x2 swimming animations installed (136 frames); protected ID 22 remains pending')
+          PY
+      - name: Verify JavaScript syntax, human registry, approved originals, codex and encounter QA
+        run: |
+          node --check human-fishing/human-sprites.js
+          node human-fishing/qa-human-sprites.cjs
+          node human-fishing/qa-human-swim11.cjs
+          node human-fishing/qa-human-codex-encounter.cjs
+          node human-fishing/qa-human-test-unlock.cjs
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict'),vm=require('node:vm');
+          const root='human-fishing/';
+          const html=fs.readFileSync(root+'index.html','utf8'),src=fs.readFileSync(root+'human-sprites.js','utf8');
+          const rows=JSON.parse(fs.readFileSync(root+'assets/humans/male-concepts/installed-manifest.json','utf8')).newConcepts;
+          const humans=html.match(/var humans=\[([^\]]+)\];/)[1].match(/'[^']+'/g).map(x=>x.slice(1,-1));
+          assert.equal(humans.length,35); assert.equal(humans[0],'기저귀 아기');
+          assert.equal(humans[17],'공주');
+          const ids=[2,3,4,6,7,9,10,11,12,13,14,15,16,19,20,21,23];
+          assert.deepEqual(rows.map(x=>x.id),ids);
+          for(const r of rows){assert.equal(humans[r.id],r.name);assert(fs.existsSync(root+'assets/humans/'+r.file));}
+          assert(html.indexOf('male-concepts/ready.js')<html.indexOf('human-sprites.js?v=20261112-male17-swim-v1'));
+          new vm.Script(html.match(/<script>([\s\S]*?)<\/script>/)[1]);
+          class MockImage {
+            constructor(){this.complete=true;this.naturalWidth=1448;this.naturalHeight=1086}
+            set src(v){this._src=v;if(v.includes('male-concepts')){this.naturalWidth=1774;this.naturalHeight=887}
+              else if(v.includes('hooked')){this.naturalWidth=1776;this.naturalHeight=888}}
+            get src(){return this._src}
+          }
+          const env={window:{HumanFishingBabySpritesReady:true,HumanFishingMaleBoysReady:true},Image:MockImage};
+          vm.runInNewContext(src,env);
+          const art=env.window.HumanFishingBabySprites;
+          for(const r of rows){
+            assert(art.imageFor(r.id,'hooked').src.includes(r.file.split('/').at(-1)),r.name+' wrong sprite');
+            assert.equal(art.geometry({id:r.id,size:1}).width,art.geometry({id:r.id,size:1}).height,r.name+' sprite geometry');
+          }
+          assert(art.imageFor(0,'hooked').src.includes('baby_hooked_8f.png'));
+          assert(art.imageFor(22,'hooked').src.includes('baby_hooked_8f.png'));
+          console.log('PASS: 17 animations, ID/name registration, portrait direction, preserved base/sisters');
+          JS
+      - name: Commit only after all verification passes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add human-fishing/index.html human-fishing/human-sprites.js human-fishing/qa-human-sprites.cjs human-fishing/assets/humans/male-concepts
+          git rm -f -- human-fishing/male-baby-swim17-import.zip
+          git diff --cached --quiet && exit 0
+          git commit -m 'Install 17 male baby 8-frame swimming sprites with stable character IDs'
+          git push origin HEAD:main
