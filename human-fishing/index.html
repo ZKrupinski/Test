@@ -4631,10 +4631,57 @@ function ecoDistinctSpawnSpecies(preferred){
  if(unseen.length)pool=unseen;
  return pool[Math.floor(Math.random()*pool.length)];
 }
+// Regional encounters for installed additional artwork. Sighting is NOT a
+// capture: do not alter rarity, rewards, weakspots, catch odds or saved progress.
+// Timers use eco.t (active fishing time), and never run in menus/aquarium.
+var ECO_FEATURE_INTERVAL={UNCOMMON:100,RARE:160,EPIC:340,LEGEND:750,MYTHIC:1100};
+function ecoFeatureEligible(sp){
+ return !!sp&&!sp.archivedVisualDuplicate&&sp.habitat===zone&&
+  !!(sp.artVariant||sp.expansionSpecies||sp.specialCreature)&&
+  Object.prototype.hasOwnProperty.call(ECO_FEATURE_INTERVAL,sp.rarity);
+}
+function ecoResetFeature(){
+ eco.featureSeen=Object.create(null);
+ eco.featureNext=Object.create(null);
+ eco.featureLast=-1e9;
+ Object.keys(ECO_FEATURE_INTERVAL).forEach(function(tier){
+  eco.featureNext[tier]=eco.t+ECO_FEATURE_INTERVAL[tier]*.65;
+ });
+}
+function ecoNextFeaturedSpecies(){
+ if(!eco.featureNext||eco.t-eco.featureLast<25)return null;
+ var priority=['MYTHIC','LEGEND','EPIC','RARE','UNCOMMON'];
+ for(var t=0;t<priority.length;t++){
+  var tier=priority[t];
+  if(eco.t<eco.featureNext[tier])continue;
+  var options=species.filter(function(sp){
+   return ecoFeatureEligible(sp)&&sp.rarity===tier&&!fish.some(function(f){
+    return f.sp&&f.sp.id===sp.id&&!f.feverCaptured&&!f.trafficExit;
+   });
+  });
+  if(!options.length)continue;
+  var fewest=Infinity;
+  options.forEach(function(sp){fewest=Math.min(fewest,eco.featureSeen[sp.id]||0)});
+  var fresh=options.filter(function(sp){return (eco.featureSeen[sp.id]||0)===fewest});
+  return fresh[Math.floor(Math.random()*fresh.length)];
+ }
+ return null;
+}
+function ecoRecordFeatureSpawn(sp,isFeatured){
+ if(!eco.featureSeen||!sp)return;
+ eco.featureSeen[sp.id]=(eco.featureSeen[sp.id]||0)+1;
+ if(isFeatured&&ecoFeatureEligible(sp)){
+  eco.featureLast=eco.t;
+  eco.featureNext[sp.rarity]=eco.t+ECO_FEATURE_INTERVAL[sp.rarity]*(.88+Math.random()*.24);
+ }
+}
 function spawnWildFish(startInView,forceSolo,visualClass){
  var MAX_FISH=18;
  if(fish.length>=MAX_FISH)return 0;
- var preferred=(visualClass&&ecoVisualRepresentative(visualClass))||chooseWildSpecies(),
+ // Keep initial size showcases untouched; subsequent arrivals can spotlight
+ // an unseen installed species at a bounded, rarity-dependent interval.
+ var featured=!startInView&&!visualClass?ecoNextFeaturedSpecies():null;
+ var preferred=featured||(visualClass&&ecoVisualRepresentative(visualClass))||chooseWildSpecies(),
   sp=ecoDistinctSpawnSpecies(preferred),dir=Math.random()<.5?1:-1;
  if(!sp)return 0;
  var small=ecoCanSchool(sp)&&Math.random()<.34;
@@ -4684,6 +4731,7 @@ function spawnWildFish(startInView,forceSolo,visualClass){
   }
   fish.push(f);added++;
  }
+ if(added)ecoRecordFeatureSpawn(sp,!!featured&&sp.id===featured.id);
  return added;
 }
 function spawnWildHuman(){
@@ -4717,6 +4765,7 @@ function buildFish(){
  // change of habitat makes a new population; existing swimmers survive.
  if(eco.zone===zone)return;
  eco.zone=zone;eco.humanZone=zone;eco.fishTimer=0;eco.humanTimer=0;eco.school=0;fish=[];hum=[];
+ ecoResetFeature();
  var showcase=['SMALL','MEDIUM','SPECIAL','LARGE'];
  for(var i=0;i<11;i++)spawnWildFish(true,true,i<4?showcase[i]:null);
  for(var j=0;j<1;j++)spawnWildFish(false,true);

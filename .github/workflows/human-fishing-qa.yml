@@ -119,6 +119,8 @@ jobs:
         run: node human-fishing/qa-fx-shader.cjs
       - name: Verify congested fish disperse, choose lanes and pass safely
         run: node human-fishing/qa-ecology-traffic.cjs
+      - name: Verify every installed extra fish can enter its correct habitat
+        run: node human-fishing/qa-fish-encounters.cjs
       - name: Verify context-driven 16-frame companion animation states
         run: node human-fishing/qa-octo-sidekicks.cjs
       - name: Verify calm main octopus idle, fishing reactions and timing
