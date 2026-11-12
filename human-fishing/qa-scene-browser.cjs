@@ -25,7 +25,13 @@ window.__sceneQA={state:()=>({time,view,zone}),introRig:()=>({
  frames:introRigFrames,attached:introRigAttached,offsets:introRigOffsets,
  ready:introEntrance.visualReady,rod:rodBitmapSprites[selectedGear('rod').id].ready,
  lure:polishedRedLureArt.idle.ready,hook:hangingBaitAtlas.ready
-}),own:()=>{save.owned.F001=2;save.owned.F021=1;save.owned.F201=1;}};
+}),own:()=>{save.owned.F001=2;save.owned.F021=1;save.owned.F201=1;},
+exhibit:()=>({active:aquariumFishingActive,preserve:aquariumPreserveReturn,
+ fish:aquariumFishActors.map(a=>({id:a.sp&&a.sp.id,x:a.x,y:a.y,speed:a.speed})),
+ humans:aquariumHumanActors.map(h=>({id:h.id,slot:h.aquariumSlot,
+  x:h.x,y:h.y,laneX:h.swimLaneX,laneY:h.swimLaneY,
+  anim:h.swimAnimationClock,mode:h.swimMode}))
+})};
 })();\n</script>`));
   }
   const type={'.html':'text/html','.js':'application/javascript','.png':'image/png','.webp':'image/webp','.wav':'audio/wav','.ogg':'audio/ogg','.mp3':'audio/mpeg'}[path.extname(file)]||'application/octet-stream';
@@ -88,6 +94,41 @@ window.__sceneQA={state:()=>({time,view,zone}),introRig:()=>({
   assert.equal(await page.locator('.book-fish-thumb img').evaluateAll(ims=>ims.every(im=>im.complete&&im.naturalWidth>0)),true);
   await page.evaluate(()=>window.__sceneQA.own());
   for(const id of ['navTank','aquaPlay','aquaPlay','navShop','navGear','navBook','closePanel']){await page.click('#'+id);await ready();if(await page.locator('#aquaSaleClose').isVisible())await page.click('#aquaSaleClose');}
+  // Repeated real UI navigation must never leave tank creatures piled up
+  // on the edges, or produce non-finite human animation clocks.
+  const assertTank=async(label)=>{
+   await page.waitForFunction(()=>{
+    const v=window.__sceneQA.exhibit();
+    return window.__sceneQA.state().view==='tank'&&v.fish.length>=8&&v.humans.length>=4;
+   },{},{timeout:10000});
+   await page.waitForTimeout(150);
+   const v=await page.evaluate(()=>window.__sceneQA.exhibit());
+   assert(v.fish.every(a=>Number.isFinite(a.x)&&Number.isFinite(a.y)&&
+    a.x>=80&&a.x<=1200&&a.y>=330&&a.y<=635),
+    label+' fish must be spread inside the water, not outside either edge');
+   assert(v.humans.every(a=>Number.isFinite(a.x)&&Number.isFinite(a.y)&&
+    a.x>=90&&a.x<=1190&&Number.isFinite(a.laneX)&&
+    Number.isFinite(a.laneY)&&Number.isFinite(a.anim)),
+    label+' human swim animation or exhibit lane must never become NaN');
+   assert(new Set(v.fish.map(a=>Math.floor(a.x/200))).size>=3,
+    label+' multiple fish may not all cluster on one side');
+  };
+  for(const destination of ['navBook','navShop','navGear']){
+   await page.click('#navTank');await ready();await assertTank('before '+destination);
+   await page.click('#'+destination);await ready();
+  }
+  // Move from the tank into its fishing interaction, abandon the session
+  // through a different menu, then reopen the aquarium.
+  await page.click('#navTank');await ready();await assertTank('first exhibition');
+  await page.click('#aquaPlay');await ready();
+  assert.equal((await page.evaluate(()=>window.__sceneQA.exhibit())).active,true,
+   'Entering aquarium Play must set fishing session active');
+  await page.click('#navBook');await ready();
+  await page.click('#navTank');await ready();await assertTank('abandoned Play -> tank');
+  // Explicit Play -> Exhibit return follows the independent preservation path.
+  await page.click('#aquaPlay');await ready();
+  await page.click('#aquaPlay');await ready();await assertTank('Play -> Exhibit');
+  await page.click('#navBook');await ready();
   for(let zone=0;zone<12;zone++){
    await page.click('#navFish');await ready();await page.click(`[data-zone="${zone}"]`);await ready();
    assert.equal((await page.evaluate(()=>window.__sceneQA.state())).zone,zone);

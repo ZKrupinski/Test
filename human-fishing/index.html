@@ -1541,9 +1541,13 @@ function humanIcon(a,now){
 var aquariumFishActors=[],aquariumFishSignature='',aquariumLastTime=0;
 var aquariumExhibitTarget=10,aquariumPreserveReturn=false;
 function aquariumResetExhibit(){
+ // Menu navigation starts a fresh, in-bounds exhibition. Do not retain
+ // swimming actors with stale Play AI lanes or a paused animation timeline.
  aquariumFishActors=[];
  aquariumFishSignature='';
  aquariumLastTime=0;
+ aquariumHumanActors=[];
+ aquariumHumanLastTime=0;
 }
 function aquariumMakeExhibitActor(now,available,inView){
  var present=Object.create(null);
@@ -1577,7 +1581,9 @@ function aquariumEnsureFish(now){
   aquariumFishSignature=signature;aquariumFishActors=[];aquariumLastTime=now;
  }
  if(!available.length){aquariumFishActors=[];return}
- var initial=aquariumFishActors.length===0&&aquariumLastTime===now;
+ // A fully depleted exhibit must repopulate inside the aquarium, rather
+ // than creating an entire school outside both screen edges.
+ var initial=aquariumFishActors.length===0;
  while(aquariumFishActors.length<aquariumExhibitTarget)
   aquariumFishActors.push(aquariumMakeExhibitActor(now,available,initial));
 }
@@ -4935,6 +4941,22 @@ function humanSwimStep(person,dt,now,bait,exhibit){
   person.swimLaneX=Number.isFinite(person.swimLaneX)?person.swimLaneX:person.x;
   person.swimPersonality=(person.id%4+4)%4;
  }
+ // Play mode clears lanes because swimmers roam across the full map.
+ // When such an actor re-enters the exhibition, establish FINITE lane
+ // anchors BEFORE calculating the horizontal clamp (otherwise NaN).
+ if(exhibit){
+  var slot=Number.isInteger(person.aquariumSlot)?person.aquariumSlot:-1;
+  var defaultX=slot>=0?235+(slot%4)*239:person.x;
+  var defaultY=slot>=0?426+Math.floor(slot/4)*160:person.y;
+  if(!Number.isFinite(person.swimLaneX))
+   person.swimLaneX=clamp(defaultX,155,W-155);
+  if(!Number.isFinite(person.swimLaneY))
+   person.swimLaneY=clamp(defaultY,355,590);
+  if(!Number.isFinite(person.x))person.x=person.swimLaneX;
+  if(!Number.isFinite(person.y))person.y=person.swimLaneY;
+ }
+ if(!Number.isFinite(person.swimAnimationClock))
+  person.swimAnimationClock=now;
  var left=exhibit?clamp(person.swimLaneX-135,138,W-165):145,
   right=exhibit?clamp(person.swimLaneX+135,165,W-138):W-145;
  if(left>=right){left=145;right=W-145}
@@ -6687,11 +6709,15 @@ function aquariumRefreshControls(){
 var aquariumPreviousSetMode=setMode;
 setMode=function(mode){
  var continuing=mode==='fish'&&aquariumFishingActive;
- if(!continuing&&aquariumFishingActive){aquariumFishingActive=false;eco.zone=-1;eco.humanZone=-1;}
+ if(!continuing&&aquariumFishingActive){
+  aquariumFishingActive=false;eco.zone=-1;eco.humanZone=-1;
+  aquariumResetExhibit(); // Leaving Play via a menu must discard stale swimmers.
+ }
  if(mode==='tank'&&view!=='tank'&&!aquariumPreserveReturn)aquariumResetExhibit();
  aquariumPanelOpen=false;aquariumPreviousSetMode(mode);
  if(mode==='tank')$('sideinfo').classList.remove('show');
  if(mode==='fish'&&!aquariumFishingActive&&eco.zone<0){buildFish();buildHum();}
+ if(mode==='tank')aquariumPreserveReturn=false; // Clear only once a guarded scene transition actually runs.
  aquariumRefreshControls();
 };
 // The aquarium's humans are currently rendered from save.humanPlaced in
@@ -6722,6 +6748,26 @@ function aquariumMakePlayHuman(id,slot,inView){
   y:clamp(sy+6,330,615),phase:slot,
   vx:dir*rnd(26,38),vy:0,size:(humanId>=20&&humanId<24)?1.05:1,
   nextTurn:eco.t+rnd(8,14)};
+}
+function aquariumRestoreHumanExhibitMotion(h){
+ // Preserve a survivor's ID/skin and phase, but put it back in its own
+ // well-spaced display lane after a free-roaming fishing session.
+ var slot=Number.isInteger(h.aquariumSlot)?h.aquariumSlot:0;
+ var x=235+(slot%4)*239,y=426+Math.floor(slot/4)*160;
+ h.swimLaneX=x;h.swimLaneY=y;
+ h.x=Number.isFinite(h.x)?clamp(h.x,x-83,x+83):x;
+ h.y=Number.isFinite(h.y)?clamp(h.y,y-32,y+32):y;
+ h.vx=clamp(Number.isFinite(h.vx)?h.vx:32,-54,54);
+ h.vy=0;
+ h.swimMode='cruise';h.swimModeEnd=time;
+ h.swimDecisionAt=time+rnd(.6,1.8);
+ h.swimTargetY=h.y;
+ h.swimTurnAt=-100;h.swimTurnTo=h.vx<0?-1:1;
+ h.swimAfterTurn='cruise';
+ h.swimDir=h.vx<0?-1:1;h.dir=h.swimDir;
+ h.swimAnimationClock=Number.isFinite(h.swimAnimationClock)?
+  h.swimAnimationClock:time;
+ h.swimNextReactionAt=time+rnd(.4,1.5);
 }
 function aquariumReplenishHumans(inView){
  var placed=humanExhibitIds();
@@ -6769,28 +6815,44 @@ function aquariumReturnToExhibit(){
  var survivors=fish.filter(function(f){
   return f.aquariumResident&&!f.feverCaptured&&(!hook||f!==hook.obj);
  });
- aquariumFishActors=survivors.map(function(f){
-  var dir=f.vx<-.5?-1:f.vx>.5?1:f.dir;
-  return {id:f.sp.id,sp:f.sp,x:f.x,y:f.y,baseY:f.y,
-   dir:dir,speed:Math.max(32,Math.abs(f.vx)||f.speed||40),
-   size:f.size,phase:f.phase,turnStart:-100,turnFrom:dir,
-   turnDuration:rnd(.63,.80),lastTap:-100,
-   struggleStart:-100,struggleEnd:-100,strugglePower:0,
+ var used=[];
+ aquariumFishActors=survivors.map(function(f,i){
+  // Fishing ecology may leave a fish far beyond the visible water or
+  // with a high escape velocity. Restore only the original identity/art.
+  var safe=Number.isFinite(f.x)&&f.x>=115&&f.x<=W-115&&
+   Number.isFinite(f.y)&&f.y>=WATER_SURFACE_Y+85&&f.y<=615;
+  var x=safe?f.x:145+(i*193)%980;
+  var y=safe?f.y:WATER_SURFACE_Y+104+(i*83)%205;
+  // Avoid several survivors landing on the same edge or overlapping.
+  for(var attempt=0;attempt<18&&used.some(function(a){
+    return Math.abs(a.x-x)<115&&Math.abs(a.y-y)<56;
+   });attempt++){
+   x=145+(i*193+(attempt+1)*139)%980;
+   y=WATER_SURFACE_Y+104+(i*83+(attempt+1)*67)%205;
+  }
+  used.push({x:x,y:y});
+  var dir=f.vx<-.5?-1:f.vx>.5?1:(f.dir||1);
+  var speed=clamp(Math.abs(f.vx)||f.speed||40,32,57);
+  var size=Number.isFinite(f.size)?f.size:1;
+  var phase=Number.isFinite(f.phase)?f.phase:0;
+  return {id:f.sp.id,sp:f.sp,x:x,y:y,baseY:y,
+   dir:dir,speed:speed,size:size,phase:phase,
+   turnStart:-100,turnFrom:dir,turnDuration:rnd(.63,.80),
+   lastTap:-100,struggleStart:-100,struggleEnd:-100,strugglePower:0,
    nextStruggle:time+rnd(5,15),
-   sprite:{sp:f.sp,x:0,y:0,vx:dir*40,size:f.size,phase:f.phase}};
+   sprite:{sp:f.sp,x:0,y:0,vx:dir*40,size:size,phase:phase}};
  });
  aquariumFishSignature=aquariumKnownSpecies().map(function(sp){return sp.id}).join('|');
  aquariumLastTime=time;aquariumPreserveReturn=true;
  hideVirtualJoystick();cast.active=false;feverFx=null;hook=null;
  aquariumFishingActive=false;aquariumHumanSpawnTimer=0;
  aquariumHumanActors=hum.filter(function(h){return h&&h.aquariumResident&&!h.feverCaptured});
- aquariumHumanActors.forEach(function(h){
-  h.swimLaneX=h.x;h.swimLaneY=h.y;
- });
+ aquariumHumanActors.forEach(aquariumRestoreHumanExhibitMotion);
  aquariumHumanLastTime=0;
  eco.zone=-1;eco.humanZone=-1;
  setMode('tank');
- aquariumPreserveReturn=false;
+ // aquariumPreserveReturn is cleared by the actual setMode callback, not
+ // here: resource preloading can defer the scene transition.
 }
 $('aquaPlay').onclick=function(){
  if(aquariumFishingActive)aquariumReturnToExhibit();

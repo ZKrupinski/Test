@@ -51,6 +51,8 @@ jobs:
         run: node human-fishing/qa-human-swim11.cjs
       - name: Verify human residents survive aquarium-to-fishing transition
         run: node human-fishing/qa-aquarium-human-play.cjs
+      - name: Verify aquarium menu roundtrips, offscreen resets, and animation lanes
+        run: node human-fishing/qa-aquarium-menu-return.cjs
       - name: Verify shared human swim behavior in aquarium and normal stages
         run: node human-fishing/qa-human-swim-ai.cjs
       - name: Verify human mouth weakspot and fish human collision panic
