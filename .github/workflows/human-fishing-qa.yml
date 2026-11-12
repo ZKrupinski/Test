@@ -37,6 +37,8 @@ jobs:
           NODE
       - name: Validate approved human baby sprite PNG hashes and renderer
         run: node human-fishing/qa-human-sprites.cjs
+      - name: Verify 17 new boy swimmers +12% world-only scale and unchanged original characters
+        run: node human-fishing/qa-male-baby-scale.cjs
       - name: Validate standard gamepad mapping and controller vibration
         run: node human-fishing/qa-gamepad.cjs
       - name: Verify Fever multi-catch display and ambient audio preload

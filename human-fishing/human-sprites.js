@@ -237,11 +237,18 @@ function humanDesignWorldScale(id){
 function sisterWorldScale(id){
  return Number(id)===35?1.60:Number(id)===36?1.58:Number(id)===37?1.40:1;
 }
+// Only the 17 newly installed male swimming designs receive this world-space
+// readability adjustment. Preserve their original PNG bytes and 8-frame atlas.
+// IDs 0, 1, 5, 8, 17, 18, 22 and all girls/sisters remain unchanged.
+var NEW_MALE_SWIM_WORLD_SCALE=1.12;
+function maleBabyNewScale(id){
+ return maleSwimBoyById[String(Number(id))]?NEW_MALE_SWIM_WORLD_SCALE:1;
+}
 function poseGeometry(actor){
  var id=Number(actor&&actor.id),size=Math.max(.7,Math.min(1.8,Number(actor&&actor.size)||1));
  var sister=id>=35&&id<=37;
  var scale=.36*size*(id>=20&&id<24?1.05:1)*HUMAN_WORLD_RENDER_BOOST*
-  humanDesignWorldScale(id)*sisterWorldScale(id);
+  humanDesignWorldScale(id)*sisterWorldScale(id)*maleBabyNewScale(id);
  var facing=Number(actor&&(actor.vx||actor.dir)||1)<0?-1:1;
  var x=Number(actor&&actor.x)||0,y=Number(actor&&actor.y)||0;
  var width=362*scale,height=maleSwimBoyById[String(id)]?width:sister?width*(id===35?362/543:1):543*scale;
@@ -282,7 +289,7 @@ function render(ctx,actor,now,action){
  // Display-only scale: humans are more prominent than even large fish.
  // Never change actor.size or fishing hitbox/weakspot physics.
  var scale=(mood==='hooked'?.33:.36)*size*(actor.id>=20&&actor.id<24?1.05:1)*HUMAN_WORLD_RENDER_BOOST*
-  humanDesignWorldScale(actor.id);
+  humanDesignWorldScale(actor.id)*maleBabyNewScale(actor.id);
  if(newSwim&&actor.id>=25)scale*=362/fw;
  if(maleBoy)scale*=362/fw; // match live image cell width, including updated rabbit
  if(newSwim&&actor.id>=35)scale*=sisterWorldScale(actor.id);
