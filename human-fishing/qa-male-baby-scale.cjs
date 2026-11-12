@@ -27,16 +27,22 @@ class MockImage{
  }
  get src(){return this._src}
 }
-function load(boys){
+function load(boys,worldScale=1.12){
  const ctx={window:{
   HumanFishingBabySpritesReady:true,
   HumanFishingMaleBoysReady:boys,
   HumanFishingSisterSpritesReady:true
  },Image:MockImage};
- vm.runInNewContext(code,ctx);
+ const source=worldScale===1.12?code:code.replace(
+  'var NEW_MALE_SWIM_WORLD_SCALE=1.12;',
+  'var NEW_MALE_SWIM_WORLD_SCALE='+worldScale+';');
+ vm.runInNewContext(source,ctx);
  return ctx.window.HumanFishingBabySprites;
 }
-const base=load(false),actual=load(true);
+// Compare the same approved bitmap atlases at 1.00 vs 1.12, never the
+// old 362x543 diaper placeholder (different proportions).
+const base=load(true,1),actual=load(true);
+const disabled=load(false);
 const near=(a,b,msg)=>assert(Math.abs(a-b)<1e-7,msg+': '+a+' vs '+b);
 function spritePixels(art,id,now=0){
  const ops=[],canvas={
@@ -50,6 +56,8 @@ function spritePixels(art,id,now=0){
  return {w:draw.at(-2),h:draw.at(-1),ops:ops.length};
 }
 for(const id of ids){
+ assert(!disabled.imageFor(id,'swim').src.includes('male-concepts/'),
+  'Ready gate must not use an absent PNG for ID '+id);
  const before=base.geometry({id,x:500,y:400,vx:50,size:1});
  const after=actual.geometry({id,x:500,y:400,vx:50,size:1});
  near(after.width,before.width*1.12,'World width ID '+id);
