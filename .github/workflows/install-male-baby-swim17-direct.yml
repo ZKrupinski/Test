@@ -1,0 +1,57 @@
+name: Install 17 verified male baby swim sprites from original PNGs
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'human-fishing/male-swim17-pixel-mask.jsonl'
+      - 'human-fishing/assets/humans/male-staging/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: human-fishing-male-swim17-direct
+  cancel-in-progress: false
+
+jobs:
+  direct-sprite-install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Prepare verified decoder
+        run: python3 -m pip install --quiet Pillow
+      - name: Restore and install all 17 original-resolution PNGs
+        run: python3 human-fishing/tools/install-male-swim17-direct.py
+      - name: Verify game code and human resource compatibility
+        run: |
+          node --check human-fishing/human-sprites.js
+          node human-fishing/qa-human-sprites.cjs
+          node human-fishing/qa-human-swim11.cjs
+          node human-fishing/qa-human-codex-encounter.cjs
+          node human-fishing/qa-human-test-unlock.cjs
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict'),vm=require('node:vm');
+          const h=fs.readFileSync('human-fishing/index.html','utf8');
+          const s=fs.readFileSync('human-fishing/human-sprites.js','utf8');
+          const m=JSON.parse(fs.readFileSync('human-fishing/assets/humans/male-concepts/installed-manifest.json','utf8'));
+          const names=h.match(/var humans=\[([^\]]+)\];/)[1].match(/'[^']+'/g).map(x=>x.slice(1,-1));
+          assert.equal(names.length,35);assert.equal(names[0],'기저귀 아기');assert.equal(names[17],'공주');
+          assert.equal(m.count,17);assert.deepEqual(m.protectedIds,[0,1,5,8,17,18,22]);
+          for(const e of m.actors){assert.equal(names[e.id],e.name);assert(fs.existsSync('human-fishing/assets/humans/'+e.file));}
+          assert(h.indexOf('male-concepts/ready.js')<h.indexOf('human-sprites.js?v=20261112-male17-swim-v1'));
+          new vm.Script(s);new vm.Script(h.match(/<script>([\s\S]*?)<\/script>/)[1]);
+          console.log('PASS: 17 sprites, safe ID registrations, unchanged female/sister assets');
+          JS
+      - name: Commit fully validated PNGs and remove temporary source staging
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add human-fishing/index.html human-fishing/human-sprites.js human-fishing/qa-human-sprites.cjs human-fishing/assets/humans/male-concepts
+          git rm -r -f --ignore-unmatch -- human-fishing/assets/humans/male-staging human-fishing/male-swim17-pixel-mask.jsonl
+          git diff --cached --quiet && exit 0
+          git commit -m 'Install 17 male babies with 136 verified swim frames'
+          git push origin HEAD:main
