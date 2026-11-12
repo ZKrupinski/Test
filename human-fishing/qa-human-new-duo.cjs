@@ -15,7 +15,8 @@ assert.equal(original.length,35,'Original human save ID slots must remain stable
 assert.equal(original[8],'잠수부');assert.equal(original[17],null);assert.equal(original[22],null);
 assert(!html.includes("'공주'")&&!html.includes("'고고학자'"),'Removed characters must be absent from live roster');
 assert(html.includes("if(i===22&&isActiveHumanId(38))ids.push(38)"),'New diver must occupy former archaeologist display position');
-assert(html.includes("if(isActiveHumanId(34))ids.push(34);")&&html.includes("if(isActiveHumanId(39))ids.push(39);"),'Devil must be last, directly after Angel');
+assert(html.includes("for(var j=24;j<=34;j++)if(isActiveHumanId(j))ids.push(j);")&&html.includes("if(isActiveHumanId(39))ids.push(39);"),'Angel and Devil must finish the female-baby group');
+assert(html.includes("[37,35,36].forEach(function(id){if(isActiveHumanId(id))ids.push(id)});"),'Cat, Rabbit, Shark sisters must follow female babies');
 assert.deepEqual(manifest.actors.map(x=>x.id),[38,39]);
 for(const item of manifest.actors){
  const file=fs.readFileSync(path.join(base,item.file));
