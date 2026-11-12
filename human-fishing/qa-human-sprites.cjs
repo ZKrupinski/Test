@@ -8,7 +8,7 @@ const root=__dirname;
 const base=path.join(root,'assets','humans');
 const ready=fs.readFileSync(path.join(base,'ready.js'),'utf8');
 const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
-assert(index.includes('human-sprites.js?v=20261112-sisters-recut-v3'));
+assert(index.includes('human-sprites.js?v=20261112-sisters-boundary-v4'));
 assert(index.includes('assets/humans/ready.js?v=20261110-baby-v1'));
 const renderer=fs.readFileSync(path.join(root,'human-sprites.js'),'utf8');
 new Function(renderer);
@@ -23,13 +23,17 @@ assert(index.includes('pointer-events:none;touch-action:pan-y;user-select:none')
 assert(index.includes('overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y'),
  'Codex panel must support native vertical touch panning');
 assert(index.indexOf('sisters-ready.js?v=20261112-sisters-v1')<
- index.indexOf('human-sprites.js?v=20261112-sisters-recut-v3'),
+ index.indexOf('human-sprites.js?v=20261112-sisters-boundary-v4'),
  'Sister ready flag must load before sprite module');
 assert(index.includes("humans.push('토끼 작은언니','상어 큰언니','고양이 큰언니')"),
  'The 3 sisters must appear only when ready');
 assert(renderer.includes("sisterWorldScale(id)"),'Sister world-size helper is required');
-assert(renderer.includes("Number(id)===35?1.45"),'Rabbit sister size should be 1.45 and collision geometry should match');
-assert(renderer.includes("20261112-sisters-recut-v3"),'New sister PNG cache must be invalidated');
+assert(renderer.includes("Number(id)===36?1.38:Number(id)===37?1.44"),'Shark stays stable and cat grows slightly');
+assert(renderer.includes("if(newSwim&&Number(actor.id)===36)scale*=1/.93;"),
+ 'Shark transparent guard must be display-compensated without modifying hitbox');
+
+assert(renderer.includes("Number(id)===35?1.66"),'Rabbit sister size should be 1.66 and collision geometry should match');
+assert(renderer.includes("20261112-sisters-boundary-v4"),'New sister PNG cache must be invalidated');
 
 assert(renderer.includes("if(newSwim&&Number(actor.id)===35)sheet={w:2172,h:724,fw:543,fh:362}"),
  'Rabbit art must retain its 543x362 frame aspect');
